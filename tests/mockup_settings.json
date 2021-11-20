@@ -1,0 +1,13 @@
+{
+    "listProperty": [
+        "A",
+        "w",
+        "xcv"
+    ],
+    "dictProperty": {
+        "A": 123,
+        "B": 234
+    },
+    "stringProperty": "testoid",
+    "integerProperty": 123447745
+}
