@@ -14,8 +14,15 @@ FEED = feedback.Feedback()
 
 
 class Main(object):
+
     def __init__(self):
         super(Main, self).__init__()
+
+        #db io instances
+        self.smCommonFolder_io = None
+        self.smProjects_io = None
+        self.smUser_io = None
+
 
         self._home_dir = self._get_home_dir()
         self._common_dir = self._get_common_dir()
@@ -24,10 +31,13 @@ class Main(object):
 
         self._dcc = dcc.dcc.NAME
         self._project = self._get_project()
-        self._user = None
+        self._user = self._get_user()
+
+
 
     def _get_home_dir(self):
         """Returns Documents Directory"""
+
         dir = os.path.expanduser('~')
         if not "Documents" in dir:
             dir = os.path.join(dir, "Documents")
@@ -37,20 +47,38 @@ class Main(object):
         return tik_manager4_folder
 
     def _get_common_dir(self):
+        """Returns the common directory (or tries to set if not defined)"""
+
         _database = os.path.join(self._home_dir, "smCommonFolder.json")
-        _io = io.IO(file_path=_database)
-        common_dir = _io.read()
+        self.smCommonFolder_io = io.IO(file_path=_database)
+        common_dir = self.smCommonFolder_io.read()
         if not common_dir:
             common_dir = FEED.browse_directory()
-            _io.write(common_dir)
+            self.smCommonFolder_io.write(common_dir)
         return common_dir
 
     def _get_project(self):
+        """Returns the current defined project in database if any"""
+
         _database = os.path.join(self._home_dir, "smProjects.json")
-        _io = io.IO(file_path=_database)
-        data = _io.read()
+        self.smProjects_io = io.IO(file_path=_database)
+        data = self.smProjects_io.read()
         if data:
             return data.get(self._dcc, None)
+
+    def _get_user(self):
+        """Returns the current user or sets it as 'generic' if no user data"""
+
+        _database = os.path.join(self._home_dir, "smUser.json")
+        self.smUser_io = io.IO(file_path=_database)
+        data = self.smUser_io.read()
+        if not data:
+            data = "Generic"
+            self.smUser_io.write(data)
+        return data
+
+
+
 
 
 

@@ -22,8 +22,8 @@ class IO(dict):
             if not root_path:
                 self.root_path = os.path.normpath(os.path.expanduser("~"))
             self.file_path = os.path.join(self.root_path, self.folder_name, file_name)
-        else:
-            log.error("IO class cannot initialized. At least a file name or file_path must be defined")
+        # else:
+        #     log.error("IO class cannot initialized. At least a file name or file_path must be defined")
 
     @property
     def file_path(self):
