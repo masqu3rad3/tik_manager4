@@ -5,12 +5,11 @@ from tik_manager4.core import compatibility as compat
 
 from tik_manager4.ui.Qt import QtWidgets
 
-
 class Feedback():
     def __init__(self, *args, **kwargs):
         self.parent=None
 
-    def pop_info(self, title="Info", text="", details="", critical=False):
+    def pop_info(self, title="Info", text="", details="", critical=False, button_label=None):
         msg = QtWidgets.QMessageBox(parent=self.parent)
         if critical:
             msg.setIcon(QtWidgets.QMessageBox.Critical)
@@ -23,9 +22,13 @@ class Feedback():
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msg.button(QtWidgets.QMessageBox.Ok).setFixedHeight(30)
         msg.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
+        if button_label:
+            msg.button(QtWidgets.QMessageBox.Ok).setText(button_label)
         return msg.exec_()
 
-    def pop_question(self, title="Question", text="", details="", buttons=["save", "no", "cancel"]):
+    def pop_question(self, title="Question", text="", details="", buttons=None):
+        if buttons is None:
+            buttons = ["save", "no", "cancel"]
         button_dict = {
             "yes": "QtWidgets.QMessageBox.Yes",
             "save": "QtWidgets.QMessageBox.Save",
@@ -37,7 +40,7 @@ class Feedback():
         for button in buttons:
             widget = button_dict.get(button)
             if not widget:
-                log.error("Non-valid button defined. Valid buttons are: %s" % button_dict.keys())
+                raise RuntimeError("Non-valid button defined. Valid buttons are: %s" % button_dict.keys())
             widgets.append(widget)
 
         q = QtWidgets.QMessageBox(parent=self.parent)

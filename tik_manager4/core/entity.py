@@ -43,9 +43,6 @@ class BaseScene(object):
         return self._versions[id-1]
 
 
-
-
-
 class Version(object):
     def __init__(self, path=None, user=None, workstation=None, note=None, thumbnail=None, preview=None, ranges=None):
         super(Version, self).__init__()

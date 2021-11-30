@@ -33,7 +33,17 @@ class Main(object):
         self._project = self._get_project()
         self._user = self._get_user()
 
+    @property
+    def dcc(self):
+        return self._dcc
 
+    @property
+    def project(self):
+        return self._project
+
+    @property
+    def user(self):
+        return self._user
 
     def _get_home_dir(self):
         """Returns Documents Directory"""
@@ -53,6 +63,9 @@ class Main(object):
         self.smCommonFolder_io = io.IO(file_path=_database)
         common_dir = self.smCommonFolder_io.read()
         if not common_dir:
+            FEED.pop_info(title="Set Common Directory", text="Common Directory is not defined. "
+                                                             "Press Continue to select Common Directory",
+                          button_label="Continue")
             common_dir = FEED.browse_directory()
             self.smCommonFolder_io.write(common_dir)
         return common_dir
@@ -76,6 +89,7 @@ class Main(object):
             data = "Generic"
             self.smUser_io.write(data)
         return data
+
 
 
 
