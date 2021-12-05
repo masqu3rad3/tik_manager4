@@ -14,6 +14,8 @@ class Project(Settings):
         self._resolution = None
         self._fps = None
 
+        self._is_root = True
+        self._sub_projects = []
         self._base_scenes = []
 
     @property
@@ -31,6 +33,10 @@ class Project(Settings):
     @property
     def fps(self):
         return self._fps
+
+    @property
+    def sub_projects(self):
+        return self._sub_projects
 
     def create_project(self, path):
         if not os.path.isdir(os.path.normpath(path)):
@@ -53,4 +59,16 @@ class Project(Settings):
             self.add("fps", "24")
         self.apply()
 
+    def add_sub_project(self, name):
+        self._sub_projects.append(name)
+        pass
+
+    def scan_base_scenes(self):
+        """Finds the base scenes defined in the database"""
+        if not self._path:
+            msg = "Project path is not available"
+            log.warning(msg)
+            return 0
+        # TODO WIP
+        pass
 
