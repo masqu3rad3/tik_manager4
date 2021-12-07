@@ -28,7 +28,7 @@ class Database(object):
         if not "Documents" in dir:
             dir = os.path.join(dir, "Documents")
         tik_manager4_folder = os.path.normpath(os.path.join(dir, "TikManager4"))
-        self.io._folderCheck(tik_manager4_folder)
+        self.io.folder_check(tik_manager4_folder)
 
         return tik_manager4_folder
 

@@ -40,7 +40,7 @@ class IO(dict):
             log.error("IO maya_modules does not support this extension (%s)" % ext)
             raise Exception
         if directory:
-            self["file_path"] = self._folderCheck(new_path)
+            self["file_path"] = self.folder_check(new_path)
         else:
             self["file_path"] = os.path.join(self.root_path, self.folder_name, new_path)
 
@@ -75,7 +75,7 @@ class IO(dict):
             json.dump(data, f, indent=4)
 
     @staticmethod
-    def _folderCheck(checkpath):
+    def folder_check(checkpath):
         """Checks if the folder exists, creates it if doesnt"""
         if os.path.splitext(checkpath)[1]:
             basefolder = os.path.split(checkpath)[0] # in case it is a file path
