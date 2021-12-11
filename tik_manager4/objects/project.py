@@ -1,12 +1,13 @@
 import os
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
+from tik_manager4.objects.subproject import Subproject
 from tik_manager4.objects.basescene import BaseScene
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
-class Project(Settings):
+class Project(Settings, Subproject):
     def __init__(self, is_root=False):
         super(Project, self).__init__()
         self._path = None
@@ -14,8 +15,8 @@ class Project(Settings):
         self._resolution = None
         self._fps = None
 
-        self._is_root = is_root
-        self._sub_projects = []
+        # self._is_root = is_root
+        # self._sub_projects = []
         self._base_scenes = []
 
     @property
@@ -27,12 +28,14 @@ class Project(Settings):
         self._path = val
         sm_database = self._io.folder_check(os.path.join(self._path, "smDatabase"))
         self.settings_file = os.path.join(sm_database, "projectSettings.json")
+        # print(self.settings_file)
         if "FPS" not in self.all_properties:
             self.add("FPS", 25)
         if "Resolution" not in self.all_properties:
             self.add("Resolution", [1920, 1080])
         self._fps = self._currentValue["FPS"]
         self._resolution = self._currentValue["Resolution"]
+        return
 
     @property
     def name(self):
@@ -50,9 +53,15 @@ class Project(Settings):
     def fps(self):
         return self._fps
 
-    @property
-    def sub_projects(self):
-        return self._sub_projects
+    # @property
+    # def sub_projects(self):
+    #     return self._sub_projects
+
+    def __str__(self):
+        return self._name
+
+    # def get_sub_project_names(self):
+    #     return [sub.name for sub in self._sub_projects]
 
     # def create_project(self, path, fps=None, resolution=None):
     #     if not os.path.isdir(os.path.normpath(path)):
@@ -74,18 +83,19 @@ class Project(Settings):
     #         self.add("FPS", 25)
     #     self.apply()
 
-    def add_sub_project(self, name):
-        sub_pr = Project(is_root=False)
-        sub_pr.name = name
-        self._sub_projects.append(name)
-        pass
-
-    def scan_base_scenes(self):
-        """Finds the base scenes defined in the database"""
-        if not self._path:
-            msg = "Project path is not available"
-            log.warning(msg)
-            return 0
-        # TODO WIP
-        pass
+    # def add_sub_project(self, name):
+    #     sub_pr = Subproject()
+    #     sub_pr.name = name
+    #     # sub_pr.path = os.path.join(self.path, name)
+    #     self._sub_projects.append(sub_pr)
+    #     pass
+    #
+    # def scan_base_scenes(self):
+    #     """Finds the base scenes defined in the database"""
+    #     if not self._path:
+    #         msg = "Project path is not available"
+    #         log.warning(msg)
+    #         return 0
+    #     # TODO WIP
+    #     pass
 

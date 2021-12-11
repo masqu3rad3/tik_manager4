@@ -31,7 +31,6 @@ class Settings(object):
         return self._currentValue.keys()
 
     def initialize(self, data):
-        print(data)
         data = data or {}
         self._originalValue.clear()
         self._currentValue.clear()
