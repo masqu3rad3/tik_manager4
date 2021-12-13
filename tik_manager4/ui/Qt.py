@@ -1384,7 +1384,7 @@ def _pyside2():
     if hasattr(Qt, "_shiboken2"):
         Qt.QtCompat.wrapInstance = _wrapinstance
         Qt.QtCompat.getCppPointer = _getcpppointer
-        Qt.QtCompat.delete = shiboken2.delete
+        Qt.QtCompat.delete = shiboken2.delete_property
 
     if hasattr(Qt, "_QtUiTools"):
         Qt.QtCompat.loadUi = _loadUi
@@ -1422,7 +1422,7 @@ def _pyside():
     if hasattr(Qt, "_shiboken"):
         Qt.QtCompat.wrapInstance = _wrapinstance
         Qt.QtCompat.getCppPointer = _getcpppointer
-        Qt.QtCompat.delete = shiboken.delete
+        Qt.QtCompat.delete = shiboken.delete_property
 
     if hasattr(Qt, "_QtUiTools"):
         Qt.QtCompat.loadUi = _loadUi

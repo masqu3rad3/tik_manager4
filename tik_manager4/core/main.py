@@ -77,7 +77,7 @@ class Main(object):
         self.smProjects_io = io.IO(file_path=_database)
         data = self.smProjects_io.read()
         if data:
-            return data.get(self._dcc, None)
+            return data.get_property(self._dcc, None)
 
     def _get_user(self):
         """Returns the current user or sets it as 'generic' if no user data"""

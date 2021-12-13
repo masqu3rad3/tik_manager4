@@ -37,25 +37,25 @@ class Settings(object):
         self._originalValue.update(data)
         self._currentValue.update(data)
 
-    def is_changed(self):
+    def is_settings_changed(self):
         """Check if the settings changed since initialization"""
         return not (self._currentValue == self._originalValue)
 
-    def apply(self):
+    def apply_settings(self):
         self._originalValue = deepcopy(self._currentValue)
         self._io.write(self._originalValue)
 
-    def reset(self):
+    def reset_settings(self):
         self._currentValue = deepcopy(self._originalValue)
 
-    def edit(self, key, val):
+    def edit_property(self, key, val):
         self._currentValue.update({key: val})
 
-    def add(self, key, val):
+    def add_property(self, key, val):
         self._currentValue.update({key:val})
 
-    def delete(self, key):
+    def delete_property(self, key):
         self._currentValue.pop(key)
 
-    def get(self, key):
+    def get_property(self, key):
         return self._currentValue.get(key, None)
