@@ -43,22 +43,24 @@ class Subproject(Entity):
         self._fps = val
 
     def get_sub_tree(self):
-        data = {
-            "id": self.id,
-            "name": self.name,
-            "path": self.path,
-            "categories": self.categories,
-            "subs": [],
-        }
+        # data = {
+        #     # "id": self.id,
+        #     # "name": self.name,
+        #     # "path": self.path,
+        #     # "categories": self.categories,
+        #     # "subs": [],
+        # }
+        data = []
         # subs = self._sub_projects
         for _, sub in self._sub_projects.items():
             subdata={}
             subdata["id"] = sub.id
             subdata["name"] = sub.name
             subdata["path"] = sub.path
-            subdata["categories"] = sub.categories
+            subdata["categories"] = list(sub.categories.keys())
             subdata["subs"] = [sub.get_sub_tree() for x in sub.subs]
-            data["subs"].append(subdata)
+            data.append(subdata)
+            # data["subs"].append(subdata)
         return data
     # def get_project_tree(self):
     #     data = {}
