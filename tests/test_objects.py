@@ -28,33 +28,33 @@ def test_create_a_shot_asset_project_structure():
     props = assets.add_sub_project("Props")
     env = assets.add_sub_project("Environment")
 
-    # leaf_assets = []
-    # leaf_assets.append(chars.add_sub_project("Soldier"))
-    # leaf_assets.append(props.add_sub_project("Rifle"))
-    # leaf_assets.append(props.add_sub_project("Knife"))
-    # leaf_assets.append(env.add_sub_project("Tree"))
-    # leaf_assets.append(env.add_sub_project("Ground"))
-    #
-    # # for leaf in leaf_assets:
-    # #     for category in asset_categories:
-    # #         leaf.add_category(category)
-    #
-    # shots = pr.add_sub_project("Shots")
-    # sequence_a = shots.add_sub_project("SequenceA")
-    # leaf_shots = []
-    # leaf_shots.append(sequence_a.add_sub_project("SHOT_010"))
-    # leaf_shots.append(sequence_a.add_sub_project("SHOT_020"))
-    # leaf_shots.append(sequence_a.add_sub_project("SHOT_030"))
-    # leaf_shots.append(sequence_a.add_sub_project("SHOT_040"))
-    #
-    # sequence_b = shots.add_sub_project("SequenceB")
-    # leaf_shots.append(sequence_b.add_sub_project("SHOT_010"))
-    # leaf_shots.append(sequence_b.add_sub_project("SHOT_070"))
-    # leaf_shots.append(sequence_b.add_sub_project("SHOT_120"))
+    leaf_assets = []
+    leaf_assets.append(chars.add_sub_project("Soldier"))
+    leaf_assets.append(props.add_sub_project("Rifle"))
+    leaf_assets.append(props.add_sub_project("Knife"))
+    leaf_assets.append(env.add_sub_project("Tree"))
+    leaf_assets.append(env.add_sub_project("Ground"))
 
-    # for leaf in leaf_shots:
-    #     for category in shot_categories:
+    # for leaf in leaf_assets:
+    #     for category in asset_categories:
     #         leaf.add_category(category)
+
+    shots = pr.add_sub_project("Shots")
+    sequence_a = shots.add_sub_project("SequenceA")
+    leaf_shots = []
+    leaf_shots.append(sequence_a.add_sub_project("SHOT_010"))
+    leaf_shots.append(sequence_a.add_sub_project("SHOT_020"))
+    leaf_shots.append(sequence_a.add_sub_project("SHOT_030"))
+    leaf_shots.append(sequence_a.add_sub_project("SHOT_040"))
+
+    sequence_b = shots.add_sub_project("SequenceB")
+    leaf_shots.append(sequence_b.add_sub_project("SHOT_010"))
+    leaf_shots.append(sequence_b.add_sub_project("SHOT_070"))
+    leaf_shots.append(sequence_b.add_sub_project("SHOT_120"))
+
+    for leaf in leaf_shots:
+        for category in shot_categories:
+            leaf.add_category(category)
 
     # print("\n")
     # print("Project:", pr.name)

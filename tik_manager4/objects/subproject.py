@@ -42,62 +42,27 @@ class Subproject(Entity):
     def fps(self, val):
         self._fps = val
 
-    def get_sub_tree(self):
-        # data = {
-        #     # "id": self.id,
-        #     # "name": self.name,
-        #     # "path": self.path,
-        #     # "categories": self.categories,
-        #     # "subs": [],
-        # }
-        data = []
-        # subs = self._sub_projects
-        for _, sub in self._sub_projects.items():
-            subdata={}
-            subdata["id"] = sub.id
-            subdata["name"] = sub.name
-            subdata["path"] = sub.path
-            subdata["categories"] = list(sub.categories.keys())
-            subdata["subs"] = [sub.get_sub_tree() for x in sub.subs]
-            data.append(subdata)
-            # data["subs"].append(subdata)
+    def get_sub_tree(self, sub=None):
+        """
+        Gets the subproject data recursively
+
+        Args:
+            sub: (Subproject Object) Starts from this subproject if defined.
+
+        Returns:
+            (dictionary) sub-project data recursively
+
+        """
+
+        sub = sub or self
+        data = {
+            "id": self.id,
+            "name": self.name,
+            "path": self.path,
+            "categories":list(sub.categories.keys()),
+            "subs": [sub.get_sub_tree(sub=sub) for sub in sub.subs.values()],
+        }
         return data
-    # def get_project_tree(self):
-    #     data = {}
-    #     subs = self._sub_projects
-    #     while subs != []:
-    #         for x in subs:
-    #             data[x]
-    #             yield x.name
-    #             subs = x._sub_projects
-    #     return data
-    #     pass
-
-    # def get_sub_project_data(self, recursive=False):
-    #     if recursive:
-    #         pass
-    #     else:
-    #
-    #     data = {}
-    #     for sub in self._sub_projects:
-
-
-    def get_sub_project_names(self, recursive=False):
-        # if recursive:
-        #     data = []
-        #     subs = self._sub_projects
-        #     while subs != []:
-        #         sub_data = []
-        #         for x in subs:
-        #             sub_data.append(x)
-
-        if recursive:
-            subs = self._sub_projects
-            while subs != []:
-                for x in subs:
-                    yield x.name
-                    subs = x._sub_projects
-        return [sub.name for sub in self._sub_projects]
 
     def add_sub_project(self, name):
         if name in self._sub_projects.keys():
@@ -114,13 +79,3 @@ class Subproject(Entity):
         category = Category(name=name)
         self._categories[name] = category
         return category
-
-    def scan_base_scenes(self):
-        """Finds the base scenes defined in the database"""
-        # if not self._path:
-        #     msg = "Project path is not available"
-        #     log.warning(msg)
-        #     return 0
-        # TODO WIP
-        pass
-

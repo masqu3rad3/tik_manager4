@@ -10,11 +10,6 @@ class Project(Settings, Subproject):
     def __init__(self):
         super(Project, self).__init__()
         self._path = None
-        self._name = None
-        self._resolution = None
-        self._fps = None
-
-        self._base_scenes = []
 
     @property
     def path(self):
@@ -33,32 +28,4 @@ class Project(Settings, Subproject):
         self._resolution = self._currentValue["Resolution"]
         return
 
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, val):
-        self._name = val
-
-    # def get_project_tree(self):
-    #     data = {}
-    #     subs = self._sub_projects
-    #     for sub in self._sub_projects:
-    #         data["id"] = sub.id
-    #         data["name"] = sub.name
-    #         data["path"] = sub.path
-    #         data["categories"] = sub.categories
-    #         data["subs"] = sub.subs
-    #
-    #     while subs != []:
-    #         for x in subs:
-    #             data[x]
-    #             yield x.name
-    #             subs = x._sub_projects
-    #     return data
-    #     pass
-
-    def __str__(self):
-        return self._name
 
