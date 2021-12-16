@@ -59,7 +59,9 @@ class Subproject(Entity):
             "id": self.id,
             "name": self.name,
             "path": self.path,
-            "categories":list(sub.categories.keys()),
+            "resolution": self._resolution,
+            "fps": self._fps,
+            "categories": list(sub.categories.keys()),
             "subs": [sub.get_sub_tree(sub=sub) for sub in sub.subs.values()],
         }
         return data
