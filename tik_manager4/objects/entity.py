@@ -13,6 +13,10 @@ class Entity(object):
     def id(self):
         return self._id or uuid.uuid1().time_low
 
+    @id.setter
+    def id(self, val):
+        self._id = val
+
     @property
     def path(self):
         return self._relative_path

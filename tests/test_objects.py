@@ -1,5 +1,6 @@
 # import pytest
 from pprint import pprint
+import shutil
 
 import os
 from tik_manager4.objects import project
@@ -12,6 +13,8 @@ def test_initialize():
 
 def test_project_path():
     test_project = os.path.join(os.path.expanduser("~"), "test_project")
+    if os.path.exists(test_project):
+        shutil.rmtree(test_project)
     pr.path = test_project
     assert pr.path == test_project
 
@@ -24,6 +27,8 @@ def test_create_a_shot_asset_project_structure():
     shot_categories = ["Layout", "Animation", "Lighting", "Render"]
 
     assets = pr.add_sub_project("Assets")
+    print("***********")
+    print(assets)
     chars = assets.add_sub_project("Characters")
     props = assets.add_sub_project("Props")
     env = assets.add_sub_project("Environment")
@@ -63,11 +68,17 @@ def test_create_a_shot_asset_project_structure():
     print("\n")
     # assert pr.subs["Assets"].subs["Characters"].subs["Soldier"].name == "Soldier"
     # pprint(list(pr.get_sub_project_names(recursive=True)))
+    pr.save_structure()
     pprint(pr.get_sub_tree())
 
 def test_existing_sub_project():
     pr.add_sub_project("duplicate_test")
     assert pr.add_sub_project("duplicate_test") == 0
+
+def test_validating_existing_project():
+    existing_project = project.Project()
+    existing_project.path = pr.path
+    pprint(existing_project.get_sub_tree())
 
 
 #

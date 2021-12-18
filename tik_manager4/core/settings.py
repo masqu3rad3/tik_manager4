@@ -52,7 +52,7 @@ class Settings(object):
         self._currentValue.update({key: val})
 
     def add_property(self, key, val):
-        self._currentValue.update({key:val})
+        self._currentValue.update({key: val})
 
     def delete_property(self, key):
         self._currentValue.pop(key)
