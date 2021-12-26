@@ -1,15 +1,19 @@
 import os
+import sys
 
 from tik_manager4.core import compatibility as compat
 # from tik_manager4.core import filelog
 
 from tik_manager4.ui.Qt import QtWidgets
 
+
+
 class Feedback():
+    app = QtWidgets.QApplication(sys.argv)
     def __init__(self, *args, **kwargs):
         self.parent=None
 
-    def pop_info(self, title="Info", text="", details="", critical=False, button_label=None):
+    def pop_info(self, title="Info", text="", details="", critical=False, button_label=None, modal=True):
         msg = QtWidgets.QMessageBox(parent=self.parent)
         if critical:
             msg.setIcon(QtWidgets.QMessageBox.Critical)
@@ -17,6 +21,7 @@ class Feedback():
             msg.setIcon(QtWidgets.QMessageBox.Information)
 
         msg.setWindowTitle(title)
+        msg.setModal(modal)
         msg.setText(text)
         msg.setInformativeText(details)
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
@@ -25,8 +30,9 @@ class Feedback():
         if button_label:
             msg.button(QtWidgets.QMessageBox.Ok).setText(button_label)
         return msg.exec_()
+        # return msg.show()
 
-    def pop_question(self, title="Question", text="", details="", buttons=None):
+    def pop_question(self, title="Question", text="", details="", buttons=None, modal=True):
         if buttons is None:
             buttons = ["save", "no", "cancel"]
         button_dict = {
@@ -46,6 +52,7 @@ class Feedback():
         q = QtWidgets.QMessageBox(parent=self.parent)
         q.setIcon(QtWidgets.QMessageBox.Question)
         q.setWindowTitle(title)
+        q.setModal(modal)
         q.setText(text)
         q.setInformativeText(details)
         eval('q.setStandardButtons(%s)' %(" | ".join(widgets)))
@@ -54,9 +61,10 @@ class Feedback():
             if ret == eval(value):
                 return key
 
-    def browse_directory(self):
-        dlg = QtWidgets.QFileDialog()
+    def browse_directory(self, modal=True):
+        dlg = QtWidgets.QFileDialog(parent=self.parent)
+        dlg.setModal(modal)
         dlg.setFileMode(QtWidgets.QFileDialog.Directory)
-
         if dlg.exec_():
+        # if dlg.exec():
             return os.path.normpath(compat.encode(dlg.selectedFiles()[0]))

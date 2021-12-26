@@ -1,9 +1,10 @@
 # import pytest
+import uuid
 from pprint import pprint
 import shutil
 
 import os
-from tik_manager4.objects import project
+from tik_manager4.objects import project, user
 
 # class PropertyTest(object):
 pr = project.Project()
@@ -94,3 +95,23 @@ def test_validating_existing_project():
 #     assert len(pr.sub_projects[0].sub_projects) == 1
 #     assert str(pr.sub_projects[0].sub_projects[0]) == second_level_sub_project_name
 #     print(pr.sub_projects[0].sub_projects[0]._relative_path)
+
+
+def test_initializing_user():
+    # temporarily rename the TikManager4 folder if there is one
+    revert_flag = False
+    salt = str(uuid.uuid4()).split("-")[-1]
+    t4_folder = os.path.normpath(os.path.join(os.path.expanduser('~'), "TikManager4"))
+    if os.path.isdir(t4_folder):
+        revert_flag = True
+        os.rename(t4_folder, t4_folder.replace("TikManager4", "TikManager4_%s" % salt))
+
+    # test creating one from scratch
+    user_init_from_scratch = user.User()
+    print("User initialized from scratch")
+    assert user_init_from_scratch._validate_user_data() == 1, "Existing user data cannot be initialized"
+
+    if revert_flag:
+        # back to the original one
+        shutil.rmtree(t4_folder)
+        os.rename(t4_folder.replace("TikManager4", "TikManager4_%s" % salt), t4_folder)
