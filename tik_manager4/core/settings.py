@@ -2,6 +2,7 @@
 from copy import deepcopy
 from tik_manager4.core import io
 
+
 class Settings(object):
     """
     Generic Settings class to hold read and compare dictionary data
@@ -31,6 +32,7 @@ class Settings(object):
         return self._currentValue.keys()
 
     def initialize(self, data):
+        """Initializes the settings data"""
         data = data or {}
         self._originalValue.clear()
         self._currentValue.clear()
@@ -38,24 +40,31 @@ class Settings(object):
         self._currentValue.update(data)
 
     def is_settings_changed(self):
-        """Check if the settings changed since initialization"""
+        """Checks if the settings changed since initialization"""
         return not (self._currentValue == self._originalValue)
 
     def apply_settings(self):
-        self._originalValue = deepcopy(self._currentValue)
-        self._io.write(self._originalValue)
+        """Applies the changed settings and writes it to file"""
+        if self.is_settings_changed():
+            self._originalValue = deepcopy(self._currentValue)
+            self._io.write(self._originalValue)
 
     def reset_settings(self):
+        """Reverts back the unsaved changes to the original state"""
         self._currentValue = deepcopy(self._originalValue)
 
     def edit_property(self, key, val):
+        """Updates the property key with given value"""
         self._currentValue.update({key: val})
 
     def add_property(self, key, val):
+        """Creates a property key with given value"""
         self._currentValue.update({key: val})
 
     def delete_property(self, key):
+        """Deletes the given property key"""
         self._currentValue.pop(key)
 
     def get_property(self, key):
+        """Returns the value of the property key"""
         return self._currentValue.get(key, None)

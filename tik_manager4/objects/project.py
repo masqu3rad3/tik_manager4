@@ -5,7 +5,6 @@ from tik_manager4.objects.subproject import Subproject
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
-
 class Project(Settings, Subproject):
     def __init__(self):
         super(Project, self).__init__()
