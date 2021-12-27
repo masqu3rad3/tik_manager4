@@ -9,6 +9,7 @@ class Project(Settings, Subproject):
     def __init__(self):
         super(Project, self).__init__()
         self._path = None
+        self._database_path =None
 
     @property
     def path(self):
@@ -17,8 +18,8 @@ class Project(Settings, Subproject):
     @path.setter
     def path(self, val):
         self._path = val
-        tik_database = self._io.folder_check(os.path.join(self._path, "tikDatabase"))
-        self.settings_file = os.path.join(tik_database, "project_structure.json")
+        self._database_path = self._io.folder_check(os.path.join(self._path, "tikDatabase"))
+        self.settings_file = os.path.join(self._database_path, "project_structure.json")
         #
         # sm_database = self._io.folder_check(os.path.join(self._path, "smDatabase"))
         # self.settings_file = os.path.join(sm_database, "projectSettings.json")
@@ -41,6 +42,14 @@ class Project(Settings, Subproject):
         #     self.add_property("resolution", [1920, 1080])
         return
 
+    @property
+    def database_path(self):
+        return self._database_path
+
     def save_structure(self):
         self._currentValue = self.get_sub_tree()
         self.apply_settings()
+
+
+
+

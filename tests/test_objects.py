@@ -72,6 +72,8 @@ def test_create_a_shot_asset_project_structure():
     pr.save_structure()
     pprint(pr.get_sub_tree())
 
+    pr.create_folders(pr.database_path)
+
 def test_existing_sub_project():
     pr.add_sub_project("duplicate_test")
     assert pr.add_sub_project("duplicate_test") == 0

@@ -113,3 +113,12 @@ class Subproject(Entity):
         category = Category(name=name)
         self._categories[name] = category
         return category
+
+    def create_folders(self, root, sub=None):
+        """Creates folders for subprojects and categories below this starting from 'root' path"""
+        sub = sub or self
+        folder = os.path.join(root, sub.path)
+        os.makedirs(folder, exist_ok=True)
+        for category in sub.categories:
+            os.makedirs(os.path.join(folder, category))
+        _ = [sub.create_folders(root, sub=sub) for sub in sub.subs.values()]
