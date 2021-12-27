@@ -98,6 +98,12 @@ def test_validating_existing_project():
 
 
 def test_initializing_user():
+    # create a mockup common folder
+    mockup_common = os.path.join(os.path.expanduser("~"), "mockup_common")
+    if os.path.exists(mockup_common):
+        shutil.rmtree(mockup_common)
+    os.mkdir(mockup_common)
+
     # temporarily rename the TikManager4 folder if there is one
     revert_flag = False
     salt = str(uuid.uuid4()).split("-")[-1]
@@ -107,7 +113,7 @@ def test_initializing_user():
         os.rename(t4_folder, t4_folder.replace("TikManager4", "TikManager4_%s" % salt))
 
     # test creating one from scratch
-    user_init_from_scratch = user.User()
+    user_init_from_scratch = user.User(commons_directory=mockup_common)
     print("User initialized from scratch")
     assert user_init_from_scratch._validate_user_data() == 1, "Existing user data cannot be initialized"
 

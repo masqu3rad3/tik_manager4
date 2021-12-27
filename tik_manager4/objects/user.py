@@ -1,6 +1,8 @@
 import os
 from tik_manager4.core.settings import Settings
+from tik_manager4.objects.commons import Commons
 from tik_manager4.ui import feedback
+
 
 FEED = feedback.Feedback()
 
@@ -32,11 +34,13 @@ DEFAULT_USER_SETTINGS = {
 
 
 class User(object):
-    def __init__(self):
+    def __init__(self, commons_directory=None):
         super(User, self).__init__()
         self.settings = Settings()
         self.states = Settings()
         self.user_directory = None
+        self.common_directory = commons_directory # this is only for programmatically set the commons
+        self.commons = None
 
         self._validate_user_data()
 
@@ -56,13 +60,18 @@ class User(object):
             if not self.settings.get_property(key=key):
                 self.settings.add_property(key=key, val=val)
 
-        # check the validity of common folder
+        # Check for the common folder defined in the user settings
         if not os.path.isdir(self.settings.get_property("commonFolder")):
-            FEED.pop_info(title="Set Common Directory", text="Common Directory is not defined. "
-                                                             "Press Continue to select Common Directory",
-                          button_label="Continue")
-            common_dir = FEED.browse_directory()
-            self.settings.edit_property("commonFolder", common_dir)
+            # if it is not overridden while creating the object ask it from the user
+            if not self.common_directory:
+                FEED.pop_info(title="Set Commons Directory", text="Commons Directory is not defined. "
+                                                                 "Press Continue to select Commons Directory",
+                              button_label="Continue")
+                self.common_directory = FEED.browse_directory()
+            assert self.common_directory, "Commons Directory must be defined to continue"
+            self.settings.edit_property("commonFolder", self.common_directory)
+            self.commons = Commons(self.common_directory)
+
         self.settings.apply_settings()
         return 1
 
