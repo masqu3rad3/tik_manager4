@@ -9,8 +9,10 @@ from tik_manager4.objects import project, user
 # class PropertyTest(object):
 pr = project.Project()
 
+
 def test_initialize():
     assert pr
+
 
 def test_project_path():
     test_project = os.path.join(os.path.expanduser("~"), "test_project")
@@ -19,9 +21,24 @@ def test_project_path():
     pr.path = test_project
     assert pr.path == test_project
 
+
 def test_project_name():
+    """Test for changing the project name"""
     pr.name = "test_project"
     assert pr.name == "test_project"
+
+
+def test_project_resolution():
+    """Test for changing project resolution"""
+    pr.resolution = [1280, 720]
+    assert pr.resolution == [1280, 720]
+
+
+def test_creating_existing_sub_project():
+    """Tests the scenario where duplicate sub-project creation attempt"""
+    pr.add_sub_project("duplicate_test")
+    assert pr.add_sub_project("duplicate_test") == 0
+
 
 def test_create_a_shot_asset_project_structure():
     asset_categories = ["Model", "LookDev", "Rig"]
@@ -34,24 +51,20 @@ def test_create_a_shot_asset_project_structure():
     props = assets.add_sub_project("Props")
     env = assets.add_sub_project("Environment")
 
-    leaf_assets = []
-    leaf_assets.append(chars.add_sub_project("Soldier"))
-    leaf_assets.append(props.add_sub_project("Rifle"))
-    leaf_assets.append(props.add_sub_project("Knife"))
-    leaf_assets.append(env.add_sub_project("Tree"))
-    leaf_assets.append(env.add_sub_project("Ground"))
+    leaf_assets = [chars.add_sub_project("Soldier"),
+                   props.add_sub_project("Rifle"),
+                   props.add_sub_project("Knife"),
+                   env.add_sub_project("Tree"),
+                   env.add_sub_project("Ground")]
 
-    # for leaf in leaf_assets:
-    #     for category in asset_categories:
-    #         leaf.add_category(category)
+    for leaf in leaf_assets:
+        for category in asset_categories:
+            leaf.add_category(category)
 
     shots = pr.add_sub_project("Shots")
     sequence_a = shots.add_sub_project("SequenceA")
-    leaf_shots = []
-    leaf_shots.append(sequence_a.add_sub_project("SHOT_010"))
-    leaf_shots.append(sequence_a.add_sub_project("SHOT_020"))
-    leaf_shots.append(sequence_a.add_sub_project("SHOT_030"))
-    leaf_shots.append(sequence_a.add_sub_project("SHOT_040"))
+    leaf_shots = [sequence_a.add_sub_project("SHOT_010"), sequence_a.add_sub_project("SHOT_020"),
+                  sequence_a.add_sub_project("SHOT_030"), sequence_a.add_sub_project("SHOT_040")]
 
     sequence_b = shots.add_sub_project("SequenceB")
     leaf_shots.append(sequence_b.add_sub_project("SHOT_010"))
@@ -73,15 +86,17 @@ def test_create_a_shot_asset_project_structure():
     pprint(pr.get_sub_tree())
 
     pr.create_folders(pr.database_path)
+    pr.create_folders(pr._path)
 
-def test_existing_sub_project():
-    pr.add_sub_project("duplicate_test")
-    assert pr.add_sub_project("duplicate_test") == 0
 
 def test_validating_existing_project():
+    """Tests reading an existing project structure and compares it to the created one on-the-fly"""
     existing_project = project.Project()
     existing_project.path = pr.path
     pprint(existing_project.get_sub_tree())
+    # check if read and written match
+    # print(pr.subs["Assets"].subs["Characters"].id, existing_project.subs["Assets"].subs["Characters"].id)
+    assert pr.get_sub_tree() == existing_project.get_sub_tree(), "Read and Write of project structure does not match"
 
 
 #

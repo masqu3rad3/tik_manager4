@@ -5,11 +5,19 @@ from tik_manager4.objects.subproject import Subproject
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
+
 class Project(Settings, Subproject):
-    def __init__(self):
+    def __init__(self, path=None, name=None, resolution=None, fps=None):
         super(Project, self).__init__()
-        self._path = None
-        self._database_path =None
+        self._path = path
+        self._database_path = None
+        self._name = name
+        self._resolution = resolution
+        self._fps = fps
+
+        # This makes sure the project folder is tik_manager4 ready
+        if path:
+            self.path = path
 
     @property
     def path(self):
@@ -21,25 +29,14 @@ class Project(Settings, Subproject):
         self._database_path = self._io.folder_check(os.path.join(self._path, "tikDatabase"))
         self.settings_file = os.path.join(self._database_path, "project_structure.json")
         #
-        # sm_database = self._io.folder_check(os.path.join(self._path, "smDatabase"))
-        # self.settings_file = os.path.join(sm_database, "projectSettings.json")
         if not self.get_property("path"):
             self.add_property("path", self._path)
         if not self.get_property("fps"):
             self.add_property("fps", 25)
         if not self.get_property("resolution"):
             self.add_property("resolution", [1920, 1080])
-        # self.fps = self._currentValue["fps"]
-        # self.resolution = self._currentValue["resolution"]
         self.apply_settings()
-        print("**************")
-        print(self._currentValue)
         self.set_sub_tree(self._currentValue)
-        #
-        # if "fps" not in self.all_properties:
-        #     self.add_property("fps", 25)
-        # if "resolution" not in self.all_properties:
-        #     self.add_property("resolution", [1920, 1080])
         return
 
     @property
@@ -49,7 +46,3 @@ class Project(Settings, Subproject):
     def save_structure(self):
         self._currentValue = self.get_sub_tree()
         self.apply_settings()
-
-
-
-

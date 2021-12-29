@@ -1,5 +1,6 @@
 from tik_manager4.objects.version import Version
 
+
 class BaseScene(object):
     def __init__(self, project_path=None, version_folder=None, publish_folder=None):
         super(BaseScene, self).__init__()
@@ -15,7 +16,6 @@ class BaseScene(object):
 
         self._versions = []
         self._publishes = []
-
 
     @property
     def type(self):

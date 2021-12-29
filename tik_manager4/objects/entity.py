@@ -1,17 +1,16 @@
 import uuid
 
 class Entity(object):
-    def __init__(self):
-        self._id = None
-        self._relative_path = ""
-        self._name = ""
-
-    def __str__(self):
-        return self._name
+    def __init__(self, name="", uid=None):
+        self._id = uid
+        self._path = ""
+        self._name = name
 
     @property
     def id(self):
-        return self._id or uuid.uuid1().time_low
+        if not self._id:
+            self._id = uuid.uuid1().time_low
+        return self._id
 
     @id.setter
     def id(self, val):
@@ -19,11 +18,11 @@ class Entity(object):
 
     @property
     def path(self):
-        return self._relative_path
+        return self._path
 
     @path.setter
     def path(self, val):
-        self._relative_path = val
+        self._path = val
 
     @property
     def name(self):
