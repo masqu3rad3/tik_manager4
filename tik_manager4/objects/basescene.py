@@ -39,5 +39,5 @@ class BaseScene(object):
     def get_all_versions(self):
         return self._versions
 
-    def get_version(self, id):
-        return self._versions[id-1]
+    def get_version(self, version_id):
+        return self._versions[version_id-1]

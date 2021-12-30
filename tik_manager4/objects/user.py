@@ -3,8 +3,8 @@ from tik_manager4.core.settings import Settings
 from tik_manager4.objects.commons import Commons
 from tik_manager4.ui import feedback
 
-
 FEED = feedback.Feedback()
+
 
 class User(object):
     def __init__(self, commons_directory=None):
@@ -12,7 +12,7 @@ class User(object):
         self.settings = Settings()
         self.states = Settings()
         self.user_directory = None
-        self.common_directory = commons_directory # this is only for programmatically set the commons
+        self.common_directory = commons_directory  # this is only for programmatically set the commons
         self.commons = None
 
         self._validate_user_data()
@@ -50,4 +50,5 @@ class User(object):
 
         self.settings.apply_settings()
         return 1
+
 
