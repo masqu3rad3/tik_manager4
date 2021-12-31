@@ -38,14 +38,6 @@
             "Render",
             "Other"
           ],
-  "defaultColorCoding": {
-        "": "rgb(0, 0, 0, 255)", 
-        "Photoshop": "rgb(60, 60, 250, 255)", 
-        "Nuke": "rgb(246, 100, 100, 255)", 
-        "Maya": "rgb(81, 230, 247, 255)", 
-        "3dsMax": "rgb(150, 247, 81, 255)", 
-        "Houdini": "rgb(247, 172, 81, 255)"
-  }, 
   "defaultConversionLUT": {
     "videoCodec": "-c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p",
     "compression": "-crf 23",
@@ -54,22 +46,6 @@
     "resolution": "",
     "audioCodec": "-c:a aac"
   },
-  "defaultUsers": {
-    "Generic": "gn"
-  },
-  "exportTextureTypes": [
-    "Diffuse",
-    "Opacity",
-    "Reflection",
-    "Subsurface",
-    "Displacement",
-    "Normal",
-    "Cavity",
-    "AO",
-    "ID",
-    "Mask",
-    "Custom"
-  ],
   "transferExportSettings": {
     "objExportMax": {
         "ObjScale": "1.0",
@@ -418,5 +394,13 @@
     "extraColumns": [
       "Date"
     ]
+  },
+  "defaultBookmarks": {
+    "bookmarkedProjects": [],
+    "recentProjects": [],
+    "activeUser": "Generic",
+    "activeProject": null,
+    "activeSubprojectId": null,
+    "activeCategory": null
   }
 }

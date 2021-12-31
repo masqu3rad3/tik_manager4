@@ -41,9 +41,15 @@ class Commons(object):
         self.users = Settings(file_path=os.path.join(self._folder_path, "users.json"))
         self.template = Settings(file_path=os.path.join(self._folder_path, "templates.json"))
 
+    def get_users(self):
+        """Returns the list of all active users"""
+        return self.users.all_properties
+
     def create_user(self, user_name, initials, password, permission_level):
         """Creates a new user and stores it in database"""
-        if user_name in self.users.keys():
+        # TODO Either this function or the one calls this one needs to be checked against the active users
+        # TODO permissions level. Only Level 2 and 3 users should have this permission.
+        if user_name in self.users.all_properties:
             return -1, log.error("User %s already exists. Aborting" % user_name)
         user_data = {
             "initials": initials,
@@ -55,7 +61,7 @@ class Commons(object):
 
     def delete_user(self, user_name):
         """Removes the user from database"""
-        if user_name in self.users.keys():
+        if user_name in self.users.all_properties:
             return -1, log.error("%s does not exist. Aborting" % user_name)
         self.users.delete_property(user_name)
         self.users.apply_settings()

@@ -6,13 +6,28 @@ import shutil
 import os
 from tik_manager4.objects import project, user
 
-# class PropertyTest(object):
+# create a mockup common folder
+mockup_common = os.path.join(os.path.expanduser("~"), "mockup_common")
+if os.path.exists(mockup_common):
+    shutil.rmtree(mockup_common)
+os.mkdir(mockup_common)
+
+# temporarily rename the TikManager4 folder if there is one
+revert_flag = False
+salt = str(uuid.uuid4()).split("-")[-1]
+t4_folder = os.path.normpath(os.path.join(os.path.expanduser('~'), "TikManager4"))
+if os.path.isdir(t4_folder):
+    revert_flag = True
+    os.rename(t4_folder, t4_folder.replace("TikManager4", "TikManager4_%s" % salt))
+
+
+#initialize project and user
 pr = project.Project()
+test_user = user.User(commons_directory=mockup_common)
 
 
 def test_initialize():
     assert pr
-
 
 def test_project_path():
     test_project = os.path.join(os.path.expanduser("~"), "test_project")
@@ -98,43 +113,25 @@ def test_validating_existing_project():
     # print(pr.subs["Assets"].subs["Characters"].id, existing_project.subs["Assets"].subs["Characters"].id)
     assert pr.get_sub_tree() == existing_project.get_sub_tree(), "Read and Write of project structure does not match"
 
+def test_reinitializing_user():
+    """Tests creating a common folder and user databases"""
+    assert test_user._validate_user_data() == 1, "Existing user data cannot be initialized"
 
+def test_adding_new_users_to_database():
+    """Tests to add new users to commons database"""
+    print("4"*40)
+    print(test_user.get_active_user())
+    test_user.commons.create_user("Test_BasicUser", "tbu", "password", 0)
+    test_user.commons.create_user("Test_TaskUser", "ttu", "password", 1)
+    test_user.commons.create_user("Test_ProjectUser", "ttu", "password", 2)
+    test_user.commons.create_user("Test_AdminUser", "ttu", "password", 3)
 #
-# def test_subproject():
-#     test_sub_project_name = "sample_sub_project"
-#     pr.add_sub_project(test_sub_project_name)
-#     assert len(pr.sub_projects) == 1
-#     assert str(pr.sub_projects[0]) == test_sub_project_name
-
-# def test_second_level_sub_project():
-#     second_level_sub_project_name = "second_level_test"
-#     pr.sub_projects[0].add_sub_project(second_level_sub_project_name)
-#     assert len(pr.sub_projects[0].sub_projects) == 1
-#     assert str(pr.sub_projects[0].sub_projects[0]) == second_level_sub_project_name
-#     print(pr.sub_projects[0].sub_projects[0]._relative_path)
+# def test_set_active_user():
+#     assert test_user.get_active_user() == "Generic"
+#     test_user.set_active_user()
 
 
-def test_initializing_user():
-    # create a mockup common folder
-    mockup_common = os.path.join(os.path.expanduser("~"), "mockup_common")
-    if os.path.exists(mockup_common):
-        shutil.rmtree(mockup_common)
-    os.mkdir(mockup_common)
-
-    # temporarily rename the TikManager4 folder if there is one
-    revert_flag = False
-    salt = str(uuid.uuid4()).split("-")[-1]
-    t4_folder = os.path.normpath(os.path.join(os.path.expanduser('~'), "TikManager4"))
-    if os.path.isdir(t4_folder):
-        revert_flag = True
-        os.rename(t4_folder, t4_folder.replace("TikManager4", "TikManager4_%s" % salt))
-
-    # test creating one from scratch
-    user_init_from_scratch = user.User(commons_directory=mockup_common)
-    print("User initialized from scratch")
-    assert user_init_from_scratch._validate_user_data() == 1, "Existing user data cannot be initialized"
-
-    if revert_flag:
-        # back to the original one
-        shutil.rmtree(t4_folder)
-        os.rename(t4_folder.replace("TikManager4", "TikManager4_%s" % salt), t4_folder)
+if revert_flag:
+    # back to the original one
+    shutil.rmtree(t4_folder)
+    os.rename(t4_folder.replace("TikManager4", "TikManager4_%s" % salt), t4_folder)
