@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import os
 from tik_manager4.core import filelog
@@ -11,6 +12,9 @@ FEED = feedback.Feedback()
 
 
 class User(object):
+    _authenticated = False
+    _permission_level = 0
+
     def __init__(self, commons_directory=None):
         super(User, self).__init__()
         self.settings = Settings()
@@ -21,12 +25,20 @@ class User(object):
         self.commons = None
 
         self._active_user = None
-        self._password_authenticated = False
+        # self._password_authenticated = False
         self._validate_user_data()
 
     @property
     def directory(self):
         return self.user_directory
+
+    @classmethod
+    def __authenticate_user(cls, state):
+        cls._authenticated = state
+
+    @classmethod
+    def __set_permission_level(cls, level):
+        cls._permission_level = level
 
     def _validate_user_data(self):
         """Finds or creates user directories and files"""
@@ -63,9 +75,12 @@ class User(object):
 
         # set the active user
         active_user = self.bookmarks.get_property("activeUser")
-        if active_user not in self.commons.get_users():
-            active_user = "Generic"
-        self.set_active_user(active_user, save_to_db=False)
+        state, msg = self.set_active_user(active_user, save_to_db=False)
+        if state == -1:
+            self.set_active_user("Generic", save_to_db=False)
+        # if active_user not in self.commons.get_users():
+        #     active_user = "Generic"
+        # self.set_active_user(active_user, save_to_db=False)
 
         self.settings.apply_settings()
         self.bookmarks.apply_settings()
@@ -79,15 +94,59 @@ class User(object):
         """Sets the active user to the session"""
         if user_name in self.commons.get_users():
             if password and self.commons.check_password(user_name, password):
-                self._password_authenticated = True
+                self.__authenticate_user(True)
             else:
                 return -1, log.warning("Wrong password provided for user %s" % user_name)
             self._active_user = user_name
             if save_to_db:
                 self.bookmarks.edit_property("activeUser", self._active_user)
+            self.__set_permission_level(self.commons.check_user_permission_level(user_name))
             return user_name, "Success"
         else:
             return -1, log.warning("User %s cannot set because it does not exist in commons database")
+
+    def create_new_user(self, user_name, initials, password, permission_level):
+        """Creates a new user and stores it in database"""
+
+        # first check the permissions of active user - Creating new user requires level 3 permissions
+        if self._permission_level < 3:
+            return -1, log.warning("User %s has no permission to create new users" % self._active_user)
+
+        # TODO find a solution to prompt password or do it somewhere else
+
+        if user_name in self.commons.users.all_properties:
+            return -1, log.error("User %s already exists. Aborting" % user_name)
+        user_data = {
+            "initials": initials,
+            "pass": self.__hash_pass(password),
+            "permissionLevel": permission_level
+        }
+        self.commons.users.add_property(user_name, user_data)
+        self.commons.users.apply_settings()
+
+    def delete_user(self, user_name):
+        """Removes the user from database"""
+        if user_name in self.commons.users.all_properties:
+            return -1, log.error("%s does not exist. Aborting" % user_name)
+        self.commons.users.delete_property(user_name)
+        self.commons.users.apply_settings()
+
+    def change_user_password(self, user_name, old_password, new_password):
+        """Changes the user password"""
+        if self.__hash_pass(old_password) == self.commons.users.get_property(user_name).get("pass"):
+            self.commons.users.get_property(user_name)["pass"] = self.__hash_pass(new_password)
+            self.commons.users.apply_settings()
+        else:
+            return -1, log.error("Old password for %s does not match" %user_name)
+        pass
+
+    def check_password(self, user_name, password):
+        """checks the given password against the hashed password"""
+        hashed_pass = self.__hash_pass(password)
+        if self.commons.users.get_property(user_name).get("pass", "") == hashed_pass:
+            return True
+        else:
+            return False
 
     def add_project_bookmark(self, project_name, path):
         """Adds the given project to the user bookmark database"""
@@ -114,6 +173,10 @@ class User(object):
                 self.bookmarks.edit_property(project_name, bookmark_list)
                 return 1, "Project %s removed from bookmarks" % project_name
         return -1, log.warning("Project %s does not exist in bookmarks. Aborting" % project_name)
+
+    def __hash_pass(self, password):
+        """Hashes the password"""
+        return hashlib.sha1(str(password).encode('utf-8')).hexdigest()
 
     # def get_project_bookmarks(self):
     #     """Returns list of dictionaries """
