@@ -121,6 +121,9 @@ def test_switching_users():
     assert test_user.set_active_user("Generic", password="1234")
     assert test_user.is_authenticated
 
+# def test_changing_user_passwords():
+
+
 
 def test_adding_new_users_to_database():
     """Tests to add new users to commons database"""
@@ -129,20 +132,20 @@ def test_adding_new_users_to_database():
     assert test_user.set_active_user("Generic", password="1234")
     assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0) == (-1, 'User Generic has no permission to create new users')
 
-    assert test_user.set_active_user("Admin", password="1234")
-    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0) == (1, 'Success')
+    assert test_user.set_active_user("Admin") # non-authenticated Admin
+    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0) == (-1, "Active user is not authenticated or the password is wrong")
+    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0, active_user_password="WRONG_PASS") == (-1, "Active user is not authenticated or the password is wrong")
+    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0, active_user_password="1234") == (1, "Success")
     assert test_user.create_new_user("Test_TaskUser", "ttu", "password", 1) == (1, 'Success')
     assert test_user.create_new_user("Test_ProjectUser", "ttu", "password", 2) == (1, 'Success')
     assert test_user.create_new_user("Test_AdminUser", "ttu", "password", 3) == (1, 'Success')
 
     assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0) == (-1, 'User Test_BasicUser already exists. Aborting')
 
+    assert test_user.set_active_user("Test_AdminUser", password="1234")
+    assert test_user.create_new_user("Extra_User", "ext", "extra", 2) == (1, "Success")
 
-#
-# def test_set_active_user():
-#     assert test_user.get_active_user() == "Generic"
-#     test_user.set_active_user()
-
+# TODO add tests to change passwords
 
 if revert_flag:
     # back to the original one

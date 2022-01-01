@@ -90,22 +90,22 @@ class User(object):
         self.bookmarks.apply_settings()
         return 1
 
-    def authenticate(self, password):
-        """Checks password for the active user and authenticates it for the session duration"""
-
-
     def get_active_user(self):
         """Returns the currently active user"""
         return self._active_user
 
     def set_active_user(self, user_name, password=None, save_to_db=True):
         """Sets the active user to the session"""
+
+        # check if the user exists in common database
         if user_name in self.commons.get_users():
-            if password is not None:
+            if password is not None: # try to authenticate the active user
                 if self.check_password(user_name, password):
                     self.__authenticate_user(True)
                 else:
                     return -1, log.warning("Wrong password provided for user %s" % user_name)
+            else:
+                self.__authenticate_user(False) # make sure it is not authenticated if no password
             self._active_user = user_name
             if save_to_db:
                 self.bookmarks.edit_property("activeUser", self._active_user)
@@ -114,27 +114,28 @@ class User(object):
         else:
             return -1, log.warning("User %s cannot set because it does not exist in commons database")
 
-    def create_new_user(self, user_name, initials, password, permission_level):
+    def create_new_user(self, new_user_name, new_user_initials, new_user_password, permission_level,
+                        active_user_password=None):
         """Creates a new user and stores it in database"""
 
         # first check the permissions of active user - Creating new user requires level 3 permissions
         if self._permission_level < 3:
             return -1, log.warning("User %s has no permission to create new users" % self._active_user)
 
-        # ######################################
-        # TODO find a solution to prompt password or do it somewhere else
+        # Don't allow non-authenticated users to go further
+        if active_user_password:
+            self.__authenticate_user(self.check_password(self._active_user, active_user_password))
         if not self.is_authenticated:
-            pass
-        # #######################################
+            return -1, log.warning("Active user is not authenticated or the password is wrong")
 
-        if user_name in self.commons.users.all_properties:
-            return -1, log.error("User %s already exists. Aborting" % user_name)
+        if new_user_name in self.commons.users.all_properties:
+            return -1, log.error("User %s already exists. Aborting" % new_user_name)
         user_data = {
-            "initials": initials,
-            "pass": self.__hash_pass(password),
+            "initials": new_user_initials,
+            "pass": self.__hash_pass(new_user_password),
             "permissionLevel": permission_level
         }
-        self.commons.users.add_property(user_name, user_data)
+        self.commons.users.add_property(new_user_name, user_data)
         self.commons.users.apply_settings()
         return 1, "Success"
 
@@ -145,8 +146,9 @@ class User(object):
         self.commons.users.delete_property(user_name)
         self.commons.users.apply_settings()
 
-    def change_user_password(self, user_name, old_password, new_password):
+    def change_user_password(self, old_password, new_password, user_name=None):
         """Changes the user password"""
+        user_name = user_name or self._active_user
         if self.__hash_pass(old_password) == self.commons.users.get_property(user_name).get("pass"):
             self.commons.users.get_property(user_name)["pass"] = self.__hash_pass(new_password)
             self.commons.users.apply_settings()
