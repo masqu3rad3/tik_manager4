@@ -20,14 +20,14 @@ if os.path.isdir(t4_folder):
     revert_flag = True
     os.rename(t4_folder, t4_folder.replace("TikManager4", "TikManager4_%s" % salt))
 
-
-#initialize project and user
+# initialize project and user
 pr = project.Project()
 test_user = user.User(commons_directory=mockup_common)
 
 
 def test_initialize():
     assert pr
+
 
 def test_project_path():
     test_project = os.path.join(os.path.expanduser("~"), "test_project")
@@ -60,8 +60,6 @@ def test_create_a_shot_asset_project_structure():
     shot_categories = ["Layout", "Animation", "Lighting", "Render"]
 
     assets = pr.add_sub_project("Assets")
-    print("***********")
-    print(assets)
     chars = assets.add_sub_project("Characters")
     props = assets.add_sub_project("Props")
     env = assets.add_sub_project("Environment")
@@ -91,14 +89,9 @@ def test_create_a_shot_asset_project_structure():
             leaf.add_category(category)
 
     # print("\n")
-    # print("Project:", pr.name)
-    # print("Assets:")
-    # pprint(pr.subs)
-    print("\n")
-    # assert pr.subs["Assets"].subs["Characters"].subs["Soldier"].name == "Soldier"
-    # pprint(list(pr.get_sub_project_names(recursive=True)))
+
     pr.save_structure()
-    pprint(pr.get_sub_tree())
+    # pprint(pr.get_sub_tree())
 
     pr.create_folders(pr.database_path)
     pr.create_folders(pr._path)
@@ -108,23 +101,43 @@ def test_validating_existing_project():
     """Tests reading an existing project structure and compares it to the created one on-the-fly"""
     existing_project = project.Project()
     existing_project.path = pr.path
-    pprint(existing_project.get_sub_tree())
+    # pprint(existing_project.get_sub_tree())
+
     # check if read and written match
     # print(pr.subs["Assets"].subs["Characters"].id, existing_project.subs["Assets"].subs["Characters"].id)
     assert pr.get_sub_tree() == existing_project.get_sub_tree(), "Read and Write of project structure does not match"
+
 
 def test_reinitializing_user():
     """Tests creating a common folder and user databases"""
     assert test_user._validate_user_data() == 1, "Existing user data cannot be initialized"
 
+
+def test_switching_users():
+    # test switching to admin
+    assert test_user.get_active_user() == "Generic"
+    assert test_user.set_active_user("Admin") == ("Admin", "Success")
+    assert not test_user.is_authenticated
+    assert test_user.set_active_user("Generic", password="1234")
+    assert test_user.is_authenticated
+
+
 def test_adding_new_users_to_database():
     """Tests to add new users to commons database"""
-    print("4"*40)
-    print(test_user.get_active_user())
-    test_user.commons.create_user("Test_BasicUser", "tbu", "password", 0)
-    test_user.commons.create_user("Test_TaskUser", "ttu", "password", 1)
-    test_user.commons.create_user("Test_ProjectUser", "ttu", "password", 2)
-    test_user.commons.create_user("Test_AdminUser", "ttu", "password", 3)
+
+    # test adding by users by not permitted users
+    assert test_user.set_active_user("Generic", password="1234")
+    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0) == (-1, 'User Generic has no permission to create new users')
+
+    assert test_user.set_active_user("Admin", password="1234")
+    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0) == (1, 'Success')
+    assert test_user.create_new_user("Test_TaskUser", "ttu", "password", 1) == (1, 'Success')
+    assert test_user.create_new_user("Test_ProjectUser", "ttu", "password", 2) == (1, 'Success')
+    assert test_user.create_new_user("Test_AdminUser", "ttu", "password", 3) == (1, 'Success')
+
+    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0) == (-1, 'User Test_BasicUser already exists. Aborting')
+
+
 #
 # def test_set_active_user():
 #     assert test_user.get_active_user() == "Generic"

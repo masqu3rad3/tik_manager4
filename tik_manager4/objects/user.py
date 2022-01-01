@@ -32,6 +32,10 @@ class User(object):
     def directory(self):
         return self.user_directory
 
+    @property
+    def is_authenticated(self):
+        return bool(self._authenticated)
+
     @classmethod
     def __authenticate_user(cls, state):
         cls._authenticated = state
@@ -86,6 +90,10 @@ class User(object):
         self.bookmarks.apply_settings()
         return 1
 
+    def authenticate(self, password):
+        """Checks password for the active user and authenticates it for the session duration"""
+
+
     def get_active_user(self):
         """Returns the currently active user"""
         return self._active_user
@@ -93,10 +101,11 @@ class User(object):
     def set_active_user(self, user_name, password=None, save_to_db=True):
         """Sets the active user to the session"""
         if user_name in self.commons.get_users():
-            if password and self.commons.check_password(user_name, password):
-                self.__authenticate_user(True)
-            else:
-                return -1, log.warning("Wrong password provided for user %s" % user_name)
+            if password is not None:
+                if self.check_password(user_name, password):
+                    self.__authenticate_user(True)
+                else:
+                    return -1, log.warning("Wrong password provided for user %s" % user_name)
             self._active_user = user_name
             if save_to_db:
                 self.bookmarks.edit_property("activeUser", self._active_user)
@@ -112,7 +121,11 @@ class User(object):
         if self._permission_level < 3:
             return -1, log.warning("User %s has no permission to create new users" % self._active_user)
 
+        # ######################################
         # TODO find a solution to prompt password or do it somewhere else
+        if not self.is_authenticated:
+            pass
+        # #######################################
 
         if user_name in self.commons.users.all_properties:
             return -1, log.error("User %s already exists. Aborting" % user_name)
@@ -123,6 +136,7 @@ class User(object):
         }
         self.commons.users.add_property(user_name, user_data)
         self.commons.users.apply_settings()
+        return 1, "Success"
 
     def delete_user(self, user_name):
         """Removes the user from database"""
