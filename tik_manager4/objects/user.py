@@ -99,13 +99,13 @@ class User(object):
 
         # check if the user exists in common database
         if user_name in self.commons.get_users():
-            if password is not None: # try to authenticate the active user
+            if password is not None:  # try to authenticate the active user
                 if self.check_password(user_name, password):
                     self.__set_authentication_status(True)
                 else:
                     return -1, log.warning("Wrong password provided for user %s" % user_name)
             else:
-                self.__set_authentication_status(False) # make sure it is not authenticated if no password
+                self.__set_authentication_status(False)  # make sure it is not authenticated if no password
             self._active_user = user_name
             if save_to_db:
                 self.bookmarks.edit_property("activeUser", self._active_user)
@@ -167,7 +167,6 @@ class User(object):
         if user_name == "Generic":
             return -1, log.warning("Generic User cannot be deleted")
 
-
         if user_name not in self.commons.users.all_properties:
             return -1, log.error("User %s does not exist. Aborting" % user_name)
         self.commons.users.delete_property(user_name)
@@ -182,7 +181,7 @@ class User(object):
             self.commons.users.apply_settings()
             return 1, "Success"
         else:
-            return -1, log.error("Old password for %s does not match" %user_name)
+            return -1, log.error("Old password for %s does not match" % user_name)
 
     def check_password(self, user_name, password):
         """checks the given password against the hashed password"""
@@ -218,10 +217,11 @@ class User(object):
                 return 1, "Project %s removed from bookmarks" % project_name
         return -1, log.warning("Project %s does not exist in bookmarks. Aborting" % project_name)
 
-    def __hash_pass(self, password):
+    @staticmethod
+    def __hash_pass(password):
         """Hashes the password"""
         return hashlib.sha1(str(password).encode('utf-8')).hexdigest()
 
-    # def get_project_bookmarks(self):
-    #     """Returns list of dictionaries """
-    #     return self.bookmarks.get_property("bookmarkedProjects")
+    def get_project_bookmarks(self):
+        """Returns the user bookmarked projects as list of dictionaries"""
+        return self.bookmarks.get_property("bookmarkedProjects")

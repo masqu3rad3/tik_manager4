@@ -185,6 +185,9 @@ def test_add_and_remove_project_bookmarks():
     assert test_user.delete_project_bookmark("shitPro") == (-1, "Project shitPro does not exist in bookmarks. Aborting")
     #
 
+def test_get_bookmarks():
+    print("\n", test_user.get_project_bookmarks())
+
 # if revert_flag:
 #     # back to the original one
 #     shutil.rmtree(t4_folder)
