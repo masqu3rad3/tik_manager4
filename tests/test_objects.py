@@ -13,7 +13,7 @@ if os.path.exists(mockup_common):
 os.mkdir(mockup_common)
 
 # temporarily rename the TikManager4 folder if there is one
-revert_flag = False
+revert_flag = True
 salt = str(uuid.uuid4()).split("-")[-1]
 t4_folder = os.path.normpath(os.path.join(os.path.expanduser('~'), "TikManager4"))
 if os.path.isdir(t4_folder):
@@ -115,15 +115,11 @@ def test_reinitializing_user():
 
 def test_switching_users():
     # test switching to admin
-    assert test_user.get_active_user() == "Generic"
+    # assert test_user.get_active_user() == "Generic"
     assert test_user.set_active_user("Admin") == ("Admin", "Success")
     assert not test_user.is_authenticated
     assert test_user.set_active_user("Generic", password="1234")
     assert test_user.is_authenticated
-
-# def test_changing_user_passwords():
-
-
 
 def test_adding_new_users_to_database():
     """Tests to add new users to commons database"""
@@ -142,12 +138,54 @@ def test_adding_new_users_to_database():
 
     assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0) == (-1, 'User Test_BasicUser already exists. Aborting')
 
-    assert test_user.set_active_user("Test_AdminUser", password="1234")
+    assert test_user.set_active_user("Test_AdminUser", password="password") == ("Test_AdminUser", "Success")
+    # assert test_user.set_active_user("Test_AdminUser") == ("Test_AdminUser", "Success")
     assert test_user.create_new_user("Extra_User", "ext", "extra", 2) == (1, "Success")
 
-# TODO add tests to change passwords
+def test_change_user_password():
+    # Change active user passes
+    assert test_user.set_active_user("Generic")
+    # test providing wrong password
+    assert test_user.change_user_password("WRONG_PASS", "amazing_password") == (-1, "Old password for Generic does not match")
+    assert not test_user.is_authenticated
+    assert test_user.authenticate_active_user("amazing_password") == (-1, "Wrong password provided for user Generic")
+    assert not test_user.is_authenticated
+    # test correct password
+    assert test_user.change_user_password("1234", "amazing_password") == (1, "Success")
+    assert not test_user.is_authenticated
+    assert test_user.authenticate_active_user("amazing_password") == (1, "Success")
+    assert test_user.authenticate_active_user("wtf") == (-1, "Wrong password provided for user Generic")
+    assert not test_user.is_authenticated
 
-if revert_flag:
-    # back to the original one
-    shutil.rmtree(t4_folder)
-    os.rename(t4_folder.replace("TikManager4", "TikManager4_%s" % salt), t4_folder)
+
+    # Change other user passes
+    assert test_user.change_user_password("WRONG_PASS", "awesome_password", user_name="Admin") == (-1, "Old password for Admin does not match")
+    assert test_user.set_active_user("Admin", password="awesome_password")
+    assert test_user.change_user_password("1234", "awesome_password", user_name="Admin") == (1, "Success")
+    assert test_user.set_active_user("Admin", password="awesome_password") == ("Admin", "Success")
+
+def test_delete_user():
+    test_user.set_active_user("Test_ProjectUser", password="password")
+    assert test_user.delete_user("Extra_User") == (-1, "User Test_ProjectUser has no permission to delete users")
+    test_user.set_active_user("Test_AdminUser")
+    assert test_user.delete_user("Admin") == (-1, "Active user is not authenticated or the password is wrong")
+    test_user.authenticate_active_user("password")
+
+    assert test_user.delete_user("Admin") == (-1, "Admin User cannot be deleted")
+    assert test_user.delete_user("Generic") == (-1, "Generic User cannot be deleted")
+    assert test_user.delete_user("NoOne") == (-1, "User NoOne does not exist. Aborting")
+    assert test_user.delete_user("Extra_User") == (1, "Success")
+
+def test_add_and_remove_project_bookmarks():
+    assert test_user.add_project_bookmark("SOME_PROJECT", "some\\path") == (1, "Project SOME_PROJECT added to bookmarks")
+    assert test_user.add_project_bookmark("shitPro", "some\\more\\path") == (1, "Project shitPro added to bookmarks")
+    assert test_user.add_project_bookmark("SOME_PROJECT", "some\\path") == (-1, "Project SOME_PROJECT already exists in user bookmarks")
+    #
+    assert test_user.delete_project_bookmark("shitPro") == (1, "Project shitPro removed from bookmarks")
+    assert test_user.delete_project_bookmark("shitPro") == (-1, "Project shitPro does not exist in bookmarks. Aborting")
+    #
+
+# if revert_flag:
+#     # back to the original one
+#     shutil.rmtree(t4_folder)
+#     os.rename(t4_folder.replace("TikManager4", "TikManager4_%s" % salt), t4_folder)

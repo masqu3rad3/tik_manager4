@@ -37,7 +37,7 @@ class User(object):
         return bool(self._authenticated)
 
     @classmethod
-    def __authenticate_user(cls, state):
+    def __set_authentication_status(cls, state):
         cls._authenticated = state
 
     @classmethod
@@ -101,11 +101,11 @@ class User(object):
         if user_name in self.commons.get_users():
             if password is not None: # try to authenticate the active user
                 if self.check_password(user_name, password):
-                    self.__authenticate_user(True)
+                    self.__set_authentication_status(True)
                 else:
                     return -1, log.warning("Wrong password provided for user %s" % user_name)
             else:
-                self.__authenticate_user(False) # make sure it is not authenticated if no password
+                self.__set_authentication_status(False) # make sure it is not authenticated if no password
             self._active_user = user_name
             if save_to_db:
                 self.bookmarks.edit_property("activeUser", self._active_user)
@@ -113,6 +113,14 @@ class User(object):
             return user_name, "Success"
         else:
             return -1, log.warning("User %s cannot set because it does not exist in commons database")
+
+    def authenticate_active_user(self, password):
+        if self.check_password(self._active_user, password):
+            self.__set_authentication_status(True)
+            return 1, "Success"
+        else:
+            self.__set_authentication_status(False)
+            return -1, log.warning("Wrong password provided for user %s" % self._active_user)
 
     def create_new_user(self, new_user_name, new_user_initials, new_user_password, permission_level,
                         active_user_password=None):
@@ -123,8 +131,11 @@ class User(object):
             return -1, log.warning("User %s has no permission to create new users" % self._active_user)
 
         # Don't allow non-authenticated users to go further
+
         if active_user_password:
-            self.__authenticate_user(self.check_password(self._active_user, active_user_password))
+            self.authenticate_active_user(active_user_password)
+        # if active_user_password:
+        #     self.__set_authentication_status(self.check_password(self._active_user, active_user_password))
         if not self.is_authenticated:
             return -1, log.warning("Active user is not authenticated or the password is wrong")
 
@@ -139,12 +150,29 @@ class User(object):
         self.commons.users.apply_settings()
         return 1, "Success"
 
-    def delete_user(self, user_name):
+    def delete_user(self, user_name, active_user_password=None):
         """Removes the user from database"""
-        if user_name in self.commons.users.all_properties:
-            return -1, log.error("%s does not exist. Aborting" % user_name)
+        # first check the permissions of active user - Creating new user requires level 3 permissions
+        if self._permission_level < 3:
+            return -1, log.warning("User %s has no permission to delete users" % self._active_user)
+
+        # Don't allow non-authenticated users to go further
+        if active_user_password:
+            self.authenticate_active_user(active_user_password)
+        if not self.is_authenticated:
+            return -1, log.warning("Active user is not authenticated or the password is wrong")
+
+        if user_name == "Admin":
+            return -1, log.warning("Admin User cannot be deleted")
+        if user_name == "Generic":
+            return -1, log.warning("Generic User cannot be deleted")
+
+
+        if user_name not in self.commons.users.all_properties:
+            return -1, log.error("User %s does not exist. Aborting" % user_name)
         self.commons.users.delete_property(user_name)
         self.commons.users.apply_settings()
+        return 1, "Success"
 
     def change_user_password(self, old_password, new_password, user_name=None):
         """Changes the user password"""
@@ -152,9 +180,9 @@ class User(object):
         if self.__hash_pass(old_password) == self.commons.users.get_property(user_name).get("pass"):
             self.commons.users.get_property(user_name)["pass"] = self.__hash_pass(new_password)
             self.commons.users.apply_settings()
+            return 1, "Success"
         else:
             return -1, log.error("Old password for %s does not match" %user_name)
-        pass
 
     def check_password(self, user_name, password):
         """checks the given password against the hashed password"""
@@ -174,7 +202,6 @@ class User(object):
             return -1, log.warning("Project %s already exists in user bookmarks" % project_name)
 
         bookmark_list.append({"name": project_name, "path": path})
-        self.bookmarks.edit_property(project_name, bookmark_list)
         self.bookmarks.apply_settings()
         return 1, "Project %s added to bookmarks" % project_name
 
@@ -183,10 +210,11 @@ class User(object):
 
         bookmark_list = self.bookmarks.get_property("bookmarkedProjects")
 
-        for bookmark in bookmark_list:
+        for nmb, bookmark in enumerate(bookmark_list):
             if bookmark.get("name") == project_name:
-                bookmark_list.pop(bookmark)
-                self.bookmarks.edit_property(project_name, bookmark_list)
+                bookmark_list.pop(nmb)
+                # self.bookmarks.edit_property("bookmarkedProjects", bookmark_list)
+                self.bookmarks.apply_settings()
                 return 1, "Project %s removed from bookmarks" % project_name
         return -1, log.warning("Project %s does not exist in bookmarks. Aborting" % project_name)
 
