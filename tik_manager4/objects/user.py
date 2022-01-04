@@ -64,7 +64,8 @@ class User(object):
                               button_label="Continue")
                 self.common_directory = FEED.browse_directory()
             assert self.common_directory, "Commons Directory must be defined to continue"
-            self.settings.edit_property("commonFolder", self.common_directory)
+        self.settings.edit_property("commonFolder", self.common_directory)
+        self.settings.apply_settings()
 
         self.commons = Commons(self.common_directory)
 
@@ -114,7 +115,7 @@ class User(object):
         else:
             return -1, log.warning("User %s cannot set because it does not exist in commons database")
 
-    def authenticate_active_user(self, password):
+    def authenticate(self, password):
         if self.check_password(self._active_user, password):
             self.__set_authentication_status(True)
             return 1, "Success"
@@ -133,9 +134,8 @@ class User(object):
         # Don't allow non-authenticated users to go further
 
         if active_user_password:
-            self.authenticate_active_user(active_user_password)
-        # if active_user_password:
-        #     self.__set_authentication_status(self.check_password(self._active_user, active_user_password))
+            self.authenticate(active_user_password)
+
         if not self.is_authenticated:
             return -1, log.warning("Active user is not authenticated or the password is wrong")
 
@@ -158,7 +158,7 @@ class User(object):
 
         # Don't allow non-authenticated users to go further
         if active_user_password:
-            self.authenticate_active_user(active_user_password)
+            self.authenticate(active_user_password)
         if not self.is_authenticated:
             return -1, log.warning("Active user is not authenticated or the password is wrong")
 
@@ -225,3 +225,15 @@ class User(object):
     def get_project_bookmarks(self):
         """Returns the user bookmarked projects as list of dictionaries"""
         return self.bookmarks.get_property("bookmarkedProjects")
+
+    def add_recent_project(self, path):
+        recents_list = self.bookmarks.get_property("recentProjects")
+        recents_list.append(path)
+        if len(recents_list) > 10:
+            recents_list.pop(0)
+        self.bookmarks.apply_settings()
+
+    def get_recent_projects(self):
+        return self.bookmarks.get_property("recentProjects")
+
+    # TODO Project Repositories

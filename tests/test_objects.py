@@ -33,8 +33,8 @@ def test_project_path():
     test_project = os.path.join(os.path.expanduser("~"), "test_project")
     if os.path.exists(test_project):
         shutil.rmtree(test_project)
-    pr.path = test_project
-    assert pr.path == test_project
+    pr.set(test_project)
+    assert pr.absolute_path == test_project
 
 
 def test_project_name():
@@ -94,13 +94,14 @@ def test_create_a_shot_asset_project_structure():
     # pprint(pr.get_sub_tree())
 
     pr.create_folders(pr.database_path)
-    pr.create_folders(pr._path)
+    # print(pr.database_path, pr._path)
+    pr.create_folders(pr.absolute_path)
 
 
 def test_validating_existing_project():
     """Tests reading an existing project structure and compares it to the created one on-the-fly"""
     existing_project = project.Project()
-    existing_project.path = pr.path
+    existing_project.set(pr.absolute_path)
     # pprint(existing_project.get_sub_tree())
 
     # check if read and written match
@@ -121,69 +122,81 @@ def test_switching_users():
     assert test_user.set_active_user("Generic", password="1234")
     assert test_user.is_authenticated
 
+
 def test_adding_new_users_to_database():
     """Tests to add new users to commons database"""
 
     # test adding by users by not permitted users
     assert test_user.set_active_user("Generic", password="1234")
-    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0) == (-1, 'User Generic has no permission to create new users')
+    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0) == (-1, 'User Generic has no permission '
+                                                                                     'to create new users')
 
-    assert test_user.set_active_user("Admin") # non-authenticated Admin
-    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0) == (-1, "Active user is not authenticated or the password is wrong")
-    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0, active_user_password="WRONG_PASS") == (-1, "Active user is not authenticated or the password is wrong")
-    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0, active_user_password="1234") == (1, "Success")
+    assert test_user.set_active_user("Admin")  # non-authenticated Admin
+    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0) == (-1, "Active user is not "
+                                                                                     "authenticated or the password "
+                                                                                     "is wrong")
+    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0, active_user_password="WRONG_PASS") == \
+           (-1, "Active user is not authenticated or the password is wrong")
+    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0, active_user_password="1234") == \
+           (1, "Success")
     assert test_user.create_new_user("Test_TaskUser", "ttu", "password", 1) == (1, 'Success')
     assert test_user.create_new_user("Test_ProjectUser", "ttu", "password", 2) == (1, 'Success')
     assert test_user.create_new_user("Test_AdminUser", "ttu", "password", 3) == (1, 'Success')
 
-    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0) == (-1, 'User Test_BasicUser already exists. Aborting')
+    assert test_user.create_new_user("Test_BasicUser", "tbu", "password", 0) == (-1, 'User Test_BasicUser already '
+                                                                                     'exists. Aborting')
 
     assert test_user.set_active_user("Test_AdminUser", password="password") == ("Test_AdminUser", "Success")
     # assert test_user.set_active_user("Test_AdminUser") == ("Test_AdminUser", "Success")
     assert test_user.create_new_user("Extra_User", "ext", "extra", 2) == (1, "Success")
 
+
 def test_change_user_password():
     # Change active user passes
     assert test_user.set_active_user("Generic")
     # test providing wrong password
-    assert test_user.change_user_password("WRONG_PASS", "amazing_password") == (-1, "Old password for Generic does not match")
+    assert test_user.change_user_password("WRONG_PASS", "amazing_password") == (-1, "Old password for Generic does "
+                                                                                    "not match")
     assert not test_user.is_authenticated
-    assert test_user.authenticate_active_user("amazing_password") == (-1, "Wrong password provided for user Generic")
+    assert test_user.authenticate("amazing_password") == (-1, "Wrong password provided for user Generic")
     assert not test_user.is_authenticated
     # test correct password
     assert test_user.change_user_password("1234", "amazing_password") == (1, "Success")
     assert not test_user.is_authenticated
-    assert test_user.authenticate_active_user("amazing_password") == (1, "Success")
-    assert test_user.authenticate_active_user("wtf") == (-1, "Wrong password provided for user Generic")
+    assert test_user.authenticate("amazing_password") == (1, "Success")
+    assert test_user.authenticate("wtf") == (-1, "Wrong password provided for user Generic")
     assert not test_user.is_authenticated
 
-
     # Change other user passes
-    assert test_user.change_user_password("WRONG_PASS", "awesome_password", user_name="Admin") == (-1, "Old password for Admin does not match")
+    assert test_user.change_user_password("WRONG_PASS", "awesome_password", user_name="Admin") == \
+           (-1, "Old password for Admin does not match")
     assert test_user.set_active_user("Admin", password="awesome_password")
     assert test_user.change_user_password("1234", "awesome_password", user_name="Admin") == (1, "Success")
     assert test_user.set_active_user("Admin", password="awesome_password") == ("Admin", "Success")
+
 
 def test_delete_user():
     test_user.set_active_user("Test_ProjectUser", password="password")
     assert test_user.delete_user("Extra_User") == (-1, "User Test_ProjectUser has no permission to delete users")
     test_user.set_active_user("Test_AdminUser")
     assert test_user.delete_user("Admin") == (-1, "Active user is not authenticated or the password is wrong")
-    test_user.authenticate_active_user("password")
+    test_user.authenticate("password")
 
     assert test_user.delete_user("Admin") == (-1, "Admin User cannot be deleted")
     assert test_user.delete_user("Generic") == (-1, "Generic User cannot be deleted")
     assert test_user.delete_user("NoOne") == (-1, "User NoOne does not exist. Aborting")
     assert test_user.delete_user("Extra_User") == (1, "Success")
 
+
 def test_add_and_remove_project_bookmarks():
-    assert test_user.add_project_bookmark("SOME_PROJECT", "some\\path") == (1, "Project SOME_PROJECT added to bookmarks")
+    assert test_user.add_project_bookmark("SOME_PROJECT", "some\\path") == \
+           (1, "Project SOME_PROJECT added to bookmarks")
     assert test_user.add_project_bookmark("shitPro", "some\\more\\path") == (1, "Project shitPro added to bookmarks")
-    assert test_user.add_project_bookmark("SOME_PROJECT", "some\\path") == (-1, "Project SOME_PROJECT already exists in user bookmarks")
-    #
+    assert test_user.add_project_bookmark("SOME_PROJECT", "some\\path") == \
+           (-1, "Project SOME_PROJECT already exists in user bookmarks")
     assert test_user.delete_project_bookmark("shitPro") == (1, "Project shitPro removed from bookmarks")
     assert test_user.delete_project_bookmark("shitPro") == (-1, "Project shitPro does not exist in bookmarks. Aborting")
-    #
+
 
 def test_get_bookmarks():
     print("\n", test_user.get_project_bookmarks())

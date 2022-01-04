@@ -52,8 +52,8 @@ class Subproject(Entity):
             "id": self.id,
             "name": self.name,
             "path": self.path,
-            "resolution": self._resolution,
-            "fps": self._fps,
+            "resolution": self.resolution,
+            "fps": self.fps,
             "categories": [category.name for category in self.categories],
             "subs": [],  # this will be filled with the while loop
         }
@@ -154,9 +154,17 @@ class Subproject(Entity):
 
         # TODO Currently the overriden uid is not getting checked if it is really unique or not
         sub_pr = Subproject(name=name, resolution=resolution, fps=fps, uid=uid)
-        sub_pr._path = os.path.join(self._path, name)
+        # sub_pr._relative_path = os.path.join(self._relative_path, name)
+        sub_pr.path = os.path.join(self.path, name)
         self._sub_projects[name] = sub_pr
         return sub_pr
+
+    def delete_sub_project(self, id=None, path=None):
+        # TODO make this function
+        if not id or path:
+            return -1, log.error("Deleting sub project requires at least an id or path ")
+
+        log.warning("delete_sub_project is wip")
 
     def add_category(self, name):
         """Creates a new category (step) underneath"""

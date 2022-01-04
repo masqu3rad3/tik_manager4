@@ -3,7 +3,7 @@ import uuid
 class Entity(object):
     def __init__(self, name="", uid=None):
         self._id = uid
-        self._path = ""
+        self._relative_path = ""
         self._name = name
 
     @property
@@ -18,11 +18,11 @@ class Entity(object):
 
     @property
     def path(self):
-        return self._path
+        return self._relative_path
 
     @path.setter
     def path(self, val):
-        self._path = val
+        self._relative_path = val
 
     @property
     def name(self):
