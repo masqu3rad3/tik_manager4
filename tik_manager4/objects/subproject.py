@@ -1,4 +1,7 @@
 import os
+import shutil
+
+from fnmatch import fnmatch
 from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.category import Category
@@ -99,7 +102,7 @@ class Subproject(Entity):
         queue = []
         self.id = data.get("id", None)
         self._name = data.get("name", None)
-        self._path = data.get("path", None)
+        self._relative_path = data.get("path", None)
         self._resolution = data.get("resolution", None)
         self._fps = data.get("fps", None)
         _ = [self.add_category(x) for x in data.get("categories", [])]
@@ -117,7 +120,7 @@ class Subproject(Entity):
                     # print(neighbour.path)
                     _id = neighbour.get("id", None)
                     _name = neighbour.get("name", None)
-                    _path = neighbour.get("path", None)
+                    _relative_path = neighbour.get("path", None)
                     _resolution = neighbour.get("resolution", None)
                     _fps = neighbour.get("fps", None)
                     _categories = neighbour.get("categories", [])
@@ -125,7 +128,7 @@ class Subproject(Entity):
                                                       fps=_fps, uid=_id)
                     # define the path and categories separately
                     # TODO Categories and path can be overrides for Subproject class
-                    sub_project._path = _path
+                    sub_project._relative_path = _relative_path
                     _ = [sub_project.add_category(x) for x in _categories]
 
                     visited.append(neighbour)
@@ -159,10 +162,62 @@ class Subproject(Entity):
         self._sub_projects[name] = sub_pr
         return sub_pr
 
-    def delete_sub_project(self, id=None, path=None):
-        # TODO make this function
-        if not id or path:
+    def find_sub_by_id(self, uid):
+        queue = list(self.subs.values())
+        while queue:
+            current = queue.pop(0)
+            if current.id == uid:
+                return current
+            else:
+                queue.extend(list(current.subs.values()))
+
+    def find_sub_by_path(self, path):
+        if path == "":  # this is root
+            return self
+        queue = list(self.subs.values())
+        while queue:
+            current = queue.pop(0)
+            if current.path == path:
+                return current
+            else:
+                queue.extend(list(current.subs.values()))
+
+    def find_subs_by_wildcard(self, wildcard):
+        subs = []
+        queue = list(self.subs.values())
+        visited = []
+        while queue:
+            current = queue.pop(0)
+            # print(current.name)
+            if fnmatch(current.path, wildcard):
+                # yield current
+                subs.append(current)
+            if current not in visited:
+                queue.extend(list(current.subs.values()))
+            else:
+                visited.append(current)
+        return subs
+
+    def delete_sub_project(self, uid=None, path=None):
+        if not uid and not path:
             return -1, log.error("Deleting sub project requires at least an id or path ")
+
+        # first find the subproject to be deleted
+        if uid:
+            kill_sub = self.find_sub_by_id(uid)
+        else:
+            kill_sub = self.find_sub_by_path(path)
+
+        if not kill_sub:
+            return -1, log.warning("Subproject cannot be found")
+
+        path = kill_sub.path
+        parent_path = os.path.dirname(kill_sub.path) or ""
+        parent_sub = self.find_sub_by_path(parent_path)
+        del parent_sub.subs[kill_sub.name]
+
+        # # blast database folders
+        # shutil.rmtree()
 
         log.warning("delete_sub_project is wip")
 
@@ -172,6 +227,11 @@ class Subproject(Entity):
         category = Category(name=name)
         self._categories.append(category)
         return category
+
+    def _delete_folders(self, root, sub=None):
+        sub = sub or self
+        folder = os.path.join(root, sub.path)
+        shutil.rmtree(folder)
 
     def create_folders(self, root, sub=None):
         """Creates folders for subprojects and categories below this starting from 'root' path"""

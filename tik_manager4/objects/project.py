@@ -54,3 +54,11 @@ class Project(Settings, Subproject):
             self.add_property("resolution", [1920, 1080])
         self.apply_settings()
         self.set_sub_tree(self._currentValue)
+
+    def delete_sub_project(self, uid=None, path=None):
+        # TODO This requires tests
+        # TODO This needs to be validated against permissions
+        # TODO Consider deleting the work folders ??!!?? OR
+        # TODO maybe check for publishes? if there is any abort immediately?
+        super(Project, self).delete_sub_project(uid, path)
+        self._delete_folders(os.path.join(self._database_path, path))
