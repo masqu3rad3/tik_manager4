@@ -36,6 +36,10 @@ class User(object):
     def is_authenticated(self):
         return bool(self._authenticated)
 
+    @property
+    def permission_level(self):
+        return self._permission_level
+
     @classmethod
     def __set_authentication_status(cls, state):
         cls._authenticated = state
@@ -128,7 +132,7 @@ class User(object):
         """Creates a new user and stores it in database"""
 
         # first check the permissions of active user - Creating new user requires level 3 permissions
-        if self._permission_level < 3:
+        if self.permission_level < 3:
             return -1, log.warning("User %s has no permission to create new users" % self._active_user)
 
         # Don't allow non-authenticated users to go further
@@ -153,7 +157,7 @@ class User(object):
     def delete_user(self, user_name, active_user_password=None):
         """Removes the user from database"""
         # first check the permissions of active user - Creating new user requires level 3 permissions
-        if self._permission_level < 3:
+        if self.permission_level < 3:
             return -1, log.warning("User %s has no permission to delete users" % self._active_user)
 
         # Don't allow non-authenticated users to go further

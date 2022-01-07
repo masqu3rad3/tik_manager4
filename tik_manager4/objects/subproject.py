@@ -198,10 +198,22 @@ class Subproject(Entity):
                 visited.append(current)
         return subs
 
-    def delete_sub_project(self, uid=None, path=None):
+    def _remove_sub_project(self, uid=None, path=None):
+        "Removes the sub project from the object but not from the database"
+
         if not uid and not path:
             return -1, log.error("Deleting sub project requires at least an id or path ")
 
+        # print("***")
+        # print(user_object.get_active_user())
+        # print(user_object.permission_level)
+        # print(user_object.permission_level)
+        # if user_object.permission_level < 3:
+        #     print("anan")
+        #     return -1, log.warning("User %s does not have delete permissions" % user_object.get_active_user())
+        # print("bacin")
+        # if not user_object.is_authenticated:
+        #     return -1, log.warning("User is not authenticated")
         # first find the subproject to be deleted
         if uid:
             kill_sub = self.find_sub_by_id(uid)
