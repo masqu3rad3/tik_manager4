@@ -148,7 +148,7 @@ class User(object):
         user_data = {
             "initials": new_user_initials,
             "pass": self.__hash_pass(new_user_password),
-            "permissionLevel": permission_level
+            "permissionLevel": self.__clamp_level(permission_level)
         }
         self.commons.users.add_property(new_user_name, user_data)
         self.commons.users.apply_settings()
@@ -177,8 +177,37 @@ class User(object):
         self.commons.users.apply_settings()
         return 1, "Success"
 
+    @staticmethod
+    def __clamp_level(level):
+        """Clamps the level between 0-3 and makes sure its integer"""
+        return max(0, min(int(level), 3))
+
+    def change_permission_level(self, user_name, new_level, active_user_password=None):
+        # first check the permissions of active user - changing permission levels requires level 3 permissions
+        if self.permission_level < 3:
+            return -1, log.warning("User %s has no permission to change permission level of other users" % self._active_user)
+            # Don't allow non-authenticated users to go further
+        if active_user_password:
+            self.authenticate(active_user_password)
+        if not self.is_authenticated:
+            return -1, log.warning("Active user is not authenticated or the password is wrong")
+
+        if user_name == "Admin":
+            return -1, log.warning("Admin permission levels cannot be altered")
+        if user_name == "Generic":
+            return -1, log.warning("Generic User permission levels cannot be altered")
+
+        if user_name not in self.commons.users.all_properties:
+            return -1, log.error("User %s does not exist. Aborting" % user_name)
+
+        user_data = self.commons.users.get_property(user_name)
+        user_data["permissionLevel"] = self.__clamp_level(new_level)
+        self.commons.users.edit_property(user_name, user_data)
+        self.commons.users.apply_settings()
+        return 1, "Success"
+
     def change_user_password(self, old_password, new_password, user_name=None):
-        """Changes the user password"""
+        """Changes the user password. It only changes the active user, aka needs to be logged in"""
         user_name = user_name or self._active_user
         if self.__hash_pass(old_password) == self.commons.users.get_property(user_name).get("pass"):
             self.commons.users.get_property(user_name)["pass"] = self.__hash_pass(new_password)
@@ -202,11 +231,11 @@ class User(object):
 
         all_bookmark_names = [x.get("name") for x in bookmark_list]
         if project_name in all_bookmark_names:
-            return -1, log.warning("Project %s already exists in user bookmarks" % project_name)
+            return -1, log.warning("%s already exists in user bookmarks" % project_name)
 
         bookmark_list.append({"name": project_name, "path": path})
         self.bookmarks.apply_settings()
-        return 1, "Project %s added to bookmarks" % project_name
+        return 1, "%s added to bookmarks" % project_name
 
     def delete_project_bookmark(self, project_name):
         """Removes the project from user bookmarks"""
@@ -218,8 +247,8 @@ class User(object):
                 bookmark_list.pop(nmb)
                 # self.bookmarks.edit_property("bookmarkedProjects", bookmark_list)
                 self.bookmarks.apply_settings()
-                return 1, "Project %s removed from bookmarks" % project_name
-        return -1, log.warning("Project %s does not exist in bookmarks. Aborting" % project_name)
+                return 1, "Success"
+        return -1, log.warning("%s doesn't exist in bookmarks. Aborting" % project_name)
 
     @staticmethod
     def __hash_pass(password):

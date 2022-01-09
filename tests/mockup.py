@@ -1,12 +1,15 @@
 """Creates a mockup commons and user folder"""
+import uuid
 import shutil
 import os
 from functools import wraps
+from tik_manager4.objects import user
 
 
 class Mockup(object):
     def __init__(self):
-        self.user_backup_path = os.path.normpath(os.path.join(os.path.expanduser('~'), "TikManager4_BCK"))
+        _salt = str(uuid.uuid4()).split("-")[-1]
+        self.user_backup_path = os.path.normpath(os.path.join(os.path.expanduser('~'), "TikManager4_BCK%s" % _salt))
         self.test_project_path = os.path.normpath(os.path.join(os.path.expanduser('~'), "test_project"))
         self.mockup_commons_path = os.path.normpath(os.path.join(os.path.expanduser('~'), "mockup_common"))
         self.user_path = os.path.normpath(os.path.join(os.path.expanduser('~'), "TikManager4"))
@@ -52,6 +55,7 @@ class Mockup(object):
         else:
             os.makedirs(self.user_path)
 
+
 def clean_user(func):
     """Decorator to make a fresh start (commons and user folder)
     """
@@ -60,6 +64,7 @@ def clean_user(func):
     def _fresh(*args, **kwargs):
         m = Mockup()
         m.backup_user()
+        user.User(commons_directory=m.mockup_commons_path)
         try:
             return func(*args, **kwargs)
         except Exception as e:
