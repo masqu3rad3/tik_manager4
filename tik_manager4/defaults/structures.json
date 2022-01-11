@@ -1,0 +1,150 @@
+{
+  "empty": {
+    "name": "Empty Project",
+    "path": "",
+    "resolution": [1920, 1080],
+    "fps": 25,
+    "categories": [],
+    "subs": []
+  },
+  "simple": {
+    "name": "Simple Project",
+    "path": "",
+    "resolution": [1920, 1080],
+    "fps": 25,
+    "categories": ["Model", "Shading", "Rig", "Animation", "Lighting", "Comp"],
+    "subs": []
+  },
+  "asset_only": {
+    "name": "Asset Project",
+    "path": "",
+    "resolution": [1920, 1080],
+    "fps": 25,
+    "categories": [],
+    "subs": [
+      {
+        "name": "Assets",
+        "path": "Assets",
+        "categories": [],
+        "subs": [
+          {
+            "name": "Characters",
+            "path": "Assets\\Characters",
+            "categories": ["Model", "Rig", "LookDev"],
+            "subs": []
+          },
+          {
+            "name": "Props",
+            "path": "Assets\\Props",
+            "categories": ["Model", "Rig", "LookDev"],
+            "subs": []
+          },
+          {
+            "name": "Environment",
+            "path": "Assets\\Environment",
+            "categories": ["Model", "Rig", "LookDev"],
+            "subs": []
+          },
+          {
+            "name": "Vehicles",
+            "path": "Assets\\Vehicles",
+            "categories": ["Model", "Rig", "LookDev"],
+            "subs": []
+          }
+        ]
+      }
+    ]
+  },
+  "asset_shot": {
+    "name": "Asset-Shot Project",
+    "path": "",
+    "resolution": [1920, 1080],
+    "fps": 25,
+    "categories": [],
+    "subs": [
+      {
+        "name": "Assets",
+        "path": "Assets",
+        "categories": [],
+        "subs": [
+          {
+            "name": "Characters",
+            "path": "Assets\\Characters",
+            "categories": ["Model", "Rig", "LookDev"],
+            "subs": []
+          },
+          {
+            "name": "Props",
+            "path": "Assets\\Props",
+            "categories": ["Model", "Rig", "LookDev"],
+            "subs": []
+          },
+          {
+            "name": "Environment",
+            "path": "Assets\\Environment",
+            "categories": ["Model", "Rig", "LookDev"],
+            "subs": []
+          },
+          {
+            "name": "Vehicles",
+            "path": "Assets\\Vehicles",
+            "categories": ["Model", "Rig", "LookDev"],
+            "subs": []
+          }
+        ]
+      },
+      {
+        "name": "Shots",
+        "path": "Shots",
+        "categories": [],
+        "subs": []
+      }
+    ]
+  },
+  "asset_sequence": {
+    "name": "Asset-Sequence Project",
+    "path": "",
+    "resolution": [1920, 1080],
+    "fps": 25,
+    "categories": [],
+    "subs": [
+      {
+        "name": "Assets",
+        "path": "Assets",
+        "categories": [],
+        "subs": [
+          {
+            "name": "Characters",
+            "path": "Assets\\Characters",
+            "categories": ["Model", "Rig", "LookDev"],
+            "subs": []
+          },
+          {
+            "name": "Props",
+            "path": "Assets\\Props",
+            "categories": ["Model", "Rig", "LookDev"],
+            "subs": []
+          },
+          {
+            "name": "Environment",
+            "path": "Assets\\Environment",
+            "categories": ["Model", "Rig", "LookDev"],
+            "subs": []
+          },
+          {
+            "name": "Vehicles",
+            "path": "Assets\\Vehicles",
+            "categories": ["Model", "Rig", "LookDev"],
+            "subs": []
+          }
+        ]
+      },
+      {
+        "name": "Sequence",
+        "path": "Sequence",
+        "categories": [],
+        "subs": []
+      }
+    ]
+  }
+}

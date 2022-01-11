@@ -78,12 +78,16 @@ class Subproject(Entity):
                         "id": neighbour.id,
                         "name": neighbour.name,
                         "path": neighbour.path,
-                        "resolution": neighbour.resolution,
-                        "fps": neighbour.fps,
+                        # "resolution": neighbour.resolution,
+                        # "fps": neighbour.fps,
                         # "categories": list(neighbour.categories.keys()),
                         "categories": [category.name for category in neighbour.categories],
                         "subs": [],  # this will be filled with the while loop
                     }
+                    if neighbour.resolution != self.resolution:
+                        sub_data["resolution"] = neighbour.resolution
+                    if neighbour.fps != self.fps:
+                        sub_data["fps"] = neighbour.fps
                     parent["subs"].append(sub_data)
 
                     # visited.append([sub_data, neighbour])
@@ -121,8 +125,11 @@ class Subproject(Entity):
                     _id = neighbour.get("id", None)
                     _name = neighbour.get("name", None)
                     _relative_path = neighbour.get("path", None)
-                    _resolution = neighbour.get("resolution", None)
-                    _fps = neighbour.get("fps", None)
+                    # _resolution = neighbour.get("resolution", None)
+                    # resolution and fps is getting inherited from parent entity if not overridden
+                    _resolution = neighbour.get("resolution", self.resolution)
+                    # _fps = neighbour.get("fps", None)
+                    _fps = neighbour.get("fps", self.fps)
                     _categories = neighbour.get("categories", [])
                     sub_project = sub.add_sub_project(_name, resolution=_resolution,
                                                       fps=_fps, uid=_id)

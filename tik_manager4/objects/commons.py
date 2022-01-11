@@ -20,6 +20,7 @@ class Commons(object):
         self.manager = None
         self.users = None
         self.template = None
+        self.structures = None
 
         self._validate_commons_folder()
 
@@ -29,6 +30,7 @@ class Commons(object):
 
     def _validate_commons_folder(self):
         """Makes sure the commons folder contains the necessary setting files"""
+        # copy the default template files to common folder
         for default_file in defaults.all:
             base_name = os.path.basename(default_file)
             common_file = os.path.join(self._folder_path, base_name)
@@ -40,6 +42,7 @@ class Commons(object):
         self.manager = Settings(file_path=os.path.join(self._folder_path, "manager.json"))
         self.users = Settings(file_path=os.path.join(self._folder_path, "users.json"))
         self.template = Settings(file_path=os.path.join(self._folder_path, "templates.json"))
+        self.structures = Settings(file_path=os.path.join(self._folder_path, "structures.json"))
 
     def check_user_permission_level(self, user_name):
         """Returns the permission level for given user"""
@@ -48,6 +51,10 @@ class Commons(object):
     def get_users(self):
         """Returns the list of all active users"""
         return self.users.all_properties
+
+    def get_project_structures(self):
+        """Returns list of available project structures defined in defaults"""
+        return self.structures.all_properties
 
     # def create_user(self, user_name, initials, password, permission_level, active_user):
     #     """Creates a new user and stores it in database"""

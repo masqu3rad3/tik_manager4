@@ -66,3 +66,4 @@ class Project(Settings, Subproject):
         self._remove_sub_project(uid, path)
         self.apply_settings()
         self._delete_folders(os.path.join(self._database_path, path))
+

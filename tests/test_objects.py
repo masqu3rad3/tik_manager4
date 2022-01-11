@@ -91,7 +91,7 @@ def test_create_a_shot_asset_project_structure():
     # print("\n")
 
     pr.save_structure()
-    # pprint(pr.get_sub_tree())
+    pprint(pr.get_sub_tree())
 
     pr.create_folders(pr.database_path)
     # print(pr.database_path, pr._path)
@@ -188,18 +188,18 @@ def test_delete_user():
     assert test_user.delete_user("Extra_User") == (1, "Success")
 
 
-def test_add_and_remove_project_bookmarks():
-    assert test_user.add_project_bookmark("SOME_PROJECT", "some\\path") == \
-           (1, "Project SOME_PROJECT added to bookmarks")
-    assert test_user.add_project_bookmark("shitPro", "some\\more\\path") == (1, "Project shitPro added to bookmarks")
-    assert test_user.add_project_bookmark("SOME_PROJECT", "some\\path") == \
-           (-1, "Project SOME_PROJECT already exists in user bookmarks")
-    assert test_user.delete_project_bookmark("shitPro") == (1, "Project shitPro removed from bookmarks")
-    assert test_user.delete_project_bookmark("shitPro") == (-1, "Project shitPro does not exist in bookmarks. Aborting")
-
-
-def test_get_bookmarks():
-    print("\n", test_user.get_project_bookmarks())
+# def test_add_and_remove_project_bookmarks():
+#     assert test_user.add_project_bookmark("SOME_PROJECT", "some\\path") == \
+#            (1, "Project SOME_PROJECT added to bookmarks")
+#     assert test_user.add_project_bookmark("shitPro", "some\\more\\path") == (1, "Project shitPro added to bookmarks")
+#     assert test_user.add_project_bookmark("SOME_PROJECT", "some\\path") == \
+#            (-1, "Project SOME_PROJECT already exists in user bookmarks")
+#     assert test_user.delete_project_bookmark("shitPro") == (1, "Project shitPro removed from bookmarks")
+#     assert test_user.delete_project_bookmark("shitPro") == (-1, "Project shitPro does not exist in bookmarks. Aborting")
+#
+#
+# def test_get_bookmarks():
+#     print("\n", test_user.get_project_bookmarks())
 
 # if revert_flag:
 #     # back to the original one

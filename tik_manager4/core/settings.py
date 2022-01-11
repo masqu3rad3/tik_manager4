@@ -68,3 +68,11 @@ class Settings(object):
     def get_property(self, key):
         """Returns the value of the property key"""
         return self._currentValue.get(key, None)
+
+    def set_data(self, data):
+        """Feeds the raw data directly"""
+        self._currentValue = data
+
+    def get_data(self):
+        """Returns the whole current data"""
+        return self._currentValue
