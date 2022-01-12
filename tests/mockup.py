@@ -10,6 +10,7 @@ class Mockup(object):
     def __init__(self):
         _salt = str(uuid.uuid4()).split("-")[-1]
         self.user_backup_path = os.path.normpath(os.path.join(os.path.expanduser('~'), "TikManager4_BCK%s" % _salt))
+        # self.user_backup_path = os.path.normpath(os.path.join(os.path.expanduser('~'), "TikManager4_BCK"))
         self.test_project_path = os.path.normpath(os.path.join(os.path.expanduser('~'), "test_project"))
         self.mockup_commons_path = os.path.normpath(os.path.join(os.path.expanduser('~'), "mockup_common"))
         self.user_path = os.path.normpath(os.path.join(os.path.expanduser('~'), "TikManager4"))

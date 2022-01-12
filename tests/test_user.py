@@ -13,7 +13,7 @@ class TestUser:
     @clean_user
     def test_reinitializing_user(self):
         """Tests validating the user information (again)"""
-        assert self.tik.user._validate_user_data() == 1, "Existing user data cannot be initialized"
+        assert self.tik.user._validate_user_data() == 1, "Existing user data failed to initialize"
 
     @clean_user
     def test_query_users(self):

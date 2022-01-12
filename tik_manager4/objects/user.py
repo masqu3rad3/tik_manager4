@@ -260,6 +260,7 @@ class User(object):
         return self.bookmarks.get_property("bookmarkedProjects")
 
     def add_recent_project(self, path):
+        # TODO if it exists, dont add it
         recents_list = self.bookmarks.get_property("recentProjects")
         recents_list.append(path)
         if len(recents_list) > 10:

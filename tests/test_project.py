@@ -1,5 +1,6 @@
 """Tests for Project related functions"""
 import os
+import shutil
 from .mockup import Mockup, clean_user
 from tik_manager4.objects import user
 
@@ -21,6 +22,17 @@ class TestProject:
 
     @clean_user
     def test_create_new_project(self):
-        self.tik.user.set_active_user("Admin", password="1234")
+        # no user permission
         test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_project")
-        assert self.tik.create_project(test_project_path, "asset_shot") == (1, "Success")
+        assert self.tik.create_project(test_project_path, structure_template="asset_shot") == \
+               (-1, "This user does not have rights to perform this action")
+        self.tik.user.set_active_user("Admin")
+        assert self.tik.create_project(test_project_path, structure_template="asset_shot") == \
+               (-1, "User is not authenticated")
+        self.tik.user.authenticate("1234")
+        assert self.tik.create_project(test_project_path, structure_template="hedehot") == (1, "Success")
+        assert self.tik.create_project(test_project_path, structure_template="empty") == \
+               (-1, "Project already exists. Aborting")
+        shutil.rmtree(test_project_path)
+        assert self.tik.create_project(test_project_path, structure_template="asset_shot", resolution=[3840, 2160],
+                                       fps=30) == (1, "Success")

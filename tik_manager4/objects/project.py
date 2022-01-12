@@ -41,18 +41,10 @@ class Project(Settings, Subproject):
 
     def set(self, absolute_path):
         self._absolute_path = absolute_path
-        self._relative_path = os.path.basename(absolute_path)
+        self._relative_path = ""
+        self.name = os.path.basename(absolute_path)
         self._database_path = self._io.folder_check(os.path.join(absolute_path, "tikDatabase"))
         self.settings_file = os.path.join(self._database_path, "project_structure.json")
-        # TODO instead of checking the properties, create templates under defaults to start with
-        # TODO these templates can be copied to the database folder as a base
-        if not self.get_property("path"):
-            self.add_property("path", self.path)
-        if not self.get_property("fps"):
-            self.add_property("fps", 25)
-        if not self.get_property("resolution"):
-            self.add_property("resolution", [1920, 1080])
-        self.apply_settings()
         self.set_sub_tree(self._currentValue)
 
     def delete_sub_project(self, user_object, uid=None, path=None):

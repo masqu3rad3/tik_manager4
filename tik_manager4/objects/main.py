@@ -11,12 +11,44 @@ class Main(object):
 
     def __init__(self):
         # set either the latest project or the default one
+        # always make sure the default project exists, in case of urgent fall back
+        default_project = os.path.join(os.path.expanduser("~"), "TM4_default")
+        if not os.path.exists(os.path.join(default_project, "tikDatabase", "project_structure.json")):
+            self._create_default_project()
+
         if self.user.get_recent_projects():
             _project = self.user.get_recent_projects()[-1]
         else:
-            _project = os.path.join(os.path.expanduser("~"), "TM4_default")
+            _project = default_project
+
         self.project.set(_project)
         self.user.add_recent_project(_project)
+
+    def _create_default_project(self):
+        # this does not require any permissions
+        _project_path = os.path.join(os.path.expanduser("~"), "TM4_default")
+        _database_path = os.path.join(_project_path, "tikDatabase")
+        _structure_file = os.path.join(_database_path, "project_structure.json")
+        if os.path.exists(_structure_file):
+            return
+        if not os.path.exists(_database_path):
+            os.makedirs(_database_path)
+
+        structure_data = self.user.commons.structures.get_property("empty") or {
+            "name": "TM4_default",
+            "path": "",
+            "resolution": [1920, 1080],
+            "fps": 25,
+            "categories": [],
+            "subs": []
+        }
+        structure_data["name"] = "TM4_default"
+
+        # create structure database file
+        structure = settings.Settings(file_path=_structure_file)
+        structure.set_data(structure_data)
+        structure.apply_settings()
+
 
     def create_project(self, path, structure_template="empty", set_after_creation=True, **kwargs):
         """Creates a new project"""
@@ -36,8 +68,7 @@ class Main(object):
 
         project_name = os.path.basename(path)
         structure_data = self.user.commons.structures.get_property(structure_template)
-        print("***")
-        print(structure_data)
+
         if not structure_data:
             log.warning("Structure template %s is not defined. Creating empty project")
             structure_data = {
