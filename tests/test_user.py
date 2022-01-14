@@ -2,7 +2,7 @@
 from .mockup import Mockup, clean_user
 from tik_manager4.objects import user
 
-class TestUser:
+class TestUser(object):
     """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
     mock = Mockup()
     mock.prepare()
@@ -13,28 +13,38 @@ class TestUser:
     @clean_user
     def test_reinitializing_user(self):
         """Tests validating the user information (again)"""
+        self.tik.project.__init__()
+        self.tik.user.__init__()
         assert self.tik.user._validate_user_data() == 1, "Existing user data failed to initialize"
 
     @clean_user
     def test_query_users(self):
         """Tests getting the user list from commons database"""
+        self.tik.project.__init__()
+        self.tik.user.__init__()
         user_list = self.tik.user.commons.get_users()
         assert user_list
 
     @clean_user
     def test_get_active_user(self):
         """Tests getting the currently active user from user database"""
+        self.tik.project.__init__()
+        self.tik.user.__init__()
         assert self.tik.user.get_active_user() == "Generic"
 
     @clean_user
     def test_authenticating_user(self):
         """Tests authenticating the active user"""
+        self.tik.project.__init__()
+        self.tik.user.__init__()
         assert self.tik.user
         assert self.tik.user.authenticate("1234")
 
     @clean_user
     def test_switching_users(self):
         """Tests switching between users"""
+        self.tik.project.__init__()
+        self.tik.user.__init__()
         # setting user without password authentication
         assert self.tik.user.set_active_user("Admin") == ("Admin", "Success")
         assert not self.tik.user.is_authenticated
@@ -45,6 +55,8 @@ class TestUser:
     @clean_user
     def test_adding_new_users(self):
         """Tests adding new users to database"""
+        self.tik.project.__init__()
+        self.tik.user.__init__()
         # test adding by users by not permitted users
         assert self.tik.user.set_active_user("Generic", password="1234")
         assert self.tik.user.create_new_user("Test_BasicUser", "tbu", "password", 0) == \
@@ -71,6 +83,8 @@ class TestUser:
 
     @clean_user
     def test_change_user_password(self):
+        self.tik.project.__init__()
+        self.tik.user.__init__()
         # Change active user passes
         assert self.tik.user.set_active_user("Generic")
         # test providing wrong password
@@ -96,13 +110,15 @@ class TestUser:
 
     @clean_user
     def test_change_permission_levels(self):
+        self.tik.project.__init__()
+        self.tik.user.__init__()
         assert self.tik.user.set_active_user("Generic")
         assert self.tik.user.change_permission_level("Test_TaskUser", 3) == \
                (-1, "User Generic has no permission to change permission level of other users")
         assert self.tik.user.set_active_user("Admin")
         assert self.tik.user.change_permission_level("Test_TaskUser", 3) == \
                (-1, "Active user is not authenticated or the password is wrong")
-        self.tik.user.authenticate("awesome_password")
+        self.tik.user.authenticate("1234")
         assert self.tik.user.change_permission_level("Admin", 3) == \
                (-1, "Admin permission levels cannot be altered")
         assert self.tik.user.change_permission_level("Generic", 3) == \
@@ -114,6 +130,8 @@ class TestUser:
 
     @clean_user
     def test_delete_user(self):
+        self.tik.project.__init__()
+        self.tik.user.__init__()
         self.tik.user.set_active_user("Test_ProjectUser", password="password")
         assert self.tik.user.delete_user("Extra_User") == \
                (-1, "User Test_ProjectUser has no permission to delete users")
@@ -128,6 +146,8 @@ class TestUser:
 
     @clean_user
     def test_adding_new_project_bookmarks(self):
+        self.tik.project.__init__()
+        self.tik.user.__init__()
         assert self.tik.user.add_project_bookmark("projectA", "/path/to/projectA") == (1, "projectA added to bookmarks")
         assert self.tik.user.add_project_bookmark("projectB", "/path/to/projectB") == (1, "projectB added to bookmarks")
         assert self.tik.user.add_project_bookmark("projectB", "/path/to/projectB") == \
@@ -135,6 +155,8 @@ class TestUser:
 
     @clean_user
     def test_delete_project_bookmarks(self):
+        self.tik.project.__init__()
+        self.tik.user.__init__()
         self.tik.user.add_project_bookmark("ProjectToRemove", "/path/to/ProjectToRemove")
         assert len(self.tik.user.get_project_bookmarks()) == 1
         assert self.tik.user.delete_project_bookmark("ProjectToRemove") == (1, "Success")
@@ -143,6 +165,8 @@ class TestUser:
 
     @clean_user
     def test_get_project_bookmarks(self):
+        self.tik.project.__init__()
+        self.tik.user.__init__()
         assert self.tik.user.get_project_bookmarks() == []
         self.tik.user.add_project_bookmark("a_project", "/path/to/a_project")
         assert self.tik.user.get_project_bookmarks() == [{'name': 'a_project', 'path': '/path/to/a_project'}]

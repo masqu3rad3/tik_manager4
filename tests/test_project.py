@@ -1,12 +1,14 @@
 """Tests for Project related functions"""
 import os
 import shutil
+# import uuid
 from .mockup import Mockup, clean_user
 from tik_manager4.objects import user
 
 
 class TestProject:
     """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
+    # _salt = str(uuid.uuid4()).split("-")[-1]
     mock = Mockup()
     mock.prepare()
     user.User(commons_directory=mock.common)  # this is for not popping up the "missing common folder" message
@@ -21,9 +23,15 @@ class TestProject:
         assert self.tik.project.name == "TM4_default"
 
     @clean_user
+    def test_resolution_and_fps(self):
+        pass
+
+    @clean_user
     def test_create_new_project(self):
         # no user permission
-        test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_project")
+        test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_project_DO_NOT_USE")
+        if os.path.exists(test_project_path):
+            shutil.rmtree(test_project_path)
         assert self.tik.create_project(test_project_path, structure_template="asset_shot") == \
                (-1, "This user does not have rights to perform this action")
         self.tik.user.set_active_user("Admin")

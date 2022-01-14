@@ -4,6 +4,7 @@ import shutil
 import os
 from functools import wraps
 from tik_manager4.objects import user
+import pdb
 
 
 class Mockup(object):
@@ -58,7 +59,7 @@ class Mockup(object):
 
 
 def clean_user(func):
-    """Decorator to make a fresh start (commons and user folder)
+    """Decorator to make a fresh start (user folder)
     """
 
     @wraps(func)
@@ -66,6 +67,7 @@ def clean_user(func):
         m = Mockup()
         m.backup_user()
         user.User(commons_directory=m.mockup_commons_path)
+        # pdb.set_trace()
         try:
             return func(*args, **kwargs)
         except Exception as e:
