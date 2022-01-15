@@ -99,3 +99,5 @@ class Main(object):
         project_obj.create_folders(project_obj.absolute_path)
         project_obj.create_folders(project_obj.database_path)
         return 1, "Success"
+
+    # def set_project(self):

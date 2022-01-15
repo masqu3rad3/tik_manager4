@@ -4,6 +4,7 @@ import os
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.commons import Commons
+from tik_manager4.objects.guard import Guard
 from tik_manager4.ui import feedback
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
@@ -12,8 +13,9 @@ FEED = feedback.Feedback()
 
 
 class User(object):
-    _authenticated = False
-    _permission_level = 0
+    # _authenticated = False
+    # _permission_level = 0
+    _guard = Guard()
 
     def __init__(self, commons_directory=None):
         super(User, self).__init__()
@@ -34,19 +36,23 @@ class User(object):
 
     @property
     def is_authenticated(self):
-        return bool(self._authenticated)
+        # return bool(self._authenticated)
+        return bool(self._guard.is_authenticated)
 
     @property
     def permission_level(self):
-        return self._permission_level
+        # return self._permission_level
+        return self._guard.permission_level
 
     @classmethod
     def __set_authentication_status(cls, state):
-        cls._authenticated = state
+        # cls._authenticated = state
+        cls._guard.set_authentication_status(state)
 
     @classmethod
     def __set_permission_level(cls, level):
-        cls._permission_level = level
+        # cls._permission_level = level
+        cls._guard.set_permission_level(level)
 
     def _validate_user_data(self):
         """Finds or creates user directories and files"""

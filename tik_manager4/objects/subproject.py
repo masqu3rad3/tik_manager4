@@ -5,11 +5,14 @@ from fnmatch import fnmatch
 from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.category import Category
+# from tik_manager4.objects.guard import Guard
+
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Subproject(Entity):
+    # _guard = Guard()
     def __init__(self, resolution=None, fps=None, *args, **kwargs):
 
         self._fps = fps
@@ -153,10 +156,16 @@ class Subproject(Entity):
             <Subproject class>
 
         """
+        # adding sub-projects requires level 2 permissions
+        if self.permission_level < 2:
+            return -1, log.warning("This user does not have permissions for this action")
+
+        if not self.is_authenticated:
+            return -1, log.warning("User is not authenticated")
 
         if name in self._sub_projects.keys():
-            log.warning("{0} already exist in sub-projects of {1}".format(name, self._name))
-            return 0
+            return -1, log.warning("{0} already exist in sub-projects of {1}".format(name, self._name))
+            # return 0
 
         # inherit the resolution and fps if not overriden
         resolution = resolution or self.resolution
@@ -264,3 +273,9 @@ class Subproject(Entity):
             if not os.path.exists(_f):
                 os.makedirs(_f)
         _ = [sub.create_folders(root, sub=sub) for sub in sub.subs.values()]
+
+    # def testing(self):
+    #     print(self._guard.permission_level)
+    #     print(self._guard.is_authenticated)
+    #     return(self._guard.permission_level, self._guard.is_authenticated)
+

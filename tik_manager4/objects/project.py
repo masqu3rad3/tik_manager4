@@ -2,11 +2,14 @@ import os
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.subproject import Subproject
+# from tik_manager4.objects.user import User
+# from tik_manager4.objects.guard import Guard
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Project(Settings, Subproject):
+    # _guard = Guard()
     def __init__(self, path=None, name=None, resolution=None, fps=None):
         super(Project, self).__init__()
         self._path = path
@@ -14,6 +17,9 @@ class Project(Settings, Subproject):
         self._name = name
         self._resolution = resolution
         self._fps = fps
+        # We define a user object here. This way we can access permission and authentication
+        # status using class properties of user object
+        # self._user = User()
 
         # This makes sure the project folder is tik_manager4 ready
         if path:
@@ -58,4 +64,9 @@ class Project(Settings, Subproject):
         self._remove_sub_project(uid, path)
         self.apply_settings()
         self._delete_folders(os.path.join(self._database_path, path))
+
+    # def testing(self):
+    #     print(self._guard.permission_level)
+    #     print(self._guard.is_authenticated)
+    #     return(self._guard.permission_level, self._guard.is_authenticated)
 
