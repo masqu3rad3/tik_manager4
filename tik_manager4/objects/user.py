@@ -90,9 +90,9 @@ class User(object):
 
         # set the active user
         active_user = self.bookmarks.get_property("activeUser")
-        state, msg = self.set_active_user(active_user, save_to_db=False)
+        state, msg = self.set(active_user, save_to_db=False)
         if state == -1:
-            self.set_active_user("Generic", save_to_db=False)
+            self.set("Generic", save_to_db=False)
         # if active_user not in self.commons.get_users():
         #     active_user = "Generic"
         # self.set_active_user(active_user, save_to_db=False)
@@ -101,11 +101,11 @@ class User(object):
         self.bookmarks.apply_settings()
         return 1
 
-    def get_active_user(self):
+    def get(self):
         """Returns the currently active user"""
         return self._active_user
 
-    def set_active_user(self, user_name, password=None, save_to_db=True):
+    def set(self, user_name, password=None, save_to_db=True):
         """Sets the active user to the session"""
 
         # check if the user exists in common database

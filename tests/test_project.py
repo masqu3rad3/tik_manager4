@@ -25,7 +25,26 @@ class TestProject:
 
     @clean_user
     def test_resolution_and_fps(self):
-        pass
+        """Tests setting and getting resolution of fps values"""
+        test_resolution = [1000, 1000]
+        test_fps = 30
+        assert self.tik.project.set_resolution(test_resolution) == (-1, "This user does not have permissions for this action")
+        assert self.tik.project.set_fps(test_fps) == (-1, "This user does not have permissions for this action")
+        self.tik.user.set("Admin")
+        assert self.tik.project.set_resolution(test_resolution) == (-1, "User is not authenticated")
+        assert self.tik.project.set_fps(test_fps) == (-1, "User is not authenticated")
+        self.tik.user.authenticate("1234")
+        assert self.tik.project.set_resolution(test_resolution) == (1, "Success")
+        assert self.tik.project.set_fps(test_fps) == (1, "Success")
+
+        self.tik.project.save_structure()
+
+        # # re-init the project and read back the values
+        self.tik.project.set(os.path.join(os.path.expanduser("~"), "TM4_default"))
+        assert self.tik.project.resolution == test_resolution
+        assert self.tik.project.fps == test_fps
+
+
 
     @clean_user
     def test_create_new_project(self):
@@ -35,7 +54,7 @@ class TestProject:
             shutil.rmtree(test_project_path)
         assert self.tik.create_project(test_project_path, structure_template="asset_shot") == \
                (-1, "This user does not have rights to perform this action")
-        self.tik.user.set_active_user("Admin")
+        self.tik.user.set("Admin")
         assert self.tik.create_project(test_project_path, structure_template="asset_shot") == \
                (-1, "User is not authenticated")
         self.tik.user.authenticate("1234")
@@ -55,7 +74,7 @@ class TestProject:
         if os.path.exists(test_project_path):
             shutil.rmtree(test_project_path)
 
-        self.tik.user.set_active_user("Admin", password="1234")
+        self.tik.user.set("Admin", password="1234")
         self.tik.create_project(test_project_path, structure_template="empty")
         self.tik.project.set(test_project_path)
 
@@ -96,6 +115,22 @@ class TestProject:
         self.tik.project.save_structure()
         pprint(self.tik.project.get_sub_tree())
 
-        self.tik.project.create_folders(self.tik.project.database_path)
+        # self.tik.project.create_folders(self.tik.project.database_path)
         # print(pr.database_path, pr._path)
-        self.tik.project.create_folders(self.tik.project.absolute_path)
+        # self.tik.project.create_folders(self.tik.project.absolute_path)
+        return test_project_path
+
+    @clean_user
+    def test_validating_existing_project(self):
+        """Tests reading an existing project structure and compares it to the created one on-the-fly"""
+        test_project_path = self.test_create_a_shot_asset_project_structure()
+        current_subtree = self.tik.project.get_sub_tree()
+        self.tik.project.__init__()
+        self.tik.user.__init__()
+
+        # print(test_project_path)
+        self.tik.project.set(test_project_path)
+        existing_subtree = self.tik.project.get_sub_tree()
+        pprint(existing_subtree)
+        assert current_subtree == existing_subtree, "Read and Write of project structure does not match"
+

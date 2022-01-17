@@ -30,7 +30,7 @@ class TestUser(object):
         """Tests getting the currently active user from user database"""
         self.tik.project.__init__()
         self.tik.user.__init__()
-        assert self.tik.user.get_active_user() == "Generic"
+        assert self.tik.user.get() == "Generic"
 
     @clean_user
     def test_authenticating_user(self):
@@ -46,10 +46,10 @@ class TestUser(object):
         self.tik.project.__init__()
         self.tik.user.__init__()
         # setting user without password authentication
-        assert self.tik.user.set_active_user("Admin") == ("Admin", "Success")
+        assert self.tik.user.set("Admin") == ("Admin", "Success")
         assert not self.tik.user.is_authenticated
         # setting user with password authentication
-        assert self.tik.user.set_active_user("Generic", password="1234")
+        assert self.tik.user.set("Generic", password="1234")
         assert self.tik.user.is_authenticated
 
     @clean_user
@@ -58,11 +58,11 @@ class TestUser(object):
         self.tik.project.__init__()
         self.tik.user.__init__()
         # test adding by users by not permitted users
-        assert self.tik.user.set_active_user("Generic", password="1234")
+        assert self.tik.user.set("Generic", password="1234")
         assert self.tik.user.create_new_user("Test_BasicUser", "tbu", "password", 0) == \
                (-1, 'User Generic has no permission to create new users')
 
-        assert self.tik.user.set_active_user("Admin")  # non-authenticated Admin
+        assert self.tik.user.set("Admin")  # non-authenticated Admin
         assert self.tik.user.create_new_user("Test_BasicUser", "tbu", "password", 0) == \
                (-1, "Active user is not authenticated or the password is wrong")
         assert self.tik.user.create_new_user("Test_BasicUser", "tbu", "password", 0,
@@ -78,7 +78,7 @@ class TestUser(object):
         assert self.tik.user.create_new_user("Test_BasicUser", "tbu", "password", 0) == \
                (-1, 'User Test_BasicUser already exists. Aborting')
 
-        assert self.tik.user.set_active_user("Test_AdminUser", password="password") == ("Test_AdminUser", "Success")
+        assert self.tik.user.set("Test_AdminUser", password="password") == ("Test_AdminUser", "Success")
         assert self.tik.user.create_new_user("Extra_User", "ext", "extra", 2) == (1, "Success")
 
     @clean_user
@@ -86,7 +86,7 @@ class TestUser(object):
         self.tik.project.__init__()
         self.tik.user.__init__()
         # Change active user passes
-        assert self.tik.user.set_active_user("Generic")
+        assert self.tik.user.set("Generic")
         # test providing wrong password
         assert self.tik.user.change_user_password("WRONG_PASS", "amazing_password") == (
         -1, "Old password for Generic does "
@@ -104,18 +104,18 @@ class TestUser(object):
         # Change other user passes
         assert self.tik.user.change_user_password("WRONG_PASS", "awesome_password", user_name="Admin") == \
                (-1, "Old password for Admin does not match")
-        assert self.tik.user.set_active_user("Admin", password="awesome_password")
+        assert self.tik.user.set("Admin", password="awesome_password")
         assert self.tik.user.change_user_password("1234", "awesome_password", user_name="Admin") == (1, "Success")
-        assert self.tik.user.set_active_user("Admin", password="awesome_password") == ("Admin", "Success")
+        assert self.tik.user.set("Admin", password="awesome_password") == ("Admin", "Success")
 
     @clean_user
     def test_change_permission_levels(self):
         self.tik.project.__init__()
         self.tik.user.__init__()
-        assert self.tik.user.set_active_user("Generic")
+        assert self.tik.user.set("Generic")
         assert self.tik.user.change_permission_level("Test_TaskUser", 3) == \
                (-1, "User Generic has no permission to change permission level of other users")
-        assert self.tik.user.set_active_user("Admin")
+        assert self.tik.user.set("Admin")
         assert self.tik.user.change_permission_level("Test_TaskUser", 3) == \
                (-1, "Active user is not authenticated or the password is wrong")
         self.tik.user.authenticate("1234")
@@ -132,10 +132,10 @@ class TestUser(object):
     def test_delete_user(self):
         self.tik.project.__init__()
         self.tik.user.__init__()
-        self.tik.user.set_active_user("Test_ProjectUser", password="password")
+        self.tik.user.set("Test_ProjectUser", password="password")
         assert self.tik.user.delete_user("Extra_User") == \
                (-1, "User Test_ProjectUser has no permission to delete users")
-        self.tik.user.set_active_user("Test_AdminUser")
+        self.tik.user.set("Test_AdminUser")
         assert self.tik.user.delete_user("Admin") == (-1, "Active user is not authenticated or the password is wrong")
         self.tik.user.authenticate("password")
 

@@ -43,6 +43,8 @@ class Project(Settings, Subproject):
 
     def save_structure(self):
         self._currentValue = self.get_sub_tree()
+        self.create_folders(root=self.database_path)
+        self.create_folders(root=self.absolute_path)
         self.apply_settings()
 
     def set(self, absolute_path):
@@ -58,7 +60,7 @@ class Project(Settings, Subproject):
         # TODO Consider deleting the work folders ??!!?? OR
         # TODO maybe check for publishes? if there is any abort immediately?
         if user_object.permission_level < 3:
-            return -1, log.warning("User %s does not have delete permissions" % user_object.get_active_user())
+            return -1, log.warning("User %s does not have delete permissions" % user_object.get())
         if not user_object.is_authenticated:
             return -1, log.warning("User is not authenticated")
         self._remove_sub_project(uid, path)

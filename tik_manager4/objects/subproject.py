@@ -5,6 +5,7 @@ from fnmatch import fnmatch
 from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.category import Category
+
 # from tik_manager4.objects.guard import Guard
 
 
@@ -15,8 +16,8 @@ class Subproject(Entity):
     # _guard = Guard()
     def __init__(self, resolution=None, fps=None, *args, **kwargs):
 
-        self._fps = fps
-        self._resolution = resolution
+        self.__fps = fps
+        self.__resolution = resolution
         super(Subproject, self).__init__(*args, **kwargs)
 
         self._sub_projects = {}
@@ -32,22 +33,45 @@ class Subproject(Entity):
 
     @property
     def resolution(self):
-        return self._resolution
+        return self.__resolution
 
-    @resolution.setter
-    def resolution(self, val):
-        if type(val) == tuple or list:
-            self._resolution = val
-        else:
-            raise Exception("%s is not a valid resolution. must be list or tuple." % val)
+    # @resolution.setter
+    # def resolution(self, val):
+    #     state, msg = self._check_permissions(level=2)
+    #     if state != 1:
+    #         return -1, msg
+    #     if type(val) == tuple or list:
+    #         self.__resolution = val
+    #     else:
+    #         raise Exception("%s is not a valid resolution. must be list or tuple." % val)
 
     @property
     def fps(self):
-        return self._fps
+        return self.__fps
 
-    @fps.setter
-    def fps(self, val):
-        self._fps = val
+    # @fps.setter
+    # def fps(self, val):
+    #     self._fps = val
+
+    def set_resolution(self, val):
+        state, msg = self._check_permissions(level=2)
+        if state != 1:
+            return -1, log.warning(msg)
+        if type(val) == tuple or list:
+            self.__resolution = val
+            return 1, "Success"
+        else:
+            raise Exception("%s is not a valid resolution. must be list or tuple." % val)
+
+    def set_fps(self, val):
+        state, msg = self._check_permissions(level=2)
+        if state != 1:
+            return -1, log.warning(msg)
+        if type(val) == int or float:
+            self.__fps = val
+            return 1, "Success"
+        else:
+            raise Exception("%s is not a valid fps value. must be int or float." % val)
 
     def get_sub_tree(self):
         visited = []
@@ -110,8 +134,8 @@ class Subproject(Entity):
         self.id = data.get("id", None)
         self._name = data.get("name", None)
         self._relative_path = data.get("path", None)
-        self._resolution = data.get("resolution", None)
-        self._fps = data.get("fps", None)
+        self.__resolution = data.get("resolution", None)
+        self.__fps = data.get("fps", None)
         _ = [self.add_category(x) for x in data.get("categories", [])]
 
         # append the subproject object and pointer for json as a queue element
@@ -134,8 +158,9 @@ class Subproject(Entity):
                     # _fps = neighbour.get("fps", None)
                     _fps = neighbour.get("fps", self.fps)
                     _categories = neighbour.get("categories", [])
-                    sub_project = sub.add_sub_project(_name, resolution=_resolution,
-                                                      fps=_fps, uid=_id)
+                    # sub_project = sub.add_sub_project(_name, resolution=_resolution,
+                    #                                   fps=_fps, uid=_id)
+                    sub_project = sub.__build_sub_project(_name, _resolution, _fps, _id)
                     # define the path and categories separately
                     # TODO Categories and path can be overrides for Subproject class
                     sub_project._relative_path = _relative_path
@@ -144,24 +169,39 @@ class Subproject(Entity):
                     visited.append(neighbour)
                     queue.append([sub_project, neighbour.get("subs", [])])
 
-    def add_sub_project(self, name, resolution=None, fps=None, uid=None):
-        """
-        Creates a subproject object
-        Args:
-            name: (String) Name of the subproject
-            resolution: (Tuple or List) If not provided, derives it from the parent subproject
-            fps:  (Tuple or List) If not provided, derives it from the parent subproject
-            uid: (integer) entity unique integer id
-        Returns:
-            <Subproject class>
+    def __build_sub_project(self, name, resolution, fps, uid):
+        """Builds the sub-project inside class."""
 
-        """
-        # adding sub-projects requires level 2 permissions
-        if self.permission_level < 2:
+        sub_pr = Subproject(name=name, resolution=resolution, fps=fps, uid=uid)
+        sub_pr.path = os.path.join(self.path, name)
+        self._sub_projects[name] = sub_pr
+        return sub_pr
+
+    def _check_permissions(self, level=2):
+        """Checks the user permissions for project related tasks. Default required level is 2"""
+
+        if self.permission_level < level:
             return -1, log.warning("This user does not have permissions for this action")
 
         if not self.is_authenticated:
             return -1, log.warning("User is not authenticated")
+        return 1, "Success"
+
+    def add_sub_project(self, name, resolution=None, fps=None, uid=None):
+        """
+        Adds a sub project. Creates the folder structure and requires permissions
+
+        """
+
+        state, msg = self._check_permissions(level=2)
+        if state != 1:
+            return -1, msg
+        # adding sub-projects requires level 2 permissions
+        # if self.permission_level < 2:
+        #     return -1, log.warning("This user does not have permissions for this action")
+        #
+        # if not self.is_authenticated:
+        #     return -1, log.warning("User is not authenticated")
 
         if name in self._sub_projects.keys():
             return -1, log.warning("{0} already exist in sub-projects of {1}".format(name, self._name))
@@ -171,12 +211,14 @@ class Subproject(Entity):
         resolution = resolution or self.resolution
         fps = fps or self.fps
 
-        # TODO Currently the overriden uid is not getting checked if it is really unique or not
-        sub_pr = Subproject(name=name, resolution=resolution, fps=fps, uid=uid)
-        # sub_pr._relative_path = os.path.join(self._relative_path, name)
-        sub_pr.path = os.path.join(self.path, name)
-        self._sub_projects[name] = sub_pr
-        return sub_pr
+        return self.__build_sub_project(name, resolution, fps, uid)
+
+        # # TODO Currently the overriden uid is not getting checked if it is really unique or not
+        # sub_pr = Subproject(name=name, resolution=resolution, fps=fps, uid=uid)
+        # # sub_pr._relative_path = os.path.join(self._relative_path, name)
+        # sub_pr.path = os.path.join(self.path, name)
+        # self._sub_projects[name] = sub_pr
+        # return sub_pr
 
     def find_sub_by_id(self, uid):
         queue = list(self.subs.values())
@@ -278,4 +320,3 @@ class Subproject(Entity):
     #     print(self._guard.permission_level)
     #     print(self._guard.is_authenticated)
     #     return(self._guard.permission_level, self._guard.is_authenticated)
-
