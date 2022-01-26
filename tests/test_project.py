@@ -44,8 +44,6 @@ class TestProject:
         assert self.tik.project.resolution == test_resolution
         assert self.tik.project.fps == test_fps
 
-
-
     @clean_user
     def test_create_new_project(self):
         # no user permission

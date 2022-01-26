@@ -55,20 +55,48 @@ class Project(Settings, Subproject):
         self.settings_file = os.path.join(self._database_path, "project_structure.json")
         self.set_sub_tree(self._currentValue)
 
-    def delete_sub_project(self, user_object, uid=None, path=None):
+    def delete_sub_project(self, uid=None, path=None):
         # TODO This requires tests
         # TODO Consider deleting the work folders ??!!?? OR
         # TODO maybe check for publishes? if there is any abort immediately?
-        if user_object.permission_level < 3:
-            return -1, log.warning("User %s does not have delete permissions" % user_object.get())
-        if not user_object.is_authenticated:
-            return -1, log.warning("User is not authenticated")
+        # if user_object.permission_level < 3:
+        #     return -1, log.warning("User %s does not have delete permissions" % user_object.get())
+        # if not user_object.is_authenticated:
+        #     return -1, log.warning("User is not authenticated")
+        state, msg = self._check_permissions(level=2)
+        if state != 1:
+            return -1, msg
+
         self._remove_sub_project(uid, path)
         self.apply_settings()
         self._delete_folders(os.path.join(self._database_path, path))
 
-    # def testing(self):
-    #     print(self._guard.permission_level)
-    #     print(self._guard.is_authenticated)
-    #     return(self._guard.permission_level, self._guard.is_authenticated)
+    def create_sub_project(self, name, parent_uid=None, parent_path=None, resolution=None, fps=None):
+        """
+             Similar to add_sub_project method but creates it under specified parent sub and writes data to
+        persistent database
+
+        Args:
+            name: (String) Name of the sub-project
+            parent_uid: (Int) Parent Sub-Project Unique ID (or project itself. Either this or parent_path needs to be defined
+            parent_path: (String) Parent Sub-Project Relative path. If uid defined this will be skipped
+            resolution: (Tuple) If not defined, parent resolution will be inherited
+            fps: (int) If not defined parent fps will be inherited
+
+        Returns:
+            <class Subproject>
+        """
+
+        if not parent_uid and not parent_path:
+            return -1, log.error("Creating sub project requires at least an parent uid or parent path ")
+
+        if parent_uid:
+            parent_sub = self.find_sub_by_id(parent_uid)
+        else:
+            parent_sub = self.find_sub_by_path(parent_path)
+
+        new_sub = parent_sub.add_sub_project(name, resolution=resolution, fps=fps, uid=None)
+        self.apply_settings()
+        self.create_folders(self._database_path)
+        return new_sub
 

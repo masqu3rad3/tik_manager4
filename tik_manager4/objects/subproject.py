@@ -228,6 +228,8 @@ class Subproject(Entity):
                 return current
             else:
                 queue.extend(list(current.subs.values()))
+        log.warning("Requested uid does not exist")
+
 
     def find_sub_by_path(self, path):
         if path == "":  # this is root
@@ -239,6 +241,7 @@ class Subproject(Entity):
                 return current
             else:
                 queue.extend(list(current.subs.values()))
+        log.warning("Requested path does not exist")
 
     def find_subs_by_wildcard(self, wildcard):
         subs = []
@@ -255,6 +258,20 @@ class Subproject(Entity):
             else:
                 visited.append(current)
         return subs
+
+    def get_uid_by_path(self, path):
+        sub = self.find_sub_by_path(path)
+        if sub:
+            return sub.id
+        else:
+            return -1
+
+    def get_uid_by_id(self, uid):
+        sub = self.find_sub_by_id(uid)
+        if sub:
+            return sub.id
+        else:
+            return -1
 
     def _remove_sub_project(self, uid=None, path=None):
         "Removes the sub project from the object but not from the database"
