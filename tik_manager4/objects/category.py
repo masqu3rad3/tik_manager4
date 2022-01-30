@@ -1,4 +1,5 @@
 from tik_manager4.objects.entity import Entity
+from tik_manager4.objects.basescene import BaseScene
 
 class Category(Entity):
     def __init__(self, name=""):

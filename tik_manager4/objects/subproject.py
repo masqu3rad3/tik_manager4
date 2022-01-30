@@ -148,18 +148,12 @@ class Subproject(Entity):
 
             for neighbour in data_position:
                 if neighbour not in visited:
-                    # print(neighbour.path)
                     _id = neighbour.get("id", None)
                     _name = neighbour.get("name", None)
                     _relative_path = neighbour.get("path", None)
-                    # _resolution = neighbour.get("resolution", None)
-                    # resolution and fps is getting inherited from parent entity if not overridden
                     _resolution = neighbour.get("resolution", self.resolution)
-                    # _fps = neighbour.get("fps", None)
                     _fps = neighbour.get("fps", self.fps)
                     _categories = neighbour.get("categories", [])
-                    # sub_project = sub.add_sub_project(_name, resolution=_resolution,
-                    #                                   fps=_fps, uid=_id)
                     sub_project = sub.__build_sub_project(_name, _resolution, _fps, _id)
                     # define the path and categories separately
                     # TODO Categories and path can be overrides for Subproject class
@@ -312,6 +306,7 @@ class Subproject(Entity):
         """Creates a new category (step) underneath"""
 
         category = Category(name=name)
+        category.path = os.path.join(self.path, name)
         self._categories.append(category)
         return category
 

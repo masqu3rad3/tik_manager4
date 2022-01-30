@@ -87,16 +87,49 @@ class Project(Settings, Subproject):
             <class Subproject>
         """
 
-        if not parent_uid and not parent_path:
-            return -1, log.error("Creating sub project requires at least an parent uid or parent path ")
-
-        if parent_uid:
-            parent_sub = self.find_sub_by_id(parent_uid)
-        else:
-            parent_sub = self.find_sub_by_path(parent_path)
+        state, msg = self._check_permissions(level=2)
+        if state != 1:
+            return -1, msg
+        parent_sub = self.__validate_and_get_parent(parent_uid, parent_path)
 
         new_sub = parent_sub.add_sub_project(name, resolution=resolution, fps=fps, uid=None)
+
         self.apply_settings()
         self.create_folders(self._database_path)
         return new_sub
+
+    def create_category(self, name, parent_uid=None, parent_path=None):
+        # TODO requires test and docstring
+        state, msg = self._check_permissions(level=2)
+        if state != 1:
+            return -1, msg
+        parent_sub = self.__validate_and_get_parent(parent_uid, parent_path)
+
+        new_category = parent_sub.add_category(name)
+
+        self.apply_settings()
+        self.create_folders(self._database_path)
+        return new_category
+
+    def create_basescene(self, name, parent_uid=None, parent_path=None):
+        if not parent_uid and not parent_path:
+            return -1, log.error("Requires at least a parent uid or parent path ")
+        state, msg = self._check_permissions(level=1)
+        if state != 1:
+            return -1, msg
+        # TODO Wip
+
+    def __validate_and_get_parent(self, parent_uid, parent_path):
+        # TODO requires test and docstring
+        if not parent_uid and not parent_path:
+            raise "Requires at least a parent uid or parent path "
+        if parent_uid:
+            parent = self.find_sub_by_id(parent_uid)
+        else:
+            parent = self.find_sub_by_path(parent_path)
+        if not parent:
+            raise "Parent cannot identified"
+        return parent
+
+
 
