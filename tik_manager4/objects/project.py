@@ -17,9 +17,6 @@ class Project(Settings, Subproject):
         self._name = name
         self._resolution = resolution
         self._fps = fps
-        # We define a user object here. This way we can access permission and authentication
-        # status using class properties of user object
-        # self._user = User()
 
         # This makes sure the project folder is tik_manager4 ready
         if path:
@@ -27,6 +24,7 @@ class Project(Settings, Subproject):
 
         # Absolute path do not go into the project_structure.json
         self._absolute_path = ""
+        self.type = "project"
 
     @property
     def absolute_path(self):
@@ -117,10 +115,23 @@ class Project(Settings, Subproject):
         state, msg = self._check_permissions(level=1)
         if state != 1:
             return -1, msg
-        # TODO Wip
+        parent_category = self.__validate_and_get_parent(parent_uid, parent_path)
+        # confirm that this is a category
+        if parent_category.type != "category":
+            return -1, "Base scenes can only created under a category"
 
     def __validate_and_get_parent(self, parent_uid, parent_path):
-        # TODO requires test and docstring
+        """
+        Confirms either parent_uid or parent_path provided (other than none) and returns
+        the parent subproject class
+        Args:
+            parent_uid: Unique id of the parent subproject
+            parent_path: Relative path of the parent subproject
+
+        Returns: <subproject class>
+
+        """
+        # TODO requires test
         if not parent_uid and not parent_path:
             raise "Requires at least a parent uid or parent path "
         if parent_uid:

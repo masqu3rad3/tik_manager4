@@ -1,7 +1,16 @@
 
 class Guard(object):
+    _user = None
     _permission_level = 0
     _authenticated = False
+
+    @classmethod
+    def set_user(cls, user):
+        cls._user = user
+
+    @property
+    def user(self):
+        return self._user
 
     @classmethod
     def set_permission_level(cls, level):

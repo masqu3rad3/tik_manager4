@@ -1,43 +1,16 @@
-from tik_manager4.objects.version import Version
+from tik_manager4.core.settings import Settings
+from tik_manager4.objects.entity import Entity
 
 
-class BaseScene(object):
-    def __init__(self, project_path=None, version_folder=None, publish_folder=None):
+class BaseScene(Settings, Entity):
+    def __init__(self, name="", category=""):
         super(BaseScene, self).__init__()
 
-        self._projectPath = project_path
-        self._versionFolder = version_folder
-        self._publishFolder = publish_folder
-
-        self._name = None
-
-        self._type = None
-        self._step = None
-
+        self._name = name
+        self.category = category
+        self.creator = self._guard.user
+        self.host_machine = None
         self._versions = []
         self._publishes = []
 
-    @property
-    def type(self):
-        return self._type
-
-    @type.setter
-    def type(self, val):
-        self._type = val
-
-    @property
-    def step(self):
-        return self._step
-
-    @step.setter
-    def step(self, val):
-        self._step = val
-
-    def add_version(self, path, user, workstation, note, thumbnail, preview, ranges):
-        self._versions.append(Version(path, user, workstation, note, thumbnail, preview, ranges))
-
-    def get_all_versions(self):
-        return self._versions
-
-    def get_version(self, version_id):
-        return self._versions[version_id-1]
+        self.type = "basescene"

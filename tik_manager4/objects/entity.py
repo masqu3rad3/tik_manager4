@@ -9,6 +9,7 @@ class Entity(object):
         self._id = uid
         self._relative_path = ""
         self._name = name
+        self.type = "entity"
         # self._user = User()
 
     @property

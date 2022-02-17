@@ -118,6 +118,7 @@ class User(object):
             else:
                 self.__set_authentication_status(False)  # make sure it is not authenticated if no password
             self._active_user = user_name
+            self._guard.set_user(self._active_user)
             if save_to_db:
                 self.bookmarks.edit_property("activeUser", self._active_user)
             self.__set_permission_level(self.commons.check_user_permission_level(user_name))

@@ -22,6 +22,7 @@ class Subproject(Entity):
 
         self._sub_projects = {}
         self._categories = []
+        self.type = "subproject"
 
     @property
     def subs(self):
