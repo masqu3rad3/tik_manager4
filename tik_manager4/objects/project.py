@@ -63,13 +63,14 @@ class Project(Settings, Subproject):
         #     return -1, log.warning("User %s does not have delete permissions" % user_object.get())
         # if not user_object.is_authenticated:
         #     return -1, log.warning("User is not authenticated")
-        state, msg = self._check_permissions(level=2)
+        state = self._check_permissions(level=2)
         if state != 1:
-            return -1, msg
+            return -1
 
         self._remove_sub_project(uid, path)
         self.apply_settings()
         self._delete_folders(os.path.join(self._database_path, path))
+        return 1
 
     def create_sub_project(self, name, parent_uid=None, parent_path=None, resolution=None, fps=None):
         """
@@ -87,22 +88,24 @@ class Project(Settings, Subproject):
             <class Subproject>
         """
 
-        state, msg = self._check_permissions(level=2)
+        state = self._check_permissions(level=2)
         if state != 1:
-            return -1, msg
+            return -1
         parent_sub = self.__validate_and_get_parent(parent_uid, parent_path)
 
         new_sub = parent_sub.add_sub_project(name, resolution=resolution, fps=fps, uid=None)
-
-        self.apply_settings()
+        if new_sub == -1:
+            return -1
+        self.save_structure()
+        # self.apply_settings()
         self.create_folders(self._database_path)
         return new_sub
 
     def create_category(self, name, parent_uid=None, parent_path=None):
         # TODO requires test and docstring
-        state, msg = self._check_permissions(level=2)
+        state = self._check_permissions(level=2)
         if state != 1:
-            return -1, msg
+            return -1
         parent_sub = self.__validate_and_get_parent(parent_uid, parent_path)
 
         new_category = parent_sub.add_category(name)
@@ -113,14 +116,16 @@ class Project(Settings, Subproject):
 
     def create_basescene(self, name, parent_uid=None, parent_path=None):
         if not parent_uid and not parent_path:
-            return -1, log.error("Requires at least a parent uid or parent path ")
-        state, msg = self._check_permissions(level=1)
+            log.error("Requires at least a parent uid or parent path ")
+            return -1
+        state = self._check_permissions(level=1)
         if state != 1:
-            return -1, msg
+            return -1
         parent_category = self.__validate_and_get_parent(parent_uid, parent_path)
         # confirm that this is a category
         if parent_category.type != "category":
-            return -1, "Base scenes can only created under a category"
+            log.warning("Base scenes can only created under a category")
+            return -1
 
     def __validate_and_get_parent(self, parent_uid, parent_path):
         """
@@ -134,9 +139,9 @@ class Project(Settings, Subproject):
 
         """
         # TODO requires test
-        if not parent_uid and not parent_path:
+        if not parent_uid and parent_path == None:
             raise "Requires at least a parent uid or parent path "
-        if parent_uid:
+        if parent_uid != None:
             parent = self.find_sub_by_id(parent_uid)
         else:
             parent = self.find_sub_by_path(parent_path)

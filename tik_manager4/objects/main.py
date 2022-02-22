@@ -54,9 +54,11 @@ class Main(object):
         """Creates a new project"""
 
         if self.user.permission_level < 3:
-            return -1, log.warning("This user does not have rights to perform this action")
+            log.warning("This user does not have rights to perform this action")
+            return -1
         if not self.user.is_authenticated:
-            return -1, log.warning("User is not authenticated")
+            log.warning("User is not authenticated")
+            return -1
 
         database_path = os.path.join(path, "tikDatabase")
         if not os.path.exists(database_path):
@@ -64,7 +66,8 @@ class Main(object):
 
         structure_file = os.path.join(database_path, "project_structure.json")
         if os.path.exists(structure_file):
-            return -1, log.warning("Project already exists. Aborting")
+            log.warning("Project already exists. Aborting")
+            return -1
 
         project_name = os.path.basename(path)
         structure_data = self.user.commons.structures.get_property(structure_template)
@@ -98,6 +101,6 @@ class Main(object):
         project_obj.set(path)
         project_obj.create_folders(project_obj.absolute_path)
         project_obj.create_folders(project_obj.database_path)
-        return 1, "Success"
+        return 1
 
     # def set_project(self):

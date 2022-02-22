@@ -55,24 +55,26 @@ class Subproject(Entity):
     #     self._fps = val
 
     def set_resolution(self, val):
-        state, msg = self._check_permissions(level=2)
+        state = self._check_permissions(level=2)
         if state != 1:
-            return -1, log.warning(msg)
-        if type(val) == tuple or list:
+            return -1
+        if type(val) == tuple or type(val) == list:
             self.__resolution = val
-            return 1, "Success"
+            return 1
         else:
-            raise Exception("%s is not a valid resolution. must be list or tuple." % val)
+            msg = "%s is not a valid resolution. must be list or tuple." % val
+            log.error(msg, proceed=False)
 
     def set_fps(self, val):
-        state, msg = self._check_permissions(level=2)
+        state = self._check_permissions(level=2)
         if state != 1:
-            return -1, log.warning(msg)
-        if type(val) == int or float:
+            return -1
+        if type(val) == int or type(val) == float:
             self.__fps = val
-            return 1, "Success"
+            return 1
         else:
-            raise Exception("%s is not a valid fps value. must be int or float." % val)
+            msg = "%s is not a valid fps value. must be int or float." % val
+            log.error(msg, proceed=False)
 
     def get_sub_tree(self):
         visited = []
@@ -176,11 +178,13 @@ class Subproject(Entity):
         """Checks the user permissions for project related tasks. Default required level is 2"""
 
         if self.permission_level < level:
-            return -1, log.warning("This user does not have permissions for this action")
+            log.warning("This user does not have permissions for this action")
+            return -1
 
         if not self.is_authenticated:
-            return -1, log.warning("User is not authenticated")
-        return 1, "Success"
+            log.warning("User is not authenticated")
+            return -1
+        return 1
 
     def add_sub_project(self, name, resolution=None, fps=None, uid=None):
         """
@@ -188,18 +192,13 @@ class Subproject(Entity):
 
         """
 
-        state, msg = self._check_permissions(level=2)
+        state = self._check_permissions(level=2)
         if state != 1:
-            return -1, msg
-        # adding sub-projects requires level 2 permissions
-        # if self.permission_level < 2:
-        #     return -1, log.warning("This user does not have permissions for this action")
-        #
-        # if not self.is_authenticated:
-        #     return -1, log.warning("User is not authenticated")
+            return -1
 
         if name in self._sub_projects.keys():
-            return -1, log.warning("{0} already exist in sub-projects of {1}".format(name, self._name))
+            log.warning("{0} already exist in sub-projects of {1}".format(name, self._name))
+            return -1
             # return 0
 
         # inherit the resolution and fps if not overriden
@@ -224,6 +223,7 @@ class Subproject(Entity):
             else:
                 queue.extend(list(current.subs.values()))
         log.warning("Requested uid does not exist")
+        return -1
 
 
     def find_sub_by_path(self, path):
@@ -237,6 +237,7 @@ class Subproject(Entity):
             else:
                 queue.extend(list(current.subs.values()))
         log.warning("Requested path does not exist")
+        return -1
 
     def find_subs_by_wildcard(self, wildcard):
         subs = []
@@ -272,26 +273,17 @@ class Subproject(Entity):
         "Removes the sub project from the object but not from the database"
 
         if not uid and not path:
-            return -1, log.error("Deleting sub project requires at least an id or path ")
+            log.error("Deleting sub project requires at least an id or path ")
+            return -1
 
-        # print("***")
-        # print(user_object.get_active_user())
-        # print(user_object.permission_level)
-        # print(user_object.permission_level)
-        # if user_object.permission_level < 3:
-        #     print("anan")
-        #     return -1, log.warning("User %s does not have delete permissions" % user_object.get_active_user())
-        # print("bacin")
-        # if not user_object.is_authenticated:
-        #     return -1, log.warning("User is not authenticated")
-        # first find the subproject to be deleted
         if uid:
             kill_sub = self.find_sub_by_id(uid)
         else:
             kill_sub = self.find_sub_by_path(path)
 
         if not kill_sub:
-            return -1, log.warning("Subproject cannot be found")
+            log.warning("Subproject cannot be found")
+            return -1
 
         path = kill_sub.path
         parent_path = os.path.dirname(kill_sub.path) or ""
@@ -329,7 +321,3 @@ class Subproject(Entity):
                 os.makedirs(_f)
         _ = [sub.create_folders(root, sub=sub) for sub in sub.subs.values()]
 
-    # def testing(self):
-    #     print(self._guard.permission_level)
-    #     print(self._guard.is_authenticated)
-    #     return(self._guard.permission_level, self._guard.is_authenticated)

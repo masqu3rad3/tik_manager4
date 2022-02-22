@@ -24,10 +24,6 @@ class Commons(object):
 
         self._validate_commons_folder()
 
-    # def __hash_pass(self, password):
-    #     """Hashes the password"""
-    #     return hashlib.sha1(str(password).encode('utf-8')).hexdigest()
-
     def _validate_commons_folder(self):
         """Makes sure the commons folder contains the necessary setting files"""
         # copy the default template files to common folder
@@ -55,44 +51,3 @@ class Commons(object):
     def get_project_structures(self):
         """Returns list of available project structures defined in defaults"""
         return self.structures.all_properties
-
-    # def create_user(self, user_name, initials, password, permission_level, active_user):
-    #     """Creates a new user and stores it in database"""
-    #
-    #     # first check the permissions of active user
-    #
-    #     # TODO Either this function or the one calls this one needs to be checked against the active users
-    #     # TODO permissions level. Only Level 2 and 3 users should have this permission.
-    #     if user_name in self.users.all_properties:
-    #         return -1, log.error("User %s already exists. Aborting" % user_name)
-    #     user_data = {
-    #         "initials": initials,
-    #         "pass": self.__hash_pass(password),
-    #         "permissionLevel": permission_level
-    #     }
-    #     self.users.add_property(user_name, user_data)
-    #     self.users.apply_settings()
-    #
-    # def delete_user(self, user_name):
-    #     """Removes the user from database"""
-    #     if user_name in self.users.all_properties:
-    #         return -1, log.error("%s does not exist. Aborting" % user_name)
-    #     self.users.delete_property(user_name)
-    #     self.users.apply_settings()
-    #
-    # def change_user_password(self, user_name, old_password, new_password):
-    #     """Changes the user password"""
-    #     if self.__hash_pass(old_password) == self.users.get_property(user_name).get("pass"):
-    #         self.users.get_property(user_name)["pass"] = self.__hash_pass(new_password)
-    #         self.users.apply_settings()
-    #     else:
-    #         return -1, log.error("Old password for %s does not match" %user_name)
-    #     pass
-    #
-    # def check_password(self, user_name, password):
-    #     """checks the given password against the hashed password"""
-    #     hashed_pass = self.__hash_pass(password)
-    #     if self.users.get_property(user_name).get("pass", "") == hashed_pass:
-    #         return True
-    #     else:
-    #         return False

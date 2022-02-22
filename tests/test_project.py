@@ -1,10 +1,15 @@
 """Tests for Project related functions"""
+import pytest
 import os
 from pprint import pprint
 import shutil
 # import uuid
 from .mockup import Mockup, clean_user
 from tik_manager4.objects import user
+from tik_manager4.core import filelog
+
+log = filelog.Filelog(logname=__name__, filename="tik_manager4")
+
 
 
 class TestProject:
@@ -22,20 +27,28 @@ class TestProject:
         assert self.tik.project.absolute_path == os.path.join(os.path.expanduser("~"), "TM4_default")
         assert self.tik.project.database_path == os.path.join(os.path.expanduser("~"), "TM4_default", "tikDatabase")
         assert self.tik.project.name == "TM4_default"
+        assert self.tik.project._guard.project_root == os.path.join(os.path.expanduser("~"), "TM4_default")
+        assert self.tik.project._guard.database_root == os.path.join(os.path.expanduser("~"), "TM4_default", "tikDatabase")
 
     @clean_user
     def test_resolution_and_fps(self):
         """Tests setting and getting resolution of fps values"""
         test_resolution = [1000, 1000]
         test_fps = 30
-        assert self.tik.project.set_resolution(test_resolution) == (-1, "This user does not have permissions for this action")
-        assert self.tik.project.set_fps(test_fps) == (-1, "This user does not have permissions for this action")
+        assert self.tik.project.set_resolution(test_resolution) == -1
+        assert self.tik.project.set_fps(test_fps) == -1
         self.tik.user.set("Admin")
-        assert self.tik.project.set_resolution(test_resolution) == (-1, "User is not authenticated")
-        assert self.tik.project.set_fps(test_fps) == (-1, "User is not authenticated")
+        assert self.tik.project.set_resolution(test_resolution) == -1
+        assert self.tik.project.set_fps(test_fps) == -1
         self.tik.user.authenticate("1234")
-        assert self.tik.project.set_resolution(test_resolution) == (1, "Success")
-        assert self.tik.project.set_fps(test_fps) == (1, "Success")
+        assert self.tik.project.set_resolution(test_resolution) == 1
+        assert self.tik.project.set_fps(test_fps) == 1
+
+        # fails
+        with pytest.raises(Exception) as e_info:
+            self.tik.project.set_resolution("NOT VALID RESOLUTION")
+        with pytest.raises(Exception) as e_info:
+            self.tik.project.set_fps("NOT VALID FPS")
 
         self.tik.project.save_structure()
 
@@ -50,18 +63,46 @@ class TestProject:
         test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_project_DO_NOT_USE")
         if os.path.exists(test_project_path):
             shutil.rmtree(test_project_path)
-        assert self.tik.create_project(test_project_path, structure_template="asset_shot") == \
-               (-1, "This user does not have rights to perform this action")
+        assert self.tik.create_project(test_project_path, structure_template="asset_shot") == -1
         self.tik.user.set("Admin")
-        assert self.tik.create_project(test_project_path, structure_template="asset_shot") == \
-               (-1, "User is not authenticated")
+        assert self.tik.create_project(test_project_path, structure_template="asset_shot") == -1
         self.tik.user.authenticate("1234")
-        assert self.tik.create_project(test_project_path, structure_template="hedehot") == (1, "Success")
-        assert self.tik.create_project(test_project_path, structure_template="empty") == \
-               (-1, "Project already exists. Aborting")
+        assert self.tik.create_project(test_project_path, structure_template="hedehot") == 1
+        assert self.tik.create_project(test_project_path, structure_template="empty") == -1
         shutil.rmtree(test_project_path)
         assert self.tik.create_project(test_project_path, structure_template="asset_shot", resolution=[3840, 2160],
-                                       fps=30) == (1, "Success")
+                                       fps=30) == 1
+        return test_project_path
+
+    @clean_user
+    def test_set_project_with_arguments(self):
+        test_project_path = self.test_create_new_project()
+        self.tik.project.__init__(path=test_project_path)
+
+    @clean_user
+    def test_create_sub_project(self):
+        """Tests creating sub-projects with parent id and path"""
+        test_project_path = self.test_create_new_project()
+        self.tik.project.set(test_project_path)
+
+        # no permission test
+        self.tik.user.set("Generic")
+        assert self.tik.project.create_sub_project("testSub", parent_path="") == -1
+        assert self.tik.project.add_sub_project("testSub") == -1
+
+        self.tik.user.set("Admin", "1234")
+        new_sub = self.tik.project.create_sub_project("testSub", parent_path="")
+        print(new_sub)
+        assert new_sub.path == "testSub"
+        print(self.tik.project.absolute_path)
+
+        another_sub = self.tik.project.create_sub_project("anotherSub", parent_uid=new_sub.id)
+        assert another_sub.path == "testSub\\anotherSub"
+
+        # try creating an existing one
+        assert self.tik.project.create_sub_project("anotherSub", parent_uid=new_sub.id) == -1
+        assert log.last_warning == "anotherSub already exist in sub-projects of testSub"
+
 
     @clean_user
     def test_create_a_shot_asset_project_structure(self):
@@ -131,4 +172,31 @@ class TestProject:
         existing_subtree = self.tik.project.get_sub_tree()
         pprint(existing_subtree)
         assert current_subtree == existing_subtree, "Read and Write of project structure does not match"
+
+    @clean_user
+    def test_deleting_sub_projects(self):
+        """Tests deleting the sub-projects"""
+        test_project_path = self.test_create_a_shot_asset_project_structure()
+        self.tik.user.set("Generic")
+        assert self.tik.project.delete_sub_project(path="Assets\\Props") == -1
+
+        self.tik.user.set("Admin", 1234)
+        assert self.tik.project.delete_sub_project(path="Assets\\Props") == 1
+
+    @clean_user
+    def test_find_subs_by_path_and_id(self):
+        test_project_path = self.test_create_new_project()
+        self.tik.project.set(test_project_path)
+        sub_by_path = self.tik.project.find_sub_by_path("Assets")
+        assert sub_by_path.path == "Assets"
+        sub_by_id = self.tik.project.find_sub_by_id(sub_by_path.id)
+        assert sub_by_id.path == "Assets"
+        assert sub_by_path == sub_by_id
+
+        #non existing path
+        assert self.tik.project.find_sub_by_path("Burhan\\Altintop") == -1
+        assert self.tik.project.find_sub_by_id(123123123123123123123) == -1
+
+
+
 

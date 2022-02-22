@@ -3,6 +3,9 @@ import os
 import datetime
 
 class Filelog(object):
+    last_warning = None
+    last_info = None
+    last_error = None
     def __init__(self, logname = None, filename=None, filedir=None, date=True, time=True, size_cap=500000, *args, **kwargs):
         super(Filelog, self).__init__()
         self.fileName = filename if filename else "defaultLog"
@@ -18,6 +21,17 @@ class Filelog(object):
         if self.get_size() > size_cap:
             self.clear()
 
+    @classmethod
+    def __set_last_error(cls, msg):
+        cls.last_error = msg
+
+    @classmethod
+    def __set_last_warning(cls, msg):
+        cls.last_warning = msg
+
+    @classmethod
+    def __set_last_info(cls, msg):
+        cls.last_info = msg
 
     def _get_now(self):
         if self.isDate or self.isTime:
@@ -44,6 +58,7 @@ class Filelog(object):
         stamped_msg = "%sINFO    : %s" %(self._get_now(), msg)
         self._start_logging()
         self.logger.info(stamped_msg)
+        self.__set_last_info(msg)
         self._end_logging()
         return msg
 
@@ -51,6 +66,7 @@ class Filelog(object):
         stamped_msg = "%sWARNING : %s" % (self._get_now(), msg)
         self._start_logging()
         self.logger.warning(stamped_msg)
+        self.__set_last_warning(msg)
         self._end_logging()
         return msg
 
@@ -58,6 +74,7 @@ class Filelog(object):
         stamped_msg = "%sERROR   : %s" % (self._get_now(), msg)
         self._start_logging()
         self.logger.error(stamped_msg)
+        self.__set_last_error(msg)
         self._end_logging()
         if not proceed:
             raise Exception(msg)

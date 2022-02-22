@@ -26,11 +26,20 @@ class TestUser(object):
         assert user_list
 
     @clean_user
+    def test_query_structures(self):
+        """Tests if preset structures can be returned"""
+        self.tik.project.__init__()
+        self.tik.user.__init__()
+        structures = self.tik.user.commons.get_project_structures()
+        assert structures
+
+    @clean_user
     def test_get_active_user(self):
         """Tests getting the currently active user from user database"""
         self.tik.project.__init__()
         self.tik.user.__init__()
         assert self.tik.user.get() == "Generic"
+        assert self.tik.project._guard.user == "Generic"
 
     @clean_user
     def test_authenticating_user(self):
@@ -39,6 +48,7 @@ class TestUser(object):
         self.tik.user.__init__()
         assert self.tik.user
         assert self.tik.user.authenticate("1234")
+        assert self.tik.project._guard.is_authenticated == True
 
     @clean_user
     def test_switching_users(self):
@@ -51,6 +61,7 @@ class TestUser(object):
         # setting user with password authentication
         assert self.tik.user.set("Generic", password="1234")
         assert self.tik.user.is_authenticated
+
 
     @clean_user
     def test_adding_new_users(self):
