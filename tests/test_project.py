@@ -103,9 +103,26 @@ class TestProject:
         assert self.tik.project.create_sub_project("anotherSub", parent_uid=new_sub.id) == -1
         assert log.last_warning == "anotherSub already exist in sub-projects of testSub"
 
+    @clean_user
+    def test_create_category(self):
+        test_project_path = self.test_create_new_project()
+        self.tik.project.set(test_project_path)
+
+        # no permission test
+        self.tik.user.set("Generic")
+        assert self.tik.project.create_category("testCategory", parent_path="Assets") == -1
+        assert self.tik.project.subs["Assets"].add_category("testCategory") == -1
+
+        self.tik.user.set("Admin", "1234")
+        new_category = self.tik.project.create_category("testCategory", parent_path="Assets")
+        assert new_category.path == "Assets\\testCategory"
+
+        # try creating an existing one
+        assert self.tik.project.create_category("testCategory", parent_path="Assets") == -1
+        assert log.last_warning == "testCategory already exists in categories of Assets"
 
     @clean_user
-    def test_create_a_shot_asset_project_structure(self):
+    def test_create_a_shot_asset_project_structure(self, print_results=True):
         self.tik.project.__init__()
         self.tik.user.__init__()
 
@@ -129,7 +146,12 @@ class TestProject:
                        props.add_sub_project("Rifle"),
                        props.add_sub_project("Knife"),
                        env.add_sub_project("Tree"),
-                       env.add_sub_project("Ground")]
+                       env.add_sub_project("Ground"),
+                       env.add_sub_project("GroundA"),
+                       env.add_sub_project("GroundB"),
+                       env.add_sub_project("GroundC"),
+                       env.add_sub_project("GroundD"),
+                       ]
 
         for leaf in leaf_assets:
             for category in asset_categories:
@@ -152,7 +174,8 @@ class TestProject:
         # print("\n")
 
         self.tik.project.save_structure()
-        pprint(self.tik.project.get_sub_tree())
+        if print_results:
+            pprint(self.tik.project.get_sub_tree())
 
         # self.tik.project.create_folders(self.tik.project.database_path)
         # print(pr.database_path, pr._path)
@@ -176,12 +199,26 @@ class TestProject:
     @clean_user
     def test_deleting_sub_projects(self):
         """Tests deleting the sub-projects"""
-        test_project_path = self.test_create_a_shot_asset_project_structure()
+        test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
+        self.tik.project.set(test_project_path)
         self.tik.user.set("Generic")
         assert self.tik.project.delete_sub_project(path="Assets\\Props") == -1
 
         self.tik.user.set("Admin", 1234)
+        # wrong arguments
+        assert self.tik.project.delete_sub_project(path=None, uid=None) == -1
+        # path methods
+
+        # non existing path
+        assert self.tik.project.delete_sub_project(path="Burhan\\Altintop") == -1
         assert self.tik.project.delete_sub_project(path="Assets\\Props") == 1
+
+        # uid methods
+        uid = self.tik.project.get_uid_by_path(path="Assets\\Characters")
+
+        # non existing uid
+        assert self.tik.project.delete_sub_project(uid=123123123123123123) == -1
+        assert self.tik.project.delete_sub_project(uid=uid) == 1
 
     @clean_user
     def test_find_subs_by_path_and_id(self):
@@ -197,6 +234,26 @@ class TestProject:
         assert self.tik.project.find_sub_by_path("Burhan\\Altintop") == -1
         assert self.tik.project.find_sub_by_id(123123123123123123123) == -1
 
+    @clean_user
+    def test_find_subs_by_wildcard(self):
+        test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
+        self.tik.project.set(test_project_path)
+        shots = (self.tik.project.find_subs_by_wildcard("SHOT_*"))
+        # _ = [print(shot.name) for shot in shots]
+        assert shots
+        assert len(shots) == 7
 
+    @clean_user
+    def test_get_uid_and_get_path(self):
+        test_project_path = self.test_create_new_project()
+        self.tik.project.set(test_project_path)
+        compare_path = "Assets\\Props"
+        uid = self.tik.project.get_uid_by_path("Assets\\Props")
+        path = self.tik.project.get_path_by_uid(uid)
+        assert path == compare_path
+
+        #non existing path
+        assert self.tik.project.get_uid_by_path("Burhan\\Altintop") == -1
+        assert self.tik.project.get_path_by_uid(123123123123123123123) == -1
 
 

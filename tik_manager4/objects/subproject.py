@@ -139,7 +139,7 @@ class Subproject(Entity):
         self._relative_path = data.get("path", None)
         self.__resolution = data.get("resolution", None)
         self.__fps = data.get("fps", None)
-        _ = [self.add_category(x) for x in data.get("categories", [])]
+        _ = [self.__build_category(x) for x in data.get("categories", [])]
 
         # append the subproject object and pointer for json as a queue element
         queue.append([self, data.get("subs", [])])
@@ -161,7 +161,7 @@ class Subproject(Entity):
                     # define the path and categories separately
                     # TODO Categories and path can be overrides for Subproject class
                     sub_project._relative_path = _relative_path
-                    _ = [sub_project.add_category(x) for x in _categories]
+                    _ = [sub_project.__build_category(x) for x in _categories]
 
                     visited.append(neighbour)
                     queue.append([sub_project, neighbour.get("subs", [])])
@@ -173,6 +173,15 @@ class Subproject(Entity):
         sub_pr.path = os.path.join(self.path, name)
         self._sub_projects[name] = sub_pr
         return sub_pr
+
+    def __build_category(self, name):
+        """Creates a new category (step) underneath"""
+
+        category = Category(name=name)
+        category.path = os.path.join(self.path, name)
+        self._categories.append(category)
+        return category
+
 
     def _check_permissions(self, level=2):
         """Checks the user permissions for project related tasks. Default required level is 2"""
@@ -188,7 +197,7 @@ class Subproject(Entity):
 
     def add_sub_project(self, name, resolution=None, fps=None, uid=None):
         """
-        Adds a sub project. Creates the folder structure and requires permissions
+        Adds a sub project. requires permissions. Does not create folders or store in the persistent database
 
         """
 
@@ -213,6 +222,22 @@ class Subproject(Entity):
         # sub_pr.path = os.path.join(self.path, name)
         # self._sub_projects[name] = sub_pr
         # return sub_pr
+
+    def add_category(self, name):
+        """Creates a new category (step). Requires permissions.
+        Does not create folders or store in the persistent database
+
+        """
+        state = self._check_permissions(level=2)
+        if state != 1:
+            return -1
+
+        if name in [category.name for category in self.categories]:
+            log.warning("{0} already exists in categories of {1}".format(name, self._name))
+            return -1
+
+        return self.__build_category(name)
+
 
     def find_sub_by_id(self, uid):
         queue = list(self.subs.values())
@@ -246,28 +271,23 @@ class Subproject(Entity):
         while queue:
             current = queue.pop(0)
             # print(current.name)
-            if fnmatch(current.path, wildcard):
+            if fnmatch(current.name, wildcard):
                 # yield current
                 subs.append(current)
             if current not in visited:
                 queue.extend(list(current.subs.values()))
-            else:
-                visited.append(current)
+            # else:
+            #     print("DEBUGGGG")
+            #     visited.append(current)
         return subs
 
     def get_uid_by_path(self, path):
         sub = self.find_sub_by_path(path)
-        if sub:
-            return sub.id
-        else:
-            return -1
+        return sub.id if sub != -1 else sub
 
-    def get_uid_by_id(self, uid):
+    def get_path_by_uid(self, uid):
         sub = self.find_sub_by_id(uid)
-        if sub:
-            return sub.id
-        else:
-            return -1
+        return sub.path if sub != -1 else sub
 
     def _remove_sub_project(self, uid=None, path=None):
         "Removes the sub project from the object but not from the database"
@@ -276,12 +296,16 @@ class Subproject(Entity):
             log.error("Deleting sub project requires at least an id or path ")
             return -1
 
+        state = self._check_permissions(level=2)
+        if state != 1:
+            return -1
+
         if uid:
             kill_sub = self.find_sub_by_id(uid)
         else:
             kill_sub = self.find_sub_by_path(path)
 
-        if not kill_sub:
+        if kill_sub == -1:
             log.warning("Subproject cannot be found")
             return -1
 
@@ -293,15 +317,8 @@ class Subproject(Entity):
         # # blast database folders
         # shutil.rmtree()
 
-        log.warning("delete_sub_project is wip")
-
-    def add_category(self, name):
-        """Creates a new category (step) underneath"""
-
-        category = Category(name=name)
-        category.path = os.path.join(self.path, name)
-        self._categories.append(category)
-        return category
+        # log.warning("delete_sub_project is wip")
+        return 1
 
     def _delete_folders(self, root, sub=None):
         sub = sub or self

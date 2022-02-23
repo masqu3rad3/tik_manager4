@@ -2,8 +2,6 @@ import os
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.subproject import Subproject
-# from tik_manager4.objects.user import User
-# from tik_manager4.objects.guard import Guard
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -63,13 +61,20 @@ class Project(Settings, Subproject):
         #     return -1, log.warning("User %s does not have delete permissions" % user_object.get())
         # if not user_object.is_authenticated:
         #     return -1, log.warning("User is not authenticated")
-        state = self._check_permissions(level=2)
-        if state != 1:
-            return -1
+        # state = self._check_permissions(level=2)
+        # if state != 1:
+        #     return -1
 
-        self._remove_sub_project(uid, path)
+        if uid:
+            _remove_path = self.get_path_by_uid(uid)
+        else:
+            _remove_path = path
+
+
+        if self._remove_sub_project(uid, path) == -1:
+            return -1
         self.apply_settings()
-        self._delete_folders(os.path.join(self._database_path, path))
+        self._delete_folders(os.path.join(self._database_path, _remove_path))
         return 1
 
     def create_sub_project(self, name, parent_uid=None, parent_path=None, resolution=None, fps=None):
@@ -79,7 +84,8 @@ class Project(Settings, Subproject):
 
         Args:
             name: (String) Name of the sub-project
-            parent_uid: (Int) Parent Sub-Project Unique ID (or project itself. Either this or parent_path needs to be defined
+            parent_uid: (Int) Parent Sub-Project Unique ID (or project itself.
+                                Either this or parent_path needs to be defined
             parent_path: (String) Parent Sub-Project Relative path. If uid defined this will be skipped
             resolution: (Tuple) If not defined, parent resolution will be inherited
             fps: (int) If not defined parent fps will be inherited
@@ -87,11 +93,7 @@ class Project(Settings, Subproject):
         Returns:
             <class Subproject>
         """
-
-        state = self._check_permissions(level=2)
-        if state != 1:
-            return -1
-        parent_sub = self.__validate_and_get_parent(parent_uid, parent_path)
+        parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
 
         new_sub = parent_sub.add_sub_project(name, resolution=resolution, fps=fps, uid=None)
         if new_sub == -1:
@@ -102,13 +104,24 @@ class Project(Settings, Subproject):
         return new_sub
 
     def create_category(self, name, parent_uid=None, parent_path=None):
-        # TODO requires test and docstring
-        state = self._check_permissions(level=2)
-        if state != 1:
-            return -1
-        parent_sub = self.__validate_and_get_parent(parent_uid, parent_path)
+        """
+        Creates a category AND creates folders and stores it in persistent database
+
+        Args:
+            name: (String) Name of the category
+            parent_uid: (Int) Parent Sub-Project Unique ID (or project itself.
+                                Either this or parent_path needs to be defined
+            parent_path: (String) Parent Sub-Project Relative path. If uid defined this will be skipped
+
+        Returns:
+            <class Category>
+        """
+
+        parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
 
         new_category = parent_sub.add_category(name)
+        if new_category == -1:
+            return -1
 
         self.apply_settings()
         self.create_folders(self._database_path)
@@ -121,13 +134,13 @@ class Project(Settings, Subproject):
         state = self._check_permissions(level=1)
         if state != 1:
             return -1
-        parent_category = self.__validate_and_get_parent(parent_uid, parent_path)
+        parent_category = self.__validate_and_get_sub(parent_uid, parent_path)
         # confirm that this is a category
         if parent_category.type != "category":
             log.warning("Base scenes can only created under a category")
             return -1
 
-    def __validate_and_get_parent(self, parent_uid, parent_path):
+    def __validate_and_get_sub(self, parent_uid, parent_path):
         """
         Confirms either parent_uid or parent_path provided (other than none) and returns
         the parent subproject class
@@ -145,9 +158,6 @@ class Project(Settings, Subproject):
             parent = self.find_sub_by_id(parent_uid)
         else:
             parent = self.find_sub_by_path(parent_path)
-        if not parent:
+        if parent == -1:
             raise "Parent cannot identified"
         return parent
-
-
-
