@@ -70,7 +70,6 @@ class Project(Settings, Subproject):
         else:
             _remove_path = path
 
-
         if self._remove_sub_project(uid, path) == -1:
             return -1
         self.apply_settings()
@@ -127,18 +126,21 @@ class Project(Settings, Subproject):
         self.create_folders(self._database_path)
         return new_category
 
-    def create_basescene(self, name, parent_uid=None, parent_path=None):
+    def create_basescene(self, name, category, parent_uid=None, parent_path=None):
         if not parent_uid and not parent_path:
             log.error("Requires at least a parent uid or parent path ")
             return -1
         state = self._check_permissions(level=1)
         if state != 1:
             return -1
-        parent_category = self.__validate_and_get_sub(parent_uid, parent_path)
-        # confirm that this is a category
-        if parent_category.type != "category":
-            log.warning("Base scenes can only created under a category")
+        parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
+        # confirm category exists
+        category_object = parent_sub.get_category(category)
+        if category_object == -1:
+            log.error("Category %s does not exist" % category)
             return -1
+
+        return category_object.add_base_scene(name)
 
     def __validate_and_get_sub(self, parent_uid, parent_path):
         """
@@ -159,5 +161,5 @@ class Project(Settings, Subproject):
         else:
             parent = self.find_sub_by_path(parent_path)
         if parent == -1:
-            raise "Parent cannot identified"
+            raise Exception("Parent cannot identified")
         return parent

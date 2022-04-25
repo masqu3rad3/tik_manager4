@@ -223,6 +223,14 @@ class Subproject(Entity):
         # self._sub_projects[name] = sub_pr
         # return sub_pr
 
+    def get_category(self, category_name):
+        """Returns the category object by name"""
+        for c in self.categories:
+            if c.name == category_name:
+                return c
+        log.warning("{0} does not exist in categories of {1}".format(category_name, self.name))
+        return -1
+
     def add_category(self, name):
         """Creates a new category (step). Requires permissions.
         Does not create folders or store in the persistent database

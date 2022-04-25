@@ -10,22 +10,21 @@ class BaseScene(Settings, Entity):
         super(BaseScene, self).__init__()
         self.settings_file = absolute_path
 
-        if self._currentValue:
-            self._name = self.get_property("name")
-            self._creator = self.get_property("creator")
-            self._category = self.get_property("category")
-            self._path = self.get_property("path")
-            self._versions = self.get_property("versions")
-            self._publishes = self.get_property("publishes")
-            self._reference_id = self.get_property("referenceID")
-        else:
-            self.name = name
-            self.creator = self._guard.user
-            self.category = category
-            # self.path = self.path
-            self.versions = []
-            self.publishes = []
-            self.reference_id = None
+
+        self._name = self.get_property("name") or name
+        self._creator = self.get_property("creator") or self._guard.user
+        self._category = self.get_property("category") or category
+        self._versions = self.get_property("versions") or []
+        self._publishes = self.get_property("publishes") or []
+        self._reference_id = self.get_property("referenceID") or None
+
+        # self.name = name
+        # self.creator = self._guard.user
+        # self.category = category
+        # # self.path = self.path
+        # self.versions = []
+        # self.publishes = []
+        # self._reference_id = None
 
 
     @property
@@ -55,18 +54,18 @@ class BaseScene(Settings, Entity):
         self._category = val
         self.add_property("category", val)
 
-    @property
-    def path(self):
-        return self._path
+    # @property
+    # def path(self):
+    #     return self._path
 
-    @path.setter
-    def path(self, val):
-        self._path = val
-        self.add_property("path", val)
+    # @path.setter
+    # def path(self, val):
+    #     self._path = val
+    #     self.add_property("path", val)
 
     @property
     def versions(self):
-        return self.versions
+        return self._versions
 
     @versions.setter
     def versions(self, val):

@@ -256,4 +256,50 @@ class TestProject:
         assert self.tik.project.get_uid_by_path("Burhan\\Altintop") == -1
         assert self.tik.project.get_path_by_uid(123123123123123123123) == -1
 
+    # @clean_user
+    # def test_query_category(self):
+    #     test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
+    #     self.tik.project.set(test_project_path)
+    #     soldier_sub = self.tik.project.find_sub_by_path("Assets\\Characters\\Soldier")
+    #     print(soldier_sub.categories[0].path)
+
+    @clean_user
+    def test_create_basescene(self):
+        test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
+        self.tik.project.set(test_project_path)
+
+        # missing path or uid
+        assert self.tik.project.create_basescene("test", "Rig") == -1
+
+        # create
+        basescene = self.tik.project.create_basescene("superman", category="Rig", parent_path="Assets\\Characters\\Soldier")
+        assert basescene.name == "superman"
+        assert basescene.creator == "Admin"
+        assert basescene.category == "Rig"
+        assert basescene.reference_id is None
+
+        basescene = self.tik.project.create_basescene("superman", category="LookDev", parent_path="Assets\\Characters\\Soldier")
+        assert basescene.name == "superman"
+        assert basescene.creator == "Admin"
+        assert basescene.category == "LookDev"
+        assert basescene.reference_id is None
+
+        basescene = self.tik.project.create_basescene("superman", category="Model", parent_path="Assets\\Characters\\Soldier")
+        assert basescene.name == "superman"
+        assert basescene.creator == "Admin"
+        assert basescene.category == "Model"
+        assert basescene.reference_id is None
+
+        #non existing category
+        assert self.tik.project.create_basescene("superman", category="Burhan", parent_path="Assets\\Characters\\Soldier") == -1
+
+        # read
+        sub = self.tik.project.find_sub_by_path("Assets\\Characters\\Soldier")
+        for c in sub.categories:
+            c.scan_basescenes()
+            for b in c.basescenes:
+                assert b.name == "superman"
+                assert b.creator == "Admin"
+                assert b.category
+                assert b.reference_id is None
 
