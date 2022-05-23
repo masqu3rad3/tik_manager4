@@ -97,7 +97,7 @@ class TestProject:
         print(self.tik.project.absolute_path)
 
         another_sub = self.tik.project.create_sub_project("anotherSub", parent_uid=new_sub.id)
-        assert another_sub.path == "testSub\\anotherSub"
+        assert another_sub.path == "testSub/anotherSub"
 
         # try creating an existing one
         assert self.tik.project.create_sub_project("anotherSub", parent_uid=new_sub.id) == -1
@@ -115,7 +115,7 @@ class TestProject:
 
         self.tik.user.set("Admin", "1234")
         new_category = self.tik.project.create_category("testCategory", parent_path="Assets")
-        assert new_category.path == "Assets\\testCategory"
+        assert new_category.path == "Assets/testCategory"
 
         # try creating an existing one
         assert self.tik.project.create_category("testCategory", parent_path="Assets") == -1
@@ -202,7 +202,7 @@ class TestProject:
         test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
         self.tik.project.set(test_project_path)
         self.tik.user.set("Generic")
-        assert self.tik.project.delete_sub_project(path="Assets\\Props") == -1
+        assert self.tik.project.delete_sub_project(path="Assets/Props") == -1
 
         self.tik.user.set("Admin", 1234)
         # wrong arguments
@@ -210,11 +210,11 @@ class TestProject:
         # path methods
 
         # non existing path
-        assert self.tik.project.delete_sub_project(path="Burhan\\Altintop") == -1
-        assert self.tik.project.delete_sub_project(path="Assets\\Props") == 1
+        assert self.tik.project.delete_sub_project(path="Burhan/Altintop") == -1
+        assert self.tik.project.delete_sub_project(path="Assets/Props") == 1
 
         # uid methods
-        uid = self.tik.project.get_uid_by_path(path="Assets\\Characters")
+        uid = self.tik.project.get_uid_by_path(path="Assets/Characters")
 
         # non existing uid
         assert self.tik.project.delete_sub_project(uid=123123123123123123) == -1
@@ -231,7 +231,7 @@ class TestProject:
         assert sub_by_path == sub_by_id
 
         #non existing path
-        assert self.tik.project.find_sub_by_path("Burhan\\Altintop") == -1
+        assert self.tik.project.find_sub_by_path("Burhan/Altintop") == -1
         assert self.tik.project.find_sub_by_id(123123123123123123123) == -1
 
     @clean_user
@@ -247,20 +247,20 @@ class TestProject:
     def test_get_uid_and_get_path(self):
         test_project_path = self.test_create_new_project()
         self.tik.project.set(test_project_path)
-        compare_path = "Assets\\Props"
-        uid = self.tik.project.get_uid_by_path("Assets\\Props")
+        compare_path = "Assets/Props"
+        uid = self.tik.project.get_uid_by_path("Assets/Props")
         path = self.tik.project.get_path_by_uid(uid)
         assert path == compare_path
 
         #non existing path
-        assert self.tik.project.get_uid_by_path("Burhan\\Altintop") == -1
+        assert self.tik.project.get_uid_by_path("Burhan/Altintop") == -1
         assert self.tik.project.get_path_by_uid(123123123123123123123) == -1
 
     # @clean_user
     # def test_query_category(self):
     #     test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
     #     self.tik.project.set(test_project_path)
-    #     soldier_sub = self.tik.project.find_sub_by_path("Assets\\Characters\\Soldier")
+    #     soldier_sub = self.tik.project.find_sub_by_path("Assets/Characters/Soldier")
     #     print(soldier_sub.categories[0].path)
 
     @clean_user
@@ -272,29 +272,29 @@ class TestProject:
         assert self.tik.project.create_basescene("test", "Rig") == -1
 
         # create
-        basescene = self.tik.project.create_basescene("superman", category="Rig", parent_path="Assets\\Characters\\Soldier")
+        basescene = self.tik.project.create_basescene("superman", category="Rig", parent_path="Assets/Characters/Soldier")
         assert basescene.name == "superman"
         assert basescene.creator == "Admin"
         assert basescene.category == "Rig"
         assert basescene.reference_id is None
 
-        basescene = self.tik.project.create_basescene("superman", category="LookDev", parent_path="Assets\\Characters\\Soldier")
+        basescene = self.tik.project.create_basescene("superman", category="LookDev", parent_path="Assets/Characters/Soldier")
         assert basescene.name == "superman"
         assert basescene.creator == "Admin"
         assert basescene.category == "LookDev"
         assert basescene.reference_id is None
 
-        basescene = self.tik.project.create_basescene("superman", category="Model", parent_path="Assets\\Characters\\Soldier")
+        basescene = self.tik.project.create_basescene("superman", category="Model", parent_path="Assets/Characters/Soldier")
         assert basescene.name == "superman"
         assert basescene.creator == "Admin"
         assert basescene.category == "Model"
         assert basescene.reference_id is None
 
         #non existing category
-        assert self.tik.project.create_basescene("superman", category="Burhan", parent_path="Assets\\Characters\\Soldier") == -1
+        assert self.tik.project.create_basescene("superman", category="Burhan", parent_path="Assets/Characters/Soldier") == -1
 
         # read
-        sub = self.tik.project.find_sub_by_path("Assets\\Characters\\Soldier")
+        sub = self.tik.project.find_sub_by_path("Assets/Characters/Soldier")
         for c in sub.categories:
             c.scan_basescenes()
             for b in c.basescenes:

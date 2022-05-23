@@ -137,6 +137,17 @@ class Subproject(Entity):
         self.id = data.get("id", None)
         self._name = data.get("name", None)
         self._relative_path = data.get("path", None)
+        print("*"*30)
+        print("*"*30)
+        print("*"*30)
+        print("*"*30)
+        print("*"*30)
+        print(data)
+        print("*"*30)
+        print("*"*30)
+        print("*"*30)
+        print("*"*30)
+        print("*"*30)
         self.__resolution = data.get("resolution", None)
         self.__fps = data.get("fps", None)
         _ = [self.__build_category(x) for x in data.get("categories", [])]
@@ -171,6 +182,7 @@ class Subproject(Entity):
 
         sub_pr = Subproject(name=name, resolution=resolution, fps=fps, uid=uid)
         sub_pr.path = os.path.join(self.path, name)
+        # sub_pr.path = "%s/%s" % (self.path, name)
         self._sub_projects[name] = sub_pr
         return sub_pr
 
@@ -179,6 +191,7 @@ class Subproject(Entity):
 
         category = Category(name=name)
         category.path = os.path.join(self.path, name)
+        # category.path = "%s/%s" % (self.path, name)
         self._categories.append(category)
         return category
 

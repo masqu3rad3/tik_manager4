@@ -29,25 +29,25 @@
         "subs": [
           {
             "name": "Characters",
-            "path": "Assets\\Characters",
+            "path": "Assets/Characters",
             "categories": ["Model", "Rig", "LookDev"],
             "subs": []
           },
           {
             "name": "Props",
-            "path": "Assets\\Props",
+            "path": "Assets/Props",
             "categories": ["Model", "Rig", "LookDev"],
             "subs": []
           },
           {
             "name": "Environment",
-            "path": "Assets\\Environment",
+            "path": "Assets/Environment",
             "categories": ["Model", "Rig", "LookDev"],
             "subs": []
           },
           {
             "name": "Vehicles",
-            "path": "Assets\\Vehicles",
+            "path": "Assets/Vehicles",
             "categories": ["Model", "Rig", "LookDev"],
             "subs": []
           }
@@ -69,25 +69,25 @@
         "subs": [
           {
             "name": "Characters",
-            "path": "Assets\\Characters",
+            "path": "Assets/Characters",
             "categories": ["Model", "Rig", "LookDev"],
             "subs": []
           },
           {
             "name": "Props",
-            "path": "Assets\\Props",
+            "path": "Assets/Props",
             "categories": ["Model", "Rig", "LookDev"],
             "subs": []
           },
           {
             "name": "Environment",
-            "path": "Assets\\Environment",
+            "path": "Assets/Environment",
             "categories": ["Model", "Rig", "LookDev"],
             "subs": []
           },
           {
             "name": "Vehicles",
-            "path": "Assets\\Vehicles",
+            "path": "Assets/Vehicles",
             "categories": ["Model", "Rig", "LookDev"],
             "subs": []
           }
@@ -115,25 +115,25 @@
         "subs": [
           {
             "name": "Characters",
-            "path": "Assets\\Characters",
+            "path": "Assets/Characters",
             "categories": ["Model", "Rig", "LookDev"],
             "subs": []
           },
           {
             "name": "Props",
-            "path": "Assets\\Props",
+            "path": "Assets/Props",
             "categories": ["Model", "Rig", "LookDev"],
             "subs": []
           },
           {
             "name": "Environment",
-            "path": "Assets\\Environment",
+            "path": "Assets/Environment",
             "categories": ["Model", "Rig", "LookDev"],
             "subs": []
           },
           {
             "name": "Vehicles",
-            "path": "Assets\\Vehicles",
+            "path": "Assets/Vehicles",
             "categories": ["Model", "Rig", "LookDev"],
             "subs": []
           }
