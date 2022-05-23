@@ -24,7 +24,7 @@ class Entity(object):
 
     @property
     def path(self):
-        return self._relative_path
+        return self._relative_path.replace("\\","/")
 
     @path.setter
     def path(self, val):
