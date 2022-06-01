@@ -26,10 +26,12 @@ class TikTreeItem(QtGui.QStandardItem):
     #     print("obareyt")
 
 class TikTreeModel(QtGui.QStandardItemModel):
+    columns = ["name", "id", "path", "resolution", "fps"]
     def __init__(self, structure_object):
         super(TikTreeModel, self).__init__()
-        
-        self.setHorizontalHeaderLabels(["name", "id", "path", "resolution", "fps"])
+
+
+        self.setHorizontalHeaderLabels(self.columns)
 
         self.project = None
         self.set_data(structure_object)
@@ -129,17 +131,37 @@ class TikTreeModel(QtGui.QStandardItemModel):
 
 
 class TikTreeView(QtWidgets.QTreeView):
+    # columns = ["name", "id", "path", "resolution", "fps"]
     def __init__(self):
         super(TikTreeView, self).__init__()
         self.setUniformRowHeights(True)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-
-
+        self.setSortingEnabled(True)
         self.model = TikTreeModel(tik.project) # build the model with tik.project object
+
         self.setModel(self.model)
         self.model.populate()
 
         self.setColumnHidden(1, True)
+
+    def hide_columns(self, columns):
+        """ If the given column exists in the model, hides it"""
+        if not isinstance(columns, list):
+            columns = [columns]
+
+        for column in columns:
+            if column in self.model.columns:
+                self.setColumnHidden(self.model.columns.index(column), True)
+
+    def unhide_columns(self, columns):
+        """ If the given column exists in the model, unhides it"""
+        if not isinstance(columns, list):
+            columns = [columns]
+
+        for column in columns:
+            if column in self.model.columns:
+                self.setColumnHidden(self.model.columns.index(column), False)
+
     # def set_data(self):
     #     parent1 = TikTreeItem("TestingA")
     #     child1 = TikTreeItem("testChildA")
@@ -156,22 +178,23 @@ class TikTreeView(QtWidgets.QTreeView):
     #     self.model.appendRow([parent1])
 
 
-        
+if __name__ == '__main__':
+    # pprint(tik.project.get_data())
+
+    app = QtWidgets.QApplication(sys.argv)
+
+    view = TikTreeView()
+    view.hide_columns(["id", "resolution", "fps"])
+    # view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+    # model = TikTreeModel()
+    # model.setHorizontalHeaderLabels(['col1', 'col2', 'col3'])
+    # view.setModel(model)
+    # model.test_populate()
+    # view.set_data()
+
+    # view.clicked.connect(lambda x: print(type(x)))
+
+    view.show()
+    sys.exit(app.exec_())
 
 
-# pprint(tik.project.get_data())
-
-app = QtWidgets.QApplication(sys.argv)
-
-view = TikTreeView()
-# view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-# model = TikTreeModel()
-# model.setHorizontalHeaderLabels(['col1', 'col2', 'col3'])
-# view.setModel(model)
-# model.test_populate()
-# view.set_data()
-
-# view.clicked.connect(lambda x: print(type(x)))
-
-view.show()
-sys.exit(app.exec_())
