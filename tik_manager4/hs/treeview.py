@@ -2,16 +2,17 @@ import sys
 from pprint import pprint
 import json
 import os
-from PyQt5 import QtWidgets, QtCore, QtGui
+# from PyQt5 import QtWidgets, QtCore, QtGui
+from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 
 from tik_manager4.objects import main
-test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
-
-# http://pharma-sas.com/common-manipulation-of-qtreeview-using-pyqt5/
-
-
-tik = main.Main()
-tik.project.set(test_project_path)
+# test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
+#
+# # http://pharma-sas.com/common-manipulation-of-qtreeview-using-pyqt5/
+#
+#
+# tik = main.Main()
+# tik.project.set(test_project_path)
 
 # pprint(tik.project.get_sub_tree())
 # print(tik.project.__class__)
@@ -20,10 +21,7 @@ class TikTreeItem(QtGui.QStandardItem):
         super(TikTreeItem, self).__init__(*args, **kwargs)
 
         self.extra_data = "some_test_string"
-    #
-    # def data(self, *args, **kwargs):
-    #     super(TikTreeItem, self).data(*args, **kwargs)
-    #     print("obareyt")
+
 
 class TikTreeModel(QtGui.QStandardItemModel):
     columns = ["name", "id", "path", "resolution", "fps"]
@@ -47,6 +45,7 @@ class TikTreeModel(QtGui.QStandardItemModel):
         return structure_object
 
     def populate(self):
+        self.setRowCount(0)
         visited = []
         queue = []
 
@@ -92,22 +91,10 @@ class TikTreeModel(QtGui.QStandardItemModel):
                         sub_data["fps"] = neighbour.fps
                     parent["subs"].append(sub_data)
 
-                    # _item = TikTreeItem(neighbour.name)
-                    # test = QtGui.QStandardItem("TEST")
-                    # parent_row.appendRow([_item, test])
-
-                    # _item = QtGui.QStandardItem(neighbour.name)
-                    # b = QtGui.QStandardItem(neighbour.id)
-                    # parent_row.appendRow([
-                    #     _item,
-                    #     b,
-                    # ])
-
                     _item = self.append_sub(neighbour, parent_row)
                     # visited.append([sub_data, neighbour])
                     visited.append(neighbour)
                     queue.append([sub_data, neighbour, _item])
-                    # queue.append([sub_data, neighbour, parent_row])
 
         return all_data
 
@@ -132,17 +119,20 @@ class TikTreeModel(QtGui.QStandardItemModel):
 
 class TikTreeView(QtWidgets.QTreeView):
     # columns = ["name", "id", "path", "resolution", "fps"]
-    def __init__(self):
+    def __init__(self, project_obj=None):
         super(TikTreeView, self).__init__()
         self.setUniformRowHeights(True)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setSortingEnabled(True)
-        self.model = TikTreeModel(tik.project) # build the model with tik.project object
+        # self.model = TikTreeModel(tik.project) # build the model with tik.project object
 
-        self.setModel(self.model)
-        self.model.populate()
+        # self.setModel(self.model)
+        # self.model.populate()
 
-        self.setColumnHidden(1, True)
+        self.model = None
+        if project_obj:
+            self.set_project(project_obj)
+
 
     def hide_columns(self, columns):
         """ If the given column exists in the model, hides it"""
@@ -161,6 +151,11 @@ class TikTreeView(QtWidgets.QTreeView):
         for column in columns:
             if column in self.model.columns:
                 self.setColumnHidden(self.model.columns.index(column), False)
+
+    def set_project(self, project_obj):
+        self.model = TikTreeModel(project_obj)
+        self.setModel(self.model)
+        self.model.populate()
 
     # def set_data(self):
     #     parent1 = TikTreeItem("TestingA")
@@ -181,10 +176,15 @@ class TikTreeView(QtWidgets.QTreeView):
 if __name__ == '__main__':
     # pprint(tik.project.get_data())
 
+    test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
+    tik = main.Main()
+    tik.project.set(test_project_path)
+
     app = QtWidgets.QApplication(sys.argv)
 
     view = TikTreeView()
-    view.hide_columns(["id", "resolution", "fps"])
+    view.set_project(tik.project)
+    view.hide_columns(["id", "path", "resolution", "fps"])
     # view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
     # model = TikTreeModel()
     # model.setHorizontalHeaderLabels(['col1', 'col2', 'col3'])

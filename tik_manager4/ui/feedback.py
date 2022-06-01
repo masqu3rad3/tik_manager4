@@ -6,10 +6,10 @@ from tik_manager4.core import compatibility as compat
 
 from tik_manager4.ui.Qt import QtWidgets
 
-
+if __name__ == '__main__':
+    app = QtWidgets.QApplication(sys.argv)
 
 class Feedback():
-    app = QtWidgets.QApplication(sys.argv)
     def __init__(self, *args, **kwargs):
         self.parent=None
 
@@ -68,3 +68,6 @@ class Feedback():
         if dlg.exec_():
         # if dlg.exec():
             return os.path.normpath(compat.encode(dlg.selectedFiles()[0]))
+
+
+

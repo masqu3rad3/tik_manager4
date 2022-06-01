@@ -2,10 +2,12 @@ import hashlib
 import logging
 import os
 from tik_manager4.core import filelog
+from tik_manager4.core import utils
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.commons import Commons
 from tik_manager4.objects.guard import Guard
 from tik_manager4.ui import feedback
+from tik_manager4 import dcc
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -57,7 +59,8 @@ class User(object):
     def _validate_user_data(self):
         """Finds or creates user directories and files"""
 
-        _user_root = os.path.expanduser('~')
+        # _user_root = os.path.expanduser('~')
+        _user_root = utils.get_home_dir()
         self.user_directory = os.path.normpath(os.path.join(_user_root, "TikManager4"))
         if not os.path.isdir(os.path.normpath(self.user_directory)):
             os.makedirs(os.path.normpath(self.user_directory))

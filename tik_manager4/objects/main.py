@@ -1,9 +1,15 @@
 import os
+import sys
 from tik_manager4.core import filelog, settings
 from tik_manager4.objects import user, project
+from tik_manager4 import dcc
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
+from tik_manager4.ui.Qt import QtWidgets # Only for browsing if the common folder is not defined
+#
+if __name__ == '__main__' or dcc.NAME == "Standalone":
+    app = QtWidgets.QApplication(sys.argv)
 
 class Main(object):
     user = user.User()
@@ -104,3 +110,4 @@ class Main(object):
         return 1
 
     # def set_project(self):
+

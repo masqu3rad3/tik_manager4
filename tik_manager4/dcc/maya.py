@@ -4,10 +4,8 @@ import maya.mel as mel
 
 from tik_manager4.dcc.template import DccTemplate
 
-NAME = "Maya"
 
 class Dcc(DccTemplate):
-
     @staticmethod
     def new_scene(force=True, fps=None):
         """
