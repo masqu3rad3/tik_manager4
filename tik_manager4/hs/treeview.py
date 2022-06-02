@@ -2,9 +2,9 @@ import sys
 from pprint import pprint
 import json
 import os
-from PyQt5 import QtWidgets, QtCore, QtGui, Qt
-# from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
-
+# from PyQt5 import QtWidgets, QtCore, QtGui, Qt
+from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+from tik_manager4.core import utils
 from tik_manager4.objects import main
 
 
@@ -19,6 +19,9 @@ from tik_manager4.objects import main
 # pprint(tik.project.get_sub_tree())
 # print(tik.project.__class__)
 class TikTreeItem(QtGui.QStandardItem):
+    color_dict = {
+        "subproject": ()
+    }
     def __init__(self, txt='', font_size=12, set_bold=False, color=QtGui.QColor(0, 0, 0), *args, **kwargs):
         super(TikTreeItem, self).__init__(*args, **kwargs)
 
@@ -27,7 +30,7 @@ class TikTreeItem(QtGui.QStandardItem):
         fnt = QtGui.QFont('Open Sans', font_size)
         fnt.setBold(set_bold)
         self.setEditable(False)
-        self.setForeground(color)
+        # self.setForeground(color)
         self.setFont(fnt)
         self.setText(txt)
 
@@ -158,6 +161,19 @@ class TikTreeView(QtWidgets.QTreeView):
         # self.clicked.connect(lambda x: print(type(x)))
         self.clicked.connect(self.test)
 
+        # TODO make this part re-usable
+        dirname = os.path.dirname(os.path.abspath(__file__))
+        tik_manager_dir = os.path.abspath(os.path.join(dirname, os.pardir))
+        print(tik_manager_dir)
+        QtCore.QDir.addSearchPath("css", os.path.join(tik_manager_dir, "CSS"))
+        QtCore.QDir.addSearchPath("rc", os.path.join(tik_manager_dir, "CSS/rc"))
+
+        # stylesheetFile = os.path.join(tik_manager_dir, "CSS", "tikManager.qss")
+        style_file = QtCore.QFile("css:tikManager.qss")
+        style_file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
+        self.setStyleSheet(str(style_file.readAll(), 'utf-8'))
+        # utils.apply_stylesheet(style_file, self)
+
     def test(self, idx):
         # name = idx.data(role=QtCore.Qt.DisplayRole)
         _item = self.model.itemFromIndex(idx)
@@ -234,11 +250,19 @@ class TikTreeView(QtWidgets.QTreeView):
 if __name__ == '__main__':
     # pprint(tik.project.get_data())
 
+
+
     test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
     tik = main.Main()
     tik.project.set(test_project_path)
 
     app = QtWidgets.QApplication(sys.argv)
+
+    # selfLoc = os.path.dirname(os.path.abspath(__file__))
+    # tik_manager_dir = os.path.abspath(os.path.join(selfLoc, os.pardir))
+    # stylesheetFile = os.path.join(tik_manager_dir, "CSS", "tikManager.qss")
+    # utils.apply_stylesheet(stylesheetFile, app)
+
 
     view = TikTreeView()
     view.set_project(tik.project)
