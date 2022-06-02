@@ -2,10 +2,12 @@ import sys
 from pprint import pprint
 import json
 import os
-# from PyQt5 import QtWidgets, QtCore, QtGui
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+from PyQt5 import QtWidgets, QtCore, QtGui, Qt
+# from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 
 from tik_manager4.objects import main
+
+
 # test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
 #
 # # http://pharma-sas.com/common-manipulation-of-qtreeview-using-pyqt5/
@@ -17,17 +19,24 @@ from tik_manager4.objects import main
 # pprint(tik.project.get_sub_tree())
 # print(tik.project.__class__)
 class TikTreeItem(QtGui.QStandardItem):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, txt='', font_size=12, set_bold=False, color=QtGui.QColor(0, 0, 0), *args, **kwargs):
         super(TikTreeItem, self).__init__(*args, **kwargs)
 
         self.extra_data = "some_test_string"
+        #
+        fnt = QtGui.QFont('Open Sans', font_size)
+        fnt.setBold(set_bold)
+        self.setEditable(False)
+        self.setForeground(color)
+        self.setFont(fnt)
+        self.setText(txt)
 
 
 class TikTreeModel(QtGui.QStandardItemModel):
     columns = ["name", "id", "path", "resolution", "fps"]
+
     def __init__(self, structure_object):
         super(TikTreeModel, self).__init__()
-
 
         self.setHorizontalHeaderLabels(self.columns)
 
@@ -92,6 +101,10 @@ class TikTreeModel(QtGui.QStandardItemModel):
                     parent["subs"].append(sub_data)
 
                     _item = self.append_sub(neighbour, parent_row)
+
+                    # add the categories
+                    for category in neighbour.categories:
+                        self.append_category(category, _item)
                     # visited.append([sub_data, neighbour])
                     visited.append(neighbour)
                     queue.append([sub_data, neighbour, _item])
@@ -100,7 +113,7 @@ class TikTreeModel(QtGui.QStandardItemModel):
 
     def append_sub(self, sub_data, parent):
         name = TikTreeItem(sub_data.name)
-        pid =TikTreeItem(str(sub_data.id))
+        pid = TikTreeItem(str(sub_data.id))
         path = TikTreeItem(sub_data.path)
         res = TikTreeItem(str(sub_data.resolution))
         fps = TikTreeItem(str(sub_data.fps))
@@ -110,10 +123,15 @@ class TikTreeModel(QtGui.QStandardItemModel):
             path,
             res,
             fps
-            ]
+        ]
         )
         return name
 
+    def append_category(self, category_obj, parent):
+        category_name = TikTreeItem(category_obj.name)
+        category_id = TikTreeItem(str(category_obj.id))
+        parent.appendRow([category_name, category_id])
+        return category_name
 
 
 
@@ -133,6 +151,18 @@ class TikTreeView(QtWidgets.QTreeView):
         if project_obj:
             self.set_project(project_obj)
 
+        # SIGNALS
+
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.right_click_menu)
+        # self.clicked.connect(lambda x: print(type(x)))
+        self.clicked.connect(self.test)
+
+    def test(self, idx):
+        # name = idx.data(role=QtCore.Qt.DisplayRole)
+        _item = self.model.itemFromIndex(idx)
+        print(_item.extra_data)
+        # print(name)
 
     def hide_columns(self, columns):
         """ If the given column exists in the model, hides it"""
@@ -156,6 +186,34 @@ class TikTreeView(QtWidgets.QTreeView):
         self.model = TikTreeModel(project_obj)
         self.setModel(self.model)
         self.model.populate()
+
+    def right_click_menu(self, position):
+        indexes = self.sender().selectedIndexes()
+        index_under_pointer = self.indexAt(position)
+        if not index_under_pointer.isValid():
+            return
+        item = self.model.itemFromIndex(index_under_pointer)
+        if len(indexes) > 0:
+            level = 0
+            index = indexes[0]
+            while index.parent().isValid():
+                index = index.parent()
+                level += 1
+        else:
+            level = 0
+        right_click_menu = QtWidgets.QMenu()
+        act_new_category = right_click_menu.addAction(self.tr("New Sub-Project"))
+        # act_new_category.triggered.connect(partial(self.TreeItem_Add, level, mdlIdx))
+        act_new_category = right_click_menu.addAction(self.tr("New Category"))
+        act_new_task = right_click_menu.addAction(self.tr("New Base Scene"))
+        # if item.parent() != None:
+        #     insert_up = right_click_menu.addAction(self.tr("Insert Item Above"))
+        #     # insert_up.triggered.connect(partial(self.TreeItem_InsertUp, level, mdlIdx))
+        #     insert_down = right_click_menu.addAction(self.tr("Insert Item Below"))
+        #     # insert_down.triggered.connect(partial(self.TreeItem_InsertDown, level, mdlIdx))
+        #     act_del = right_click_menu.addAction(self.tr("Delete Item"))
+        #     # act_del.triggered.connect(partial(self.TreeItem_Delete, item))
+        right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
     # def set_data(self):
     #     parent1 = TikTreeItem("TestingA")
@@ -196,5 +254,3 @@ if __name__ == '__main__':
 
     view.show()
     sys.exit(app.exec_())
-
-
