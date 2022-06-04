@@ -22,7 +22,7 @@ if os.path.isdir(t4_folder):
 
 # initialize project and user
 pr = project.Project()
-test_user = user.User(commons_directory=mockup_common)
+test_user = user.User(common_directory=mockup_common)
 
 
 def test_initialize():

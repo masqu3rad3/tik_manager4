@@ -20,17 +20,19 @@ from tik_manager4.objects import main
 # print(tik.project.__class__)
 class TikTreeItem(QtGui.QStandardItem):
     color_dict = {
-        "subproject": ()
+        "subproject": (255, 255, 255)
     }
-    def __init__(self, txt='', font_size=12, set_bold=False, color=QtGui.QColor(0, 0, 0), *args, **kwargs):
+    def __init__(self, txt='', font_size=12, set_bold=False, rgb=None, *args, **kwargs):
         super(TikTreeItem, self).__init__(*args, **kwargs)
 
-        self.extra_data = "some_test_string"
+        self.data = None
         #
         fnt = QtGui.QFont('Open Sans', font_size)
         fnt.setBold(set_bold)
         self.setEditable(False)
-        # self.setForeground(color)
+
+        if rgb:
+            self.setForeground(QtGui.QColor(*rgb))
         self.setFont(fnt)
         self.setText(txt)
 
@@ -131,8 +133,8 @@ class TikTreeModel(QtGui.QStandardItemModel):
         return name
 
     def append_category(self, category_obj, parent):
-        category_name = TikTreeItem(category_obj.name)
-        category_id = TikTreeItem(str(category_obj.id))
+        category_name = TikTreeItem(category_obj.name, rgb=(255,255,0))
+        category_id = TikTreeItem(str(category_obj.id), rgb=(255,255,0))
         parent.appendRow([category_name, category_id])
         return category_name
 
@@ -177,7 +179,7 @@ class TikTreeView(QtWidgets.QTreeView):
     def test(self, idx):
         # name = idx.data(role=QtCore.Qt.DisplayRole)
         _item = self.model.itemFromIndex(idx)
-        print(_item.extra_data)
+        # print(_item.extra_data)
         # print(name)
 
     def hide_columns(self, columns):

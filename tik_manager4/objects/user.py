@@ -19,13 +19,13 @@ class User(object):
     # _permission_level = 0
     _guard = Guard()
 
-    def __init__(self, commons_directory=None):
+    def __init__(self, common_directory=None):
         super(User, self).__init__()
         self.settings = Settings()
         self.bookmarks = Settings()
         self.states = Settings()  # is this necessary anymore??
         self.user_directory = None
-        self.common_directory = commons_directory  # this is only for programmatically set the commons
+        self.common_directory = common_directory  # this is only for programmatically set the commons
         self.commons = None
 
         self._active_user = None

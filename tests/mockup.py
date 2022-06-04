@@ -66,7 +66,7 @@ def clean_user(func):
     def _fresh(*args, **kwargs):
         m = Mockup()
         m.backup_user()
-        user.User(commons_directory=m.mockup_commons_path)
+        user.User(common_directory=m.mockup_commons_path)
         # pdb.set_trace()
         try:
             return func(*args, **kwargs)

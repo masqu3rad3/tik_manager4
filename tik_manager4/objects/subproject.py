@@ -111,7 +111,8 @@ class Subproject(Entity):
                         # "resolution": neighbour.resolution,
                         # "fps": neighbour.fps,
                         # "categories": list(neighbour.categories.keys()),
-                        "categories": [category.name for category in neighbour.categories],
+                        # "categories": [category.name for category in neighbour.categories],
+                        "categories": [{"name": category.name, "id": category.id} for category in neighbour.categories],
                         "subs": [],  # this will be filled with the while loop
                     }
                     if neighbour.resolution != self.resolution:
@@ -161,7 +162,8 @@ class Subproject(Entity):
                     # define the path and categories separately
                     # TODO Categories and path can be overrides for Subproject class
                     sub_project._relative_path = _relative_path
-                    _ = [sub_project.__build_category(x) for x in _categories]
+                    # _ = [sub_project.__build_category(x) for x in _categories]
+                    _ = [sub_project.__build_category(x.get("name", None), x.get("id", None)) for x in _categories]
 
                     visited.append(neighbour)
                     queue.append([sub_project, neighbour.get("subs", [])])
@@ -175,15 +177,23 @@ class Subproject(Entity):
         self._sub_projects[name] = sub_pr
         return sub_pr
 
-    def __build_category(self, name):
+    # def __build_category(self, name):
+    #     """Creates a new category (step) underneath"""
+    #
+    #     category = Category(name=name)
+    #     category.path = os.path.join(self.path, name)
+    #     # category.path = "%s/%s" % (self.path, name)
+    #     self._categories.append(category)
+    #     return category
+
+    def __build_category(self, name, uid):
         """Creates a new category (step) underneath"""
 
-        category = Category(name=name)
+        category = Category(name=name, uid=uid)
         category.path = os.path.join(self.path, name)
         # category.path = "%s/%s" % (self.path, name)
         self._categories.append(category)
         return category
-
 
     def _check_permissions(self, level=2):
         """Checks the user permissions for project related tasks. Default required level is 2"""
@@ -246,7 +256,7 @@ class Subproject(Entity):
             log.warning("{0} already exists in categories of {1}".format(name, self._name))
             return -1
 
-        return self.__build_category(name)
+        return self.__build_category(name, None)
 
 
     def find_sub_by_id(self, uid):

@@ -17,7 +17,7 @@ class TestProject:
     # _salt = str(uuid.uuid4()).split("-")[-1]
     mock = Mockup()
     mock.prepare()
-    user.User(commons_directory=mock.common)  # this is for not popping up the "missing common folder" message
+    user.User(common_directory=mock.common)  # this is for not popping up the "missing common folder" message
     from tik_manager4.objects.main import Main  # importing main checks the common folder definition, thats why its here
     tik = Main()
 

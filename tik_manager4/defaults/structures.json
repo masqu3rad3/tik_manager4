@@ -12,7 +12,14 @@
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
-    "categories": ["Model", "Shading", "Rig", "Animation", "Lighting", "Comp"],
+    "categories": [
+      {"name": "Model"},
+      {"name": "Shading"},
+      {"name": "Rig"},
+      {"name": "Animation"},
+      {"name": "Lighting"},
+      {"name": "Comp"}
+      ],
     "subs": []
   },
   "asset_only": {
@@ -30,25 +37,41 @@
           {
             "name": "Characters",
             "path": "Assets/Characters",
-            "categories": ["Model", "Rig", "LookDev"],
+            "categories": [
+              {"name": "Model"},
+              {"name": "Rig"},
+              {"name": "LookDev"}
+              ],
             "subs": []
           },
           {
             "name": "Props",
             "path": "Assets/Props",
-            "categories": ["Model", "Rig", "LookDev"],
+            "categories": [
+              {"name": "Model"},
+              {"name": "Rig"},
+              {"name": "LookDev"}
+              ],
             "subs": []
           },
           {
             "name": "Environment",
             "path": "Assets/Environment",
-            "categories": ["Model", "Rig", "LookDev"],
+            "categories": [
+              {"name": "Model"},
+              {"name": "Rig"},
+              {"name": "LookDev"}
+              ],
             "subs": []
           },
           {
             "name": "Vehicles",
             "path": "Assets/Vehicles",
-            "categories": ["Model", "Rig", "LookDev"],
+            "categories": [
+              {"name": "Model"},
+              {"name": "Rig"},
+              {"name": "LookDev"}
+              ],
             "subs": []
           }
         ]
@@ -70,25 +93,41 @@
           {
             "name": "Characters",
             "path": "Assets/Characters",
-            "categories": ["Model", "Rig", "LookDev"],
+            "categories": [
+              {"name": "Model"},
+              {"name": "Rig"},
+              {"name": "LookDev"}
+              ],
             "subs": []
           },
           {
             "name": "Props",
             "path": "Assets/Props",
-            "categories": ["Model", "Rig", "LookDev"],
+            "categories": [
+              {"name": "Model"},
+              {"name": "Rig"},
+              {"name": "LookDev"}
+              ],
             "subs": []
           },
           {
             "name": "Environment",
             "path": "Assets/Environment",
-            "categories": ["Model", "Rig", "LookDev"],
+            "categories": [
+              {"name": "Model"},
+              {"name": "Rig"},
+              {"name": "LookDev"}
+              ],
             "subs": []
           },
           {
             "name": "Vehicles",
             "path": "Assets/Vehicles",
-            "categories": ["Model", "Rig", "LookDev"],
+            "categories": [
+              {"name": "Model"},
+              {"name": "Rig"},
+              {"name": "LookDev"}
+              ],
             "subs": []
           }
         ]
@@ -116,25 +155,41 @@
           {
             "name": "Characters",
             "path": "Assets/Characters",
-            "categories": ["Model", "Rig", "LookDev"],
+            "categories": [
+              {"name": "Model"},
+              {"name": "Rig"},
+              {"name": "LookDev"}
+              ],
             "subs": []
           },
           {
             "name": "Props",
             "path": "Assets/Props",
-            "categories": ["Model", "Rig", "LookDev"],
+            "categories": [
+              {"name": "Model"},
+              {"name": "Rig"},
+              {"name": "LookDev"}
+              ],
             "subs": []
           },
           {
             "name": "Environment",
             "path": "Assets/Environment",
-            "categories": ["Model", "Rig", "LookDev"],
+            "categories": [
+              {"name": "Model"},
+              {"name": "Rig"},
+              {"name": "LookDev"}
+              ],
             "subs": []
           },
           {
             "name": "Vehicles",
             "path": "Assets/Vehicles",
-            "categories": ["Model", "Rig", "LookDev"],
+            "categories": [
+              {"name": "Model"},
+              {"name": "Rig"},
+              {"name": "LookDev"}
+              ],
             "subs": []
           }
         ]

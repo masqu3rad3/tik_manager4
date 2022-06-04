@@ -6,7 +6,7 @@ class TestUser(object):
     """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
     mock = Mockup()
     mock.prepare()
-    user.User(commons_directory=mock.common)  # this is for not popping up the "missing common folder" message
+    user.User(common_directory=mock.common)  # this is for not popping up the "missing common folder" message
     from tik_manager4.objects.main import Main  # importing main checks the common folder definition, thats why its here
     tik = Main()
 

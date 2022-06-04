@@ -7,8 +7,8 @@ from tik_manager4.core import filelog
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class Category(Entity):
-    def __init__(self, name=""):
-        super(Category, self).__init__()
+    def __init__(self, name="", *args, **kwargs):
+        super(Category, self).__init__(*args, **kwargs)
 
         self._name = name
         self._basescenes = []
