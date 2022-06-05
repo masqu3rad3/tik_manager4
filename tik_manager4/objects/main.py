@@ -1,6 +1,6 @@
 import os
 import sys
-from tik_manager4.core import filelog, settings
+from tik_manager4.core import filelog, settings, utils
 from tik_manager4.objects import user, project
 from tik_manager4 import dcc
 
@@ -18,7 +18,7 @@ class Main(object):
     def __init__(self):
         # set either the latest project or the default one
         # always make sure the default project exists, in case of urgent fall back
-        default_project = os.path.join(os.path.expanduser("~"), "TM4_default")
+        default_project = os.path.join(utils.get_home_dir(), "TM4_default")
         if not os.path.exists(os.path.join(default_project, "tikDatabase", "project_structure.json")):
             self._create_default_project()
 
@@ -32,7 +32,7 @@ class Main(object):
 
     def _create_default_project(self):
         # this does not require any permissions
-        _project_path = os.path.join(os.path.expanduser("~"), "TM4_default")
+        _project_path = os.path.join(utils.get_home_dir(), "TM4_default")
         _database_path = os.path.join(_project_path, "tikDatabase")
         _structure_file = os.path.join(_database_path, "project_structure.json")
         if os.path.exists(_structure_file):
