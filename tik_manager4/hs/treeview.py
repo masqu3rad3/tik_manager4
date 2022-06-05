@@ -167,10 +167,10 @@ class TikTreeView(QtWidgets.QTreeView):
         dirname = os.path.dirname(os.path.abspath(__file__))
         tik_manager_dir = os.path.abspath(os.path.join(dirname, os.pardir))
         print(tik_manager_dir)
-        QtCore.QDir.addSearchPath("css", os.path.join(tik_manager_dir, "CSS"))
-        QtCore.QDir.addSearchPath("rc", os.path.join(tik_manager_dir, "CSS/rc"))
+        QtCore.QDir.addSearchPath("css", os.path.join(tik_manager_dir, "theme"))
+        QtCore.QDir.addSearchPath("rc", os.path.join(tik_manager_dir, "theme/rc"))
 
-        # stylesheetFile = os.path.join(tik_manager_dir, "CSS", "tikManager.qss")
+        # stylesheetFile = os.path.join(tik_manager_dir, "theme", "tikManager.qss")
         style_file = QtCore.QFile("css:tikManager.qss")
         style_file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
         self.setStyleSheet(str(style_file.readAll(), 'utf-8'))
@@ -262,7 +262,7 @@ if __name__ == '__main__':
 
     # selfLoc = os.path.dirname(os.path.abspath(__file__))
     # tik_manager_dir = os.path.abspath(os.path.join(selfLoc, os.pardir))
-    # stylesheetFile = os.path.join(tik_manager_dir, "CSS", "tikManager.qss")
+    # stylesheetFile = os.path.join(tik_manager_dir, "theme", "tikManager.qss")
     # utils.apply_stylesheet(stylesheetFile, app)
 
 

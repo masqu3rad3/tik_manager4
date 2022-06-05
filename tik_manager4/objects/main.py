@@ -107,6 +107,7 @@ class Main(object):
         project_obj.set(path)
         project_obj.create_folders(project_obj.absolute_path)
         project_obj.create_folders(project_obj.database_path)
+        project_obj.save_structure() # This makes sure IDs are getting saved to the database file
         return 1
 
     # def set_project(self):

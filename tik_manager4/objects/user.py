@@ -23,7 +23,7 @@ class User(object):
         super(User, self).__init__()
         self.settings = Settings()
         self.bookmarks = Settings()
-        self.states = Settings()  # is this necessary anymore??
+        # self.states = Settings()  # is this necessary anymore??
         self.user_directory = None
         self.common_directory = common_directory  # this is only for programmatically set the commons
         self.commons = None
