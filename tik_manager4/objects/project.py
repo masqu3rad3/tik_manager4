@@ -2,12 +2,12 @@ import os
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.subproject import Subproject
+from tik_manager4.objects.commons import Commons
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Project(Settings, Subproject):
-    # _guard = Guard()
     def __init__(self, path=None, name=None, resolution=None, fps=None):
         super(Project, self).__init__()
         self._path = path
@@ -48,7 +48,7 @@ class Project(Settings, Subproject):
         self._relative_path = ""
         self.name = os.path.basename(absolute_path)
         self._database_path = self._io.folder_check(os.path.join(absolute_path, "tikDatabase"))
-        self.settings_file = os.path.join(self._database_path, "project_structure.json")
+        self.structure_file = os.path.join(self._database_path, "project_structure.json")
         self.set_sub_tree(self._currentValue)
         self._guard.set_project_root(self._absolute_path)
         self._guard.set_database_root(self._database_path)
@@ -155,7 +155,7 @@ class Project(Settings, Subproject):
         """
         # TODO requires test
         if not parent_uid and parent_path == None:
-            raise "Requires at least a parent uid or parent path "
+            raise Exception("Requires at least a parent uid or parent path ")
         if parent_uid != None:
             parent = self.find_sub_by_id(parent_uid)
         else:
