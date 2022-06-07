@@ -48,7 +48,7 @@ class Project(Settings, Subproject):
         self._relative_path = ""
         self.name = os.path.basename(absolute_path)
         self._database_path = self._io.folder_check(os.path.join(absolute_path, "tikDatabase"))
-        self.structure_file = os.path.join(self._database_path, "project_structure.json")
+        self.settings_file = os.path.join(self._database_path, "project_structure.json")
         self.set_sub_tree(self._currentValue)
         self._guard.set_project_root(self._absolute_path)
         self._guard.set_database_root(self._database_path)
@@ -69,6 +69,7 @@ class Project(Settings, Subproject):
             _remove_path = self.get_path_by_uid(uid)
         else:
             _remove_path = path
+
 
         if self._remove_sub_project(uid, path) == -1:
             return -1

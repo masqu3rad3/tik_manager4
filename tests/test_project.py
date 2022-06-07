@@ -6,7 +6,7 @@ import shutil
 # import uuid
 from .mockup import Mockup, clean_user
 from tik_manager4.objects import user
-from tik_manager4.core import filelog
+from tik_manager4.core import filelog, utils
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -24,11 +24,11 @@ class TestProject:
     @clean_user
     def test_default_project_paths(self):
         assert self.tik.project.path == "" # this is overridden by project class and must always return empty string
-        assert self.tik.project.absolute_path == os.path.join(os.path.expanduser("~"), "TM4_default")
-        assert self.tik.project.database_path == os.path.join(os.path.expanduser("~"), "TM4_default", "tikDatabase")
+        assert self.tik.project.absolute_path == os.path.join(utils.get_home_dir(), "TM4_default")
+        assert self.tik.project.database_path == os.path.join(utils.get_home_dir(), "TM4_default", "tikDatabase")
         assert self.tik.project.name == "TM4_default"
-        assert self.tik.project._guard.project_root == os.path.join(os.path.expanduser("~"), "TM4_default")
-        assert self.tik.project._guard.database_root == os.path.join(os.path.expanduser("~"), "TM4_default", "tikDatabase")
+        assert self.tik.project._guard.project_root == os.path.join(utils.get_home_dir(), "TM4_default")
+        assert self.tik.project._guard.database_root == os.path.join(utils.get_home_dir(), "TM4_default", "tikDatabase")
 
     @clean_user
     def test_resolution_and_fps(self):
@@ -53,14 +53,14 @@ class TestProject:
         self.tik.project.save_structure()
 
         # # re-init the project and read back the values
-        self.tik.project.set(os.path.join(os.path.expanduser("~"), "TM4_default"))
+        self.tik.project.set(os.path.join(utils.get_home_dir(), "TM4_default"))
         assert self.tik.project.resolution == test_resolution
         assert self.tik.project.fps == test_fps
 
     @clean_user
     def test_create_new_project(self):
         # no user permission
-        test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_project_DO_NOT_USE")
+        test_project_path = os.path.join(utils.get_home_dir(), "t4_test_project_DO_NOT_USE")
         if os.path.exists(test_project_path):
             shutil.rmtree(test_project_path)
         assert self.tik.create_project(test_project_path, structure_template="asset_shot") == -1
@@ -126,7 +126,7 @@ class TestProject:
         self.tik.project.__init__()
         self.tik.user.__init__()
 
-        test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
+        test_project_path = os.path.join(utils.get_home_dir(), "t4_test_manual_DO_NOT_USE")
         if os.path.exists(test_project_path):
             shutil.rmtree(test_project_path)
 
