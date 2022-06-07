@@ -7,9 +7,12 @@ from tik_manager4.objects.commons import Commons
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
-class Project(Settings, Subproject):
+# class Project(Settings, Subproject):
+class Project(Subproject):
     def __init__(self, path=None, name=None, resolution=None, fps=None):
         super(Project, self).__init__()
+        self.structure = Settings()
+        self.settings = Settings()
         self._path = path
         self._database_path = None
         self._name = name
@@ -18,6 +21,7 @@ class Project(Settings, Subproject):
 
         # This makes sure the project folder is tik_manager4 ready
         if path:
+            # self.set(path)
             self.set(path)
 
         # Absolute path do not go into the project_structure.json
@@ -38,20 +42,22 @@ class Project(Settings, Subproject):
         return self._database_path
 
     def save_structure(self):
-        self._currentValue = self.get_sub_tree()
+        self.structure._currentValue = self.get_sub_tree()
         self.create_folders(root=self.database_path)
         self.create_folders(root=self.absolute_path)
-        self.apply_settings()
+        self.structure.apply_settings()
 
     def set(self, absolute_path):
         self._absolute_path = absolute_path
         self._relative_path = ""
         self.name = os.path.basename(absolute_path)
-        self._database_path = self._io.folder_check(os.path.join(absolute_path, "tikDatabase"))
-        self.settings_file = os.path.join(self._database_path, "project_structure.json")
-        self.set_sub_tree(self._currentValue)
+        self._database_path = self.structure._io.folder_check(os.path.join(absolute_path, "tikDatabase"))
+        self.structure.settings_file = os.path.join(self._database_path, "project_structure.json")
+        self.set_sub_tree(self.structure._currentValue)
         self._guard.set_project_root(self._absolute_path)
         self._guard.set_database_root(self._database_path)
+        # get project settings
+        self.settings.settings_file = os.path.join(self._database_path, "project_settings.json")
 
     def delete_sub_project(self, uid=None, path=None):
         # TODO This requires tests
@@ -70,10 +76,9 @@ class Project(Settings, Subproject):
         else:
             _remove_path = path
 
-
         if self._remove_sub_project(uid, path) == -1:
             return -1
-        self.apply_settings()
+        self.structure.apply_settings()
         self._delete_folders(os.path.join(self._database_path, _remove_path))
         return 1
 
@@ -123,7 +128,7 @@ class Project(Settings, Subproject):
         if new_category == -1:
             return -1
 
-        self.apply_settings()
+        self.structure.apply_settings()
         self.create_folders(self._database_path)
         return new_category
 

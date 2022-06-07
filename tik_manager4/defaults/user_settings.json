@@ -1,0 +1,22 @@
+{
+  "bookmarks": {
+    "bookmarkedProjects": [],
+    "recentProjects": [],
+    "activeUser": "Generic",
+    "activeProject": null,
+    "activeSubprojectId": null,
+    "activeCategory": null
+  },
+  "userPreferences": {
+    "globalFavorites": true,
+    "inheritRanges": "ask",
+    "colorCoding": {
+      "Maya": "rgb(81, 230, 247, 255)",
+      "3dsMax": "rgb(150, 247, 81, 255)",
+      "Houdini": "rgb(247, 172, 81, 255)",
+      "Nuke": "rgb(246, 100, 100, 255)",
+      "Photoshop": "rgb(60, 60, 250, 255)",
+      "": "rgb(0, 0, 0, 0)"
+    }
+  }
+}

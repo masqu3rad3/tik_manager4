@@ -83,11 +83,13 @@ class User(object):
         self.commons = Commons(self.common_directory)
 
         # set the default keys for missing ones
-        for key, val in self.commons.manager.get_property("defaultUserSettings").items():
+        # for key, val in self.commons.manager.get_property("defaultUserSettings").items():
+        for key, val in self.commons.user_settings.get_property("userPreferences").items():
             if not self.settings.get_property(key=key):
                 self.settings.add_property(key=key, val=val)
 
-        for key, val in self.commons.manager.get_property("defaultBookmarks").items():
+        # for key, val in self.commons.manager.get_property("defaultBookmarks").items():
+        for key, val in self.commons.user_settings.get_property("bookmarks").items():
             if not self.bookmarks.get_property(key=key):
                 self.bookmarks.add_property(key=key, val=val)
 

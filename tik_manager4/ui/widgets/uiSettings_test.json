@@ -1,0 +1,43 @@
+{
+  "testCheck": {
+    "type": "boolean",
+    "value": true,
+    "disables": [["value", false, "testString"]]
+  },
+  "testString": {
+    "type": "string",
+    "value": "",
+    "disables": [],
+    "placeholder": "(Optional)"
+  },
+  "testCombo": {
+    "type": "combo",
+    "items": [
+      "valueA",
+      "valueB",
+      "valueC"
+    ],
+    "value": 2
+  },
+  "testRadio": {
+    "type": "radio",
+    "items": [
+      "radioGa",
+      "radioGu",
+      "radioGuGu"
+    ],
+    "value": 1
+  },
+  "testSpinnerInt": {
+    "type": "spinnerInt",
+    "value": 12,
+    "minimum": 0,
+    "maximum": 100
+  },
+  "testSpinnerFloat": {
+    "type": "spinnerFloat",
+    "value": 341.23,
+    "minimum": 0.0,
+    "maximum": 999.9
+  }
+}

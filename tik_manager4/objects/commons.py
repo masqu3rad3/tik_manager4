@@ -12,7 +12,8 @@ log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 class Commons(object):
     exportSettings = None
     importSettings = None
-    manager = None
+    # manager = None
+    user_settings = None
     users = None
     template = None
     structures = None
@@ -41,7 +42,8 @@ class Commons(object):
 
         self.exportSettings = Settings(file_path=os.path.join(self._folder_path, "exportSettings.json"))
         self.importSettings = Settings(file_path=os.path.join(self._folder_path, "importSettings.json"))
-        self.manager = Settings(file_path=os.path.join(self._folder_path, "manager.json"))
+        # self.manager = Settings(file_path=os.path.join(self._folder_path, "manager_DEPRECATED.json"))
+        self.user_settings = Settings(file_path=os.path.join(self._folder_path, "user_settings.json"))
         self.users = Settings(file_path=os.path.join(self._folder_path, "users.json"))
         self.template = Settings(file_path=os.path.join(self._folder_path, "templates.json"))
         self.structures = Settings(file_path=os.path.join(self._folder_path, "structures.json"))
