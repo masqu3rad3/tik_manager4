@@ -12,6 +12,8 @@ from tik_manager4.ui.Qt import QtWidgets, QtGui, QtCore
 class ValueChangeStr(QtCore.QObject):
     """Simple QObject inheritance to pass the Signal and event to custom widgets"""
     valueChanged = QtCore.Signal(str)
+    def __init__(self):
+        super(ValueChangeStr, self).__init__()
 
     def valueChangeEvent(self, e):
         self.valueChanged.emit(e)
@@ -23,6 +25,7 @@ class ValueChangeInt(QtCore.QObject):
 
     def valueChangeEvent(self, e):
         self.valueChanged.emit(e)
+
 
 class ValueChangeFloat(QtCore.QObject):
     """Simple QObject inheritance to pass the Signal and event to custom widgets"""
@@ -39,16 +42,28 @@ class ValueChangeBool(QtCore.QObject):
     def valueChangeEvent(self, e):
         self.valueChanged.emit(e)
 
+
+# ######################### CUSTOM WIDGETS #######################################
 class Boolean(QtWidgets.QCheckBox):
     com = ValueChangeBool()
-    def __init__(self, value=False, *args, **kwargs):
+
+    def __init__(self, value=False, disables=None, **kwargs):
         super(Boolean, self).__init__()
         self.setChecked(value)
         self.stateChanged.connect(self.com.valueChangeEvent)
+        self.disable_value = None
+        self.disable_list = []
+
+    def toggle(self, value, widget):
+        if value == self.disable_value:
+            widget.setEnabled(False)
+        else:
+            widget.setEnabled(True)
 
 
 class String(QtWidgets.QLineEdit):
     com = ValueChangeStr()
+
     def __init__(self, value="", placeholder="", **kwargs):
         super(String, self).__init__()
         self.setText(value)
@@ -58,6 +73,7 @@ class String(QtWidgets.QLineEdit):
 
 class Combo(QtWidgets.QComboBox):
     com = ValueChangeInt()
+
     def __init__(self, value=0, items=None, **kwargs):
         super(Combo, self).__init__()
         self.addItems(items or [])
@@ -67,6 +83,7 @@ class Combo(QtWidgets.QComboBox):
 
 class SpinnerInt(QtWidgets.QSpinBox):
     com = ValueChangeInt()
+
     def __init__(self, value=0, minimum=-99999, maximum=99999, **kwargs):
         super(SpinnerInt, self).__init__()
         self.setMinimum(minimum)
@@ -77,6 +94,7 @@ class SpinnerInt(QtWidgets.QSpinBox):
 
 class SpinnerFloat(QtWidgets.QDoubleSpinBox):
     com = ValueChangeFloat()
+
     def __init__(self, value=0, minimum=-99999.9, maximum=99999.9, **kwargs):
         super(SpinnerFloat, self).__init__()
         self.setMinimum(minimum)
@@ -86,6 +104,7 @@ class SpinnerFloat(QtWidgets.QDoubleSpinBox):
 
 
 class SettingsLayout(QtWidgets.QFormLayout):
+    """Visualizes and edits Setting objects in a vertical layout"""
     widget_dict = {
         "boolean": Boolean,
         "string": String,
@@ -101,8 +120,8 @@ class SettingsLayout(QtWidgets.QFormLayout):
 
         self.populate()
 
-
     def populate(self):
+        """Creates the widgets"""
         for name, properties in self.settings_data._currentValue.items():
             _type = properties.get("type", None)
             _label = QtWidgets.QLabel(text=name)
@@ -112,10 +131,14 @@ class SettingsLayout(QtWidgets.QFormLayout):
             self.addRow(_label, _widget_class(**properties))
 
             _widget_class.com.valueChanged.connect(lambda x: print(x))
+            _widget_class.com.valueChanged.connect(lambda x: self.settings_data.edit_property(name, x))
+
+            # _widget_class.com.valueChanged.connect(self.test)
+
             # _widget_class.valueChanged.connect(lambda x: print(x))
 
 
-if __name__ == '__main__':
+def main():
     app = QtWidgets.QApplication(sys.argv)
     test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uiSettings_test.json")
 
@@ -128,3 +151,19 @@ if __name__ == '__main__':
     dialog.setLayout(setting_lay)
     dialog.show()
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()
+    # app = QtWidgets.QApplication(sys.argv)
+    # test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uiSettings_test.json")
+    #
+    # test_settings = Settings(test_file)
+    #
+    # dialog = QtWidgets.QDialog()
+    # setting_lay = SettingsLayout(test_settings)
+    # # setting_lay.addRow(QtWidgets.QLabel("test"), QtWidgets.QLabel("ASDFASDF"))
+    #
+    # dialog.setLayout(setting_lay)
+    # dialog.show()
+    # sys.exit(app.exec_())

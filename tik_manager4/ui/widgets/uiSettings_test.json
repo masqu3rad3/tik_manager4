@@ -20,7 +20,7 @@
     "value": 2
   },
   "testRadio": {
-    "type": "radio",
+    "type": "combo",
     "items": [
       "radioGa",
       "radioGu",
