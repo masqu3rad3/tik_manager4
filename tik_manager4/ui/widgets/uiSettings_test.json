@@ -2,7 +2,7 @@
   "testCheck": {
     "type": "boolean",
     "value": true,
-    "disables": [["value", false, "testString"]]
+    "disables": [[true, "testString"]]
   },
   "testString": {
     "type": "string",
@@ -26,7 +26,8 @@
       "radioGu",
       "radioGuGu"
     ],
-    "value": 1
+    "value": 1,
+    "disables": [[0, "testCheck"]]
   },
   "testSpinnerInt": {
     "type": "spinnerInt",
