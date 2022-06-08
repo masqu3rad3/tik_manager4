@@ -4,11 +4,21 @@ import os
 import sys
 from tik_manager4.core.settings import Settings
 from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtCore import pyqtSignal as Signal
+# from tik_manager4.ui.Qt import QtWidgets, QtGui, QtCore
 
 class Boolean(QtWidgets.QCheckBox):
-    def __init__(self, value=False, **kwargs):
+    # valueChanged = Signal(str)
+
+    def __init__(self, value=False, *args, **kwargs):
         super(Boolean, self).__init__()
+        # super(Boolean, self).__init__()
         self.setChecked(value)
+        # self.stateChanged.connect(self.valueChangeEvent)
+
+    # def valueChangeEvent(self, e):
+    #     self.valueChanged.emit(e)
+
 
 class String(QtWidgets.QLineEdit):
     def __init__(self, value="", placeholder="", **kwargs):
@@ -16,11 +26,13 @@ class String(QtWidgets.QLineEdit):
         self.setText(value)
         self.setPlaceholderText(placeholder)
 
+
 class Combo(QtWidgets.QComboBox):
     def __init__(self, value=0, items=None, **kwargs):
         super(Combo, self).__init__()
         self.addItems(items or [])
         self.setCurrentIndex(value)
+
 
 class SpinnerInt(QtWidgets.QSpinBox):
     def __init__(self, value=0, minimum=-99999, maximum=99999, **kwargs):
@@ -29,12 +41,14 @@ class SpinnerInt(QtWidgets.QSpinBox):
         self.setMaximum(maximum)
         self.setValue(value)
 
+
 class SpinnerFloat(QtWidgets.QDoubleSpinBox):
     def __init__(self, value=0, minimum=-99999.9, maximum=99999.9, **kwargs):
         super(SpinnerFloat, self).__init__()
         self.setMinimum(minimum)
         self.setMaximum(maximum)
         self.setValue(value)
+
 
 class SettingsLayout(QtWidgets.QFormLayout):
     widget_dict = {
@@ -44,12 +58,14 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "spinnerInt": SpinnerInt,
         "spinnerFloat": SpinnerFloat
     }
+
     def __init__(self, settings_obj, *args, **kwargs):
         super(SettingsLayout, self).__init__(*args, **kwargs)
 
         self.settings_data = settings_obj
 
         self.populate()
+
 
     def populate(self):
         for name, properties in self.settings_data._currentValue.items():
@@ -60,60 +76,7 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 continue
             self.addRow(_label, _widget_class(**properties))
 
-            # _widget = None
-            #
-            # if _type == "boolean":
-            #     _value = properties.get("value", False)
-            #     _widget = QtWidgets.QCheckBox()
-            #     _widget.setChecked(_value)
-            #
-            # elif _type == "string":
-            #     _value = properties.get("value", "")
-            #     _widget = QtWidgets.QLineEdit()
-            #     _widget.setText(_value)
-            #     _placeholder = properties.get("placeholder", "")
-            #     _widget.setPlaceholderText(_placeholder)
-            #
-            # elif _type == "spinnerInt":
-            #     _value = properties.get("value", 0)
-            #     _min = properties.get("min", -99999)
-            #     _max = properties.get("max", 99999)
-            #     _widget = QtWidgets.QSpinBox()
-            #     _widget.setMinimum(_min)
-            #     _widget.setMaximum(_max)
-            #     _widget.setValue(_value)
-            #
-            # elif _type == "spinnerFloat":
-            #     _value = properties.get("value", 0.0)
-            #     _min = properties.get("min", -99999.9)
-            #     _max = properties.get("max", 99999.9)
-            #     _widget = QtWidgets.QDoubleSpinBox()
-            #     _widget.setMinimum(_min)
-            #     _widget.setMaximum(_max)
-            #     _widget.setValue(_value)
-            #
-            # elif _type == "combo":
-            #     _value = properties.get("value", 0)
-            #     _widget = QtWidgets.QComboBox()
-            #     _items = properties.get("list", [])
-            #     _widget.addItems(_items)
-            #     _widget.setCurrentIndex(_value)
-
-            # elif _type == "radio":
-            #     _value
-
-
-            # else:
-            #     continue
-
-            # self.addRow(_label, _widget)
-
-        # def make_boolean():
-        #     "prepares a boolean widget to add into the form value"
-        #
-        #     return _widget
-
-
+            _widget_class.valueChanged.connect(lambda x: print(x))
 
 
 if __name__ == '__main__':
@@ -125,6 +88,7 @@ if __name__ == '__main__':
     dialog = QtWidgets.QDialog()
     setting_lay = SettingsLayout(test_settings)
     # setting_lay.addRow(QtWidgets.QLabel("test"), QtWidgets.QLabel("ASDFASDF"))
+
     dialog.setLayout(setting_lay)
     dialog.show()
     sys.exit(app.exec_())
