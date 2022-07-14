@@ -46,6 +46,10 @@ class Entity(object):
     def is_authenticated(self):
         return self._guard.is_authenticated
 
+    @property
+    def dcc(self):
+        return self._dcc
+
     # def testing(self):
     #     print(self._guard.permission_level)
     #     print(self._guard.is_authenticated)

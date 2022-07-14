@@ -2,7 +2,7 @@ import os
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.subproject import Subproject
-from tik_manager4.objects.commons import Commons
+# from tik_manager4.objects.commons import Commons
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -132,7 +132,13 @@ class Project(Subproject):
         self.create_folders(self._database_path)
         return new_category
 
-    def create_basescene(self, name, category, parent_uid=None, parent_path=None):
+    def create_basescene(self, name, category, dcc, parent_uid=None, parent_path=None):
+        """Creates a base scene and stores it in persistent database"""
+
+        if dcc == "Standalone":
+            log.error("DCC cannot be Standalone")
+            return -1
+
         if not parent_uid and not parent_path:
             log.error("Requires at least a parent uid or parent path ")
             return -1
@@ -146,7 +152,7 @@ class Project(Subproject):
             log.error("Category %s does not exist" % category)
             return -1
 
-        return category_object.add_base_scene(name)
+        return category_object.add_base_scene(name, dcc)
 
     def __validate_and_get_sub(self, parent_uid, parent_path):
         """

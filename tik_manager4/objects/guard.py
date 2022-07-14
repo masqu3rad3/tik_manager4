@@ -1,3 +1,4 @@
+from tik_manager4 import dcc
 
 class Guard(object):
     _user = None
@@ -5,6 +6,15 @@ class Guard(object):
     _authenticated = False
     _project_root = None
     _database_root = None
+    _dcc = None
+
+    @classmethod
+    def set_dcc(cls, dcc):
+        cls._dcc = dcc
+
+    @property
+    def dcc(self):
+        return self._dcc or dcc.NAME
 
     @classmethod
     def set_user(cls, user):
@@ -45,4 +55,8 @@ class Guard(object):
     @property
     def database_root(self):
         return self._database_root
+
+    # @property
+    # def dcc(self):
+    #     return self._dcc
 

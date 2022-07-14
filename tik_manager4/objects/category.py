@@ -27,7 +27,8 @@ class Category(Entity):
 
         # return glob(os.path.join(_search_dir, '*.tbs'))
 
-    def add_base_scene(self, name):
+    def add_base_scene(self, name, dcc):
+        """Creates a base scene under the category"""
         relative_path = os.path.join(self.path, "%s.tbs" % name)
         abs_path = os.path.join(self._guard.database_root, relative_path)
         if os.path.exists(abs_path):
@@ -37,7 +38,7 @@ class Category(Entity):
         _basescene.add_property("name", name)
         _basescene.add_property("creator", self._guard.user)
         _basescene.add_property("category", self.name)
-        # _basescene.add_property("path", self.path)
+        _basescene.add_property("dcc", dcc)
         _basescene.add_property("versions", [])
         _basescene.add_property("publishes", [])
         _basescene.add_property("referenceID", None)

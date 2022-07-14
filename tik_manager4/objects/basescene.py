@@ -14,6 +14,7 @@ class BaseScene(Settings, Entity):
         self._name = self.get_property("name") or name
         self._creator = self.get_property("creator") or self._guard.user
         self._category = self.get_property("category") or category
+        self._dcc = self.get_property("dcc") or self._guard.dcc
         self._versions = self.get_property("versions") or []
         self._publishes = self.get_property("publishes") or []
         self._reference_id = self.get_property("referenceID") or None

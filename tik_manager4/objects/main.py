@@ -14,6 +14,8 @@ if __name__ == '__main__' or dcc.NAME == "Standalone":
 class Main(object):
     user = user.User()
     project = project.Project()
+    # set the dcc to the guard object
+    project._guard.set_dcc(dcc.NAME)
 
     def __init__(self):
         # set either the latest project or the default one
