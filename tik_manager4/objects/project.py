@@ -151,8 +151,10 @@ class Project(Subproject):
         if category_object == -1:
             log.error("Category %s does not exist" % category)
             return -1
-
-        return category_object.add_base_scene(name, dcc)
+        base_scene = category_object.add_base_scene(name, dcc)
+        if not base_scene:
+            return -1  # There is a base scene with same absolute path
+        return base_scene
 
     def __validate_and_get_sub(self, parent_uid, parent_path):
         """

@@ -103,6 +103,15 @@ class TestProject:
         assert self.tik.project.create_sub_project("anotherSub", parent_uid=new_sub.id) == -1
         assert log.last_warning == "anotherSub already exist in sub-projects of testSub"
 
+        # try creating a sub-project with a wrong parent id
+        pytest.raises(Exception, self.tik.project.create_sub_project, "wrongSub", parent_uid=0)
+
+        # try creating a sub-project with a wrong parent path
+        pytest.raises(Exception, self.tik.project.create_sub_project, "wrongSub", parent_path="THIS_PATH_DOES_NOT_EXIST")
+
+        # try creating a sub-project without a parent path or parent id
+        pytest.raises(Exception, self.tik.project.create_sub_project, "wrongSub")
+
     @clean_user
     def test_create_category(self):
         test_project_path = self.test_create_new_project()
@@ -290,6 +299,9 @@ class TestProject:
         assert basescene.category == "Model"
         assert basescene.reference_id is None
 
+        # try to create a duplicate basescene
+        assert self.tik.project.create_basescene("superman", category="Model", dcc="Maya", parent_path="Assets/Characters/Soldier") == -1
+
         #non existing category
         assert self.tik.project.create_basescene("superman", category="Burhan", dcc="Maya", parent_path="Assets/Characters/Soldier") == -1
 
@@ -305,4 +317,8 @@ class TestProject:
                 assert b.creator == "Admin"
                 assert b.category
                 assert b.reference_id is None
+
+        # no permission
+        self.tik.user.set("Generic")
+        assert self.tik.project.create_basescene("superman", category="Rig", dcc="Maya", parent_path="Assets/Characters/Soldier") == -1
 

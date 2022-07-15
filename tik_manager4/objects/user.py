@@ -32,9 +32,9 @@ class User(object):
         # self._password_authenticated = False
         self._validate_user_data()
 
-    @property
-    def directory(self):
-        return self.user_directory
+    # @property
+    # def directory(self):
+    #     return self.user_directory
 
     @property
     def is_authenticated(self):
