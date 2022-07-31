@@ -19,7 +19,7 @@ class Category(Entity):
     def tasks(self):
         return self._tasks
 
-    def scan_basescenes(self):
+    def scan_tasks(self):
         self._tasks.clear()
         _search_dir = os.path.join(self._guard.database_root, self.path)
         _base_scene_paths = glob(os.path.join(_search_dir, '*.tbs'))

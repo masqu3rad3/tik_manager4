@@ -311,7 +311,7 @@ class TestProject:
         # read
         sub = self.tik.project.find_sub_by_path("Assets/Characters/Soldier")
         for c in sub.categories:
-            c.scan_basescenes()
+            c.scan_tasks()
             for b in c.tasks:
                 assert b.name == "superman"
                 assert b.creator == "Admin"
