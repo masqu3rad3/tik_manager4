@@ -132,8 +132,8 @@ class Project(Subproject):
         self.create_folders(self._database_path)
         return new_category
 
-    def create_basescene(self, name, category, parent_uid=None, parent_path=None):
-        """Creates a base scene and stores it in persistent database"""
+    def create_task(self, name, category, parent_uid=None, parent_path=None):
+        """Creates a task and stores it in persistent database"""
 
         if not parent_uid and not parent_path:
             log.error("Requires at least a parent uid or parent path ")
@@ -147,10 +147,10 @@ class Project(Subproject):
         if category_object == -1:
             log.error("Category %s does not exist" % category)
             return -1
-        base_scene = category_object.add_base_scene(name)
-        if not base_scene:
-            return -1  # There is a base scene with same absolute path
-        return base_scene
+        task = category_object.add_task(name)
+        if not task:
+            return -1  # There is a task with same absolute path
+        return task
 
     def __validate_and_get_sub(self, parent_uid, parent_path):
         """

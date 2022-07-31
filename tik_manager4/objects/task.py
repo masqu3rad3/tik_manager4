@@ -2,12 +2,12 @@ from tik_manager4.core.settings import Settings
 from tik_manager4.objects.entity import Entity
 
 
-class BaseScene(Settings, Entity):
+class Task(Settings, Entity):
     def __init__(self, absolute_path,
                  name=None,
                  category=None,
                  ):
-        super(BaseScene, self).__init__()
+        super(Task, self).__init__()
         self.settings_file = absolute_path
 
         self._name = self.get_property("name") or name
