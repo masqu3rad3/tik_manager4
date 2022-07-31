@@ -10,23 +10,13 @@ class BaseScene(Settings, Entity):
         super(BaseScene, self).__init__()
         self.settings_file = absolute_path
 
-
         self._name = self.get_property("name") or name
         self._creator = self.get_property("creator") or self._guard.user
         self._category = self.get_property("category") or category
-        self._dcc = self.get_property("dcc") or self._guard.dcc
+        # self._dcc = self.get_property("dcc") or self._guard.dcc
         self._versions = self.get_property("versions") or []
         self._publishes = self.get_property("publishes") or []
         self._reference_id = self.get_property("referenceID") or None
-
-        # self.name = name
-        # self.creator = self._guard.user
-        # self.category = category
-        # # self.path = self.path
-        # self.versions = []
-        # self.publishes = []
-        # self._reference_id = None
-
 
     @property
     def name(self):
@@ -90,9 +80,3 @@ class BaseScene(Settings, Entity):
     def reference_id(self, val):
         self.reference_id = val
         self.add_property("referenceID", val)
-
-    # def __repr__(self):
-    #     return self.name
-
-
-

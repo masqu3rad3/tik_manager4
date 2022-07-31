@@ -1,6 +1,7 @@
 import uuid
 from tik_manager4.objects.guard import Guard
 
+
 class Entity(object):
     # _user = User()
     _guard = Guard()
@@ -24,7 +25,7 @@ class Entity(object):
 
     @property
     def path(self):
-        return self._relative_path.replace("\\","/")
+        return self._relative_path.replace("\\", "/")
 
     @path.setter
     def path(self, val):

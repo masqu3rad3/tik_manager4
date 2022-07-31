@@ -1,5 +1,6 @@
 from tik_manager4 import dcc
 
+
 class Guard(object):
     _user = None
     _permission_level = 0
@@ -9,8 +10,8 @@ class Guard(object):
     _dcc = None
 
     @classmethod
-    def set_dcc(cls, dcc):
-        cls._dcc = dcc
+    def set_dcc(cls, dcc_name):
+        cls._dcc = dcc_name
 
     @property
     def dcc(self):
@@ -55,8 +56,3 @@ class Guard(object):
     @property
     def database_root(self):
         return self._database_root
-
-    # @property
-    # def dcc(self):
-    #     return self._dcc
-

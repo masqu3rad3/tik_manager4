@@ -17,22 +17,15 @@ class Commons(object):
     users = None
     template = None
     structures = None
+
     def __init__(self, folder_path):
         super(Commons, self).__init__()
 
         self._folder_path = folder_path
-
-        # self.exportSettings = None
-        # self.importSettings = None
-        # self.manager = None
-        # self.users = None
-        # self.template = None
-        # self.structures = None
-
         self._validate_commons_folder()
 
     def _validate_commons_folder(self):
-        """Makes sure the commons folder contains the necessary setting files"""
+        """Makes sure the 'commons folder' contains the necessary setting files"""
         # copy the default template files to common folder
         for default_file in defaults.all:
             base_name = os.path.basename(default_file)

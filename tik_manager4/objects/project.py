@@ -88,8 +88,8 @@ class Project(Subproject):
         persistent database
 
         Args:
-            name: (String) Name of the sub-project
-            parent_uid: (Int) Parent Sub-Project Unique ID (or project itself.
+            name: (String) Name of the subproject
+            parent_uid: (Int) Parent Subproject Unique ID or project itself.
                                 Either this or parent_path needs to be defined
             parent_path: (String) Parent Sub-Project Relative path. If uid defined this will be skipped
             resolution: (Tuple) If not defined, parent resolution will be inherited
@@ -114,7 +114,7 @@ class Project(Subproject):
 
         Args:
             name: (String) Name of the category
-            parent_uid: (Int) Parent Sub-Project Unique ID (or project itself.
+            parent_uid: (Int) Parent Sub-Project Unique ID or project itself.
                                 Either this or parent_path needs to be defined
             parent_path: (String) Parent Sub-Project Relative path. If uid defined this will be skipped
 
@@ -132,12 +132,8 @@ class Project(Subproject):
         self.create_folders(self._database_path)
         return new_category
 
-    def create_basescene(self, name, category, dcc, parent_uid=None, parent_path=None):
+    def create_basescene(self, name, category, parent_uid=None, parent_path=None):
         """Creates a base scene and stores it in persistent database"""
-
-        if dcc == "Standalone":
-            log.error("DCC cannot be Standalone")
-            return -1
 
         if not parent_uid and not parent_path:
             log.error("Requires at least a parent uid or parent path ")
@@ -151,7 +147,7 @@ class Project(Subproject):
         if category_object == -1:
             log.error("Category %s does not exist" % category)
             return -1
-        base_scene = category_object.add_base_scene(name, dcc)
+        base_scene = category_object.add_base_scene(name)
         if not base_scene:
             return -1  # There is a base scene with same absolute path
         return base_scene
@@ -168,9 +164,9 @@ class Project(Subproject):
 
         """
         # TODO requires test
-        if not parent_uid and parent_path == None:
+        if not parent_uid and parent_path is None:
             raise Exception("Requires at least a parent uid or parent path ")
-        if parent_uid != None:
+        if parent_uid is not None:
             parent = self.find_sub_by_id(parent_uid)
         else:
             parent = self.find_sub_by_path(parent_path)

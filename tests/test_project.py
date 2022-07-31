@@ -278,35 +278,35 @@ class TestProject:
         self.tik.project.set(test_project_path)
 
         # missing path or uid
-        assert self.tik.project.create_basescene("test", "Rig", "Maya") == -1
+        assert self.tik.project.create_basescene("test", "Rig") == -1
 
         # create
-        basescene = self.tik.project.create_basescene("superman", category="Rig", dcc="Maya", parent_path="Assets/Characters/Soldier")
+        basescene = self.tik.project.create_basescene("superman", category="Rig", parent_path="Assets/Characters/Soldier")
         assert basescene.name == "superman"
         assert basescene.creator == "Admin"
         assert basescene.category == "Rig"
         assert basescene.reference_id is None
 
-        basescene = self.tik.project.create_basescene("superman", category="LookDev", dcc="Maya", parent_path="Assets/Characters/Soldier")
+        basescene = self.tik.project.create_basescene("superman", category="LookDev", parent_path="Assets/Characters/Soldier")
         assert basescene.name == "superman"
         assert basescene.creator == "Admin"
         assert basescene.category == "LookDev"
         assert basescene.reference_id is None
 
-        basescene = self.tik.project.create_basescene("superman", category="Model", dcc="Maya", parent_path="Assets/Characters/Soldier")
+        basescene = self.tik.project.create_basescene("superman", category="Model", parent_path="Assets/Characters/Soldier")
         assert basescene.name == "superman"
         assert basescene.creator == "Admin"
         assert basescene.category == "Model"
         assert basescene.reference_id is None
 
         # try to create a duplicate basescene
-        assert self.tik.project.create_basescene("superman", category="Model", dcc="Maya", parent_path="Assets/Characters/Soldier") == -1
+        assert self.tik.project.create_basescene("superman", category="Model", parent_path="Assets/Characters/Soldier") == -1
 
         #non existing category
-        assert self.tik.project.create_basescene("superman", category="Burhan", dcc="Maya", parent_path="Assets/Characters/Soldier") == -1
+        assert self.tik.project.create_basescene("superman", category="Burhan", parent_path="Assets/Characters/Soldier") == -1
 
         #standalone error
-        assert self.tik.project.create_basescene("superman", category="Rig", dcc="Standalone", parent_path="Assets/Characters/Soldier") == -1
+        assert self.tik.project.create_basescene("superman", category="Rig", parent_path="Assets/Characters/Soldier") == -1
 
         # read
         sub = self.tik.project.find_sub_by_path("Assets/Characters/Soldier")
@@ -320,5 +320,5 @@ class TestProject:
 
         # no permission
         self.tik.user.set("Generic")
-        assert self.tik.project.create_basescene("superman", category="Rig", dcc="Maya", parent_path="Assets/Characters/Soldier") == -1
+        assert self.tik.project.create_basescene("superman", category="Rig", parent_path="Assets/Characters/Soldier") == -1
 

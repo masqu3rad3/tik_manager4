@@ -258,7 +258,6 @@ class Subproject(Entity):
 
         return self.__build_category(name, None)
 
-
     def find_sub_by_id(self, uid):
         queue = list(self.subs.values())
         while queue:
@@ -269,7 +268,6 @@ class Subproject(Entity):
                 queue.extend(list(current.subs.values()))
         log.warning("Requested uid does not exist")
         return -1
-
 
     def find_sub_by_path(self, path):
         if path == "":  # this is root
@@ -310,7 +308,7 @@ class Subproject(Entity):
         return sub.path if sub != -1 else sub
 
     def _remove_sub_project(self, uid=None, path=None):
-        "Removes the sub project from the object but not from the database"
+        """Removes the sub project from the object but not from the database"""
 
         if not uid and not path:
             log.error("Deleting sub project requires at least an id or path ")
@@ -329,7 +327,7 @@ class Subproject(Entity):
             log.warning("Subproject cannot be found")
             return -1
 
-        path = kill_sub.path
+        # path = kill_sub.path
         parent_path = os.path.dirname(kill_sub.path) or ""
         parent_sub = self.find_sub_by_path(parent_path)
         del parent_sub.subs[kill_sub.name]

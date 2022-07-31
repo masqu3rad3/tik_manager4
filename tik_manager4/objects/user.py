@@ -1,5 +1,4 @@
 import hashlib
-import logging
 import os
 from tik_manager4.core import filelog
 from tik_manager4.core import utils
@@ -7,7 +6,6 @@ from tik_manager4.core.settings import Settings
 from tik_manager4.objects.commons import Commons
 from tik_manager4.objects.guard import Guard
 from tik_manager4.ui import feedback
-from tik_manager4 import dcc
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -197,7 +195,8 @@ class User(object):
     def change_permission_level(self, user_name, new_level, active_user_password=None):
         # first check the permissions of active user - changing permission levels requires level 3 permissions
         if self.permission_level < 3:
-            return -1, log.warning("User %s has no permission to change permission level of other users" % self._active_user)
+            msg = "User %s has no permission to change permission level of other users" % self._active_user
+            return -1, log.warning(msg)
             # Don't allow non-authenticated users to go further
         if active_user_password:
             self.authenticate(active_user_password)

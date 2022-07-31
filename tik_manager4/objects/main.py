@@ -3,13 +3,13 @@ import sys
 from tik_manager4.core import filelog, settings, utils
 from tik_manager4.objects import user, project
 from tik_manager4 import dcc
+from tik_manager4.ui.Qt import QtWidgets  # Only for browsing if the common folder is not defined
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
-from tik_manager4.ui.Qt import QtWidgets # Only for browsing if the common folder is not defined
-#
 if __name__ == '__main__' or dcc.NAME == "Standalone":
     app = QtWidgets.QApplication(sys.argv)
+
 
 class Main(object):
     user = user.User()
@@ -57,7 +57,6 @@ class Main(object):
         structure.set_data(structure_data)
         structure.apply_settings()
 
-
     def create_project(self, path, structure_template="empty", set_after_creation=True, **kwargs):
         """Creates a new project"""
 
@@ -102,15 +101,13 @@ class Main(object):
 
         # define a project object to validate data and create folders
         if set_after_creation:
-            project_obj = self.project # our main project
+            project_obj = self.project  # our main project
         else:
-            project_obj = project.Project() # this will be temporary
+            project_obj = project.Project()  # this will be temporary
 
         project_obj.set(path)
         project_obj.create_folders(project_obj.absolute_path)
         project_obj.create_folders(project_obj.database_path)
-        project_obj.save_structure() # This makes sure IDs are getting saved to the database file
+        project_obj.save_structure()  # This makes sure IDs are getting saved to the database file
         return 1
-
-    # def set_project(self):
 
