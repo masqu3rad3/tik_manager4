@@ -13,7 +13,7 @@ log = filelog.Filelog(logname=__name__, filename="tik_manager")
 class IO(dict):
     def __init__(self, file_name=None, folder_name=None, root_path=None, file_path=None):
         super(IO, self).__init__()
-        self.valid_extensions = [".json", ".tbs"]
+        self.valid_extensions = [".json", ".ttask", ".tver", ".tpub"]
         self.default_extension = ".json"
         if file_path:
             self.file_path = file_path

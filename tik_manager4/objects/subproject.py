@@ -195,17 +195,17 @@ class Subproject(Entity):
         self._categories.append(category)
         return category
 
-    def _check_permissions(self, level=2):
-        """Checks the user permissions for project related tasks. Default required level is 2"""
-
-        if self.permission_level < level:
-            log.warning("This user does not have permissions for this action")
-            return -1
-
-        if not self.is_authenticated:
-            log.warning("User is not authenticated")
-            return -1
-        return 1
+    # def _check_permissions(self, level=2):
+    #     """Checks the user permissions for project related tasks. Default required level is 2"""
+    #
+    #     if self.permission_level < level:
+    #         log.warning("This user does not have permissions for this action")
+    #         return -1
+    #
+    #     if not self.is_authenticated:
+    #         log.warning("User is not authenticated")
+    #         return -1
+    #     return 1
 
     def add_sub_project(self, name, resolution=None, fps=None, uid=None):
         """

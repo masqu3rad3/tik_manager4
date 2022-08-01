@@ -1,6 +1,9 @@
 import uuid
+import os
 from tik_manager4.objects.guard import Guard
+from tik_manager4.core import filelog
 
+log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class Entity(object):
     # _user = User()
@@ -46,3 +49,21 @@ class Entity(object):
     @property
     def is_authenticated(self):
         return self._guard.is_authenticated
+
+    def _check_permissions(self, level):
+        """Checks the user permissions for project actions."""
+
+        if self.permission_level < level:
+            log.warning("This user does not have permissions for this action")
+            return -1
+
+        if not self.is_authenticated:
+            log.warning("User is not authenticated")
+            return -1
+        return 1
+
+    def get_abs_database_path(self, *args):
+        return os.path.normpath(os.path.join(self._guard.database_root, self.path, *args))
+
+    def get_abs_project_path(self, *args):
+        return os.path.normpath(os.path.join(self._guard.project_root, self.path, *args))

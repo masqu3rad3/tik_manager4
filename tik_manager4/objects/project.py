@@ -138,9 +138,9 @@ class Project(Subproject):
         if not parent_uid and not parent_path:
             log.error("Requires at least a parent uid or parent path ")
             return -1
-        state = self._check_permissions(level=1)
-        if state != 1:
-            return -1
+        # state = self._check_permissions(level=1)
+        # if state != 1:
+        #     return -1
         parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
         # confirm category exists
         category_object = parent_sub.get_category(category)

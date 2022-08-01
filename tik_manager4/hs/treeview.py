@@ -223,7 +223,7 @@ class TikTreeView(QtWidgets.QTreeView):
         act_new_category = right_click_menu.addAction(self.tr("New Sub-Project"))
         # act_new_category.triggered.connect(partial(self.TreeItem_Add, level, mdlIdx))
         act_new_category = right_click_menu.addAction(self.tr("New Category"))
-        act_new_task = right_click_menu.addAction(self.tr("New Base Scene"))
+        act_new_task = right_click_menu.addAction(self.tr("New Task"))
         # if item.parent() != None:
         #     insert_up = right_click_menu.addAction(self.tr("Insert Item Above"))
         #     # insert_up.triggered.connect(partial(self.TreeItem_InsertUp, level, mdlIdx))

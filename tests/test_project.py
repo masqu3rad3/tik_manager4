@@ -273,7 +273,7 @@ class TestProject:
     #     print(soldier_sub.categories[0].path)
 
     @clean_user
-    def test_create_basescene(self):
+    def test_create_task(self):
         test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
         self.tik.project.set(test_project_path)
 
@@ -281,25 +281,25 @@ class TestProject:
         assert self.tik.project.create_task("test", "Rig") == -1
 
         # create
-        basescene = self.tik.project.create_task("superman", category="Rig", parent_path="Assets/Characters/Soldier")
-        assert basescene.name == "superman"
-        assert basescene.creator == "Admin"
-        assert basescene.category == "Rig"
-        assert basescene.reference_id is None
+        task = self.tik.project.create_task("superman", category="Rig", parent_path="Assets/Characters/Soldier")
+        assert task.name == "superman"
+        assert task.creator == "Admin"
+        assert task.category == "Rig"
+        assert task.reference_id is None
 
-        basescene = self.tik.project.create_task("superman", category="LookDev", parent_path="Assets/Characters/Soldier")
-        assert basescene.name == "superman"
-        assert basescene.creator == "Admin"
-        assert basescene.category == "LookDev"
-        assert basescene.reference_id is None
+        task = self.tik.project.create_task("superman", category="LookDev", parent_path="Assets/Characters/Soldier")
+        assert task.name == "superman"
+        assert task.creator == "Admin"
+        assert task.category == "LookDev"
+        assert task.reference_id is None
 
-        basescene = self.tik.project.create_task("superman", category="Model", parent_path="Assets/Characters/Soldier")
-        assert basescene.name == "superman"
-        assert basescene.creator == "Admin"
-        assert basescene.category == "Model"
-        assert basescene.reference_id is None
+        task = self.tik.project.create_task("superman", category="Model", parent_path="Assets/Characters/Soldier")
+        assert task.name == "superman"
+        assert task.creator == "Admin"
+        assert task.category == "Model"
+        assert task.reference_id is None
 
-        # try to create a duplicate basescene
+        # try to create a duplicate task
         assert self.tik.project.create_task("superman", category="Model", parent_path="Assets/Characters/Soldier") == -1
 
         #non existing category
@@ -317,8 +317,45 @@ class TestProject:
                 assert b.creator == "Admin"
                 assert b.category
                 assert b.reference_id is None
+        #
+        # additional_task = self.tik.project.create_task("wonderwoman", category="Model", parent_path="Assets/Characters/Soldier")
+        # additional_task = self.tik.project.create_task("batman", category="Model", parent_path="Assets/Characters/Soldier")
+        # additional_task = self.tik.project.create_task("flash", category="Model", parent_path="Assets/Characters/Soldier")
 
         # no permission
         self.tik.user.set("Generic")
         assert self.tik.project.create_task("superman", category="Rig", parent_path="Assets/Characters/Soldier") == -1
 
+    @clean_user
+    def test_scan_versions(self):
+        self.test_create_task()
+        self.tik.user.set("Admin", 1234)
+
+        # create some additional tasks
+        bizarro_task = self.tik.project.create_task("bizarro", category="Model", parent_path="Assets/Characters/Soldier")
+        ultraman_task = self.tik.project.create_task("ultraman", category="Model", parent_path="Assets/Characters/Soldier")
+        superboy_task = self.tik.project.create_task("superboy", category="Model", parent_path="Assets/Characters/Soldier")
+
+        # create a dummy directory
+        dummy_dir = os.path.join(bizarro_task.get_abs_database_path(), "Maya")
+        os.makedirs(dummy_dir)
+        # create a dummy version file
+        with open(os.path.join(dummy_dir, "bizarro.tver"), "w") as f:
+            f.write("test")
+        with open(os.path.join(dummy_dir, "ultraman.tver"), "w") as f:
+            f.write("test")
+
+        dummy_dir = os.path.join(bizarro_task.get_abs_database_path(), "Nuke")
+        os.makedirs(dummy_dir)
+        with open(os.path.join(dummy_dir, "bizarro.tver"), "w") as f:
+            f.write("test")
+        with open(os.path.join(dummy_dir, "ultraman.tver"), "w") as f:
+            f.write("test")
+
+        bizarro_task.scan_versions()
+
+        # sub = self.tik.project.find_sub_by_path("Assets/Characters/Soldier")
+
+
+
+        # print(sub.categories[0].name)
