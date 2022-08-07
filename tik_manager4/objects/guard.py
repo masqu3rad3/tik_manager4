@@ -1,4 +1,4 @@
-from tik_manager4 import dcc
+# from tik_manager4 import dcc
 
 
 class Guard(object):
@@ -15,7 +15,8 @@ class Guard(object):
 
     @property
     def dcc(self):
-        return self._dcc or dcc.NAME
+        # return self._dcc or dcc.NAME
+        return self._dcc
 
     @classmethod
     def set_user(cls, user):

@@ -1,10 +1,10 @@
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.entity import Entity
 
-class Version(Settings, Entity):
+class Work(Settings, Entity):
     def __init__(self, name=None,
                  path=None):
-        super(Version, self).__init__()
+        super(Work, self).__init__()
 
         self._relative_path = self.get_property("path") or path
         # self._note = note

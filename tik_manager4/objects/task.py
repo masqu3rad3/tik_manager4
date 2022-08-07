@@ -2,7 +2,7 @@ import os
 from glob import glob
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.entity import Entity
-
+from tik_manager4.dcc import Dcc
 
 class Task(Settings, Entity):
     def __init__(self, absolute_path,
@@ -17,21 +17,22 @@ class Task(Settings, Entity):
         self._creator = self.get_property("creator") or self._guard.user
         self._category = self.get_property("category") or category
         # self._dcc = self.get_property("dcc") or self._guard.dcc
-        self._versions = []
+        self._works = []
         self._publishes = []
         self._reference_id = self.get_property("referenceID") or None
         self._relative_path = self.get_property("path") or path
 
-    def scan_versions(self, all_dcc=False):
+
+    def scan_works(self, all_dcc=False):
         """
-        Scans the task for all versions.
+        Scan the task for all work objects.
         Args:
             all_dcc: (bool) If True, scans for all dcc versions
 
         Returns:
 
         """
-        self._versions.clear()
+        self._works.clear()
 
         # override the all_dcc flag if its standalone
         if self._guard.dcc == "Standalone":
@@ -39,16 +40,16 @@ class Task(Settings, Entity):
 
         if not all_dcc:
             _search_dir = self.get_abs_database_path(self._guard.dcc)  # this is DCC specific directory
-            _version_paths = glob(os.path.join(_search_dir, '{0}.tver'.format(self.name)))
+            _work_paths = glob(os.path.join(_search_dir, '{0}.twork'.format(self.name)))
         else:
             _search_dir = self.get_abs_database_path()
-            _version_paths = [y for x in os.walk(_search_dir) for y in glob(os.path.join(x[0], '{0}.tver'.format(self.name)))]
+            _work_paths = [y for x in os.walk(_search_dir) for y in glob(os.path.join(x[0], '{0}.twork'.format(self.name)))]
         print(_search_dir)
         print("***")
         print("***")
         print("***")
         print("***")
-        print(_version_paths)
+        print(_work_paths)
         print("***")
         print("***")
         print("***")
@@ -97,11 +98,11 @@ class Task(Settings, Entity):
 
     @property
     def versions(self):
-        return self._versions
+        return self._works
 
     @versions.setter
     def versions(self, val):
-        self._versions = val
+        self._works = val
         self.add_property("versions", val)
 
     @property

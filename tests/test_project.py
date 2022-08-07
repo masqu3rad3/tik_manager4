@@ -1,8 +1,8 @@
 """Tests for Project related functions"""
-import pytest
 import os
-from pprint import pprint
 import shutil
+from pprint import pprint
+import pytest
 # import uuid
 from .mockup import Mockup, clean_user
 from tik_manager4.objects import user
@@ -18,8 +18,11 @@ class TestProject:
     mock = Mockup()
     mock.prepare()
     user.User(common_directory=mock.common)  # this is for not popping up the "missing common folder" message
-    from tik_manager4.objects.main import Main  # importing main checks the common folder definition, thats why its here
-    tik = Main()
+    # from tik_manager4.objects.main import Main  # importing main checks the common folder definition, thats why its here
+    # from tik_manager4.objects.main import Main  # importing main checks the common folder definition, thats why its here
+    import tik_manager4 # importing main checks the common folder definition, thats why its here
+    # tik = Main()
+    tik = tik_manager4.initialize("Standalone")
 
     @clean_user
     def test_default_project_paths(self):
@@ -340,19 +343,19 @@ class TestProject:
         dummy_dir = os.path.join(bizarro_task.get_abs_database_path(), "Maya")
         os.makedirs(dummy_dir)
         # create a dummy version file
-        with open(os.path.join(dummy_dir, "bizarro.tver"), "w") as f:
+        with open(os.path.join(dummy_dir, "bizarro.twork"), "w") as f:
             f.write("test")
-        with open(os.path.join(dummy_dir, "ultraman.tver"), "w") as f:
+        with open(os.path.join(dummy_dir, "ultraman.twork"), "w") as f:
             f.write("test")
 
         dummy_dir = os.path.join(bizarro_task.get_abs_database_path(), "Nuke")
         os.makedirs(dummy_dir)
-        with open(os.path.join(dummy_dir, "bizarro.tver"), "w") as f:
+        with open(os.path.join(dummy_dir, "bizarro.twork"), "w") as f:
             f.write("test")
-        with open(os.path.join(dummy_dir, "ultraman.tver"), "w") as f:
+        with open(os.path.join(dummy_dir, "ultraman.twork"), "w") as f:
             f.write("test")
 
-        bizarro_task.scan_versions()
+        bizarro_task.scan_works()
 
         # sub = self.tik.project.find_sub_by_path("Assets/Characters/Soldier")
 

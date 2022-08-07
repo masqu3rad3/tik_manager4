@@ -7,9 +7,10 @@ from tik_manager4.ui.Qt import QtWidgets  # Only for browsing if the common fold
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
-if __name__ == '__main__' or dcc.NAME == "Standalone":
+# if __name__ == '__main__' or dcc.NAME == "Standalone":
+#     app = QtWidgets.QApplication(sys.argv)
+if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-
 
 class Main(object):
     user = user.User()
@@ -20,6 +21,9 @@ class Main(object):
     def __init__(self):
         # set either the latest project or the default one
         # always make sure the default project exists, in case of urgent fall back
+
+
+        # self._set_dcc(self._dcc)
         default_project = os.path.join(utils.get_home_dir(), "TM4_default")
         if not os.path.exists(os.path.join(default_project, "tikDatabase", "project_structure.json")):
             self._create_default_project()

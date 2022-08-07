@@ -223,4 +223,9 @@ class DccTemplate(object):
         """Returns the normalized path"""
         return os.path.normpath(file_path)
 
+    @staticmethod
+    def test():
+        """Test function"""
+        print("TESTING")
+
     # TODO: validation methods for checking the existence and read/write permmisions
