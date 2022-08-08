@@ -1,6 +1,6 @@
 import os
-import maya.cmds as cmds
-import maya.mel as mel
+import core.cmds as cmds
+import core.mel as mel
 
 from tik_manager4.dcc.template import DccTemplate
 

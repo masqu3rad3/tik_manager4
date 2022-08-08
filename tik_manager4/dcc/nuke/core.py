@@ -1,4 +1,4 @@
-import nuke
+import core
 
 from tik_manager4.dcc.template import DccTemplate
 

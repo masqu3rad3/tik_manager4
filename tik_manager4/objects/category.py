@@ -46,7 +46,7 @@ class Category(Entity):
         # _task.add_property("dcc", dcc)
         # _task.add_property("versions", [])
         # _task.add_property("publishes", [])
-        _task.add_property("referenceID", None)
+        _task.add_property("task_id", _task.id)
         _task.add_property("path", self.path)
         _task.apply_settings()
         return _task

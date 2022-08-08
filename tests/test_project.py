@@ -288,19 +288,19 @@ class TestProject:
         assert task.name == "superman"
         assert task.creator == "Admin"
         assert task.category == "Rig"
-        assert task.reference_id is None
+
 
         task = self.tik.project.create_task("superman", category="LookDev", parent_path="Assets/Characters/Soldier")
         assert task.name == "superman"
         assert task.creator == "Admin"
         assert task.category == "LookDev"
-        assert task.reference_id is None
+
 
         task = self.tik.project.create_task("superman", category="Model", parent_path="Assets/Characters/Soldier")
         assert task.name == "superman"
         assert task.creator == "Admin"
         assert task.category == "Model"
-        assert task.reference_id is None
+
 
         # try to create a duplicate task
         assert self.tik.project.create_task("superman", category="Model", parent_path="Assets/Characters/Soldier") == -1
@@ -319,7 +319,7 @@ class TestProject:
                 assert b.name == "superman"
                 assert b.creator == "Admin"
                 assert b.category
-                assert b.reference_id is None
+
         #
         # additional_task = self.tik.project.create_task("wonderwoman", category="Model", parent_path="Assets/Characters/Soldier")
         # additional_task = self.tik.project.create_task("batman", category="Model", parent_path="Assets/Characters/Soldier")
