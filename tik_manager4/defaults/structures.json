@@ -4,6 +4,7 @@
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
+    "mode": null,
     "categories": [],
     "subs": []
   },
@@ -12,6 +13,7 @@
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
+    "mode": null,
     "categories": [
       {"name": "Model"},
       {"name": "Shading"},
@@ -27,6 +29,7 @@
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
+    "mode": "asset",
     "categories": [],
     "subs": [
       {
@@ -83,6 +86,7 @@
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
+    "mode": "asset",
     "categories": [],
     "subs": [
       {
@@ -135,6 +139,7 @@
       {
         "name": "Shots",
         "path": "Shots",
+        "mode": "shot",
         "categories": [],
         "subs": []
       }
@@ -145,6 +150,7 @@
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
+    "mode": "asset",
     "categories": [],
     "subs": [
       {
@@ -197,6 +203,7 @@
       {
         "name": "Sequence",
         "path": "Sequence",
+        "mode": "sequence",
         "categories": [],
         "subs": []
       }

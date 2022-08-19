@@ -90,6 +90,7 @@ class Main(object):
                               "path": "",
                               "resolution": [1920, 1080],
                               "fps": 25,
+                              "mode": "root",
                               "categories": [],
                               "subs": []
                             }

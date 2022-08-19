@@ -26,7 +26,8 @@ class Project(Subproject):
 
         # Absolute path do not go into the project_structure.json
         self._absolute_path = ""
-        self.type = "project"
+        self._mode = "root"
+
 
     @property
     def absolute_path(self):
@@ -82,7 +83,7 @@ class Project(Subproject):
         self._delete_folders(os.path.join(self._database_path, _remove_path))
         return 1
 
-    def create_sub_project(self, name, parent_uid=None, parent_path=None, resolution=None, fps=None):
+    def create_sub_project(self, name, parent_uid=None, parent_path=None, resolution=None, fps=None, mode=None):
         """
              Similar to add_sub_project method but creates it under specified parent sub and writes data to
         persistent database
@@ -100,7 +101,7 @@ class Project(Subproject):
         """
         parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
 
-        new_sub = parent_sub.add_sub_project(name, resolution=resolution, fps=fps, uid=None)
+        new_sub = parent_sub.add_sub_project(name, resolution=resolution, fps=fps, mode=mode, uid=None)
         if new_sub == -1:
             return -1
         self.save_structure()

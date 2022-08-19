@@ -1,3 +1,6 @@
+# pylint: disable=consider-using-f-string
+# pylint: disable=super-with-arguments
+
 import os
 import shutil
 
@@ -6,23 +9,36 @@ from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.category import Category
 
-# from tik_manager4.objects.guard import Guard
-
-
-log = filelog.Filelog(logname=__name__, filename="tik_manager4")
+LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Subproject(Entity):
-    # _guard = Guard()
-    def __init__(self, resolution=None, fps=None, *args, **kwargs):
+    def __init__(self, resolution=None, fps=None, mode=None, shot_data=None, **kwargs):
 
         self.__fps = fps
         self.__resolution = resolution
-        super(Subproject, self).__init__(*args, **kwargs)
+        self.__mode = mode
+        super(Subproject, self).__init__(**kwargs)
+        self.__shot_data = shot_data
 
         self._sub_projects = {}
         self._categories = []
-        self.type = "subproject"
+
+    @property
+    def mode(self):
+        return self.__mode
+
+    @mode.setter
+    def mode(self, value):
+        self.__mode = value
+
+    @property
+    def shot_data(self):
+        return self.__shot_data
+
+    @shot_data.setter
+    def shot_data(self, value):
+        self.__shot_data = value
 
     @property
     def subs(self):
@@ -36,45 +52,29 @@ class Subproject(Entity):
     def resolution(self):
         return self.__resolution
 
-    # @resolution.setter
-    # def resolution(self, val):
-    #     state, msg = self._check_permissions(level=2)
-    #     if state != 1:
-    #         return -1, msg
-    #     if type(val) == tuple or list:
-    #         self.__resolution = val
-    #     else:
-    #         raise Exception("%s is not a valid resolution. must be list or tuple." % val)
-
     @property
     def fps(self):
         return self.__fps
-
-    # @fps.setter
-    # def fps(self, val):
-    #     self._fps = val
 
     def set_resolution(self, val):
         state = self._check_permissions(level=2)
         if state != 1:
             return -1
-        if type(val) == tuple or type(val) == list:
+        if isinstance(val, (list, tuple)):
             self.__resolution = val
             return 1
-        else:
-            msg = "%s is not a valid resolution. must be list or tuple." % val
-            log.error(msg, proceed=False)
+        msg = "%s is not a valid resolution. must be list or tuple." % val
+        LOG.error(msg, proceed=False)
 
     def set_fps(self, val):
         state = self._check_permissions(level=2)
         if state != 1:
             return -1
-        if type(val) == int or type(val) == float:
+        if isinstance(val, (int, float)):
             self.__fps = val
             return 1
-        else:
-            msg = "%s is not a valid fps value. must be int or float." % val
-            log.error(msg, proceed=False)
+        msg = "%s is not a valid fps value. must be int or float." % val
+        LOG.error(msg, proceed=False)
 
     def get_sub_tree(self):
         visited = []
@@ -87,6 +87,8 @@ class Subproject(Entity):
             "path": self.path,
             "resolution": self.resolution,
             "fps": self.fps,
+            "mode": self.mode,
+            "shot_data": self.shot_data,
             "categories": [category.name for category in self.categories],
             "subs": [],  # this will be filled with the while loop
         }
@@ -103,11 +105,11 @@ class Subproject(Entity):
 
             for neighbour in list(sub.subs.values()):
                 if neighbour not in visited:
-                    # print(neighbour.path)
                     sub_data = {
                         "id": neighbour.id,
                         "name": neighbour.name,
                         "path": neighbour.path,
+                        # "mode": neighbour.mode,
                         # "resolution": neighbour.resolution,
                         # "fps": neighbour.fps,
                         # "categories": list(neighbour.categories.keys()),
@@ -119,9 +121,12 @@ class Subproject(Entity):
                         sub_data["resolution"] = neighbour.resolution
                     if neighbour.fps != self.fps:
                         sub_data["fps"] = neighbour.fps
+                    if neighbour.mode != self.mode:
+                        sub_data["mode"] = neighbour.mode
+                    if neighbour.shot_data != self.shot_data:
+                        sub_data["shot_data"] = neighbour.shot_data
                     parent["subs"].append(sub_data)
 
-                    # visited.append([sub_data, neighbour])
                     visited.append(neighbour)
                     queue.append([sub_data, neighbour])
 
@@ -140,6 +145,8 @@ class Subproject(Entity):
         self._relative_path = data.get("path", None)
         self.__resolution = data.get("resolution", None)
         self.__fps = data.get("fps", None)
+        self.__mode = data.get("mode", None)
+        self.__shot_data = data.get("shot_data", None)
         _ = [self.__build_category(x) for x in data.get("categories", [])]
 
         # append the subproject object and pointer for json as a queue element
@@ -157,8 +164,10 @@ class Subproject(Entity):
                     _relative_path = neighbour.get("path", None)
                     _resolution = neighbour.get("resolution", self.resolution)
                     _fps = neighbour.get("fps", self.fps)
+                    _mode = neighbour.get("mode", self.mode)
+                    _shot_data = neighbour.get("shot_data", self.shot_data)
                     _categories = neighbour.get("categories", [])
-                    sub_project = sub.__build_sub_project(_name, _resolution, _fps, _id)
+                    sub_project = sub.__build_sub_project(_name, _resolution, _fps, _mode, _shot_data, _id)
                     # define the path and categories separately
                     # TODO Categories and path can be overrides for Subproject class
                     sub_project._relative_path = _relative_path
@@ -168,23 +177,13 @@ class Subproject(Entity):
                     visited.append(neighbour)
                     queue.append([sub_project, neighbour.get("subs", [])])
 
-    def __build_sub_project(self, name, resolution, fps, uid):
+    def __build_sub_project(self, name, resolution, fps, mode, shot_data, uid):
         """Builds the sub-project inside class."""
 
-        sub_pr = Subproject(name=name, resolution=resolution, fps=fps, uid=uid)
+        sub_pr = Subproject(name=name, resolution=resolution, fps=fps, mode=mode, shot_data=shot_data, uid=uid)
         sub_pr.path = os.path.join(self.path, name)
-        # sub_pr.path = "%s/%s" % (self.path, name)
         self._sub_projects[name] = sub_pr
         return sub_pr
-
-    # def __build_category(self, name):
-    #     """Creates a new category (step) underneath"""
-    #
-    #     category = Category(name=name)
-    #     category.path = os.path.join(self.path, name)
-    #     # category.path = "%s/%s" % (self.path, name)
-    #     self._categories.append(category)
-    #     return category
 
     def __build_category(self, name, uid):
         """Creates a new category (step) underneath"""
@@ -195,19 +194,7 @@ class Subproject(Entity):
         self._categories.append(category)
         return category
 
-    # def _check_permissions(self, level=2):
-    #     """Checks the user permissions for project related tasks. Default required level is 2"""
-    #
-    #     if self.permission_level < level:
-    #         log.warning("This user does not have permissions for this action")
-    #         return -1
-    #
-    #     if not self.is_authenticated:
-    #         log.warning("User is not authenticated")
-    #         return -1
-    #     return 1
-
-    def add_sub_project(self, name, resolution=None, fps=None, uid=None):
+    def add_sub_project(self, name, resolution=None, fps=None, mode=None, shot_data=None, uid=None):
         """
         Adds a sub project. requires permissions. Does not create folders or store in the persistent database
 
@@ -217,16 +204,17 @@ class Subproject(Entity):
         if state != 1:
             return -1
 
-        if name in self._sub_projects.keys():
-            log.warning("{0} already exist in sub-projects of {1}".format(name, self._name))
+        if name in self._sub_projects:
+            LOG.warning("{0} already exist in sub-projects of {1}".format(name, self._name))
             return -1
             # return 0
 
         # inherit the resolution and fps if not overriden
         resolution = resolution or self.resolution
         fps = fps or self.fps
+        mode = mode or self.mode
 
-        return self.__build_sub_project(name, resolution, fps, uid)
+        return self.__build_sub_project(name, resolution, fps, mode, shot_data, uid)  # keep uid at the end
 
         # # TODO Currently the overriden uid is not getting checked if it is really unique or not
         # sub_pr = Subproject(name=name, resolution=resolution, fps=fps, uid=uid)
@@ -240,7 +228,7 @@ class Subproject(Entity):
         for c in self.categories:
             if c.name == category_name:
                 return c
-        log.warning("{0} does not exist in categories of {1}".format(category_name, self.name))
+        LOG.warning("{0} does not exist in categories of {1}".format(category_name, self.name))
         return -1
 
     def add_category(self, name):
@@ -253,7 +241,7 @@ class Subproject(Entity):
             return -1
 
         if name in [category.name for category in self.categories]:
-            log.warning("{0} already exists in categories of {1}".format(name, self._name))
+            LOG.warning("{0} already exists in categories of {1}".format(name, self._name))
             return -1
 
         return self.__build_category(name, None)
@@ -266,7 +254,7 @@ class Subproject(Entity):
                 return current
             else:
                 queue.extend(list(current.subs.values()))
-        log.warning("Requested uid does not exist")
+        LOG.warning("Requested uid does not exist")
         return -1
 
     def find_sub_by_path(self, path):
@@ -279,7 +267,7 @@ class Subproject(Entity):
                 return current
             else:
                 queue.extend(list(current.subs.values()))
-        log.warning("Requested path does not exist")
+        LOG.warning("Requested path does not exist")
         return -1
 
     def find_subs_by_wildcard(self, wildcard):
@@ -288,15 +276,10 @@ class Subproject(Entity):
         visited = []
         while queue:
             current = queue.pop(0)
-            # print(current.name)
             if fnmatch(current.name, wildcard):
-                # yield current
                 subs.append(current)
             if current not in visited:
                 queue.extend(list(current.subs.values()))
-            # else:
-            #     print("DEBUGGGG")
-            #     visited.append(current)
         return subs
 
     def get_uid_by_path(self, path):
@@ -311,7 +294,7 @@ class Subproject(Entity):
         """Removes the sub project from the object but not from the database"""
 
         if not uid and not path:
-            log.error("Deleting sub project requires at least an id or path ")
+            LOG.error("Deleting sub project requires at least an id or path ")
             return -1
 
         state = self._check_permissions(level=2)
@@ -324,18 +307,12 @@ class Subproject(Entity):
             kill_sub = self.find_sub_by_path(path)
 
         if kill_sub == -1:
-            log.warning("Subproject cannot be found")
+            LOG.warning("Subproject cannot be found")
             return -1
-
-        # path = kill_sub.path
         parent_path = os.path.dirname(kill_sub.path) or ""
         parent_sub = self.find_sub_by_path(parent_path)
         del parent_sub.subs[kill_sub.name]
 
-        # # blast database folders
-        # shutil.rmtree()
-
-        # log.warning("delete_sub_project is wip")
         return 1
 
     def _delete_folders(self, root, sub=None):
@@ -355,4 +332,3 @@ class Subproject(Entity):
             if not os.path.exists(_f):
                 os.makedirs(_f)
         _ = [sub.create_folders(root, sub=sub) for sub in sub.subs.values()]
-
