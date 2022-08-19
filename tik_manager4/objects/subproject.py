@@ -13,16 +13,20 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Subproject(Entity):
-    def __init__(self, resolution=None, fps=None, mode=None, shot_data=None, **kwargs):
+    def __init__(self, parent_sub=None, resolution=None, fps=None, mode=None, shot_data=None, **kwargs):
 
         self.__fps = fps
         self.__resolution = resolution
         self.__mode = mode
         super(Subproject, self).__init__(**kwargs)
         self.__shot_data = shot_data
-
+        self.__parent_sub = parent_sub
         self._sub_projects = {}
         self._categories = []
+
+    @property
+    def parent(self):
+        return self.__parent_sub
 
     @property
     def mode(self):
@@ -167,7 +171,7 @@ class Subproject(Entity):
                     _mode = neighbour.get("mode", self.mode)
                     _shot_data = neighbour.get("shot_data", self.shot_data)
                     _categories = neighbour.get("categories", [])
-                    sub_project = sub.__build_sub_project(_name, _resolution, _fps, _mode, _shot_data, _id)
+                    sub_project = sub.__build_sub_project(_name, neighbour, _resolution, _fps, _mode, _shot_data, _id)
                     # define the path and categories separately
                     # TODO Categories and path can be overrides for Subproject class
                     sub_project._relative_path = _relative_path
@@ -177,10 +181,10 @@ class Subproject(Entity):
                     visited.append(neighbour)
                     queue.append([sub_project, neighbour.get("subs", [])])
 
-    def __build_sub_project(self, name, resolution, fps, mode, shot_data, uid):
+    def __build_sub_project(self, name, parent_sub, resolution, fps, mode, shot_data, uid):
         """Builds the sub-project inside class."""
 
-        sub_pr = Subproject(name=name, resolution=resolution, fps=fps, mode=mode, shot_data=shot_data, uid=uid)
+        sub_pr = Subproject(name=name, parent_sub=parent_sub, resolution=resolution, fps=fps, mode=mode, shot_data=shot_data, uid=uid)
         sub_pr.path = os.path.join(self.path, name)
         self._sub_projects[name] = sub_pr
         return sub_pr
@@ -194,7 +198,7 @@ class Subproject(Entity):
         self._categories.append(category)
         return category
 
-    def add_sub_project(self, name, resolution=None, fps=None, mode=None, shot_data=None, uid=None):
+    def add_sub_project(self, name, parent_sub=None, resolution=None, fps=None, mode=None, shot_data=None, uid=None):
         """
         Adds a sub project. requires permissions. Does not create folders or store in the persistent database
 
@@ -214,7 +218,7 @@ class Subproject(Entity):
         fps = fps or self.fps
         mode = mode or self.mode
 
-        return self.__build_sub_project(name, resolution, fps, mode, shot_data, uid)  # keep uid at the end
+        return self.__build_sub_project(name, parent_sub, resolution, fps, mode, shot_data, uid)  # keep uid at the end
 
         # # TODO Currently the overriden uid is not getting checked if it is really unique or not
         # sub_pr = Subproject(name=name, resolution=resolution, fps=fps, uid=uid)

@@ -95,12 +95,14 @@ class TestProject:
 
         self.tik.user.set("Admin", "1234")
         new_sub = self.tik.project.create_sub_project("testSub", parent_path="")
-        print(new_sub)
         assert new_sub.path == "testSub"
-        print(self.tik.project.absolute_path)
 
         another_sub = self.tik.project.create_sub_project("anotherSub", parent_uid=new_sub.id)
         assert another_sub.path == "testSub/anotherSub"
+
+        # test the parent.name and parent.id
+        assert another_sub.parent.name == "testSub"
+        assert another_sub.parent.id == new_sub.id
 
         # try creating an existing one
         assert self.tik.project.create_sub_project("anotherSub", parent_uid=new_sub.id) == -1

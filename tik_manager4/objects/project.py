@@ -101,7 +101,7 @@ class Project(Subproject):
         """
         parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
 
-        new_sub = parent_sub.add_sub_project(name, resolution=resolution, fps=fps, mode=mode, uid=None)
+        new_sub = parent_sub.add_sub_project(name, parent_sub=parent_sub, resolution=resolution, fps=fps, mode=mode, uid=None)
         if new_sub == -1:
             return -1
         self.save_structure()
