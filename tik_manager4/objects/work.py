@@ -1,7 +1,6 @@
 import socket
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.entity import Entity
-from tik_manager4.dcc import Dcc
 
 class Work(Settings, Entity):
     def __init__(self, absolute_path,

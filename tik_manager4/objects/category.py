@@ -1,5 +1,9 @@
+# pylint: disable=consider-using-f-string
+# pylint: disable=super-with-arguments
+
 import os
 from glob import glob
+
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.task import Task
 from tik_manager4.core import filelog
@@ -8,8 +12,8 @@ log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Category(Entity):
-    def __init__(self, name="", *args, **kwargs):
-        super(Category, self).__init__(*args, **kwargs)
+    def __init__(self, name="", **kwargs):
+        super(Category, self).__init__(**kwargs)
 
         self._name = name
         self._tasks = []

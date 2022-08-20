@@ -14,11 +14,10 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class Subproject(Entity):
     def __init__(self, parent_sub=None, resolution=None, fps=None, mode=None, shot_data=None, **kwargs):
-
+        super(Subproject, self).__init__(**kwargs)
         self.__fps = fps
         self.__resolution = resolution
         self.__mode = mode
-        super(Subproject, self).__init__(**kwargs)
         self.__shot_data = shot_data
         self.__parent_sub = parent_sub
         self._sub_projects = {}
