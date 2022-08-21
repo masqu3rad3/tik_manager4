@@ -1,11 +1,13 @@
 {
+  "asset_categories": ["Model", "Rig", "Lookdev"],
+  "shot_categories": ["Layout", "Animation", "FX", "Lighting", "Compositing"],
+  "null_categories": ["Model", "Shading", "Rig", "Animation", "Lighting", "Comp"],
   "empty": {
     "name": "Empty Project",
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
     "mode": null,
-    "categories": [],
     "subs": []
   },
   "simple": {
@@ -14,14 +16,6 @@
     "resolution": [1920, 1080],
     "fps": 25,
     "mode": null,
-    "categories": [
-      {"name": "Model"},
-      {"name": "Shading"},
-      {"name": "Rig"},
-      {"name": "Animation"},
-      {"name": "Lighting"},
-      {"name": "Comp"}
-      ],
     "subs": []
   },
   "asset_only": {
@@ -30,51 +24,30 @@
     "resolution": [1920, 1080],
     "fps": 25,
     "mode": "asset",
-    "categories": [],
     "subs": [
       {
         "name": "Assets",
         "path": "Assets",
-        "categories": [],
+
         "subs": [
           {
             "name": "Characters",
             "path": "Assets/Characters",
-            "categories": [
-              {"name": "Model"},
-              {"name": "Rig"},
-              {"name": "LookDev"}
-              ],
             "subs": []
           },
           {
             "name": "Props",
             "path": "Assets/Props",
-            "categories": [
-              {"name": "Model"},
-              {"name": "Rig"},
-              {"name": "LookDev"}
-              ],
             "subs": []
           },
           {
             "name": "Environment",
             "path": "Assets/Environment",
-            "categories": [
-              {"name": "Model"},
-              {"name": "Rig"},
-              {"name": "LookDev"}
-              ],
             "subs": []
           },
           {
             "name": "Vehicles",
             "path": "Assets/Vehicles",
-            "categories": [
-              {"name": "Model"},
-              {"name": "Rig"},
-              {"name": "LookDev"}
-              ],
             "subs": []
           }
         ]
@@ -87,51 +60,29 @@
     "resolution": [1920, 1080],
     "fps": 25,
     "mode": "asset",
-    "categories": [],
     "subs": [
       {
         "name": "Assets",
         "path": "Assets",
-        "categories": [],
         "subs": [
           {
             "name": "Characters",
             "path": "Assets/Characters",
-            "categories": [
-              {"name": "Model"},
-              {"name": "Rig"},
-              {"name": "LookDev"}
-              ],
             "subs": []
           },
           {
             "name": "Props",
             "path": "Assets/Props",
-            "categories": [
-              {"name": "Model"},
-              {"name": "Rig"},
-              {"name": "LookDev"}
-              ],
             "subs": []
           },
           {
             "name": "Environment",
             "path": "Assets/Environment",
-            "categories": [
-              {"name": "Model"},
-              {"name": "Rig"},
-              {"name": "LookDev"}
-              ],
             "subs": []
           },
           {
             "name": "Vehicles",
             "path": "Assets/Vehicles",
-            "categories": [
-              {"name": "Model"},
-              {"name": "Rig"},
-              {"name": "LookDev"}
-              ],
             "subs": []
           }
         ]
@@ -140,7 +91,6 @@
         "name": "Shots",
         "path": "Shots",
         "mode": "shot",
-        "categories": [],
         "subs": []
       }
     ]
@@ -151,51 +101,29 @@
     "resolution": [1920, 1080],
     "fps": 25,
     "mode": "asset",
-    "categories": [],
     "subs": [
       {
         "name": "Assets",
         "path": "Assets",
-        "categories": [],
         "subs": [
           {
             "name": "Characters",
             "path": "Assets/Characters",
-            "categories": [
-              {"name": "Model"},
-              {"name": "Rig"},
-              {"name": "LookDev"}
-              ],
             "subs": []
           },
           {
             "name": "Props",
             "path": "Assets/Props",
-            "categories": [
-              {"name": "Model"},
-              {"name": "Rig"},
-              {"name": "LookDev"}
-              ],
             "subs": []
           },
           {
             "name": "Environment",
             "path": "Assets/Environment",
-            "categories": [
-              {"name": "Model"},
-              {"name": "Rig"},
-              {"name": "LookDev"}
-              ],
             "subs": []
           },
           {
             "name": "Vehicles",
             "path": "Assets/Vehicles",
-            "categories": [
-              {"name": "Model"},
-              {"name": "Rig"},
-              {"name": "LookDev"}
-              ],
             "subs": []
           }
         ]
@@ -204,7 +132,6 @@
         "name": "Sequence",
         "path": "Sequence",
         "mode": "sequence",
-        "categories": [],
         "subs": []
       }
     ]

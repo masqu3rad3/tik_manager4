@@ -117,23 +117,23 @@ class TestProject:
         # try creating a sub-project without a parent path or parent id
         pytest.raises(Exception, self.tik.project.create_sub_project, "wrongSub")
 
-    @clean_user
-    def test_create_category(self):
-        test_project_path = self.test_create_new_project()
-        self.tik.project.set(test_project_path)
-
-        # no permission test
-        self.tik.user.set("Generic")
-        assert self.tik.project.create_category("testCategory", parent_path="Assets") == -1
-        assert self.tik.project.subs["Assets"].add_category("testCategory") == -1
-
-        self.tik.user.set("Admin", "1234")
-        new_category = self.tik.project.create_category("testCategory", parent_path="Assets")
-        assert new_category.path == "Assets/testCategory"
-
-        # try creating an existing one
-        assert self.tik.project.create_category("testCategory", parent_path="Assets") == -1
-        assert log.last_warning == "testCategory already exists in categories of Assets"
+    # @clean_user
+    # def test_create_category(self):
+    #     test_project_path = self.test_create_new_project()
+    #     self.tik.project.set(test_project_path)
+    #
+    #     # no permission test
+    #     self.tik.user.set("Generic")
+    #     assert self.tik.project.create_category("testCategory", parent_path="Assets") == -1
+    #     assert self.tik.project.subs["Assets"].add_category("testCategory") == -1
+    #
+    #     self.tik.user.set("Admin", "1234")
+    #     new_category = self.tik.project.create_category("testCategory", parent_path="Assets")
+    #     assert new_category.path == "Assets/testCategory"
+    #
+    #     # try creating an existing one
+    #     assert self.tik.project.create_category("testCategory", parent_path="Assets") == -1
+    #     assert log.last_warning == "testCategory already exists in categories of Assets"
 
     @clean_user
     def test_create_a_shot_asset_project_structure(self, print_results=True):
@@ -148,8 +148,8 @@ class TestProject:
         self.tik.create_project(test_project_path, structure_template="empty")
         self.tik.project.set(test_project_path)
 
-        asset_categories = ["Model", "LookDev", "Rig"]
-        shot_categories = ["Layout", "Animation", "Lighting", "Render"]
+        # asset_categories = ["Model", "LookDev", "Rig"]
+        # shot_categories = ["Layout", "Animation", "Lighting", "Render"]
 
         assets = self.tik.project.add_sub_project("Assets", )
         chars = assets.add_sub_project("Characters", fps=60, mode="asset")
@@ -167,9 +167,9 @@ class TestProject:
                        env.add_sub_project("GroundD"),
                        ]
 
-        for leaf in leaf_assets:
-            for category in asset_categories:
-                leaf.add_category(category)
+        # for leaf in leaf_assets:
+        #     for category in asset_categories:
+        #         leaf.add_category(category)
 
         shots = self.tik.project.add_sub_project("Shots")
         sequence_a = shots.add_sub_project("SequenceA", mode="sequence")
@@ -181,9 +181,9 @@ class TestProject:
         leaf_shots.append(sequence_b.add_sub_project("SHOT_070", mode="shot"))
         leaf_shots.append(sequence_b.add_sub_project("SHOT_120", mode="shot"))
 
-        for leaf in leaf_shots:
-            for category in shot_categories:
-                leaf.add_category(category)
+        # for leaf in leaf_shots:
+        #     for category in shot_categories:
+        #         leaf.add_category(category)
 
         # print("\n")
 
@@ -278,7 +278,51 @@ class TestProject:
     #     print(soldier_sub.categories[0].path)
 
     @clean_user
-    def test_create_task(self):
+    def test_creating_and_adding_new_tasks(self):
+        test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
+        self.tik.project.set(test_project_path)
+
+        # create a task from the main project
+        task = self.tik.project.create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier")
+        assert task.name == "superman"
+        assert task.creator == "Admin"
+        assert task.categories == ["Model", "Rig", "Lookdev"]
+        assert task.type == "asset"
+
+        # create a task directly from a sub-project
+        task = self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].add_task("batman", categories=["Model", "Rig", "Lookdev"], task_type="Asset")
+
+        # try to create a duplicate task
+        assert self.tik.project.create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
+
+        # no permission
+        self.tik.user.set("Generic")
+        assert self.tik.project.create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
+
+    @clean_user
+    def test_scanning_categories_for_works_and_publishes(self):
+        self.test_creating_and_adding_new_tasks()
+        self.tik.user.set("Admin", 1234)
+
+        #create some addigional tasks
+        asset_categories = ["Model", "Rig", "Lookdev"]
+
+        bizarro_task = self.tik.project.create_task("bizarro", categories=asset_categories, parent_path="Assets/Characters/Soldier")
+        ultraman_task = self.tik.project.create_task("ultraman", categories=asset_categories, parent_path="Assets/Characters/Soldier")
+        superboy_task = self.tik.project.create_task("superboy", categories=asset_categories, parent_path="Assets/Characters/Soldier")
+
+        # create a dummy directory
+        dummy_dir = os.path.join(bizarro_task.get_abs_database_path("Model", "Maya", "work"))
+        os.makedirs(dummy_dir)
+        # create a dummy version file
+        with open(os.path.join(dummy_dir, "bizarro.twork"), "w") as f:
+            f.write("test")
+        with open(os.path.join(dummy_dir, "ultraman.twork"), "w") as f:
+            f.write("test")
+
+
+    @clean_user
+    def canceled_test_create_task(self):
         test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
         self.tik.project.set(test_project_path)
 
@@ -332,9 +376,11 @@ class TestProject:
         assert self.tik.project.create_task("superman", category="Rig", parent_path="Assets/Characters/Soldier") == -1
 
     @clean_user
-    def test_scan_versions(self):
+    def canceled_test_scan_versions(self):
         self.test_create_task()
         self.tik.user.set("Admin", 1234)
+
+
 
         # create some additional tasks
         bizarro_task = self.tik.project.create_task("bizarro", category="Model", parent_path="Assets/Characters/Soldier")

@@ -1,13 +1,15 @@
 # pylint: disable=consider-using-f-string
 # pylint: disable=super-with-arguments
 
+from glob import glob
 import os
 import shutil
 
 from fnmatch import fnmatch
 from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
-from tik_manager4.objects.category import Category
+from tik_manager4.objects.task import Task
+# from tik_manager4.objects.category import Category
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -21,7 +23,8 @@ class Subproject(Entity):
         self.__shot_data = shot_data
         self.__parent_sub = parent_sub
         self._sub_projects = {}
-        self._categories = []
+        self._tasks = []
+        # self._categories = []
 
     @property
     def parent(self):
@@ -48,8 +51,8 @@ class Subproject(Entity):
         return self._sub_projects
 
     @property
-    def categories(self):
-        return self._categories
+    def tasks(self):
+        return self._tasks
 
     @property
     def resolution(self):
@@ -92,7 +95,7 @@ class Subproject(Entity):
             "fps": self.fps,
             "mode": self.mode,
             "shot_data": self.shot_data,
-            "categories": [category.name for category in self.categories],
+            # "categories": [category.name for category in self.categories],
             "subs": [],  # this will be filled with the while loop
         }
 
@@ -117,7 +120,7 @@ class Subproject(Entity):
                         # "fps": neighbour.fps,
                         # "categories": list(neighbour.categories.keys()),
                         # "categories": [category.name for category in neighbour.categories],
-                        "categories": [{"name": category.name, "id": category.id} for category in neighbour.categories],
+                        # "categories": [{"name": category.name, "id": category.id} for category in neighbour.categories],
                         "subs": [],  # this will be filled with the while loop
                     }
                     if neighbour.resolution != self.resolution:
@@ -150,7 +153,7 @@ class Subproject(Entity):
         self.__fps = data.get("fps", None)
         self.__mode = data.get("mode", None)
         self.__shot_data = data.get("shot_data", None)
-        _ = [self.__build_category(x) for x in data.get("categories", [])]
+        # _ = [self.__build_category(x) for x in data.get("categories", [])]
 
         # append the subproject object and pointer for json as a queue element
         queue.append([self, data.get("subs", [])])
@@ -169,13 +172,12 @@ class Subproject(Entity):
                     _fps = neighbour.get("fps", self.fps)
                     _mode = neighbour.get("mode", self.mode)
                     _shot_data = neighbour.get("shot_data", self.shot_data)
-                    _categories = neighbour.get("categories", [])
+                    # _categories = neighbour.get("categories", [])
                     sub_project = sub.__build_sub_project(_name, neighbour, _resolution, _fps, _mode, _shot_data, _id)
                     # define the path and categories separately
-                    # TODO Categories and path can be overrides for Subproject class
                     sub_project._relative_path = _relative_path
                     # _ = [sub_project.__build_category(x) for x in _categories]
-                    _ = [sub_project.__build_category(x.get("name", None), x.get("id", None)) for x in _categories]
+                    # _ = [sub_project.__build_category(x.get("name", None), x.get("id", None)) for x in _categories]
 
                     visited.append(neighbour)
                     queue.append([sub_project, neighbour.get("subs", [])])
@@ -188,14 +190,14 @@ class Subproject(Entity):
         self._sub_projects[name] = sub_pr
         return sub_pr
 
-    def __build_category(self, name, uid):
-        """Creates a new category (step) underneath"""
-
-        category = Category(name=name, uid=uid)
-        category.path = os.path.join(self.path, name)
-        # category.path = "%s/%s" % (self.path, name)
-        self._categories.append(category)
-        return category
+    # def __build_category(self, name, uid):
+    #     """Creates a new category (step) underneath"""
+    #
+    #     category = Category(name=name, uid=uid)
+    #     category.path = os.path.join(self.path, name)
+    #     # category.path = "%s/%s" % (self.path, name)
+    #     self._categories.append(category)
+    #     return category
 
     def add_sub_project(self, name, parent_sub=None, resolution=None, fps=None, mode=None, shot_data=None, uid=None):
         """
@@ -226,28 +228,64 @@ class Subproject(Entity):
         # self._sub_projects[name] = sub_pr
         # return sub_pr
 
-    def get_category(self, category_name):
-        """Returns the category object by name"""
-        for c in self.categories:
-            if c.name == category_name:
-                return c
-        LOG.warning("{0} does not exist in categories of {1}".format(category_name, self.name))
-        return -1
+    def scan_tasks(self):
+        self._tasks.clear()
+        # _search_dir = os.path.join(self._guard.database_root, self.path)
+        _search_dir = self.get_abs_database_path()
+        _task_paths = glob(os.path.join(_search_dir, '*.ttask'))
+        for b_path in _task_paths:
+            self._tasks.append(Task(b_path))
 
-    def add_category(self, name):
-        """Creates a new category (step). Requires permissions.
-        Does not create folders or store in the persistent database
-
-        """
-        state = self._check_permissions(level=2)
+    def add_task(self, name, categories, task_type=None):
+        """Creates a task under the category"""
+        task_type = task_type or self.__mode
+        # if not categories:
+        #     if not mode
+        state = self._check_permissions(level=1)
         if state != 1:
             return -1
-
-        if name in [category.name for category in self.categories]:
-            LOG.warning("{0} already exists in categories of {1}".format(name, self._name))
+        relative_path = os.path.join(self.path, "%s.ttask" % name)
+        abs_path = os.path.join(self._guard.database_root, relative_path)
+        if os.path.exists(abs_path):
+            LOG.warning("There is a task under this sub-project with the same name => %s" % name)
             return -1
+        _task = Task(abs_path, name=name, categories=categories, path=self.path, task_type=task_type)
+        _task.add_property("name", name)
+        _task.add_property("creator", self._guard.user)
+        _task.add_property("type", task_type)
+        # _task.add_property("category", self.name)
+        # _task.add_property("dcc", dcc)
+        # _task.add_property("versions", [])
+        # _task.add_property("publishes", [])
+        _task.add_property("task_id", _task.id)
+        _task.add_property("categories", categories)
+        _task.add_property("path", self.path)
+        _task.apply_settings()
+        self._tasks.append(_task)
+        return _task
 
-        return self.__build_category(name, None)
+    # def get_category(self, category_name):
+    #     """Returns the category object by name"""
+    #     for c in self.categories:
+    #         if c.name == category_name:
+    #             return c
+    #     LOG.warning("{0} does not exist in categories of {1}".format(category_name, self.name))
+    #     return -1
+    #
+    # def add_category(self, name):
+    #     """Creates a new category (step). Requires permissions.
+    #     Does not create folders or store in the persistent database
+    #
+    #     """
+    #     state = self._check_permissions(level=2)
+    #     if state != 1:
+    #         return -1
+    #
+    #     if name in [category.name for category in self.categories]:
+    #         LOG.warning("{0} already exists in categories of {1}".format(name, self._name))
+    #         return -1
+    #
+    #     return self.__build_category(name, None)
 
     def find_sub_by_id(self, uid):
         queue = list(self.subs.values())
@@ -330,8 +368,8 @@ class Subproject(Entity):
         if not os.path.exists(folder):
             os.makedirs(folder)
         # unfortunately python 2.x does not support  exist_ok argument...
-        for category in sub.categories:
-            _f = os.path.join(folder, category.name)
-            if not os.path.exists(_f):
-                os.makedirs(_f)
+        # for category in sub.categories:
+        #     _f = os.path.join(folder, category.name)
+        #     if not os.path.exists(_f):
+        #         os.makedirs(_f)
         _ = [sub.create_folders(root, sub=sub) for sub in sub.subs.values()]

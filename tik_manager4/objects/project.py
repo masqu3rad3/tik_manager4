@@ -133,7 +133,7 @@ class Project(Subproject):
         self.create_folders(self._database_path)
         return new_category
 
-    def create_task(self, name, category, parent_uid=None, parent_path=None):
+    def create_task(self, name, categories=None, parent_uid=None, parent_path=None):
         """Creates a task and stores it in persistent database"""
 
         if not parent_uid and not parent_path:
@@ -144,11 +144,11 @@ class Project(Subproject):
         #     return -1
         parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
         # confirm category exists
-        category_object = parent_sub.get_category(category)
-        if category_object == -1:
-            log.error("Category %s does not exist" % category)
-            return -1
-        task = category_object.add_task(name)
+        # category_object = parent_sub.get_category(category)
+        # if category_object == -1:
+        #     log.error("Category %s does not exist" % category)
+        #     return -1
+        task = parent_sub.add_task(name, categories=categories)
         if not task:
             return -1  # There is a task with same absolute path
         return task
