@@ -5,10 +5,11 @@ import os
 import shutil
 from glob import glob
 from tik_manager4.core.settings import Settings
+from tik_manager4.objects.category import Category
 from tik_manager4.objects.entity import Entity
 from tik_manager4.core import filelog
 
-# from collections import OrderedDict
+from collections import OrderedDict
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -23,7 +24,7 @@ class Task(Settings, Entity):
         self.settings_file = absolute_path
         self._name = self.get_property("name") or name
         self._creator = self.get_property("creator") or self._guard.user
-        self._categories = self.get_property("categories") or categories
+        self._categories = self.__build_categories(self.get_property("categories") or categories)
         # self._dcc = self.get_property("dcc") or self._guard.dcc
         self._works = {}
         self._publishes = {}
@@ -39,9 +40,28 @@ class Task(Settings, Entity):
     def categories(self):
         return self._categories
 
+    def __build_categories(self, category_list):
+        """
+        Builds a category objects from a list of category names
+
+        Does not create folders or apply settings.
+        Args: category_list: (list) List of category names
+        """
+        _categories = OrderedDict()
+        for category in category_list:
+            _categories[category] = (Category(name=category, parent_task=self))
+        return _categories
+
+
     def add_category(self, category):
+        """Add a category to the task."""
+        state = self._check_permissions(level=2)
+        if state != 1:
+            return -1
+        # categories are very simple entities which can be constructed with a name and a path
         if category not in self._categories:
-            self._categories.append(category)
+            _category = Category(name=category, parent_task=self)
+            self._categories.append(_category)
             self.create_category_folders()
             self.apply_settings()
 
@@ -55,7 +75,9 @@ class Task(Settings, Entity):
         Returns:
 
         """
-
+        state = self._check_permissions(level=2)
+        if state != 1:
+            return -1
         if category not in self._categories:
             LOG.warning("Category '{0}' does not exist in task '{1}'.".format(category, self.name))
             return
@@ -85,70 +107,70 @@ class Task(Settings, Entity):
         self._categories = new_order
         self.apply_settings()
 
-    def scan_category(self, category, all_dcc=False):
-        """
-        Scan the task category for works and publishes.
-        Args:
-            category: (str) Category to scan
-            all_dcc: (bool) If True, scans for all dcc versions
+    # def scan_category(self, category, all_dcc=False):
+    #     """
+    #     Scan the task category for works and publishes.
+    #     Args:
+    #         category: (str) Category to scan
+    #         all_dcc: (bool) If True, scans for all dcc versions
+    #
+    #     Returns:
+    #
+    #     """
+    #     # self._works.clear()
+    #     if category not in self._categories:
+    #         LOG.error("Category '{0}' does not exist in task '{1}'.".format(category, self.name), proceed=False)
+    #         return
+    #
+    #     _works = []
+    #     _publishes = []
+    #
+    #     # override the all_dcc flag if its standalone
+    #     if self._guard.dcc == "Standalone":
+    #         all_dcc = True
+    #
+    #     if not all_dcc:
+    #         _works_search_dir = self.get_abs_database_path(category, self._guard.dcc, "work")  # this is DCC specific directory
+    #         _work_paths = glob(os.path.join(_works_search_dir, '*.twork'))
+    #         _pub_search_dir = self.get_abs_database_path(category, self._guard.dcc, "publish")  # this is DCC specific directory
+    #         _pub_paths = glob(os.path.join(_pub_search_dir, '*.tpub'))
+    #     else:
+    #         _search_dir = self.get_abs_database_path()
+    #         _work_paths = [y for x in os.walk(_search_dir) if x == category for y in glob(os.path.join(x[0], '*.twork'))]
+    #         _pub_paths = [y for x in os.walk(_search_dir) if x == category for y in glob(os.path.join(x[0], '*.tpub'))]
+    #     print(_search_dir)
+    #     print("***")
+    #     print("***")
+    #     print("***")
+    #     print("***")
+    #     print(_work_paths)
+    #     print("***")
+    #     print("***")
+    #     print("***")
+    #     print("***")
+    #     # for b_path in _base_scene_paths:
+    #     #     self._versions.append(Task(b_path))
 
-        Returns:
-
-        """
-        # self._works.clear()
-        if category not in self._categories:
-            LOG.error("Category '{0}' does not exist in task '{1}'.".format(category, self.name), proceed=False)
-            return
-
-        _works = []
-        _publishes = []
-
-        # override the all_dcc flag if its standalone
-        if self._guard.dcc == "Standalone":
-            all_dcc = True
-
-        if not all_dcc:
-            _works_search_dir = self.get_abs_database_path(category, self._guard.dcc, "work")  # this is DCC specific directory
-            _work_paths = glob(os.path.join(_works_search_dir, '*.twork'))
-            _pub_search_dir = self.get_abs_database_path(category, self._guard.dcc, "publish")  # this is DCC specific directory
-            _pub_paths = glob(os.path.join(_pub_search_dir, '*.tpub'))
-        else:
-            _search_dir = self.get_abs_database_path()
-            _work_paths = [y for x in os.walk(_search_dir) if x == category for y in glob(os.path.join(x[0], '*.twork'))]
-            _pub_paths = [y for x in os.walk(_search_dir) if x == category for y in glob(os.path.join(x[0], '*.tpub'))]
-        print(_search_dir)
-        print("***")
-        print("***")
-        print("***")
-        print("***")
-        print(_work_paths)
-        print("***")
-        print("***")
-        print("***")
-        print("***")
-        # for b_path in _base_scene_paths:
-        #     self._versions.append(Task(b_path))
-
-    def scan_publishes(self, all_dcc=False):
-        """
-        Scan the task for publishes.
-        Args:
-            all_dcc:
-
-        Returns: (bool) If True
-        """
-        self._publishes.clear()
-
-        # override the all_dcc flag if its standalone
-        if self._guard.dcc == "Standalone":
-            all_dcc = True
-
-        if not all_dcc:
-            _search_dir = self.get_abs_database_path(self._guard.dcc)
-            _work_paths = glob(os.path.join(_search_dir, '{0}.tpub'.format(self.name)))
-        else:
-            _search_dir = self.get_abs_database_path()
-            _work_paths = [y for x in os.walk(_search_dir) for y in glob(os.path.join(x[0], '{0}.tpub'.format(self.name)))]
+    # def scan_publishes(self, all_dcc=False):
+    #     """
+    #     Scan the task for publishes.
+    #     Args:
+    #         all_dcc:
+    #
+    #     Returns: (bool) If True
+    #     """
+    #     self._publishes.clear()
+    #
+    #     # override the all_dcc flag if its standalone
+    #     if self._guard.dcc == "Standalone":
+    #         all_dcc = True
+    #
+    #     if not all_dcc:
+    #         _search_dir = self.get_abs_database_path(self._guard.dcc)
+    #         _work_paths = glob(os.path.join(_search_dir, '{0}.tpub'.format(self.name)))
+    #     else:
+    #         _search_dir = self.get_abs_database_path()
+    #         _work_paths = [y for x in os.walk(_search_dir) for y in glob(os.path.join(x[0], '{0}.tpub'.format(self.name)))]
 
 
     @property
@@ -208,7 +230,7 @@ class Task(Settings, Entity):
     def create_category_folders(self):
         """Creates folders for subprojects and categories below this starting from 'root' path"""
         # unfortunately python 2.x does not support  exist_ok argument...
-        for category in self.categories:
-            _f = os.path.join(self.get_abs_database_path(category))
+        for category_name in self.categories.keys():
+            _f = os.path.join(self.get_abs_database_path(category_name))
             if not os.path.exists(_f):
                 os.makedirs(_f)

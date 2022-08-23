@@ -286,7 +286,7 @@ class TestProject:
         task = self.tik.project.create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier")
         assert task.name == "superman"
         assert task.creator == "Admin"
-        assert task.categories == ["Model", "Rig", "Lookdev"]
+        assert list(task.categories.keys()) == ["Model", "Rig", "Lookdev"]
         assert task.type == "asset"
 
         # create a task directly from a sub-project
