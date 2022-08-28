@@ -19,9 +19,8 @@ class IO(dict):
             self.file_path = file_path
         elif file_name:
             self.folder_name = folder_name or ""
-            if not root_path:
-                self.root_path = os.path.normpath(os.path.expanduser("~"))
-            self.file_path = os.path.join(self.root_path, self.folder_name, file_name)
+            root_path = root_path or os.path.normpath(os.path.expanduser("~"))
+            self.file_path = os.path.join(root_path, self.folder_name, file_name)
         # else:
         #     log.error("IO class cannot initialized. At least a file name or file_path must be defined")
 
@@ -39,17 +38,13 @@ class IO(dict):
         if ext not in self.valid_extensions:
             log.error("IO maya_modules does not support this extension (%s)" % ext)
             raise Exception
-        if directory:
-            self["file_path"] = self.folder_check(new_path)
-        else:
-            self["file_path"] = os.path.join(self.root_path, self.folder_name, new_path)
+        self["file_path"] = self.folder_check(new_path)
+        # else:
+        #     self["file_path"] = os.path.join(self.root_path, self.folder_name, new_path)
 
     def read(self, file_path=None):
         file_path = file_path if file_path else self.file_path
-        if os.path.isfile(file_path):
-            return self._load_json(file_path)
-        else:
-            return False
+        return self._load_json(file_path)
 
     def write(self, data, file_path=None):
         file_path = file_path if file_path else self.file_path
@@ -67,7 +62,13 @@ class IO(dict):
                 log.error("Corrupted file => %s" % file_path)
                 raise
         else:
-            log.error("File cannot be found => %s" % file_path)
+            msg = "File does not exist => %s" % file_path
+            log.error(msg)
+            raise Exception(msg)
+
+    @staticmethod
+    def file_exists(file_path):
+        return os.path.isfile(file_path)
 
     def _dump_json(self, data, file_path):
         """Saves the data to the json file"""
@@ -77,17 +78,8 @@ class IO(dict):
     @staticmethod
     def folder_check(checkpath):
         """Checks if the folder exists, creates it if doesnt"""
-        if os.path.splitext(checkpath)[1]:
-            basefolder = os.path.split(checkpath)[0] # in case it is a file path
-        else:
-            basefolder = checkpath
+        basefolder = os.path.split(checkpath)[0] # in case it is a file path
 
         if not os.path.isdir(os.path.normpath(basefolder)):
             os.makedirs(os.path.normpath(basefolder))
         return checkpath
-
-    def _load_ini(self, file_path):
-        pass
-
-    def _dump_ini(self, file_path):
-        pass

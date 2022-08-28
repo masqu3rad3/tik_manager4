@@ -3,9 +3,9 @@ import os
 import datetime
 
 class Filelog(object):
-    last_warning = None
-    last_info = None
-    last_error = None
+    last_message = None
+    last_message_type = None
+
     def __init__(self, logname = None, filename=None, filedir=None, date=True, time=True, size_cap=500000, *args, **kwargs):
         super(Filelog, self).__init__()
         self.fileName = filename if filename else "defaultLog"
@@ -13,33 +13,31 @@ class Filelog(object):
         self.filePath = os.path.join(self.fileDir, "%s.log" %self.fileName)
         self.logger = logging.getLogger(self.fileName)
         self.logger.setLevel(logging.DEBUG)
-        self.logName = logname if logname else self.fileName
-        self.isDate = date
-        self.isTime = time
+        self.log_name = logname if logname else self.fileName
+        self.is_date = date
+        self.is_time = time
         if not os.path.isfile(self.filePath):
             self._welcome()
         if self.get_size() > size_cap:
             self.clear()
 
     @classmethod
-    def __set_last_error(cls, msg):
-        cls.last_error = msg
+    def __set_last_message(cls, msg, message_type):
+        cls.last_message = msg
+        cls.last_message_type = message_type
 
     @classmethod
-    def __set_last_warning(cls, msg):
-        cls.last_warning = msg
-
-    @classmethod
-    def __set_last_info(cls, msg):
-        cls.last_info = msg
+    def get_last_message(cls):
+        """Return the last message and its type."""
+        return cls.last_message, cls.last_message_type
 
     def _get_now(self):
-        if self.isDate or self.isTime:
+        if self.is_date or self.is_time:
             now = datetime.datetime.now()
             now_data = []
-            if self.isDate:
+            if self.is_date:
                 now_data.append(now.strftime("%d/%m/%y"))
-            if self.isTime:
+            if self.is_time:
                 now_data.append(now.strftime("%H:%M"))
             now_string = " - ".join(now_data)
             return "%s - " %now_string
@@ -48,17 +46,18 @@ class Filelog(object):
 
     def _welcome(self):
         self._start_logging()
-        self.logger.debug("="*len(self.logName))
-        self.logger.debug(self.logName)
-        self.logger.debug("="*len(self.logName))
+        self.logger.debug("=" * len(self.log_name))
+        self.logger.debug(self.log_name)
+        self.logger.debug("=" * len(self.log_name))
         self.logger.debug("")
         self._end_logging()
+        return self.log_name
 
     def info(self, msg):
         stamped_msg = "%sINFO    : %s" %(self._get_now(), msg)
         self._start_logging()
         self.logger.info(stamped_msg)
-        self.__set_last_info(msg)
+        self.__set_last_message(msg, "info")
         self._end_logging()
         return msg
 
@@ -66,7 +65,7 @@ class Filelog(object):
         stamped_msg = "%sWARNING : %s" % (self._get_now(), msg)
         self._start_logging()
         self.logger.warning(stamped_msg)
-        self.__set_last_warning(msg)
+        self.__set_last_message(msg, "warning")
         self._end_logging()
         return msg
 
@@ -74,7 +73,7 @@ class Filelog(object):
         stamped_msg = "%sERROR   : %s" % (self._get_now(), msg)
         self._start_logging()
         self.logger.error(stamped_msg)
-        self.__set_last_error(msg)
+        self.__set_last_message(msg, "error")
         self._end_logging()
         if not proceed:
             raise Exception(msg)
@@ -88,6 +87,7 @@ class Filelog(object):
         self.logger.debug("="*(len(msg)))
         # self.logger.debug("\n")
         self._end_logging()
+        return msg
 
     def header(self, msg):
         self._start_logging()
@@ -96,6 +96,7 @@ class Filelog(object):
         self.logger.debug("=" * (len(msg)))
         # self.logger.debug("\n")
         self._end_logging()
+        return msg
 
     def seperator(self):
         self._start_logging()
@@ -103,6 +104,7 @@ class Filelog(object):
         self.logger.debug("-"*30)
         # self.logger.debug("\n")
         self._end_logging()
+        return True
 
     def clear(self):
         if os.path.isfile(self.filePath):

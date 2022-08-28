@@ -25,7 +25,8 @@ class Settings(object):
     def settings_file(self, file_path):
         self._filePath = file_path
         self._io.file_path = file_path
-        self.initialize(self._io.read())
+        if self._io.file_exists(file_path):
+            self.initialize(self._io.read())
 
     @property
     def all_properties(self):

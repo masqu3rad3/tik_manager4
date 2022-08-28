@@ -8,6 +8,9 @@ class Guard(object):
     _project_root = None
     _database_root = None
     _dcc = None
+    _last_error = None
+    _last_warning = None
+    _last_info = None
 
     @classmethod
     def set_dcc(cls, dcc_name):

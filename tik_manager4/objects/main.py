@@ -1,3 +1,5 @@
+"""Main Modult for the Tik Manager"""
+
 import os
 import sys
 from tik_manager4.core import filelog, settings, utils
@@ -13,17 +15,18 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
 class Main(object):
+    """Main Tik Manager class. Handles User and Project related functions."""
     user = user.User()
     project = project.Project()
     # set the dcc to the guard object
     project._guard.set_dcc(dcc.NAME)
+    log = log
 
     def __init__(self):
+        """Initialize."""
         # set either the latest project or the default one
         # always make sure the default project exists, in case of urgent fall back
 
-
-        # self._set_dcc(self._dcc)
         default_project = os.path.join(utils.get_home_dir(), "TM4_default")
         if not os.path.exists(os.path.join(default_project, "tikDatabase", "project_structure.json")):
             self._create_default_project()
@@ -37,6 +40,7 @@ class Main(object):
         self.user.add_recent_project(_project)
 
     def _create_default_project(self):
+        """Create a default project. Protected method."""
         # this does not require any permissions
         _project_path = os.path.join(utils.get_home_dir(), "TM4_default")
         _database_path = os.path.join(_project_path, "tikDatabase")
@@ -62,7 +66,7 @@ class Main(object):
         structure.apply_settings()
 
     def create_project(self, path, structure_template="empty", set_after_creation=True, **kwargs):
-        """Creates a new project"""
+        """Create a new project."""
 
         if self.user.permission_level < 3:
             log.warning("This user does not have rights to perform this action")

@@ -1,5 +1,6 @@
 import os
 from tik_manager4.objects import guard
+from tik_manager4.core import filelog
 
 def initialize(dcc_name):
     os.environ["TIK_DCC"] = dcc_name

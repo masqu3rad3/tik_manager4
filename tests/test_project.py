@@ -106,7 +106,7 @@ class TestProject:
 
         # try creating an existing one
         assert self.tik.project.create_sub_project("anotherSub", parent_uid=new_sub.id) == -1
-        assert log.last_warning == "anotherSub already exist in sub-projects of testSub"
+        assert log.get_last_message() == ("anotherSub already exist in sub-projects of testSub", "warning")
 
         # try creating a sub-project with a wrong parent id
         pytest.raises(Exception, self.tik.project.create_sub_project, "wrongSub", parent_uid=0)
@@ -136,7 +136,7 @@ class TestProject:
     #     assert log.last_warning == "testCategory already exists in categories of Assets"
 
     @clean_user
-    def test_create_a_shot_asset_project_structure(self, print_results=True):
+    def test_create_a_shot_asset_project_structure(self, print_results=False):
         self.tik.project.__init__()
         self.tik.user.__init__()
 
@@ -295,13 +295,16 @@ class TestProject:
         # try to create a duplicate task
         assert self.tik.project.create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
 
-        # no permission
-        self.tik.user.set("Generic")
-        assert self.tik.project.create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
+        # check if the user permissions check works
+        self.tik.user.set("Generic", password="1234")
+        assert self.tik.project.create_task("this_asset_shouldnt_exist", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
+        # check if the log message is correct
+        assert self.tik.log.get_last_message() == ('This user does not have permissions for this action', 'warning')
 
     @clean_user
     def test_scanning_categories_for_works_and_publishes(self):
         self.test_creating_and_adding_new_tasks()
+
         self.tik.user.set("Admin", 1234)
 
         #create some addigional tasks

@@ -241,7 +241,7 @@ class Subproject(Entity):
         task_type = task_type or self.__mode
         # if not categories:
         #     if not mode
-        state = self._check_permissions(level=1)
+        state = self._check_permissions(level=2)
         if state != 1:
             return -1
         relative_path = os.path.join(self.path, "%s.ttask" % name)
