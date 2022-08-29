@@ -249,6 +249,7 @@ class Subproject(Entity):
         if os.path.exists(abs_path):
             LOG.warning("There is a task under this sub-project with the same name => %s" % name)
             return -1
+
         _task = Task(abs_path, name=name, categories=categories, path=self.path, task_type=task_type)
         _task.add_property("name", name)
         _task.add_property("creator", self._guard.user)

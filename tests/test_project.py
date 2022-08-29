@@ -302,7 +302,24 @@ class TestProject:
         assert self.tik.log.get_last_message() == ('This user does not have permissions for this action', 'warning')
 
     @clean_user
-    def test_scanning_categories_for_works_and_publishes(self):
+    def test_creating_works_and_publishes(self):
+        self.test_creating_and_adding_new_tasks()
+
+        self.tik.user.set("Admin", 1234)
+
+        #create some addigional tasks
+        asset_categories = ["Model", "Rig", "Lookdev"]
+
+        bizarro_task = self.tik.project.create_task("bizarro", categories=asset_categories, parent_path="Assets/Characters/Soldier")
+        ultraman_task = self.tik.project.create_task("ultraman", categories=asset_categories, parent_path="Assets/Characters/Soldier")
+        superboy_task = self.tik.project.create_task("superboy", categories=asset_categories, parent_path="Assets/Characters/Soldier")
+
+        # create a work
+        bizarro_task.categories["Model"].add_work("default")
+
+
+    @clean_user
+    def XXX_test_scanning_categories_for_works_and_publishes(self):
         self.test_creating_and_adding_new_tasks()
 
         self.tik.user.set("Admin", 1234)
@@ -322,6 +339,10 @@ class TestProject:
             f.write("test")
         with open(os.path.join(dummy_dir, "ultraman.twork"), "w") as f:
             f.write("test")
+        print("\n")
+        print(bizarro_task.categories)
+
+        bizarro_task.categories["Model"].scan_works()
 
 
     @clean_user

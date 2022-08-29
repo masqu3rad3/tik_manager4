@@ -24,13 +24,14 @@ class Task(Settings, Entity):
         self.settings_file = absolute_path
         self._name = self.get_property("name") or name
         self._creator = self.get_property("creator") or self._guard.user
-        self._categories = self.__build_categories(self.get_property("categories") or categories)
         # self._dcc = self.get_property("dcc") or self._guard.dcc
         self._works = {}
         self._publishes = {}
         self._task_id = self.get_property("task_id") or self.id
         self._relative_path = self.get_property("path") or path
         self._type = self.get_property("type") or task_type
+
+        self._categories = self.__build_categories(self.get_property("categories") or categories)
 
     @property
     def type(self):
@@ -60,6 +61,7 @@ class Task(Settings, Entity):
             return -1
         # categories are very simple entities which can be constructed with a name and a path
         if category not in self._categories:
+
             _category = Category(name=category, parent_task=self)
             self._categories.append(_category)
             self.create_category_folders()
@@ -200,18 +202,18 @@ class Task(Settings, Entity):
     #     self._path = val
     #     self.add_property("path", val)
 
-    @property
-    def works(self):
-        return self._works
+    # @property
+    # def works(self):
+    #     return self._works
 
     # @works.setter
     # def works(self, val):
     #     self._works = val
     #     self.add_property("versions", val)
 
-    @property
-    def publishes(self):
-        return self._publishes
+    # @property
+    # def publishes(self):
+    #     return self._publishes
 
     # @publishes.setter
     # def publishes(self, val):

@@ -20,3 +20,21 @@ class Dcc(DccTemplate):
             f.write("test")
 
     # TODO mix-match from Tik Manager 3
+
+    @staticmethod
+    def grab_thumbnail(file_path, width, height):
+        """
+        Grabs a thumbnail from the current scene
+        Args:
+            file_path: (String) File path that will be written
+            width: (Int) Width of the thumbnail
+            height: (Int) Height of the thumbnail
+
+        Returns: File path of the thumbnail
+
+        """
+        # take a screenshot and save it as a thumbnail
+        return None
+
+
+

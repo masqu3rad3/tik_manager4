@@ -224,6 +224,20 @@ class DccTemplate(object):
         return os.path.normpath(file_path)
 
     @staticmethod
+    def grab_thumbnail(file_path, width, height):
+        """
+        Grabs a thumbnail from the current scene
+        Args:
+            file_path: (String) File path to save the thumbnail
+            width: (Int) Width of the thumbnail
+            height: (Int) Height of the thumbnail
+
+        Returns: None
+
+        """
+        pass
+
+    @staticmethod
     def test():
         """Test function"""
         print("TESTING")

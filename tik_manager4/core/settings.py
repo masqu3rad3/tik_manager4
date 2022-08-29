@@ -14,6 +14,7 @@ class Settings(object):
         self._properties = []
         self._originalValue = {}
         self._currentValue = {}
+        self._time_stamp = None
         if file_path:
             self.settings_file = file_path
 
@@ -26,11 +27,21 @@ class Settings(object):
         self._filePath = file_path
         self._io.file_path = file_path
         if self._io.file_exists(file_path):
+            self._time_stamp = self._io.get_modified_time()
             self.initialize(self._io.read())
 
     @property
     def all_properties(self):
+        """Returns all keys in the current data"""
         return self._currentValue.keys()
+
+    def is_modified(self):
+        """Checks if the file has been modified since initialization"""
+        return not bool(self._io.get_modified_time() == self._time_stamp)
+
+    def reload(self):
+        """Reloads the settings from file"""
+        self.settings_file = self._filePath
 
     def initialize(self, data):
         """Initializes the settings data"""

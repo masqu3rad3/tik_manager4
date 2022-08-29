@@ -52,7 +52,7 @@ def test_io():
     assert _io.file_path == os.path.join(os.path.expanduser("~"), "test_io.json")
 
     # create io object with arguments
-    _io = io.IO(file_name="test_io.json", folder_name="", root_path=os.path.expanduser("~"))
+    # _io = io.IO(file_name="test_io.json", folder_name="", root_path=os.path.expanduser("~"))
     _io = io.IO(file_path=os.path.join(os.path.expanduser("~"), "test_io.json"))
 
     test_data = {"test": "test"}

@@ -4,23 +4,22 @@
 """
 import os
 import json
-
 from tik_manager4.core import filelog
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager")
 
-
 class IO(dict):
-    def __init__(self, file_name=None, folder_name=None, root_path=None, file_path=None):
+    # def __init__(self, file_name=None, folder_name=None, root_path=None, file_path=None):
+    def __init__(self, file_path=None):
         super(IO, self).__init__()
-        self.valid_extensions = [".json", ".ttask", ".tver", ".tpub"]
+        self.valid_extensions = [".json", ".ttask", ".twork", ".tpub"]
         self.default_extension = ".json"
         if file_path:
             self.file_path = file_path
-        elif file_name:
-            self.folder_name = folder_name or ""
-            root_path = root_path or os.path.normpath(os.path.expanduser("~"))
-            self.file_path = os.path.join(root_path, self.folder_name, file_name)
+        # elif file_name:
+        #     self.folder_name = folder_name or ""
+        #     root_path = root_path or os.path.normpath(os.path.expanduser("~"))
+        #     self.file_path = os.path.join(root_path, self.folder_name, file_name)
         # else:
         #     log.error("IO class cannot initialized. At least a file name or file_path must be defined")
 
@@ -83,3 +82,7 @@ class IO(dict):
         if not os.path.isdir(os.path.normpath(basefolder)):
             os.makedirs(os.path.normpath(basefolder))
         return checkpath
+
+    def get_modified_time(self):
+        """Get the modified time of the file"""
+        return os.path.getmtime(self.file_path)
