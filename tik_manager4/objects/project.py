@@ -55,8 +55,8 @@ class Project(Subproject):
         self._database_path = self.structure._io.folder_check(os.path.join(absolute_path, "tikDatabase"))
         self.structure.settings_file = os.path.join(self._database_path, "project_structure.json")
         self.set_sub_tree(self.structure._currentValue)
-        self._guard.set_project_root(self._absolute_path)
-        self._guard.set_database_root(self._database_path)
+        self.guard.set_project_root(self._absolute_path)
+        self.guard.set_database_root(self._database_path)
         # get project settings
         self.settings.settings_file = os.path.join(self._database_path, "project_settings.json")
 

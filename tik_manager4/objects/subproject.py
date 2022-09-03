@@ -23,7 +23,7 @@ class Subproject(Entity):
         self.__shot_data = shot_data
         self.__parent_sub = parent_sub
         self._sub_projects = {}
-        self._tasks = []
+        self._tasks = {}
         # self._categories = []
 
     @property
@@ -181,7 +181,6 @@ class Subproject(Entity):
 
                     visited.append(neighbour)
                     queue.append([sub_project, neighbour.get("subs", [])])
-
     def __build_sub_project(self, name, parent_sub, resolution, fps, mode, shot_data, uid):
         """Builds the sub-project inside class."""
 
@@ -189,16 +188,6 @@ class Subproject(Entity):
         sub_pr.path = os.path.join(self.path, name)
         self._sub_projects[name] = sub_pr
         return sub_pr
-
-    # def __build_category(self, name, uid):
-    #     """Creates a new category (step) underneath"""
-    #
-    #     category = Category(name=name, uid=uid)
-    #     category.path = os.path.join(self.path, name)
-    #     # category.path = "%s/%s" % (self.path, name)
-    #     self._categories.append(category)
-    #     return category
-
     def add_sub_project(self, name, parent_sub=None, resolution=None, fps=None, mode=None, shot_data=None, uid=None):
         """
         Adds a sub project. requires permissions. Does not create folders or store in the persistent database
@@ -229,12 +218,20 @@ class Subproject(Entity):
         # return sub_pr
 
     def scan_tasks(self):
-        self._tasks.clear()
-        # _search_dir = os.path.join(self._guard.database_root, self.path)
-        _search_dir = self.get_abs_database_path()
-        _task_paths = glob(os.path.join(_search_dir, '*.ttask'))
-        for b_path in _task_paths:
-            self._tasks.append(Task(b_path))
+        _tasks_search_dir = self.get_abs_database_path()
+        _task_paths = glob(os.path.join(_tasks_search_dir, '*.ttask'))
+
+        # add the file if it is new. if it is not new, check the modified time and update if necessary
+        for _task_path in _task_paths:
+            _task_name = os.path.basename(_task_path).split(".")[0]
+            existing_task = self._tasks.get(_task_name, None)
+            if not existing_task:
+                _task = Task(absolute_path=_task_path)
+                self._tasks[_task_name] = _task
+            else:
+                if existing_task.is_modified():
+                    existing_task.reload()
+        return self._tasks
 
     def add_task(self, name, categories, task_type=None):
         """Creates a task under the category"""
@@ -245,48 +242,21 @@ class Subproject(Entity):
         if state != 1:
             return -1
         relative_path = os.path.join(self.path, "%s.ttask" % name)
-        abs_path = os.path.join(self._guard.database_root, relative_path)
+        abs_path = os.path.join(self.guard.database_root, relative_path)
         if os.path.exists(abs_path):
             LOG.warning("There is a task under this sub-project with the same name => %s" % name)
             return -1
 
         _task = Task(abs_path, name=name, categories=categories, path=self.path, task_type=task_type)
         _task.add_property("name", name)
-        _task.add_property("creator", self._guard.user)
+        _task.add_property("creator", self.guard.user)
         _task.add_property("type", task_type)
-        # _task.add_property("category", self.name)
-        # _task.add_property("dcc", dcc)
-        # _task.add_property("versions", [])
-        # _task.add_property("publishes", [])
         _task.add_property("task_id", _task.id)
         _task.add_property("categories", categories)
         _task.add_property("path", self.path)
         _task.apply_settings()
-        self._tasks.append(_task)
+        self._tasks[name] = _task
         return _task
-
-    # def get_category(self, category_name):
-    #     """Returns the category object by name"""
-    #     for c in self.categories:
-    #         if c.name == category_name:
-    #             return c
-    #     LOG.warning("{0} does not exist in categories of {1}".format(category_name, self.name))
-    #     return -1
-    #
-    # def add_category(self, name):
-    #     """Creates a new category (step). Requires permissions.
-    #     Does not create folders or store in the persistent database
-    #
-    #     """
-    #     state = self._check_permissions(level=2)
-    #     if state != 1:
-    #         return -1
-    #
-    #     if name in [category.name for category in self.categories]:
-    #         LOG.warning("{0} already exists in categories of {1}".format(name, self._name))
-    #         return -1
-    #
-    #     return self.__build_category(name, None)
 
     def find_sub_by_id(self, uid):
         queue = list(self.subs.values())

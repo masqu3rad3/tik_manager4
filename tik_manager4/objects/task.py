@@ -23,7 +23,7 @@ class Task(Settings, Entity):
         super(Task, self).__init__()
         self.settings_file = absolute_path
         self._name = self.get_property("name") or name
-        self._creator = self.get_property("creator") or self._guard.user
+        self._creator = self.get_property("creator") or self.guard.user
         # self._dcc = self.get_property("dcc") or self._guard.dcc
         self._works = {}
         self._publishes = {}
@@ -48,7 +48,8 @@ class Task(Settings, Entity):
         Does not create folders or apply settings.
         Args: category_list: (list) List of category names
         """
-        _categories = OrderedDict()
+        # _categories = OrderedDict()
+        _categories = {}
         for category in category_list:
             _categories[category] = (Category(name=category, parent_task=self))
         return _categories
@@ -60,14 +61,15 @@ class Task(Settings, Entity):
         if state != 1:
             return -1
         # categories are very simple entities which can be constructed with a name and a path
-        if category not in self._categories:
-
-            _category = Category(name=category, parent_task=self)
-            self._categories.append(_category)
-            self.create_category_folders()
+        if category not in self._categories.keys():
+            self._categories[category] = Category(name=category, parent_task=self)
+            self._currentValue["categories"] = (list(self._categories.keys()))
             self.apply_settings()
-
-    def delete_category(self, category, force=False):
+            return self._categories[category]
+        else:
+            LOG.warning("Category '{0}' already exists in task '{1}'.".format(category, self.name))
+            return -1
+    def delete_category(self, category):
         """
         Delete a category from the task.
         Args:
@@ -77,20 +79,32 @@ class Task(Settings, Entity):
         Returns:
 
         """
-        state = self._check_permissions(level=2)
-        if state != 1:
-            return -1
         if category not in self._categories:
             LOG.warning("Category '{0}' does not exist in task '{1}'.".format(category, self.name))
-            return
+            return -1
 
-        self._categories.remove(category)
+        _is_empty = self._categories[category].is_empty()
+        permission_level = 2 if _is_empty else 3
+
+        state = self._check_permissions(level=permission_level)
+        if state != 1:
+            return -1
+
+        # delete category from database
+        self._categories.pop(category)
+        self._currentValue["categories"] = (list(self._categories.keys()))
         self.apply_settings()
 
-        if force:
-            LOG.warning("Deleting category '{0}' from task '{1}'.".format(category, self.name))
-            shutil.rmtree(self.get_abs_database_path(category))
-            shutil.rmtree(self.get_abs_project_path(category))
+        if not _is_empty:
+            LOG.warning("Sending category '{0}' from task '{1}' to purgatory.".format(category, self.name))
+            self._io.folder_check(self.get_purgatory_database_path(category))
+            self._io.folder_check(self.get_purgatory_project_path(category))
+            shutil.move(self.get_abs_database_path(category), self.get_purgatory_database_path(category))
+            shutil.move(self.get_abs_project_path(category), self.get_purgatory_project_path(category))
+        # shutil.rmtree(self.get_abs_database_path(category))
+        # shutil.rmtree(self.get_abs_project_path(category))
+
+        return 0
 
     def order_categories(self, new_order):
         """
@@ -108,73 +122,6 @@ class Task(Settings, Entity):
                 LOG.error("New order list contains a category that is not in the current categories list.", proceed=False)
         self._categories = new_order
         self.apply_settings()
-
-    # def scan_category(self, category, all_dcc=False):
-    #     """
-    #     Scan the task category for works and publishes.
-    #     Args:
-    #         category: (str) Category to scan
-    #         all_dcc: (bool) If True, scans for all dcc versions
-    #
-    #     Returns:
-    #
-    #     """
-    #     # self._works.clear()
-    #     if category not in self._categories:
-    #         LOG.error("Category '{0}' does not exist in task '{1}'.".format(category, self.name), proceed=False)
-    #         return
-    #
-    #     _works = []
-    #     _publishes = []
-    #
-    #     # override the all_dcc flag if its standalone
-    #     if self._guard.dcc == "Standalone":
-    #         all_dcc = True
-    #
-    #     if not all_dcc:
-    #         _works_search_dir = self.get_abs_database_path(category, self._guard.dcc, "work")  # this is DCC specific directory
-    #         _work_paths = glob(os.path.join(_works_search_dir, '*.twork'))
-    #         _pub_search_dir = self.get_abs_database_path(category, self._guard.dcc, "publish")  # this is DCC specific directory
-    #         _pub_paths = glob(os.path.join(_pub_search_dir, '*.tpub'))
-    #     else:
-    #         _search_dir = self.get_abs_database_path()
-    #         _work_paths = [y for x in os.walk(_search_dir) if x == category for y in glob(os.path.join(x[0], '*.twork'))]
-    #         _pub_paths = [y for x in os.walk(_search_dir) if x == category for y in glob(os.path.join(x[0], '*.tpub'))]
-    #     print(_search_dir)
-    #     print("***")
-    #     print("***")
-    #     print("***")
-    #     print("***")
-    #     print(_work_paths)
-    #     print("***")
-    #     print("***")
-    #     print("***")
-    #     print("***")
-    #     # for b_path in _base_scene_paths:
-    #     #     self._versions.append(Task(b_path))
-
-    # def scan_publishes(self, all_dcc=False):
-    #     """
-    #     Scan the task for publishes.
-    #     Args:
-    #         all_dcc:
-    #
-    #     Returns: (bool) If True
-    #     """
-    #     self._publishes.clear()
-    #
-    #     # override the all_dcc flag if its standalone
-    #     if self._guard.dcc == "Standalone":
-    #         all_dcc = True
-    #
-    #     if not all_dcc:
-    #         _search_dir = self.get_abs_database_path(self._guard.dcc)
-    #         _work_paths = glob(os.path.join(_search_dir, '{0}.tpub'.format(self.name)))
-    #     else:
-    #         _search_dir = self.get_abs_database_path()
-    #         _work_paths = [y for x in os.walk(_search_dir) for y in glob(os.path.join(x[0], '{0}.tpub'.format(self.name)))]
-
-
     @property
     def name(self):
         return self._name
@@ -188,46 +135,9 @@ class Task(Settings, Entity):
     def creator(self):
         return self._creator
 
-    # @creator.setter
-    # def creator(self, val):
-    #     self._creator = val
-    #     self.add_property("creator", val)
-
-    # @property
-    # def path(self):
-    #     return self._path
-
-    # @path.setter
-    # def path(self, val):
-    #     self._path = val
-    #     self.add_property("path", val)
-
-    # @property
-    # def works(self):
-    #     return self._works
-
-    # @works.setter
-    # def works(self, val):
-    #     self._works = val
-    #     self.add_property("versions", val)
-
-    # @property
-    # def publishes(self):
-    #     return self._publishes
-
-    # @publishes.setter
-    # def publishes(self, val):
-    #     self._publishes = val
-    #     self.add_property("publishes", val)
-
     @property
     def reference_id(self):
         return self._task_id
-
-    # @reference_id.setter
-    # def reference_id(self, val):
-    #     self.reference_id = val
-    #     self.add_property("referenceID", val)
 
     def create_category_folders(self):
         """Creates folders for subprojects and categories below this starting from 'root' path"""

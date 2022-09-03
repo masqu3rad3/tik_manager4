@@ -55,11 +55,13 @@ class Settings(object):
         """Checks if the settings changed since initialization"""
         return not (self._currentValue == self._originalValue)
 
-    def apply_settings(self):
+    def apply_settings(self, force=False):
         """Applies the changed settings and writes it to file"""
-        if self.is_settings_changed():
-            self._originalValue = deepcopy(self._currentValue)
-            self._io.write(self._originalValue)
+        if not self.is_settings_changed() and not force:
+            return False
+        self._originalValue = deepcopy(self._currentValue)
+        self._io.write(self._originalValue)
+        return True
 
     def reset_settings(self):
         """Reverts back the unsaved changes to the original state"""

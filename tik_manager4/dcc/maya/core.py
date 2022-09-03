@@ -38,19 +38,21 @@ class Dcc(DccTemplate):
         cmds.file(save=True)
 
     @staticmethod
-    def save_as(file_path, format, **extra_arguments):
+    def save_as(file_path):
         """
         Saves the file to the given path
         Args:
             file_path: (String) File path that will be written
-            format: (String) File format
+            file_format: (String) File format
             **extra_arguments: Compatibility arguments
 
         Returns:
 
         """
+        extension = os.path.splitext(file_path)[1]
+        file_format = "mayaAscii" if extension == ".ma" else "mayaBinary"
         cmds.file(rename=file_path)
-        cmds.file(save=True, type=format)
+        cmds.file(save=True, type=file_format)
 
     @staticmethod
     def open(file_path, force=True, **extra_arguments):

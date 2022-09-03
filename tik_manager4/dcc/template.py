@@ -24,12 +24,12 @@ class DccTemplate(object):
         pass
 
     @staticmethod
-    def save_as(file_path, format, **extra_arguments):
+    def save_as(file_path):
         """
         Saves the file to the given path
         Args:
             file_path: (String) File path that will be written
-            format: (String) File format
+            file_format: (String) File format
             **extra_arguments: Compatibility arguments
 
         Returns:
@@ -224,7 +224,7 @@ class DccTemplate(object):
         return os.path.normpath(file_path)
 
     @staticmethod
-    def grab_thumbnail(file_path, width, height):
+    def generate_thumbnail(file_path, width, height):
         """
         Grabs a thumbnail from the current scene
         Args:

@@ -19,7 +19,8 @@ class Main(object):
     user = user.User()
     project = project.Project()
     # set the dcc to the guard object
-    project._guard.set_dcc(dcc.NAME)
+    project.guard.set_dcc(dcc.NAME)
+    dcc = dcc.Dcc()
     log = log
 
     def __init__(self):

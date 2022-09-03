@@ -30,8 +30,8 @@ class TestProject:
         assert self.tik.project.absolute_path == os.path.join(utils.get_home_dir(), "TM4_default")
         assert self.tik.project.database_path == os.path.join(utils.get_home_dir(), "TM4_default", "tikDatabase")
         assert self.tik.project.name == "TM4_default"
-        assert self.tik.project._guard.project_root == os.path.join(utils.get_home_dir(), "TM4_default")
-        assert self.tik.project._guard.database_root == os.path.join(utils.get_home_dir(), "TM4_default", "tikDatabase")
+        assert self.tik.project.guard.project_root == os.path.join(utils.get_home_dir(), "TM4_default")
+        assert self.tik.project.guard.database_root == os.path.join(utils.get_home_dir(), "TM4_default", "tikDatabase")
 
     @clean_user
     def test_resolution_and_fps(self):
@@ -302,7 +302,64 @@ class TestProject:
         assert self.tik.log.get_last_message() == ('This user does not have permissions for this action', 'warning')
 
     @clean_user
-    def test_creating_works_and_publishes(self):
+    def test_adding_categories(self):
+        self.test_creating_and_adding_new_tasks()
+        # add a category
+        _test_tasks = self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks
+        print(_test_tasks)
+
+        # try to add category without permissions
+        self.tik.user.set("Generic", password="1234")
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].add_category("Gotham") == -1
+        self.tik.user.set("Admin", password="1234")
+        # add the Gotham category to Batman task
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].add_category("Gotham")
+
+        # try to add a duplicate category
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].add_category("Gotham") == -1
+        # check the log message
+        assert self.tik.log.get_last_message() == ("Category 'Gotham' already exists in task 'batman'.", 'warning')
+    @clean_user
+    def test_deleting_empty_categories(self):
+        self.test_adding_categories()
+
+        # try to delete a category without permissions
+        self.tik.user.set("Generic", password="1234")
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Gotham") == -1
+        self.tik.user.set("Admin", password="1234")
+        # try to delete a non-existing category
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Burhan") == -1
+        # delete the Gotham category from Batman task
+        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Gotham")
+        assert "Gotham" not in self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories.keys()
+
+    @clean_user
+    def test_deleting_non_empty_categories(self):
+        self.test_adding_categories()
+        # add a version to the Gotham category
+        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories["Gotham"].create_work("test_work")
+        # try to delete a non-empty category
+        self.tik.user.set("Admin", password="1234")
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories["Gotham"].is_empty() == False
+        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Gotham")
+        # check the log message
+
+
+    @clean_user
+    def test_scanning_tasks(self):
+        self.test_creating_and_adding_new_tasks()
+
+        # scan the tasks
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].scan_tasks()
+
+        # modify one of the tasks and scan again
+        # no permission
+        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["superman"].add_category("Testing")
+        self.tik.user.set("Admin", password=1234)
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].scan_tasks()
+
+    @clean_user
+    def test_creating_works(self):
         self.test_creating_and_adding_new_tasks()
 
         self.tik.user.set("Admin", 1234)
@@ -315,8 +372,29 @@ class TestProject:
         superboy_task = self.tik.project.create_task("superboy", categories=asset_categories, parent_path="Assets/Characters/Soldier")
 
         # create a work
-        bizarro_task.categories["Model"].add_work("default")
+        bizarro_task.categories["Model"].create_work("default")
+        bizarro_task.categories["Model"].create_work("main", file_format=".txt")
+        bizarro_task.categories["Model"].create_work("lod300", file_format=".txt")
 
+        bizarro_task.categories["Rig"].create_work("default")
+        bizarro_task.categories["Rig"].create_work("main", file_format=".txt")
+        bizarro_task.categories["Rig"].create_work("lod300", file_format=".txt")
+
+        ultraman_task.categories["Model"].create_work("varA")
+        ultraman_task.categories["Model"].create_work("varB")
+        ultraman_task.categories["Model"].create_work("varC")
+
+        ultraman_task.categories["Rig"].create_work("varA")
+        ultraman_task.categories["Rig"].create_work("varB")
+        ultraman_task.categories["Rig"].create_work("varC")
+
+    # @clean_user
+    # def test_scanning_works(self):
+    #     self.test_creating_works()
+    #
+    #     self.tik.user.set("Admin", 1234)
+    #
+    #     bizarro_task.categories["Model"].scan_works()
 
     @clean_user
     def XXX_test_scanning_categories_for_works_and_publishes(self):

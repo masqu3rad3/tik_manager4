@@ -39,7 +39,7 @@ class TestUser(object):
         self.tik.project.__init__()
         self.tik.user.__init__()
         assert self.tik.user.get() == "Generic"
-        assert self.tik.project._guard.user == "Generic"
+        assert self.tik.project.guard.user == "Generic"
 
     @clean_user
     def test_authenticating_user(self):
@@ -48,7 +48,7 @@ class TestUser(object):
         self.tik.user.__init__()
         assert self.tik.user
         assert self.tik.user.authenticate("1234")
-        assert self.tik.project._guard.is_authenticated == True
+        assert self.tik.project.guard.is_authenticated == True
 
     @clean_user
     def test_switching_users(self):

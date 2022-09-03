@@ -7,7 +7,7 @@ log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class Entity(object):
     # _user = User()
-    _guard = Guard()
+    guard = Guard()
 
     def __init__(self, name="", uid=None):
         self._id = uid
@@ -44,11 +44,11 @@ class Entity(object):
 
     @property
     def permission_level(self):
-        return self._guard.permission_level
+        return self.guard.permission_level
 
     @property
     def is_authenticated(self):
-        return self._guard.is_authenticated
+        return self.guard.is_authenticated
 
     def _check_permissions(self, level):
         """Checks the user permissions for project actions."""
@@ -63,7 +63,10 @@ class Entity(object):
         return 1
 
     def get_abs_database_path(self, *args):
-        return os.path.normpath(os.path.join(self._guard.database_root, self.path, *args))
-
+        return os.path.normpath(os.path.join(self.guard.database_root, self.path, *args))
     def get_abs_project_path(self, *args):
-        return os.path.normpath(os.path.join(self._guard.project_root, self.path, *args))
+        return os.path.normpath(os.path.join(self.guard.project_root, self.path, *args))
+    def get_purgatory_project_path(self, *args):
+        return os.path.normpath(os.path.join(self.guard.project_root, "__purgatory", self.path, *args))
+    def get_purgatory_database_path(self, *args):
+        return os.path.normpath(os.path.join(self.guard.project_root, "__purgatory", "tikDatabase", self.path, *args))
