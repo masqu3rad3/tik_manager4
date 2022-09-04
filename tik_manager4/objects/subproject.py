@@ -226,7 +226,7 @@ class Subproject(Entity):
             _task_name = os.path.basename(_task_path).split(".")[0]
             existing_task = self._tasks.get(_task_name, None)
             if not existing_task:
-                _task = Task(absolute_path=_task_path)
+                _task = Task(absolute_path=_task_path, parent_sub=self)
                 self._tasks[_task_name] = _task
             else:
                 if existing_task.is_modified():
@@ -241,22 +241,59 @@ class Subproject(Entity):
         state = self._check_permissions(level=2)
         if state != 1:
             return -1
-        relative_path = os.path.join(self.path, "%s.ttask" % name)
+        file_name = "{0}.ttask".format(name)
+        relative_path = os.path.join(self.path, file_name)
         abs_path = os.path.join(self.guard.database_root, relative_path)
         if os.path.exists(abs_path):
             LOG.warning("There is a task under this sub-project with the same name => %s" % name)
             return -1
 
-        _task = Task(abs_path, name=name, categories=categories, path=self.path, task_type=task_type)
+        _task = Task(abs_path, name=name, categories=categories, path=self.path, file_name=file_name, task_type=task_type, parent_sub=self)
         _task.add_property("name", name)
         _task.add_property("creator", self.guard.user)
         _task.add_property("type", task_type)
         _task.add_property("task_id", _task.id)
         _task.add_property("categories", categories)
+        # _task.add_property("path", self.path)
         _task.add_property("path", self.path)
+        _task.add_property("file_name", file_name)
         _task.apply_settings()
         self._tasks[name] = _task
         return _task
+    def __is_task_empty(self, task):
+        """Checks all categories and returns True if all are empty"""
+        for category in task.categories:
+            if not task.categories[category].is_empty():
+                return False
+        return True
+    def delete_task(self, task_name):
+        """Deletes the task from the sub-project"""
+
+        # first get the task
+        task = self._tasks.get(task_name, None)
+        if not task:
+            LOG.warning("There is no task with the name => %s" % task_name)
+            return -1
+
+        # check all categories are empty
+        _is_empty = self.__is_task_empty(task)
+        permission_level = 2 if _is_empty else 3
+        state = self._check_permissions(level=permission_level)
+        if state != 1:
+            return -1
+
+        self._tasks.pop(task_name)
+
+        # move everything to the purgatory
+        if not _is_empty:
+            LOG.warning("Sending task {} and everything underneath to purgatory.".format(task_name))
+            from tik_manager4.core import io
+            io.IO().folder_check(self.get_purgatory_database_path(task.file_name))
+            io.IO().folder_check(self.get_purgatory_project_path())
+            shutil.move(self.get_abs_database_path(task.file_name), self.get_purgatory_database_path(task.file_name))
+            shutil.move(self.get_abs_project_path(), self.get_purgatory_project_path())
+
+        return 1
 
     def find_sub_by_id(self, uid):
         queue = list(self.subs.values())

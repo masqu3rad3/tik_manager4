@@ -306,7 +306,6 @@ class TestProject:
         self.test_creating_and_adding_new_tasks()
         # add a category
         _test_tasks = self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks
-        print(_test_tasks)
 
         # try to add category without permissions
         self.tik.user.set("Generic", password="1234")
@@ -319,30 +318,6 @@ class TestProject:
         assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].add_category("Gotham") == -1
         # check the log message
         assert self.tik.log.get_last_message() == ("Category 'Gotham' already exists in task 'batman'.", 'warning')
-    @clean_user
-    def test_deleting_empty_categories(self):
-        self.test_adding_categories()
-
-        # try to delete a category without permissions
-        self.tik.user.set("Generic", password="1234")
-        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Gotham") == -1
-        self.tik.user.set("Admin", password="1234")
-        # try to delete a non-existing category
-        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Burhan") == -1
-        # delete the Gotham category from Batman task
-        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Gotham")
-        assert "Gotham" not in self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories.keys()
-
-    @clean_user
-    def test_deleting_non_empty_categories(self):
-        self.test_adding_categories()
-        # add a version to the Gotham category
-        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories["Gotham"].create_work("test_work")
-        # try to delete a non-empty category
-        self.tik.user.set("Admin", password="1234")
-        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories["Gotham"].is_empty() == False
-        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Gotham")
-        # check the log message
 
 
     @clean_user
@@ -388,127 +363,59 @@ class TestProject:
         ultraman_task.categories["Rig"].create_work("varB")
         ultraman_task.categories["Rig"].create_work("varC")
 
-    # @clean_user
-    # def test_scanning_works(self):
-    #     self.test_creating_works()
-    #
-    #     self.tik.user.set("Admin", 1234)
-    #
-    #     bizarro_task.categories["Model"].scan_works()
-
     @clean_user
-    def XXX_test_scanning_categories_for_works_and_publishes(self):
+    def test_scanning_works(self):
+        self.test_creating_works()
+
+        # scan all works
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works(all_dcc=True)
+
+        # override the guard.dcc
+        self.tik.project.guard._dcc = "Maya"
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works(all_dcc=False) == {}
+
+    def test_deleting_empty_task(self):
         self.test_creating_and_adding_new_tasks()
 
-        self.tik.user.set("Admin", 1234)
+        # try to delete a task without permissions
+        self.tik.user.set("Generic", password="1234")
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].delete_task("superman") == -1
+        # check if the log message is correct
+        assert self.tik.log.get_last_message() == ('This user does not have permissions for this action', 'warning')
+        # try to delete a non-existing task
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].delete_task("this_task_doesnt_exist") == -1
 
-        #create some addigional tasks
-        asset_categories = ["Model", "Rig", "Lookdev"]
-
-        bizarro_task = self.tik.project.create_task("bizarro", categories=asset_categories, parent_path="Assets/Characters/Soldier")
-        ultraman_task = self.tik.project.create_task("ultraman", categories=asset_categories, parent_path="Assets/Characters/Soldier")
-        superboy_task = self.tik.project.create_task("superboy", categories=asset_categories, parent_path="Assets/Characters/Soldier")
-
-        # create a dummy directory
-        dummy_dir = os.path.join(bizarro_task.get_abs_database_path("Model", "Maya", "work"))
-        os.makedirs(dummy_dir)
-        # create a dummy version file
-        with open(os.path.join(dummy_dir, "bizarro.twork"), "w") as f:
-            f.write("test")
-        with open(os.path.join(dummy_dir, "ultraman.twork"), "w") as f:
-            f.write("test")
-        print("\n")
-        print(bizarro_task.categories)
-
-        bizarro_task.categories["Model"].scan_works()
-
+        # delete the task
+        self.tik.user.set("Admin", password="1234")
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].delete_task("superman") == 1
+    @clean_user
+    def test_deleting_non_empty_tasks(self):
+        self.test_creating_works()
+        self.tik.user.set("Admin", password="1234")
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].delete_task("superboy") == 1
 
     @clean_user
-    def canceled_test_create_task(self):
-        test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
-        self.tik.project.set(test_project_path)
+    def test_deleting_empty_categories(self):
+        self.test_adding_categories()
 
-        # missing path or uid
-        assert self.tik.project.create_task("test", "Rig") == -1
-
-        # create
-        task = self.tik.project.create_task("superman", category="Rig", parent_path="Assets/Characters/Soldier")
-        assert task.name == "superman"
-        assert task.creator == "Admin"
-        assert task.category == "Rig"
-
-
-        task = self.tik.project.create_task("superman", category="LookDev", parent_path="Assets/Characters/Soldier")
-        assert task.name == "superman"
-        assert task.creator == "Admin"
-        assert task.category == "LookDev"
-
-
-        task = self.tik.project.create_task("superman", category="Model", parent_path="Assets/Characters/Soldier")
-        assert task.name == "superman"
-        assert task.creator == "Admin"
-        assert task.category == "Model"
-
-
-        # try to create a duplicate task
-        assert self.tik.project.create_task("superman", category="Model", parent_path="Assets/Characters/Soldier") == -1
-
-        #non existing category
-        assert self.tik.project.create_task("superman", category="Burhan", parent_path="Assets/Characters/Soldier") == -1
-
-        #standalone error
-        assert self.tik.project.create_task("superman", category="Rig", parent_path="Assets/Characters/Soldier") == -1
-
-        # read
-        sub = self.tik.project.find_sub_by_path("Assets/Characters/Soldier")
-        for c in sub.categories:
-            c.scan_tasks()
-            for b in c.tasks:
-                assert b.name == "superman"
-                assert b.creator == "Admin"
-                assert b.category
-
-        #
-        # additional_task = self.tik.project.create_task("wonderwoman", category="Model", parent_path="Assets/Characters/Soldier")
-        # additional_task = self.tik.project.create_task("batman", category="Model", parent_path="Assets/Characters/Soldier")
-        # additional_task = self.tik.project.create_task("flash", category="Model", parent_path="Assets/Characters/Soldier")
-
-        # no permission
-        self.tik.user.set("Generic")
-        assert self.tik.project.create_task("superman", category="Rig", parent_path="Assets/Characters/Soldier") == -1
+        # try to delete a category without permissions
+        self.tik.user.set("Generic", password="1234")
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Gotham") == -1
+        self.tik.user.set("Admin", password="1234")
+        # try to delete a non-existing category
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Burhan") == -1
+        # delete the Gotham category from Batman task
+        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Gotham")
+        assert "Gotham" not in self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories.keys()
 
     @clean_user
-    def canceled_test_scan_versions(self):
-        self.test_create_task()
-        self.tik.user.set("Admin", 1234)
+    def test_deleting_non_empty_categories(self):
+        self.test_adding_categories()
+        # add a version to the Gotham category
+        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories["Gotham"].create_work("test_work")
+        # try to delete a non-empty category
+        self.tik.user.set("Admin", password="1234")
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories["Gotham"].is_empty() == False
+        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Gotham")
+        # check the log message
 
-
-
-        # create some additional tasks
-        bizarro_task = self.tik.project.create_task("bizarro", category="Model", parent_path="Assets/Characters/Soldier")
-        ultraman_task = self.tik.project.create_task("ultraman", category="Model", parent_path="Assets/Characters/Soldier")
-        superboy_task = self.tik.project.create_task("superboy", category="Model", parent_path="Assets/Characters/Soldier")
-
-        # create a dummy directory
-        dummy_dir = os.path.join(bizarro_task.get_abs_database_path(), "Maya")
-        os.makedirs(dummy_dir)
-        # create a dummy version file
-        with open(os.path.join(dummy_dir, "bizarro.twork"), "w") as f:
-            f.write("test")
-        with open(os.path.join(dummy_dir, "ultraman.twork"), "w") as f:
-            f.write("test")
-
-        dummy_dir = os.path.join(bizarro_task.get_abs_database_path(), "Nuke")
-        os.makedirs(dummy_dir)
-        with open(os.path.join(dummy_dir, "bizarro.twork"), "w") as f:
-            f.write("test")
-        with open(os.path.join(dummy_dir, "ultraman.twork"), "w") as f:
-            f.write("test")
-
-        bizarro_task.scan_works()
-
-        # sub = self.tik.project.find_sub_by_path("Assets/Characters/Soldier")
-
-
-
-        # print(sub.categories[0].name)

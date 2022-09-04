@@ -13,7 +13,7 @@ log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Category(Entity):
-    def __init__(self, parent_task=None,  **kwargs):
+    def __init__(self, parent_task,  **kwargs):
         super(Category, self).__init__(**kwargs)
 
         # self._name = name
@@ -36,14 +36,21 @@ class Category(Entity):
         if self.guard.dcc == "Standalone":
             all_dcc = True
 
+        # get all the files in directory with .twork extension
         if not all_dcc:
-            _works_search_dir = self.get_abs_database_path(self.guard.dcc, "work")  # this is DCC specific directory
-            _work_paths = glob(os.path.join(_works_search_dir, '*.twork'))
+            _search_dir = self.get_abs_database_path(self.guard.dcc)
+            _work_paths = glob(os.path.join(_search_dir, "*.twork"), recursive=False)
+
+        # get all the files in a directory recursively with .twork extension
         else:
             _search_dir = self.get_abs_database_path()
-            _work_paths = [y for x in os.walk(_search_dir) for y in glob(os.path.join(x[0], '*.twork'))]
+            _work_paths = glob(os.path.join(_search_dir, "**", "*.twork"), recursive=True)
+        #     _work_paths = [y for x in os.walk(_search_dir) for y in glob(os.path.join(x[0], '*.twork'))]
 
         # add the file if it is new. if it is not new, check the modified time and update if necessary
+        for _w_path, _w_data in dict(self._works).items():
+            if _w_path not in _work_paths:
+                self._works.pop(_w_path)
         for _work_path in _work_paths:
             existing_work = self._works.get(_work_path, None)
             if not existing_work:
@@ -73,21 +80,22 @@ class Category(Entity):
         # relative_path = os.path.join(self.path, "%s.twork" % name)
         # abs_path = os.path.join(self._guard.database_root, relative_path)
         contructed_name = self.construct_name(name)
-        abs_path = self.get_abs_database_path("%s.twork" % contructed_name)
+        relative_path = os.path.join(self.path, self.guard.dcc).replace("\\", "/")
+        abs_path = self.get_abs_database_path(self.guard.dcc, "%s.twork" % contructed_name)
         if os.path.exists(abs_path):
             # in that case instantiate the work and iterate the version.
             _work = Work(absolute_path=abs_path)
             _work.new_version(file_format=file_format)
             # log.warning("There is a work under this category with the same name => %s" % contructed_name)
             return _work
-        _work = Work(abs_path, name=contructed_name, path=self.path)
+        _work = Work(abs_path, name=contructed_name, path=relative_path)
         _work.add_property("name", contructed_name)
         _work.add_property("creator", self.guard.user)
         _work.add_property("category", self.name)
         _work.add_property("dcc", self.guard.dcc)
         _work.add_property("versions", [])
         _work.add_property("task_id", _work.id)
-        _work.add_property("path", self.path)
+        _work.add_property("path", relative_path)
         _work.new_version()
         return _work
 

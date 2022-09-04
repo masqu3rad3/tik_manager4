@@ -18,7 +18,9 @@ class Task(Settings, Entity):
                  name=None,
                  categories=None,
                  path=None,
+                 file_name=None,
                  task_type=None,
+                 parent_sub=None,
                  ):
         super(Task, self).__init__()
         self.settings_file = absolute_path
@@ -29,10 +31,15 @@ class Task(Settings, Entity):
         self._publishes = {}
         self._task_id = self.get_property("task_id") or self.id
         self._relative_path = self.get_property("path") or path
+        self._file_name = self.get_property("file_name") or file_name
         self._type = self.get_property("type") or task_type
 
         self._categories = self.__build_categories(self.get_property("categories") or categories)
 
+        self.parent_sub = parent_sub
+    @property
+    def file_name(self):
+        return self._file_name
     @property
     def type(self):
         return self._type
@@ -104,7 +111,23 @@ class Task(Settings, Entity):
         # shutil.rmtree(self.get_abs_database_path(category))
         # shutil.rmtree(self.get_abs_project_path(category))
 
-        return 0
+        return 1
+
+    # def delete(self):
+    #     """Deletes the task from the database"""
+    #
+    #     # check all categories are empty
+    #     _is_empty = any([self._categories[x].is_empty() for x in self._categories])
+    #     permission_level = 2 if _is_empty else 3
+    #     state = self._check_permissions(level=permission_level)
+    #     if state != 1:
+    #         return -1
+
+
+        # # delete task from database
+        # shutil.rmtree(self.get_abs_database_path())
+        # shutil.rmtree(self.get_abs_project_path())
+        # return 0
 
     def order_categories(self, new_order):
         """
