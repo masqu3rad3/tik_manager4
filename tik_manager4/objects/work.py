@@ -6,8 +6,10 @@ from tik_manager4.core.settings import Settings
 from tik_manager4.objects.entity import Entity
 from tik_manager4 import dcc
 
+
 class Work(Settings, Entity):
     _dcc_handler = dcc.Dcc()
+
     def __init__(self, absolute_path,
                  name=None,
                  path=None
@@ -22,7 +24,7 @@ class Work(Settings, Entity):
         self._reference_id = self.get_property("referenceID") or None
         self._relative_path = self.get_property("path") or path
         self._software_version = self.get_property("softwareVersion") or None
-        self.modified_time = None # to compare and update if necessary
+        self.modified_time = None  # to compare and update if necessary
 
         self._publishes = {}
 
@@ -44,11 +46,11 @@ class Work(Settings, Entity):
 
         # get filepath of current version
         _version_name = "{0}_{1}_v{2}{3}".format(self._name, self._creator,
-                                              str(self.version_count() + 1).zfill(3),
-                                                  file_format)
+                                                 str(self.version_count() + 1).zfill(3),
+                                                 file_format)
         _abs_version_path = self.get_abs_project_path(_version_name)
         _thumbnail_name = "{0}_{1}_v{2}_thumbnail.jpg".format(self._name, self._creator,
-                                              str(self.version_count() + 1).zfill(3))
+                                                              str(self.version_count() + 1).zfill(3))
         _thumbnail_path = self.get_abs_database_path("thumbnails", _thumbnail_name)
         self._io.folder_check(_abs_version_path)
 
@@ -61,7 +63,7 @@ class Work(Settings, Entity):
         # add it to the versions
         _version = {
             "workstation": socket.gethostname(),
-            "thumbnail":  os.path.join(self._relative_path, "thumbnails", _thumbnail_name).replace("\\", "/"),
+            "thumbnail": os.path.join(self._relative_path, "thumbnails", _thumbnail_name).replace("\\", "/"),
             "scene_path": os.path.join(self._relative_path, _version_name).replace("\\", "/"),
             "user": self.guard.user,
             "preview": "",
@@ -69,8 +71,6 @@ class Work(Settings, Entity):
         self._versions.append(_version)
         self.edit_property("versions", self._versions)
         self.apply_settings()
-
-
-
-
-
+    def make_publish(self):
+        """Create a publish from the currently loaded version on DCC."""
+        pass

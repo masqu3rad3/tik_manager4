@@ -100,7 +100,7 @@ class Category(Entity):
         return _work
 
     def delete_work(self, name):
-        """Deletes a work under the category"""
+        """Delete a work under the category."""
 
         _work = self._works.get(name, None)
         if not _work:
@@ -117,5 +117,5 @@ class Category(Entity):
 
 
     def construct_name(self, name):
-        """Construct the name for the work file. Useful to preview in UI"""
+        """Construct the name for the work file. Useful to preview in UI."""
         return "{0}_{1}_{2}".format(self.parent_task.name, self.name, name)

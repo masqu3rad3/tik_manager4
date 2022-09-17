@@ -4,11 +4,12 @@ from tik_manager4.core.settings import Settings
 from tik_manager4.objects.subproject import Subproject
 # from tik_manager4.objects.commons import Commons
 
-log = filelog.Filelog(logname=__name__, filename="tik_manager4")
+# log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 # class Project(Settings, Subproject):
 class Project(Subproject):
+    log = filelog.Filelog(logname=__name__, filename="tik_manager4")
     def __init__(self, path=None, name=None, resolution=None, fps=None):
         super(Project, self).__init__()
         self.structure = Settings()
@@ -137,7 +138,7 @@ class Project(Subproject):
         """Creates a task and stores it in persistent database"""
 
         if not parent_uid and not parent_path:
-            log.error("Requires at least a parent uid or parent path ")
+            self.log.error("Requires at least a parent uid or parent path ")
             return -1
         # state = self._check_permissions(level=1)
         # if state != 1:
