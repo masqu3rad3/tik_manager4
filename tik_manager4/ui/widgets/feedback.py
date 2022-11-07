@@ -10,10 +10,11 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
 class Feedback():
-    def __init__(self, *args, **kwargs):
-        self.parent=None
+    def __init__(self, parent=None, *args, **kwargs):
+        self.parent=parent
 
     def pop_info(self, title="Info", text="", details="", critical=False, button_label=None, modal=True):
+        print("ANANINGGGGGG", self.parent)
         msg = QtWidgets.QMessageBox(parent=self.parent)
         if critical:
             msg.setIcon(QtWidgets.QMessageBox.Critical)
@@ -29,7 +30,9 @@ class Feedback():
         msg.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
         if button_label:
             msg.button(QtWidgets.QMessageBox.Ok).setText(button_label)
+
         return msg.exec_()
+        # s = msg.exec_()
         # return msg.show()
 
     def pop_question(self, title="Question", text="", details="", buttons=None, modal=True):

@@ -360,13 +360,15 @@ class Subproject(Entity):
             return -1
         parent_path = os.path.dirname(kill_sub.path) or ""
         parent_sub = self.find_sub_by_path(parent_path)
+        print(parent_sub, parent_path)
         del parent_sub.subs[kill_sub.name]
 
         return 1
 
     def _delete_folders(self, root, sub=None):
         sub = sub or self
-        folder = os.path.join(root, sub.path)
+        folder = os.path.normpath(os.path.join(root, sub.path))
+        # print("TEST", folder)
         shutil.rmtree(folder)
 
     def create_folders(self, root, sub=None):

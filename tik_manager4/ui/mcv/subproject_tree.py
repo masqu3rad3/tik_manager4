@@ -3,6 +3,8 @@ import os
 from functools import partial
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui, Qt
+from tik_manager4.ui.widgets.new_subproject import NewSubproject
+from tik_manager4.ui.widgets.feedback import Feedback
 # from tik_manager4.objects import main
 import tik_manager4
 
@@ -179,6 +181,8 @@ class TikSubView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
     def __init__(self, project_obj=None):
         super(TikSubView, self).__init__()
+
+        self._feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         # self.setSortingEnabled(True)
@@ -338,20 +342,31 @@ class TikSubView(QtWidgets.QTreeView):
         right_click_menu = QtWidgets.QMenu()
         act_new_sub = right_click_menu.addAction(self.tr("New Sub-Project"))
         act_new_sub.triggered.connect(lambda _, x=item: self.new_sub_project(item))
+        act_delete_sub = right_click_menu.addAction(self.tr("Delete Sub-Project"))
+        act_delete_sub.triggered.connect(lambda _, x=item: self.delete_sub_project(item))
         # act_new_sub.triggered.connect(partial(self.TreeItem_Add, level, mdlIdx))
         # act_new_category = right_click_menu.addAction(self.tr("New Category"))
         act_new_task = right_click_menu.addAction(self.tr("New Task"))
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
     def new_sub_project(self, item):
-        # print(item.data.id)
-        sub = self.model.project.create_sub_project("TEST", parent_uid=item.data.id)
-        if sub != -1:
-            self.model.append_task(sub, item)
+        # first check for the user permission:
+        if self.model.project._check_permissions(level=2) != -1:
+            _dialog = NewSubproject(self.model.project, parent_sub=item.data, parent=self)
+            state = _dialog.exec_()
+            if state:
+                self.model.append_sub(_dialog.get_created_subproject(), item)
         else:
-            print("ERROR")
-            # print(self.model.project)
-            print(self.model.project.log.get_last_message())
+            message, title = self.model.project.log.get_last_message()
+            self._feedback.pop_info(title.capitalize(), message)
+
+    def delete_sub_project(self, item):
+        state = self.model.project.delete_sub_project(uid=item.data.id)
+        if state != -1:
+            self.model.removeRow(item.row(), item.parent().index())
+        else:
+            message, title = self.model.project.log.get_last_message()
+            self._feedback.pop_info(title.capitalize(), message)
 
 
 class ProxyModel(QtCore.QSortFilterProxyModel):

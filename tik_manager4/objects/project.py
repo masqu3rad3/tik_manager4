@@ -72,7 +72,6 @@ class Project(Subproject):
         # state = self._check_permissions(level=2)
         # if state != 1:
         #     return -1
-
         if uid:
             _remove_path = self.get_path_by_uid(uid)
         else:
@@ -80,7 +79,7 @@ class Project(Subproject):
 
         if self._remove_sub_project(uid, path) == -1:
             return -1
-        self.structure.apply_settings()
+        self.save_structure()
         self._delete_folders(os.path.join(self._database_path, _remove_path))
         return 1
 
@@ -101,6 +100,8 @@ class Project(Subproject):
             <class Subproject>
         """
         parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
+        if parent_sub == -1:
+            return -1
 
         new_sub = parent_sub.add_sub_project(name, parent_sub=parent_sub, resolution=resolution, fps=fps, mode=mode, uid=None)
         if new_sub == -1:
@@ -173,5 +174,6 @@ class Project(Subproject):
         else:
             parent = self.find_sub_by_path(parent_path)
         if parent == -1:
-            raise Exception("Parent cannot identified")
+            self.log.error("Parent subproject does not exist")
+        #     raise Exception("Parent cannot identified")
         return parent
