@@ -1,6 +1,7 @@
 """Dialog for new subproject creation."""
 import sys
 from tik_manager4.ui.Qt import QtWidgets
+from tik_manager4.ui.dialog import feedback
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
@@ -12,7 +13,6 @@ class NewTask(QtWidgets.QDialog):
 
         """
         super(NewTask, self).__init__(parent=parent, *args, **kwargs)
-        print("TEST")
         self.tik_project = project_object
         self._parent_sub = parent_sub or project_object
         self.parent = parent
@@ -41,7 +41,39 @@ class NewTask(QtWidgets.QDialog):
         self.path_le.setText(self._parent_sub.path)
         self.form_layout.addRow(self.path_lbl, self.path_le)
 
-        self.tik_project.structure
+        # categories
+        self.categories_lbl = QtWidgets.QLabel("Categories: ")
+
+        print(self._parent_sub.name)
+        print(self._parent_sub.mode)
+        if self._parent_sub:
+            _mode = self._parent_sub.mode
+            if _mode.lower() == "asset":
+                _default_categories = self.tik_project.guard.asset_categories
+            elif _mode.lower() == "shot":
+                _default_categories = self.tik_project.guard.shot_categories
+            else:
+                _default_categories = self.tik_project.guard.null_categories
+        else:
+            _default_categories = self.tik_project.guard.null_categories
+
+        self.categories_lay = QtWidgets.QHBoxLayout()
+        self.categories_list = QtWidgets.QListWidget()
+        self.categories_list.addItems(_default_categories)
+        self.categories_lay.addWidget(self.categories_list)
+
+        self.categories_buttons_lay = QtWidgets.QVBoxLayout()
+        self.categories_lay.addLayout(self.categories_buttons_lay)
+        self.add_category_btn = QtWidgets.QPushButton("Add")
+        self.remove_category_btn = QtWidgets.QPushButton("Remove")
+        self.move_category_up_btn = QtWidgets.QPushButton("Up")
+        self.move_category_down_btn = QtWidgets.QPushButton("Down")
+        self.categories_buttons_lay.addWidget(self.add_category_btn)
+        self.categories_buttons_lay.addWidget(self.remove_category_btn)
+        self.categories_buttons_lay.addWidget(self.move_category_up_btn)
+        self.categories_buttons_lay.addWidget(self.move_category_down_btn)
+
+        self.form_layout.addRow(self.categories_lbl, self.categories_lay)
 
     #     self.resolution_lbl = QtWidgets.QLabel("Resolution: ")
     #     self.resolution_hlay = QtWidgets.QHBoxLayout()
@@ -106,3 +138,4 @@ class NewTask(QtWidgets.QDialog):
     #
     # def get_created_subproject(self):
     #     return self._new_subproject
+

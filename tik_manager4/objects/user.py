@@ -54,6 +54,19 @@ class User(object):
         # cls._permission_level = level
         cls._guard.set_permission_level(level)
 
+    @classmethod
+    def __set_asset_categories(cls, asset_categories):
+        cls._guard.set_asset_categories(asset_categories)
+
+    @classmethod
+    def __set_shot_categories(cls, shot_categories):
+        cls._guard.set_shot_categories(shot_categories)
+
+    @classmethod
+    def __set_null_categories(cls, empty_categories):
+        cls._guard.set_null_categories(empty_categories)
+
+
     def _validate_user_data(self):
         """Finds or creates user directories and files"""
 
@@ -79,6 +92,9 @@ class User(object):
         self.settings.apply_settings()
 
         self.commons = Commons(self.common_directory)
+        self.__set_asset_categories(self.commons.structures.get_property("asset_categories"))
+        self.__set_shot_categories(self.commons.structures.get_property("shot_categories"))
+        self.__set_null_categories(self.commons.structures.get_property("null_categories"))
 
         # set the default keys for missing ones
         # for key, val in self.commons.manager.get_property("defaultUserSettings").items():
