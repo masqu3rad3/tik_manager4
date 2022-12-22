@@ -5,7 +5,7 @@ from tik_manager4.core import utils
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.commons import Commons
 from tik_manager4.objects.guard import Guard
-from tik_manager4.ui.widgets import feedback
+from tik_manager4.ui.dialog import feedback
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 

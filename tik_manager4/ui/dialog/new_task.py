@@ -1,7 +1,6 @@
 """Dialog for new subproject creation."""
 import sys
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui, Qt
-from tik_manager4.ui.widgets import feedback
+from tik_manager4.ui.Qt import QtWidgets
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
@@ -13,35 +12,37 @@ class NewTask(QtWidgets.QDialog):
 
         """
         super(NewTask, self).__init__(parent=parent, *args, **kwargs)
-    #     self.tik_project = project_object
-    #     self._parent_sub = parent_sub or project_object
-    #     self.parent = parent
-    #     self._feedback = feedback.Feedback(parent=self)
-    #     self.setWindowTitle("New Subproject")
-    #     # self.setWindowFlags(Qt.WindowStaysOnTopHint)
-    #     self.setFixedSize(600, 400)
-    #     self.setModal(True)
-    #     self._init_ui()
-    #
-    #     self._new_subproject = None
-    #
-    # def _init_ui(self):
-    #
-    #     self.main_layout = QtWidgets.QVBoxLayout(self)
-    #
-    #     self.form_layout = QtWidgets.QFormLayout()
-    #     self.main_layout.addLayout(self.form_layout)
-    #
-    #     self.name_lbl = QtWidgets.QLabel("Name: ")
-    #     self.name_le = QtWidgets.QLineEdit()
-    #     self.form_layout.addRow(self.name_lbl, self.name_le)
-    #
-    #     self.path_lbl = QtWidgets.QLabel("Path: ")
-    #     self.path_le = QtWidgets.QLineEdit()
-    #     self.path_le.setText(self._parent_sub.path)
-    #     self.form_layout.addRow(self.path_lbl, self.path_le)
-    #
-    #
+        print("TEST")
+        self.tik_project = project_object
+        self._parent_sub = parent_sub or project_object
+        self.parent = parent
+        self._feedback = feedback.Feedback(parent=self)
+        self.setWindowTitle("New Task")
+        # self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        self.setFixedSize(600, 400)
+        self.setModal(True)
+        self._init_ui()
+
+        self._new_task = None
+
+    def _init_ui(self):
+
+        self.main_layout = QtWidgets.QVBoxLayout(self)
+
+        self.form_layout = QtWidgets.QFormLayout()
+        self.main_layout.addLayout(self.form_layout)
+
+        self.name_lbl = QtWidgets.QLabel("Name: ")
+        self.name_le = QtWidgets.QLineEdit()
+        self.form_layout.addRow(self.name_lbl, self.name_le)
+
+        self.path_lbl = QtWidgets.QLabel("Path: ")
+        self.path_le = QtWidgets.QLineEdit()
+        self.path_le.setText(self._parent_sub.path)
+        self.form_layout.addRow(self.path_lbl, self.path_le)
+
+        self.tik_project.structure
+
     #     self.resolution_lbl = QtWidgets.QLabel("Resolution: ")
     #     self.resolution_hlay = QtWidgets.QHBoxLayout()
     #     self.resolution_x_sp = QtWidgets.QSpinBox()

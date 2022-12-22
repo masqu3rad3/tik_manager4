@@ -14,7 +14,6 @@ class Feedback():
         self.parent=parent
 
     def pop_info(self, title="Info", text="", details="", critical=False, button_label=None, modal=True):
-        print("ANANINGGGGGG", self.parent)
         msg = QtWidgets.QMessageBox(parent=self.parent)
         if critical:
             msg.setIcon(QtWidgets.QMessageBox.Critical)

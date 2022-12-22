@@ -108,14 +108,14 @@ class TestProject:
         assert self.tik.project.create_sub_project("anotherSub", parent_uid=new_sub.id) == -1
         assert log.get_last_message() == ("anotherSub already exist in sub-projects of testSub", "warning")
 
-        # try creating a sub-project with a wrong parent id
-        pytest.raises(Exception, self.tik.project.create_sub_project, "wrongSub", parent_uid=0)
-
-        # try creating a sub-project with a wrong parent path
-        pytest.raises(Exception, self.tik.project.create_sub_project, "wrongSub", parent_path="THIS_PATH_DOES_NOT_EXIST")
-
-        # try creating a sub-project without a parent path or parent id
-        pytest.raises(Exception, self.tik.project.create_sub_project, "wrongSub")
+        # # try creating a sub-project with a wrong parent id
+        # pytest.raises(Exception, self.tik.project.create_sub_project, "wrongSub", parent_uid=0)
+        #
+        # # try creating a sub-project with a wrong parent path
+        # pytest.raises(Exception, self.tik.project.create_sub_project, "wrongSub", parent_path="THIS_PATH_DOES_NOT_EXIST")
+        #
+        # # try creating a sub-project without a parent path or parent id
+        # pytest.raises(Exception, self.tik.project.create_sub_project, "wrongSub")
 
     # @clean_user
     # def test_create_category(self):

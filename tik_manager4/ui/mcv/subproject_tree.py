@@ -1,10 +1,10 @@
 import sys
 import os
-from functools import partial
 
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui, Qt
-from tik_manager4.ui.widgets.new_subproject import NewSubproject
-from tik_manager4.ui.widgets.feedback import Feedback
+from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+from tik_manager4.ui.dialog.new_subproject import NewSubproject
+from tik_manager4.ui.dialog.new_task import NewTask
+from tik_manager4.ui.dialog.feedback import Feedback
 # from tik_manager4.objects import main
 import tik_manager4
 
@@ -347,6 +347,7 @@ class TikSubView(QtWidgets.QTreeView):
         # act_new_sub.triggered.connect(partial(self.TreeItem_Add, level, mdlIdx))
         # act_new_category = right_click_menu.addAction(self.tr("New Category"))
         act_new_task = right_click_menu.addAction(self.tr("New Task"))
+        act_new_task.triggered.connect(lambda _, x=item: self.new_task(item))
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
     def new_sub_project(self, item):
@@ -356,6 +357,17 @@ class TikSubView(QtWidgets.QTreeView):
             state = _dialog.exec_()
             if state:
                 self.model.append_sub(_dialog.get_created_subproject(), item)
+        else:
+            message, title = self.model.project.log.get_last_message()
+            self._feedback.pop_info(title.capitalize(), message)
+
+    def new_task(self, item):
+        # first check for the user permission:
+        if self.model.project._check_permissions(level=2) != -1:
+            _dialog = NewTask(self.model.project, parent_sub=item.data, parent=self)
+            state = _dialog.exec_()
+            if state:
+                self.model.append_task(_dialog.get_created_task(), item)
         else:
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)

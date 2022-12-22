@@ -19,7 +19,7 @@ class Subproject(Entity):
         super(Subproject, self).__init__(**kwargs)
         self.__fps = fps
         self.__resolution = resolution
-        self.__mode = mode
+        self.__mode = mode or ""
         self.__shot_data = shot_data
         self.__parent_sub = parent_sub
         self._sub_projects = {}

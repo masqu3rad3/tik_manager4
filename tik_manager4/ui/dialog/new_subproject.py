@@ -1,7 +1,7 @@
 """Dialog for new subproject creation."""
 import sys
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui, Qt
-from tik_manager4.ui.widgets import feedback
+from tik_manager4.ui.Qt import QtWidgets
+from tik_manager4.ui.dialog import feedback
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

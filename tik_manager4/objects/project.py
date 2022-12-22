@@ -111,29 +111,29 @@ class Project(Subproject):
         self.create_folders(self._database_path)
         return new_sub
 
-    def create_category(self, name, parent_uid=None, parent_path=None):
-        """
-        Creates a category AND creates folders and stores it in persistent database
-
-        Args:
-            name: (String) Name of the category
-            parent_uid: (Int) Parent Sub-Project Unique ID or project itself.
-                                Either this or parent_path needs to be defined
-            parent_path: (String) Parent Sub-Project Relative path. If uid defined this will be skipped
-
-        Returns:
-            <class Category>
-        """
-
-        parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
-
-        new_category = parent_sub.add_category(name)
-        if new_category == -1:
-            return -1
-
-        self.structure.apply_settings()
-        self.create_folders(self._database_path)
-        return new_category
+    # def create_category(self, name, parent_uid=None, parent_path=None):
+    #     """
+    #     Creates a category AND creates folders and stores it in persistent database
+    #
+    #     Args:
+    #         name: (String) Name of the category
+    #         parent_uid: (Int) Parent Sub-Project Unique ID or project itself.
+    #                             Either this or parent_path needs to be defined
+    #         parent_path: (String) Parent Sub-Project Relative path. If uid defined this will be skipped
+    #
+    #     Returns:
+    #         <class Category>
+    #     """
+    #
+    #     parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
+    #
+    #     new_category = parent_sub.add_category(name)
+    #     if new_category == -1:
+    #         return -1
+    #
+    #     self.structure.apply_settings()
+    #     self.create_folders(self._database_path)
+    #     return new_category
 
     def create_task(self, name, categories=None, parent_uid=None, parent_path=None):
         """Creates a task and stores it in persistent database"""
