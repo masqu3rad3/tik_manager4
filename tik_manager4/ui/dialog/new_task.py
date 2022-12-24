@@ -9,7 +9,7 @@ if __name__ == '__main__':
 class NewTask(QtWidgets.QDialog):
     def __init__(self, project_object, parent_sub=None, parent=None, *args, **kwargs):
         """
-        Dialog for new subproject creation.
+        Dialog for new new task creation.
 
         """
         super(NewTask, self).__init__(parent=parent, *args, **kwargs)

@@ -4,8 +4,6 @@
 
 QWidget {
   background-color: #303030;
-  border: 0px solid #4c4c4c;
-  padding: 0px;
   color: #F0F0F0;
   selection-background-color: #141414;
   selection-color: #F0F0F0;
@@ -667,6 +665,8 @@ QProgressBar::chunk:disabled {
 https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qpushbutton
 
 --------------------------------------------------------------------------- */
+
+/*
 QPushButton
 {
     color: #b1b1b1;
@@ -702,6 +702,8 @@ QPushButton[menuButton=true] {
   min-width: 120;
   min-height: 45;
 }
+
+*/
 
 /* QToolButton ------------------------------------------------------------
 

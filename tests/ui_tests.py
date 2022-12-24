@@ -2,7 +2,7 @@ import sys
 import os
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+# from PyQt5 import QtCore, QtGui, QtWidgets
 
 from tik_manager4.ui.mcv.subproject_tree import TikProjectLayout
 from tik_manager4.ui.mcv.task_tree import TikTaskLayout

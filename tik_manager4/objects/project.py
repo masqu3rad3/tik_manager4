@@ -19,6 +19,7 @@ class Project(Subproject):
         self._name = name
         self._resolution = resolution
         self._fps = fps
+        self.__mode = ""
 
         # This makes sure the project folder is tik_manager4 ready
         if path:
@@ -27,7 +28,7 @@ class Project(Subproject):
 
         # Absolute path do not go into the project_structure.json
         self._absolute_path = ""
-        self._mode = "root"
+        # self._mode = "root"
 
 
     @property

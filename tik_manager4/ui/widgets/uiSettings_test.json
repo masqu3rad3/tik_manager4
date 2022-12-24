@@ -27,7 +27,7 @@
       "radioGuGu"
     ],
     "value": 1,
-    "disables": [[0, "testCheck"]]
+    "disables": [[0, "testSpinnerInt"]]
   },
   "testSpinnerInt": {
     "type": "spinnerInt",

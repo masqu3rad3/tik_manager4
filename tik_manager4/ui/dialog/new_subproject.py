@@ -1,10 +1,11 @@
 """Dialog for new subproject creation."""
 import sys
-from tik_manager4.ui.Qt import QtWidgets
+from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+from tik_manager4.ui import utils
 from tik_manager4.ui.dialog import feedback
 
-if __name__ == '__main__':
-    app = QtWidgets.QApplication(sys.argv)
+# if __name__ == '__main__':
+#     app = QtWidgets.QApplication(sys.argv)
 
 class NewSubproject(QtWidgets.QDialog):
     def __init__(self, project_object, parent_sub=None, parent=None, *args, **kwargs):
@@ -32,22 +33,24 @@ class NewSubproject(QtWidgets.QDialog):
         self.form_layout = QtWidgets.QFormLayout()
         self.main_layout.addLayout(self.form_layout)
 
-        self.name_lbl = QtWidgets.QLabel("Name: ")
-        self.name_le = QtWidgets.QLineEdit()
-        self.form_layout.addRow(self.name_lbl, self.name_le)
+        self.name_le = utils.create_row(self.form_layout, "Name: ", QtWidgets.QLineEdit)
 
-        self.path_lbl = QtWidgets.QLabel("Path: ")
-        self.path_le = QtWidgets.QLineEdit()
-        self.path_le.setText(self._parent_sub.path)
-        self.form_layout.addRow(self.path_lbl, self.path_le)
+        self.path_le = utils.create_row(QtWidgets.QLineEdit, self.form_layout, "Path: ", text=self._parent_sub.path)
 
-
-        self.resolution_lbl = QtWidgets.QLabel("Resolution: ")
+        self.resolution_lbl = QtWidgets.QLabel("Resolution Override: ")
         self.resolution_hlay = QtWidgets.QHBoxLayout()
+        self.resolution_hlay.setAlignment(QtCore.Qt.AlignLeft)
+        self.resolution_override_cb = QtWidgets.QCheckBox()
+        self.resolution_hlay.addWidget(self.resolution_override_cb)
+        self.resolution_d_hlay = QtWidgets.QHBoxLayout()
+        self.resolution_d_hlay.setAlignment(QtCore.Qt.AlignLeft)
+        self.resolution_hlay.addLayout(self.resolution_d_hlay)
         self.resolution_x_sp = QtWidgets.QSpinBox()
         self.resolution_y_sp = QtWidgets.QSpinBox()
-        self.resolution_hlay.addWidget(self.resolution_x_sp)
-        self.resolution_hlay.addWidget(self.resolution_y_sp)
+        self.resolution_d_hlay.addWidget(self.resolution_x_sp)
+        self.resolution_d_hlay.addWidget(self.resolution_y_sp)
+        # self.resolution_hlay.addWidget(self.resolution_x_sp)
+        # self.resolution_hlay.addWidget(self.resolution_y_sp)
         self.resolution_x_sp.setRange(1, 99999)
         self.resolution_y_sp.setRange(1, 99999)
         self.resolution_x_sp.setValue(self._parent_sub.resolution[0])
@@ -70,23 +73,21 @@ class NewSubproject(QtWidgets.QDialog):
         self.mode_cb = QtWidgets.QComboBox()
         self.mode_cb.addItems(["None", "Asset", "Shot"])
         # select the mode of the parent subproject
-        if self._parent_sub.mode.lower() == "asset":
+        if self._parent_sub.mode == "asset":
             self.mode_cb.setCurrentIndex(1)
-        elif self._parent_sub.mode.lower() == "shot":
+        elif self._parent_sub.mode == "shot":
             self.mode_cb.setCurrentIndex(2)
         else:
             self.mode_cb.setCurrentIndex(0)
         self.form_layout.addRow(self.mode_lbl, self.mode_cb)
 
-        self.button_layout = QtWidgets.QHBoxLayout()
-        self.cancel_button = QtWidgets.QPushButton("Cancel")
-        self.create_button = QtWidgets.QPushButton("Create")
-        self.button_layout.addWidget(self.cancel_button)
-        self.button_layout.addWidget(self.create_button)
-        self.main_layout.addLayout(self.button_layout)
+        # create a button box
+        self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.main_layout.addWidget(self.button_box)
 
-        self.cancel_button.clicked.connect(self.close)
-        self.create_button.clicked.connect(self.create_subproject)
+        # SIGNALS
+        self.button_box.accepted.connect(self.create_subproject)
+        self.button_box.rejected.connect(self.reject)
 
     def create_subproject(self):
         name = self.name_le.text()
@@ -105,3 +106,22 @@ class NewSubproject(QtWidgets.QDialog):
 
     def get_created_subproject(self):
         return self._new_subproject
+
+
+# test new subproject dialog
+if __name__ == "__main__":
+    import sys
+    import os
+    import tik_manager4
+
+    app = QtWidgets.QApplication(sys.argv)
+
+    test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
+    tik = tik_manager4.initialize("Standalone")
+    tik.user.set("Admin", "1234")
+    tik.project.set(test_project_path)
+    dialog = NewSubproject(tik.project)
+    dialog.show()
+    app.exec_()
+
+    sys.exit(app.exec_())
