@@ -1,8 +1,10 @@
 """Dialog for new subproject creation."""
 import sys
+from tik_manager4.core.settings import Settings
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui import utils
 from tik_manager4.ui.dialog import feedback
+from tik_manager4.ui.widgets.settings_layout import SettingsLayout
 
 # if __name__ == '__main__':
 #     app = QtWidgets.QApplication(sys.argv)
@@ -18,6 +20,7 @@ class NewSubproject(QtWidgets.QDialog):
         self._parent_sub = parent_sub or project_object
         self.parent = parent
         self._feedback = feedback.Feedback(parent=self)
+        self.settings = Settings()
         self.setWindowTitle("New Subproject")
         # self.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.setFixedSize(600, 400)
@@ -26,17 +29,56 @@ class NewSubproject(QtWidgets.QDialog):
 
         self._new_subproject = None
 
+    def populate_settings(self):
+        self.settings.add_property("name", {
+            "type": "string",
+            "value": "",
+        })
+        self.settings.add_property("path", {
+            "type": "string",
+            "value": "",
+        })
+        self.settings.add_property("description", {
+            "type": "string",
+            "value": "",
+        })
+        self.settings.add_property("parent", {
+            "type": "string",
+            "value": self._parent_sub.name,
+        })
+        self.settings.add_property("subprojects", {
+            "type": "list",
+            "value": [],
+        })
+        self.settings.add_property("tasks", {
+            "type": "list",
+            "value": [],
+        })
+        self.settings.add_property("assets", {
+            "type": "list",
+            "value": [],
+        })
+        self.settings.add_property("sequences", {
+            "type": "list",
+            "value": [],
+        })
+        self.settings.add_property("shots", {
+            "type": "list",
+            "value": [],
+        })
     def _init_ui(self):
 
         self.main_layout = QtWidgets.QVBoxLayout(self)
+
+        self.settings_layout = SettingsLayout(self.settings, parent=self)
+        self.main_layout.addLayout(self.settings_layout)
 
         self.form_layout = QtWidgets.QFormLayout()
         self.main_layout.addLayout(self.form_layout)
 
         self.name_le = utils.create_row(self.form_layout, "Name: ", QtWidgets.QLineEdit)
 
-        self.path_le = utils.create_row(QtWidgets.QLineEdit, self.form_layout, "Path: ", text=self._parent_sub.path)
-
+        self.path_le = utils.create_row(self.form_layout, "Path: ", QtWidgets.QLineEdit, text=self._parent_sub.path)
         self.resolution_lbl = QtWidgets.QLabel("Resolution Override: ")
         self.resolution_hlay = QtWidgets.QHBoxLayout()
         self.resolution_hlay.setAlignment(QtCore.Qt.AlignLeft)
@@ -49,8 +91,6 @@ class NewSubproject(QtWidgets.QDialog):
         self.resolution_y_sp = QtWidgets.QSpinBox()
         self.resolution_d_hlay.addWidget(self.resolution_x_sp)
         self.resolution_d_hlay.addWidget(self.resolution_y_sp)
-        # self.resolution_hlay.addWidget(self.resolution_x_sp)
-        # self.resolution_hlay.addWidget(self.resolution_y_sp)
         self.resolution_x_sp.setRange(1, 99999)
         self.resolution_y_sp.setRange(1, 99999)
         self.resolution_x_sp.setValue(self._parent_sub.resolution[0])

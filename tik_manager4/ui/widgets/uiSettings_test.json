@@ -40,5 +40,30 @@
     "value": 341.23,
     "minimum": 0.0,
     "maximum": 999.9
-  }
+  },
+    "testMulti": {
+        "type": "multi",
+        "value": [
+          {
+            "type": "boolean",
+            "value": true,
+            "object_name": "resolution_override",
+            "disables": [[false, "resolutionX"], [true, "resolutionY"]]
+          },
+          {
+            "type": "spinnerInt",
+            "value": 1920,
+            "minimum": 1,
+            "maximum": 999999,
+            "object_name": "resolutionX"
+          },
+          {
+            "type": "spinnerInt",
+            "value": 1080,
+            "minimum": 1,
+            "maximum": 999999,
+            "object_name": "resolutionY"
+          }
+        ]
+        }
 }
