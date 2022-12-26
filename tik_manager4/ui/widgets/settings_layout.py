@@ -1,4 +1,14 @@
-"""Settings Layout for auto-creating setting menus directly from Settings object"""
+"""Settings Layout for auto-creating setting menus directly from Settings object.
+
+Supported types:
+    - boolean => QCheckBox
+    - string => QLineEdit
+    - spinnerInt => QSpinBox
+    - spinnerFloat => QDoubleSpinBox
+    - combo => QComboBox
+
+
+"""
 
 import os
 import sys
@@ -128,6 +138,97 @@ class Float(SpinnerFloat):
         super(Float, self).__init__(*args, **kwargs)
         self.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
+class List(QtWidgets.QWidget):
+    """Customized List widget with buttons to manage the list"""
+    def __init__(self, name, object_name=None, value=None, disables=None, **kwargs):
+        super(List, self).__init__()
+        self.com = ValueChangeInt()
+        self.value = value or []
+        self.setObjectName(object_name or name)
+        self.disables = disables or []
+        self.layout = QtWidgets.QHBoxLayout(self)
+        self.list = QtWidgets.QListWidget()
+        self.button_layout = QtWidgets.QVBoxLayout()
+        self.button_names = kwargs.get("buttons", ["Add", "Remove", "Up", "Down"])
+        self.buttons = []
+        self._create_buttons()
+        self.build()
+    def build(self):
+        self.list.addItems(self.value)
+        self.list.itemChanged.connect(self.com.valueChangeEvent)
+        self.layout.addWidget(self.list)
+        # self.add_button = QtWidgets.QPushButton("Add")
+        # self.add_button.clicked.connect(self.add_item)
+        # self.remove_button = QtWidgets.QPushButton("Remove")
+        # self.remove_button.clicked.connect(self.remove_item)
+        # self.button_layout.addWidget(self.add_button)
+        # self.button_layout.addWidget(self.remove_button)
+        self.layout.addLayout(self.button_layout)
+
+    def get_button(self, name):
+        """Return the button widget with the given name"""
+        return self.buttons[self.button_names.index(name)]
+
+    def _create_buttons(self):
+        for button in self.button_names:
+            _button = QtWidgets.QPushButton(button)
+            _button.setObjectName(button)
+            self.button_layout.addWidget(_button)
+            self.buttons.append(_button)
+            # handle the predefined functions
+            if button == "Add":
+                _button.clicked.connect(self.add_item)
+            elif button == "Remove":
+                _button.clicked.connect(self.remove_item)
+            elif button == "Up":
+                _button.clicked.connect(self.up_item)
+            elif button == "Down":
+                _button.clicked.connect(self.down_item)
+            else:
+                # now handle the buttons with custom functions
+                # TODO add the custom functions
+                pass
+
+    def add_item(self):
+        # create a mini dialog to define the item name
+        item_name, ok = QtWidgets.QInputDialog.getText(self, "Add Item", "Item Name")
+        if ok:
+            # if the item is already in the list, do nothing
+            if item_name in self.value:
+                return
+            self.list.addItem(item_name)
+            self.value.append(item_name)
+            self.com.valueChangeEvent(self.list.currentRow())
+    def remove_item(self):
+        self.list.takeItem(self.list.currentRow())
+        self.value.pop(self.list.currentRow())
+        self.com.valueChangeEvent(self.list.currentRow())
+
+    def up_item(self):
+        """Move the selected item up in the list of items."""
+        current_row = self.list.currentRow()
+        if current_row > 0:
+            item = self.list.takeItem(current_row)
+            self.list.insertItem(current_row - 1, item)
+            self.list.setCurrentRow(current_row - 1)
+            self.value.insert(current_row - 1, self.value.pop(current_row))
+            self.com.valueChangeEvent(self.list.currentRow())
+
+    def down_item(self):
+        """Move the selected item down in the list of items."""
+        current_row = self.list.currentRow()
+        if current_row < self.list.count() - 1:
+            item = self.list.takeItem(current_row)
+            self.list.insertItem(current_row + 1, item)
+            self.list.setCurrentRow(current_row + 1)
+            self.value.insert(current_row + 1, self.value.pop(current_row))
+            self.com.valueChangeEvent(self.list.currentRow())
+
+
+    # def valueChangeEvent(self, e):
+    #     self.value = [self.list.item(i).text() for i in range(self.list.count())]
+    #     self.com.valueChangeEvent(self.value)
+
 class SettingsLayout(QtWidgets.QFormLayout):
     """Visualizes and edits Setting objects in a vertical layout"""
     widget_dict = {
@@ -137,7 +238,8 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "integer": Integer,
         "float": Float,
         "spinnerInt": SpinnerInt,
-        "spinnerFloat": SpinnerFloat
+        "spinnerFloat": SpinnerFloat,
+        "list": List
     }
 
     def __init__(self, settings_obj, *args, **kwargs):

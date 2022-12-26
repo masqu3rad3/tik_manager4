@@ -101,6 +101,10 @@
             "maximum": 999999
         }
     }
+  },
+  "testList": {
+    "type": "list",
+    "value": []
   }
 }
 

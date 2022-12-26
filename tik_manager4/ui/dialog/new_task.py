@@ -1,7 +1,9 @@
 """Dialog for new subproject creation."""
 import sys
+from tik_manager4.core.settings import Settings
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog import feedback
+from tik_manager4.ui.widgets.settings_layout import SettingsLayout
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
@@ -17,125 +19,116 @@ class NewTask(QtWidgets.QDialog):
         self._parent_sub = parent_sub or project_object
         self.parent = parent
         self._feedback = feedback.Feedback(parent=self)
+        self.settings = Settings()
         self.setWindowTitle("New Task")
         # self.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.setFixedSize(600, 400)
         self.setModal(True)
+
+
+        self.populate_settings()
         self._init_ui()
 
         self._new_task = None
 
-    def _init_ui(self):
+    def populate_settings(self):
+        """Populate settings."""
 
-        self.main_layout = QtWidgets.QVBoxLayout(self)
-
-        self.form_layout = QtWidgets.QFormLayout()
-        self.main_layout.addLayout(self.form_layout)
-
-        self.name_lbl = QtWidgets.QLabel("Name: ")
-        self.name_le = QtWidgets.QLineEdit()
-        self.form_layout.addRow(self.name_lbl, self.name_le)
-
-        self.path_lbl = QtWidgets.QLabel("Path: ")
-        self.path_le = QtWidgets.QLineEdit()
-        self.path_le.setText(self._parent_sub.path)
-        self.form_layout.addRow(self.path_lbl, self.path_le)
-
-        # categories
-        self.categories_lbl = QtWidgets.QLabel("Categories: ")
-
-        print(self._parent_sub.name)
-        print(self._parent_sub.mode)
-        if self._parent_sub:
-            _mode = self._parent_sub.mode
-            if _mode.lower() == "asset":
-                _default_categories = self.tik_project.guard.asset_categories
-            elif _mode.lower() == "shot":
-                _default_categories = self.tik_project.guard.shot_categories
-            else:
-                _default_categories = self.tik_project.guard.null_categories
+        _mode = self._parent_sub.mode or ""
+        if _mode.lower() == "asset":
+            _default_categories = self.tik_project.guard.asset_categories
+        elif _mode.lower() == "shot":
+            _default_categories = self.tik_project.guard.shot_categories
         else:
             _default_categories = self.tik_project.guard.null_categories
 
-        self.categories_lay = QtWidgets.QHBoxLayout()
-        self.categories_list = QtWidgets.QListWidget()
-        self.categories_list.addItems(_default_categories)
-        self.categories_lay.addWidget(self.categories_list)
+        self.settings.add_property("name", {
+            "display_name": "Name :",
+            "type": "string",
+            "value": "",
+        })
+        self.settings.add_property("path", {
+            "display_name": "Path :",
+            "type": "string",
+            "value": self._parent_sub.path,
+        })
+        self.settings.add_property("categories", {
+            "display_name": "Categories :",
+            "type": "list",
+            "value": _default_categories
+        })
 
-        self.categories_buttons_lay = QtWidgets.QVBoxLayout()
-        self.categories_lay.addLayout(self.categories_buttons_lay)
-        self.add_category_btn = QtWidgets.QPushButton("Add")
-        self.remove_category_btn = QtWidgets.QPushButton("Remove")
-        self.move_category_up_btn = QtWidgets.QPushButton("Up")
-        self.move_category_down_btn = QtWidgets.QPushButton("Down")
-        self.categories_buttons_lay.addWidget(self.add_category_btn)
-        self.categories_buttons_lay.addWidget(self.remove_category_btn)
-        self.categories_buttons_lay.addWidget(self.move_category_up_btn)
-        self.categories_buttons_lay.addWidget(self.move_category_down_btn)
+    def _init_ui(self):
+        self.main_layout = QtWidgets.QVBoxLayout(self)
+        print("d1")
+        self.settings_layout = SettingsLayout(self.settings, parent=self)
+        print("d2")
+        self.main_layout.addLayout(self.settings_layout)
 
-        self.form_layout.addRow(self.categories_lbl, self.categories_lay)
+        # create a button box
+        self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.main_layout.addWidget(self.button_box)
 
-    #     self.resolution_lbl = QtWidgets.QLabel("Resolution: ")
-    #     self.resolution_hlay = QtWidgets.QHBoxLayout()
-    #     self.resolution_x_sp = QtWidgets.QSpinBox()
-    #     self.resolution_y_sp = QtWidgets.QSpinBox()
-    #     self.resolution_hlay.addWidget(self.resolution_x_sp)
-    #     self.resolution_hlay.addWidget(self.resolution_y_sp)
-    #     self.resolution_x_sp.setRange(1, 99999)
-    #     self.resolution_y_sp.setRange(1, 99999)
-    #     self.resolution_x_sp.setValue(self._parent_sub.resolution[0])
-    #     self.resolution_y_sp.setValue(self._parent_sub.resolution[1])
-    #     self.resolution_x_sp.setFixedWidth(100)
-    #     self.resolution_y_sp.setFixedWidth(100)
-    #     self.resolution_x_sp.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-    #     self.resolution_y_sp.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-    #     self.form_layout.addRow(self.resolution_lbl, self.resolution_hlay)
+        # SIGNALS
+        self.button_box.accepted.connect(self.create_task)
+        self.button_box.rejected.connect(self.reject)
+
+    def create_task(self):
+        """Create task."""
+        self._new_task = self.tik_project.create_task(
+            name=self.settings.name.value,
+            path=self.settings.path.value,
+            categories=self.settings.categories.value,
+            parent=self._parent_sub,
+        )
+        self.accept()
+
+    # def _init_ui(self):
     #
-    #     self.fps_lbl = QtWidgets.QLabel("FPS: ")
-    #     self.fps_sp = QtWidgets.QSpinBox()
-    #     self.fps_sp.setValue(self._parent_sub.fps)
-    #     self.fps_sp.setRange(1, 99999)
-    #     self.fps_sp.setFixedWidth(100)
-    #     self.fps_sp.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-    #     self.form_layout.addRow(self.fps_lbl, self.fps_sp)
+    #     self.main_layout = QtWidgets.QVBoxLayout(self)
     #
-    #     self.mode_lbl = QtWidgets.QLabel("Mode: ")
-    #     self.mode_cb = QtWidgets.QComboBox()
-    #     self.mode_cb.addItems(["None", "Asset", "Shot"])
-    #     # select the mode of the parent subproject
-    #     if self._parent_sub.mode.lower() == "asset":
-    #         self.mode_cb.setCurrentIndex(1)
-    #     elif self._parent_sub.mode.lower() == "shot":
-    #         self.mode_cb.setCurrentIndex(2)
+    #     self.form_layout = QtWidgets.QFormLayout()
+    #     self.main_layout.addLayout(self.form_layout)
+    #
+    #     self.name_lbl = QtWidgets.QLabel("Name: ")
+    #     self.name_le = QtWidgets.QLineEdit()
+    #     self.form_layout.addRow(self.name_lbl, self.name_le)
+    #
+    #     self.path_lbl = QtWidgets.QLabel("Path: ")
+    #     self.path_le = QtWidgets.QLineEdit()
+    #     self.path_le.setText(self._parent_sub.path)
+    #     self.form_layout.addRow(self.path_lbl, self.path_le)
+    #
+    #     # categories
+    #     self.categories_lbl = QtWidgets.QLabel("Categories: ")
+    #
+    #     print(self._parent_sub.name)
+    #     print(self._parent_sub.mode)
+    #     if self._parent_sub:
+    #         _mode = self._parent_sub.mode
+    #         if _mode.lower() == "asset":
+    #             _default_categories = self.tik_project.guard.asset_categories
+    #         elif _mode.lower() == "shot":
+    #             _default_categories = self.tik_project.guard.shot_categories
+    #         else:
+    #             _default_categories = self.tik_project.guard.null_categories
     #     else:
-    #         self.mode_cb.setCurrentIndex(0)
-    #     self.form_layout.addRow(self.mode_lbl, self.mode_cb)
+    #         _default_categories = self.tik_project.guard.null_categories
     #
-    #     self.button_layout = QtWidgets.QHBoxLayout()
-    #     self.cancel_button = QtWidgets.QPushButton("Cancel")
-    #     self.create_button = QtWidgets.QPushButton("Create")
-    #     self.button_layout.addWidget(self.cancel_button)
-    #     self.button_layout.addWidget(self.create_button)
-    #     self.main_layout.addLayout(self.button_layout)
+    #     self.categories_lay = QtWidgets.QHBoxLayout()
+    #     self.categories_list = QtWidgets.QListWidget()
+    #     self.categories_list.addItems(_default_categories)
+    #     self.categories_lay.addWidget(self.categories_list)
     #
-    #     self.cancel_button.clicked.connect(self.close)
-    #     self.create_button.clicked.connect(self.create_subproject)
+    #     self.categories_buttons_lay = QtWidgets.QVBoxLayout()
+    #     self.categories_lay.addLayout(self.categories_buttons_lay)
+    #     self.add_category_btn = QtWidgets.QPushButton("Add")
+    #     self.remove_category_btn = QtWidgets.QPushButton("Remove")
+    #     self.move_category_up_btn = QtWidgets.QPushButton("Up")
+    #     self.move_category_down_btn = QtWidgets.QPushButton("Down")
+    #     self.categories_buttons_lay.addWidget(self.add_category_btn)
+    #     self.categories_buttons_lay.addWidget(self.remove_category_btn)
+    #     self.categories_buttons_lay.addWidget(self.move_category_up_btn)
+    #     self.categories_buttons_lay.addWidget(self.move_category_down_btn)
     #
-    # def create_subproject(self):
-    #     name = self.name_le.text()
-    #     path = self.path_le.text()
-    #     resolution = [self.resolution_x_sp.value(), self.resolution_y_sp.value()]
-    #     fps = self.fps_sp.value()
-    #     mode = self.mode_cb.currentText()
-    #     sub = self.tik_project.create_sub_project(str(name), parent_path=path, resolution=resolution, fps=fps, mode=mode)
-    #
-    #     if sub != -1:
-    #         self._new_subproject = sub
-    #         self.accept()
-    #     else:
-    #         msg, title = self.tik_project.log.get_last_message()
-    #         self._feedback.pop_info(title, msg, critical=True)
-    #
-    # def get_created_subproject(self):
-    #     return self._new_subproject
-
+    #     self.form_layout.addRow(self.categories_lbl, self.categories_lay)

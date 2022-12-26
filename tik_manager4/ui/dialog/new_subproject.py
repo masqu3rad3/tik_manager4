@@ -101,54 +101,6 @@ class NewSubproject(QtWidgets.QDialog):
         self.settings_layout = SettingsLayout(self.settings, parent=self)
         self.main_layout.addLayout(self.settings_layout)
 
-        # self.form_layout = QtWidgets.QFormLayout()
-        # self.main_layout.addLayout(self.form_layout)
-        #
-        # self.name_le = utils.create_row(self.form_layout, "Name: ", QtWidgets.QLineEdit)
-        #
-        # self.path_le = utils.create_row(self.form_layout, "Path: ", QtWidgets.QLineEdit, text=self._parent_sub.path)
-        # self.resolution_lbl = QtWidgets.QLabel("Resolution Override: ")
-        # self.resolution_hlay = QtWidgets.QHBoxLayout()
-        # self.resolution_hlay.setAlignment(QtCore.Qt.AlignLeft)
-        # self.resolution_override_cb = QtWidgets.QCheckBox()
-        # self.resolution_hlay.addWidget(self.resolution_override_cb)
-        # self.resolution_d_hlay = QtWidgets.QHBoxLayout()
-        # self.resolution_d_hlay.setAlignment(QtCore.Qt.AlignLeft)
-        # self.resolution_hlay.addLayout(self.resolution_d_hlay)
-        # self.resolution_x_sp = QtWidgets.QSpinBox()
-        # self.resolution_y_sp = QtWidgets.QSpinBox()
-        # self.resolution_d_hlay.addWidget(self.resolution_x_sp)
-        # self.resolution_d_hlay.addWidget(self.resolution_y_sp)
-        # self.resolution_x_sp.setRange(1, 99999)
-        # self.resolution_y_sp.setRange(1, 99999)
-        # self.resolution_x_sp.setValue(self._parent_sub.resolution[0])
-        # self.resolution_y_sp.setValue(self._parent_sub.resolution[1])
-        # self.resolution_x_sp.setFixedWidth(100)
-        # self.resolution_y_sp.setFixedWidth(100)
-        # self.resolution_x_sp.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        # self.resolution_y_sp.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        # self.form_layout.addRow(self.resolution_lbl, self.resolution_hlay)
-        #
-        # self.fps_lbl = QtWidgets.QLabel("FPS: ")
-        # self.fps_sp = QtWidgets.QSpinBox()
-        # self.fps_sp.setValue(self._parent_sub.fps)
-        # self.fps_sp.setRange(1, 99999)
-        # self.fps_sp.setFixedWidth(100)
-        # self.fps_sp.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        # self.form_layout.addRow(self.fps_lbl, self.fps_sp)
-        #
-        # self.mode_lbl = QtWidgets.QLabel("Mode: ")
-        # self.mode_cb = QtWidgets.QComboBox()
-        # self.mode_cb.addItems(["None", "Asset", "Shot"])
-        # # select the mode of the parent subproject
-        # if self._parent_sub.mode == "asset":
-        #     self.mode_cb.setCurrentIndex(1)
-        # elif self._parent_sub.mode == "shot":
-        #     self.mode_cb.setCurrentIndex(2)
-        # else:
-        #     self.mode_cb.setCurrentIndex(0)
-        # self.form_layout.addRow(self.mode_lbl, self.mode_cb)
-
         # create a button box
         self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         self.main_layout.addWidget(self.button_box)
@@ -158,26 +110,15 @@ class NewSubproject(QtWidgets.QDialog):
         self.button_box.rejected.connect(self.reject)
 
     def create_subproject(self):
-        # name = self.name_le.text()
-        # path = self.path_le.text()
-        # resolution = [self.resolution_x_sp.value(), self.resolution_y_sp.value()]
-        # fps = self.fps_sp.value()
-        # mode = self.mode_cb.currentText()
-        print(self.settings.get_data())
         name = self.settings.get_property("name")["value"]
-        print("d2")
         path = self.settings.get_property("path")["value"]
-        print("d3")
 
         resolution_override = self.settings.get_sub_property(["resolution_override", "value", "override", "value"])
-        print("d4")
         if resolution_override:
-            print("d5")
             _resolution_x = self.settings.get_sub_property(["resolution_override", "value", "resolutionX", "value"])
             _resolution_y = self.settings.get_sub_property(["resolution_override", "value", "resolutionY", "value"])
             resolution = [_resolution_x, _resolution_y]
         else:
-            print("d6")
             resolution = None
 
         fps_override = self.settings.get_sub_property(["fps_override", "value", "override", "value"])
@@ -191,11 +132,8 @@ class NewSubproject(QtWidgets.QDialog):
             mode = self.settings.get_sub_property(["mode_override", "value", "mode", "value"])
         else:
             mode = None
-        print("d7")
-        #
-        print(name, path, resolution, fps, mode)
+
         sub = self.tik_project.create_sub_project(name, parent_path=path, resolution=resolution, fps=fps, mode=mode)
-        print("d8")
         if sub != -1:
             self._new_subproject = sub
             self.accept()
