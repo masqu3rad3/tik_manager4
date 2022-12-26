@@ -1,0 +1,107 @@
+{
+  "testCheck: ": {
+    "display_name": "testoid checkus manyakus",
+    "type": "boolean",
+    "value": true,
+    "disables": [
+      [
+        true,
+        "testString"
+      ]
+    ]
+  },
+  "testString": {
+    "type": "string",
+    "value": "",
+    "disables": [],
+    "placeholder": "(Optional)"
+  },
+  "testCombo": {
+    "type": "combo",
+    "items": [
+      "valueA",
+      "valueB",
+      "valueC"
+    ],
+    "value": 2
+  },
+  "testRadio": {
+    "type": "combo",
+    "items": [
+      "radioGa",
+      "radioGu",
+      "radioGuGu"
+    ],
+    "value": 1,
+    "disables": [
+      [
+        0,
+        "testSpinnerInt"
+      ]
+    ]
+  },
+  "testSpinnerInt": {
+    "type": "spinnerInt",
+    "value": 12,
+    "minimum": 0,
+    "maximum": 100
+  },
+  "testSpinnerFloat": {
+    "type": "spinnerFloat",
+    "value": 341.23,
+    "minimum": 0.0,
+    "maximum": 999.9
+  },
+  "testMulti": {
+    "type": "multi",
+    "value": {
+      "override": {
+        "type": "boolean",
+        "value": true,
+        "object_name": "resolution_override",
+        "disables": [
+          [
+            false,
+            "resolutionX"
+          ],
+          [
+            true,
+            "resolutionY"
+          ]
+        ]
+      },
+      "resolutionX": {
+        "type": "spinnerInt",
+        "value": 1920,
+        "minimum": 1,
+        "maximum": 999999
+      },
+      "resolutionY": {
+        "type": "spinnerInt",
+        "value": 1080,
+        "minimum": 1,
+        "maximum": 999999,
+        "object_name": "resolutionY"
+      }
+    }
+  },
+  "testSecond": {
+    "type": "multi",
+    "value": {
+      "ananX": {
+        "type": "float",
+        "value": 1920,
+        "minimum": 1,
+        "maximum": 999999
+      },
+        "ananY": {
+            "type": "integer",
+            "value": 1080,
+            "minimum": 1,
+            "maximum": 999999
+        }
+    }
+  }
+}
+
+

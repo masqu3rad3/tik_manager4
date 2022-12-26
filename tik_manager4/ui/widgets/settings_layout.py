@@ -53,22 +53,23 @@ class ValueChangeBool(QtCore.QObject):
 
 # ######################### CUSTOM WIDGETS #######################################
 class Boolean(QtWidgets.QCheckBox):
-    com = ValueChangeBool()
 
     def __init__(self, name, object_name=None, value=False, disables=None, **kwargs):
         super(Boolean, self).__init__()
+        self.com = ValueChangeBool()
         self.value = value
         self.setObjectName(object_name or name)
         self.setChecked(value)
         self.stateChanged.connect(self.com.valueChangeEvent)
+        # self.stateChanged.connect(self.valueChangeEvent)
         self.disables = disables or []
 
 
 class String(QtWidgets.QLineEdit):
-    com = ValueChangeStr()
 
     def __init__(self, name, object_name=None, value="", placeholder="", disables=None, **kwargs):
         super(String, self).__init__()
+        self.com = ValueChangeStr()
         self.value = value
         self.setObjectName(object_name or name)
         self.setText(value)
@@ -78,10 +79,10 @@ class String(QtWidgets.QLineEdit):
 
 
 class Combo(QtWidgets.QComboBox):
-    com = ValueChangeInt()
 
     def __init__(self, name, object_name=None, value=0, items=None, disables=None, **kwargs):
         super(Combo, self).__init__()
+        self.com = ValueChangeInt()
         self.value = value
         self.setObjectName(object_name or name)
         self.addItems(items or [])
@@ -91,10 +92,10 @@ class Combo(QtWidgets.QComboBox):
 
 
 class SpinnerInt(QtWidgets.QSpinBox):
-    com = ValueChangeInt()
 
     def __init__(self, name, object_name=None, value=0, minimum=-99999, maximum=99999, disables=None, **kwargs):
         super(SpinnerInt, self).__init__()
+        self.com = ValueChangeInt()
         self.value = value
         self.setObjectName(object_name or name)
         self.setMinimum(minimum)
@@ -103,12 +104,17 @@ class SpinnerInt(QtWidgets.QSpinBox):
         self.valueChanged.connect(self.com.valueChangeEvent)
         self.disables = disables or []
 
+class Integer(SpinnerInt):
+
+    def __init__(self, *args, **kwargs):
+        super(Integer, self).__init__(*args, **kwargs)
+        self.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
 class SpinnerFloat(QtWidgets.QDoubleSpinBox):
-    com = ValueChangeFloat()
 
     def __init__(self, name, object_name=None, value=0, minimum=-99999.9, maximum=99999.9, disables=None, **kwargs):
         super(SpinnerFloat, self).__init__()
+        self.com = ValueChangeFloat()
         self.value = value
         self.setObjectName(object_name or name)
         self.setMinimum(minimum)
@@ -116,6 +122,11 @@ class SpinnerFloat(QtWidgets.QDoubleSpinBox):
         self.setValue(value)
         self.valueChanged.connect(self.com.valueChangeEvent)
         self.disables = disables or []
+
+class Float(SpinnerFloat):
+    def __init__(self, *args, **kwargs):
+        super(Float, self).__init__(*args, **kwargs)
+        self.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
 class SettingsLayout(QtWidgets.QFormLayout):
     """Visualizes and edits Setting objects in a vertical layout"""
@@ -123,6 +134,8 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "boolean": Boolean,
         "string": String,
         "combo": Combo,
+        "integer": Integer,
+        "float": Float,
         "spinnerInt": SpinnerInt,
         "spinnerFloat": SpinnerFloat
     }
@@ -135,22 +148,25 @@ class SettingsLayout(QtWidgets.QFormLayout):
 
     def populate(self):
         """Creates the widgets"""
-        _widgets = []
+        _widgets = [] # flattened list of all widgets
         for name, properties in self.settings_data._currentValue.items():
-            _label = QtWidgets.QLabel(text=name)
+            _display_name = properties.get("display_name", name)
+            _label = QtWidgets.QLabel(text=_display_name)
             _type = properties.get("type", None)
             if _type == "multi":
-                multi_properties = properties.get("value", [])
+                multi_properties = properties.get("value", {})
                 _layout = QtWidgets.QHBoxLayout()
-                for each in multi_properties:
-                    print(multi_properties)
-                    _type = each.get("type", None)
+                _layout.setContentsMargins(0, 0, 0, 0)
+                # align the contents to the left
+                _layout.setAlignment(QtCore.Qt.AlignLeft)
+                for key, data in multi_properties.items():
+                    _type = data.get("type", None)
                     _widget_class = self.widget_dict.get(_type)
                     if not _widget_class:
                         continue
-                    _widget = _widget_class(name, **each)
+                    _widget = _widget_class(key, **data)
                     _layout.addWidget(_widget)
-                    _widget_class.com.valueChanged.connect(lambda x, n=name: self.settings_data.edit_property(n, x))
+                    _widget.com.valueChanged.connect(lambda x, n=name, k=key: self.settings_data.edit_sub_property([n, "value", k, "value"], x))
                     _widgets.append(_widget)
                 self.addRow(_label, _layout)
             else:
@@ -158,21 +174,9 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 if not _widget_class:
                     continue
                 _widget = _widget_class(name, **properties)
-                _widget_class.com.valueChanged.connect(lambda x, n=name: self.settings_data.edit_property(n, x))
+                _widget.com.valueChanged.connect(lambda x, n=name: self.settings_data.edit_sub_property([n, "value"], x))
                 self.addRow(_label, _widget)
                 _widgets.append(_widget)
-            # elif isinstance(properties, list):
-            #     _layout = QtWidgets.QHBoxLayout()
-            #     for each in properties:
-            #         _type = each.get("type", None)
-            #         _widget_class = self.widget_dict.get(_type)
-            #         if not _widget_class:
-            #             continue
-            #         _widget = _widget_class(name, **each)
-            #         _layout.addWidget(_widget)
-            #         _widget_class.com.valueChanged.connect(lambda x, n=name: self.settings_data.edit_property(n, x))
-            #         _widgets.append(_widget)
-            #     self.addRow(_label, _layout)
 
         return _widgets
 
@@ -183,12 +187,14 @@ class SettingsLayout(QtWidgets.QFormLayout):
             for disable_data in widget.disables:
                 # find the target widget / 2nd item in data list is the target
                 # Example data: [false, "testString"]
+
                 disable_widget = self.__find_widget(disable_data[1], widget_list)
                 condition = disable_data[0]
 
                 if not disable_widget:
                     continue
                 widget.com.valueChanged.connect(lambda state, wgt=disable_widget, cnd=condition: self.__toggle_enabled(state, cnd, wgt))
+                # widget.com.valueChanged.connect(lambda state, disable_widget, condition: self.__toggle_enabled(state, condition, disable_widget))
                 self.__toggle_enabled(widget.value, condition, disable_widget)
 
     def __toggle_enabled(self, value, condition, widget):
@@ -208,7 +214,7 @@ class SettingsLayout(QtWidgets.QFormLayout):
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
-    test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uiSettings_test.json")
+    test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uiSettings_testA.json")
 
     test_settings = Settings(test_file)
     # test_settings = Settings()

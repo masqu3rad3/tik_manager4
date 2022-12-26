@@ -34,6 +34,14 @@ class Subproject(Entity):
     def mode(self):
         return self.__mode
 
+    @property
+    def mode_as_code(self):
+        if self.mode == "asset":
+            return 1
+        if self.mode == "shot":
+            return 2
+        return 0
+
     @mode.setter
     def mode(self, value):
         self.__mode = value
@@ -234,7 +242,7 @@ class Subproject(Entity):
         return self._tasks
 
     def add_task(self, name, categories, task_type=None):
-        """Creates a task under the category"""
+        """Create a task."""
         task_type = task_type or self.__mode
         # if not categories:
         #     if not mode

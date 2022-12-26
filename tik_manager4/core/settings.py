@@ -71,6 +71,18 @@ class Settings(object):
         """Updates the property key with given value"""
         self._currentValue.update({key: val})
 
+    # def edit_sub_property(self, key, sub_key, val):
+    #     """Updates the sub property key with given value"""
+    #     self._currentValue[key].update({sub_key: val})
+
+    def edit_sub_property(self, sub_keys, new_val):
+        val = self._currentValue
+        for key in sub_keys[:-1]:
+            val = val[key]
+
+        # Assign a new value to the final key
+        val[sub_keys[-1]] = new_val
+
     def add_property(self, key, val):
         """Creates a property key with given value"""
         self._currentValue.update({key: val})
@@ -82,6 +94,17 @@ class Settings(object):
     def get_property(self, key):
         """Returns the value of the property key"""
         return self._currentValue.get(key, None)
+
+    # def get_sub_property(self, key, sub_key):
+    #     """Return the value of the sub property key."""
+    #     return self._currentValue[key].get(sub_key, None)
+
+    def get_sub_property(self, sub_keys):
+        """Return the value of the sub property key."""
+        val = self._currentValue
+        for key in sub_keys:
+            val = val[key]
+        return val
 
     def set_data(self, data):
         """Feeds the raw data directly"""
