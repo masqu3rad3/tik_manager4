@@ -3,7 +3,7 @@ from copy import deepcopy
 from tik_manager4.core import io
 
 
-class Settings(dict):
+class Settings(object):
     """
     Generic Settings class to hold read and compare dictionary data
     """
@@ -35,6 +35,11 @@ class Settings(dict):
         """Returns all keys in the current data"""
         return self._currentValue.keys()
 
+    @property
+    def properties(self):
+        """Return the current dictionary data."""
+        return self._currentValue
+
     def is_modified(self):
         """Checks if the file has been modified since initialization"""
         return not bool(self._io.get_modified_time() == self._time_stamp)
@@ -50,7 +55,6 @@ class Settings(dict):
         self._currentValue.clear()
         self._originalValue.update(data)
         self._currentValue.update(data)
-        self.update(self._currentValue)
 
     def is_settings_changed(self):
         """Checks if the settings changed since initialization"""
@@ -67,12 +71,10 @@ class Settings(dict):
     def reset_settings(self):
         """Reverts back the unsaved changes to the original state"""
         self._currentValue = deepcopy(self._originalValue)
-        self.update(self._currentValue)
 
     def edit_property(self, key, val):
         """Updates the property key with given value"""
         self._currentValue.update({key: val})
-        self.update(self._currentValue)
 
     # def edit_sub_property(self, key, sub_key, val):
     #     """Updates the sub property key with given value"""
@@ -85,17 +87,14 @@ class Settings(dict):
 
         # Assign a new value to the final key
         val[sub_keys[-1]] = new_val
-        self.update(self._currentValue)
 
     def add_property(self, key, val):
         """Creates a property key with given value"""
         self._currentValue.update({key: val})
-        self.update(self._currentValue)
 
     def delete_property(self, key):
         """Deletes the given property key"""
         self._currentValue.pop(key)
-        self.update(self._currentValue)
 
     def get_property(self, key):
         """Returns the value of the property key"""
@@ -115,7 +114,6 @@ class Settings(dict):
     def set_data(self, data):
         """Feeds the raw data directly"""
         self._currentValue = data
-        self.update(self._currentValue)
 
     def get_data(self):
         """Returns the whole current data"""

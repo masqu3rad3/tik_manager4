@@ -1,5 +1,6 @@
 import sys
 import os
+from functools import partial
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.new_subproject import NewSubproject
@@ -273,6 +274,12 @@ class TikSubView(QtWidgets.QTreeView):
             if column in self.model.columns:
                 self.setColumnHidden(self.model.columns.index(column), False)
 
+    def toggle_column(self, column, state):
+        """ If the given column exists in the model, unhides it"""
+        if state:
+            self.unhide_columns(column)
+        else:
+            self.hide_columns(column)
     def set_project(self, project_obj):
         self.model = TikSubModel(project_obj)
         # self.model.setFilterRegExp(QtCore.QRegExp("Ass*", QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))
@@ -305,7 +312,9 @@ class TikSubView(QtWidgets.QTreeView):
             action = QtWidgets.QAction(column, self)
             action.setCheckable(True)
             action.setChecked(not self.isColumnHidden(self.model.columns.index(column)))
-            # action.triggered.connect(partial(self.toggle_column, column))
+            # connect the action to the column's visibility
+            action.toggled.connect(lambda state, c=column: self.toggle_column(c, state))
+
             menu.addAction(action)
 
         menu.exec_(self.mapToGlobal(position))
