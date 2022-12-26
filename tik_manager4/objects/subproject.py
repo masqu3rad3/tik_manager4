@@ -24,7 +24,11 @@ class Subproject(Entity):
         self.__parent_sub = parent_sub
         self._sub_projects = {}
         self._tasks = {}
-        # self._categories = []
+
+        self.overridden_resolution = False
+        self.overridden_fps = False
+        self.overridden_mode = False
+        self.overridden_shot_data = False
 
     @property
     def parent(self):
@@ -33,14 +37,6 @@ class Subproject(Entity):
     @property
     def mode(self):
         return self.__mode
-
-    @property
-    def mode_as_code(self):
-        if self.mode == "asset":
-            return 1
-        if self.mode == "shot":
-            return 2
-        return 0
 
     @mode.setter
     def mode(self, value):
@@ -69,6 +65,22 @@ class Subproject(Entity):
     @property
     def fps(self):
         return self.__fps
+
+    @property
+    def properties(self):
+        """Return the subproject properties as a dictionary"""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "path": self.path,
+            "resolution": self.resolution,
+            "fps": self.fps,
+            "mode": self.mode,
+            "shot_data": self.shot_data,
+            "overridden_resolution": self.overridden_resolution,
+            "overridden_fps": self.overridden_fps,
+            "overridden_mode": self.overridden_mode
+        }
 
     def set_resolution(self, val):
         state = self._check_permissions(level=2)
@@ -133,12 +145,16 @@ class Subproject(Entity):
                     }
                     if neighbour.resolution != self.resolution:
                         sub_data["resolution"] = neighbour.resolution
+                        self.overridden_resolution = False
                     if neighbour.fps != self.fps:
                         sub_data["fps"] = neighbour.fps
+                        self.overridden_fps = False
                     if neighbour.mode != self.mode:
                         sub_data["mode"] = neighbour.mode
+                        self.overridden_mode = False
                     if neighbour.shot_data != self.shot_data:
                         sub_data["shot_data"] = neighbour.shot_data
+                        self.overridden_shot_data = False
                     parent["subs"].append(sub_data)
 
                     visited.append(neighbour)
@@ -186,6 +202,14 @@ class Subproject(Entity):
                     sub_project._relative_path = _relative_path
                     # _ = [sub_project.__build_category(x) for x in _categories]
                     # _ = [sub_project.__build_category(x.get("name", None), x.get("id", None)) for x in _categories]
+                    if neighbour.get("resolution", None):
+                        sub_project.overridden_resolution = True
+                    if neighbour.get("fps", None):
+                        sub_project.overridden_fps = True
+                    if neighbour.get("mode", None):
+                        sub_project.overridden_mode = True
+                    if neighbour.get("shot_data", None):
+                        sub_project.overridden_shot_data = True
 
                     visited.append(neighbour)
                     queue.append([sub_project, neighbour.get("subs", [])])
@@ -215,6 +239,7 @@ class Subproject(Entity):
         resolution = resolution or self.resolution
         fps = fps or self.fps
         mode = mode or self.mode
+        shot_data = shot_data or self.shot_data
 
         return self.__build_sub_project(name, parent_sub, resolution, fps, mode, shot_data, uid)  # keep uid at the end
 

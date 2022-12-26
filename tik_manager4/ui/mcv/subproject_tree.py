@@ -1,7 +1,5 @@
 import sys
 import os
-from functools import partial
-
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.new_subproject import NewSubproject
 from tik_manager4.ui.dialog.new_task import NewTask
@@ -31,28 +29,30 @@ class TikSubItem(QtGui.QStandardItem):
         # res = TikSubItem(str(sub_data.resolution))
         # fps = TikSubItem(str(sub_data.fps))
 
+class TikColumnItem(QtGui.QStandardItem):
+    def __init__(self, name, overridden=False):
+        super(TikColumnItem, self).__init__()
+        self.setEditable(False)
+        self.setText(name)
+        if overridden:
+            self.tag_overridden()
+        else:
+            self.tag_normal()
+    def tag_overridden(self):
+        fnt = QtGui.QFont('Open Sans', 10)
+        fnt.setBold(False)
+        # make it yellow
+        self.setForeground(QtGui.QColor(255, 255, 0))
+        self.setFont(fnt)
 
-# class TikTaskItem(QtGui.QStandardItem):
-#     color_dict = {
-#         "subproject": (255, 255, 255)
-#     }
-#     def __init__(self, task_obj):
-#         super(TikTaskItem, self).__init__()
-#
-#         self.data = task_obj
-#         #
-#         fnt = QtGui.QFont('Open Sans', 12)
-#         fnt.setBold(True)
-#         self.setEditable(False)
-#
-#         self.setForeground(QtGui.QColor(0, 255, 255))
-#         self.setFont(fnt)
-#         self.setText(task_obj.name)
-
+    def tag_normal(self):
+        fnt = QtGui.QFont('Open Sans', 10)
+        fnt.setBold(False)
+        self.setFont(fnt)
 
 class TikSubModel(QtGui.QStandardItemModel):
-    columns = ["name", "id", "path", "resolution", "fps"]
-    filter_key = "super"
+    columns = ["name", "id", "path", "resolution", "fps", "mode"]
+    filter_key = ""
     def __init__(self, structure_object):
         super(TikSubModel, self).__init__()
 
@@ -60,6 +60,10 @@ class TikSubModel(QtGui.QStandardItemModel):
 
         self.project = None
         self.set_data(structure_object)
+
+
+
+
 
     def set_data(self, structure_object):
         self.project = self.check_data(structure_object)
@@ -83,6 +87,7 @@ class TikSubModel(QtGui.QStandardItemModel):
             "path": self.project.path,
             "resolution": self.project.resolution,
             "fps": self.project.fps,
+            "mode": self.project.mode,
             "tasks": self.project.tasks,
             # "categories": [category.name for category in self.project.categories],
             "subs": [],  # this will be filled with the while loop
@@ -109,12 +114,10 @@ class TikSubModel(QtGui.QStandardItemModel):
                         "name": neighbour.name,
                         "path": neighbour.path,
                         "tasks": neighbour.tasks,
-                        # "resolution": neighbour.resolution,
-                        # "fps": neighbour.fps,
-                        # "categories": list(neighbour.categories.keys()),
-                        # "categories": [category.name for category in neighbour.categories],
                         "subs": [],  # this will be filled with the while loop
                     }
+                    if neighbour.mode != self.project.mode:
+                        sub_data["mode"] = neighbour.mode
                     if neighbour.resolution != self.project.resolution:
                         sub_data["resolution"] = neighbour.resolution
                     if neighbour.fps != self.project.fps:
@@ -122,6 +125,7 @@ class TikSubModel(QtGui.QStandardItemModel):
                     parent["subs"].append(sub_data)
 
                     _item = self.append_sub(neighbour, parent_row)
+                    # _item = self.append_sub(sub_data, parent_row)
 
                     # add tasks
                     neighbour.scan_tasks()
@@ -132,26 +136,41 @@ class TikSubModel(QtGui.QStandardItemModel):
 
         return all_data
 
-    def append_sub(self, sub_data, parent):
+    def append_sub(self, sub_obj, parent):
         # if self.filter_key and self.filter_key not in sub_data.name:
         #     return
-        _sub_item = TikSubItem(sub_data)
-        pid = QtGui.QStandardItem(str(sub_data.id))
-        path = QtGui.QStandardItem(sub_data.path)
-        res = QtGui.QStandardItem(str(sub_data.resolution))
-        fps = QtGui.QStandardItem(str(sub_data.fps))
-        # pid = TikSubItem(str(sub_data.id))
-        # path = TikSubItem(sub_data.path)
-        # res = TikSubItem(str(sub_data.resolution))
-        # fps = TikSubItem(str(sub_data.fps))
-        parent.appendRow([
-            _sub_item,
-            pid,
-            path,
-            res,
-            fps
-        ]
-        )
+        _sub_item = TikSubItem(sub_obj)
+        _row = [_sub_item]
+        # generate the column texts
+        for column in self.columns[1:]:
+            # get the override status
+            _properties = sub_obj.properties
+            _column_value = _properties.get(column, None)
+            if not _column_value:
+                continue
+            _overridden = sub_obj.properties.get("overridden_{}".format(column), False)
+            # _overridden = False
+            _column_item = TikColumnItem(str(_column_value), _overridden)
+            _row.append(_column_item)
+
+        parent.appendRow(_row)
+
+
+        # # create a QStandardItem for each column and block the signal emission
+        # pid = QtGui.QStandardItem(str(sub_obj.id))
+        # path = QtGui.QStandardItem(sub_obj.path)
+        # res = QtGui.QStandardItem(str(sub_obj.resolution))
+        # fps = QtGui.QStandardItem(str(sub_obj.fps))
+        # mode = QtGui.QStandardItem(str(sub_obj.mode))
+        # parent.appendRow([
+        #     _sub_item,
+        #     pid,
+        #     path,
+        #     res,
+        #     fps,
+        #     mode
+        # ]
+        # )
         return _sub_item
 
     # def append_category(self, category_obj, parent):
@@ -228,7 +247,9 @@ class TikSubView(QtWidgets.QTreeView):
         self.resizeColumnToContents(4)
 
     def collect_tasks(self, sub_item, recursive=True):
-
+        if not isinstance(sub_item, tik_manager4.objects.subproject.Subproject):
+            # just to prevent crashes if something goes wrong
+            return
         for key, value in sub_item.scan_tasks().items():
             yield value
 
@@ -245,16 +266,15 @@ class TikSubView(QtWidgets.QTreeView):
 
 
     def get_tasks(self, idx):
+        # make sure the idx is pointing to the first column
+        idx = idx.sibling(idx.row(), 0)
+
         # the id needs to mapped from proxy to source
         index = self.proxy_model.mapToSource(idx)
         _item = self.model.itemFromIndex(index)
-        # _item = self.model.itemFromIndex(idx)
-        # print(type(_item))
-        # print(_item.data)
 
         _tasks = self.collect_tasks(_item.data, recursive=self._recursive_task_scan)
         self.item_selected.emit(_tasks)
-        # self.item_selected.emit(_item.data.scan_tasks())
 
     def hide_columns(self, columns):
         """ If the given column exists in the model, hides it"""
@@ -284,6 +304,7 @@ class TikSubView(QtWidgets.QTreeView):
         self.model = TikSubModel(project_obj)
         # self.model.setFilterRegExp(QtCore.QRegExp("Ass*", QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))
         # self.proxy_model = QtCore.QSortFilterProxyModel()
+
         self.proxy_model = ProxyModel()
         self.proxy_model.setSourceModel(self.model)
         self.proxy_model.setRecursiveFilteringEnabled(True)
@@ -304,7 +325,6 @@ class TikSubView(QtWidgets.QTreeView):
         # self.proxy_model.setFilterKeyColumn(0)
 
     def header_right_click_menu(self, position):
-        print(position)
         menu = QtWidgets.QMenu()
 
         # add checkable actions for each column
@@ -319,19 +339,6 @@ class TikSubView(QtWidgets.QTreeView):
 
         menu.exec_(self.mapToGlobal(position))
 
-        # # add a checkable menu item
-        #
-        #
-        # hide_columns = menu.addAction("Hide Columns")
-        # hide_columns.setCheckable(True)
-        # act_new_sub = menu.addAction(self.tr("asdfasdf"))
-        # act_new_sub.setCheckable(True)
-        # act_new_sub.setChecked(True)
-        # menu.exec_(self.sender().viewport().mapToGlobal(position))
-        # # action = QtWidgets.QAction("Hide Column", self)
-        # # action.triggered.connect(self.hide_column)
-        # # menu.addAction(action)
-        # # menu.exec_(self.mapToGlobal(pos))
 
     def right_click_menu(self, position):
         indexes = self.sender().selectedIndexes()

@@ -44,7 +44,8 @@ if __name__ == '__main__':
     # view.set_project(tik.project)
     # view.hide_columns(["id", "path", "resolution", "fps"])
     sub_projects = TikProjectLayout(tik.project)
-    sub_projects.sub_view.hide_columns(["id", "path", "resolution", "fps"])
+    # sub_projects.sub_view.hide_columns(["id", "path", "resolution", "fps"])
+    sub_projects.sub_view.hide_columns(["path", "resolution", "fps"])
     left_layout.addLayout(sub_projects)
 
     tasks = TikTaskLayout()

@@ -90,14 +90,14 @@ class String(QtWidgets.QLineEdit):
 
 class Combo(QtWidgets.QComboBox):
 
-    def __init__(self, name, object_name=None, value=0, items=None, disables=None, **kwargs):
+    def __init__(self, name, object_name=None, value=None, items=None, disables=None, **kwargs):
         super(Combo, self).__init__()
-        self.com = ValueChangeInt()
+        self.com = ValueChangeStr()
         self.value = value
         self.setObjectName(object_name or name)
         self.addItems(items or [])
-        self.setCurrentIndex(value)
-        self.currentIndexChanged.connect(self.com.valueChangeEvent)
+        self.setCurrentText(value)
+        self.currentTextChanged.connect(self.com.valueChangeEvent)
         self.disables = disables or []
 
 
@@ -224,10 +224,6 @@ class List(QtWidgets.QWidget):
             self.value.insert(current_row + 1, self.value.pop(current_row))
             self.com.valueChangeEvent(self.list.currentRow())
 
-
-    # def valueChangeEvent(self, e):
-    #     self.value = [self.list.item(i).text() for i in range(self.list.count())]
-    #     self.com.valueChangeEvent(self.value)
 
 class SettingsLayout(QtWidgets.QFormLayout):
     """Visualizes and edits Setting objects in a vertical layout"""

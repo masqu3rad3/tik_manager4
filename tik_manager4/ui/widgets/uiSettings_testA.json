@@ -23,7 +23,7 @@
       "valueB",
       "valueC"
     ],
-    "value": 2
+    "value": "valueB"
   },
   "testRadio": {
     "type": "combo",
@@ -32,7 +32,7 @@
       "radioGu",
       "radioGuGu"
     ],
-    "value": 1,
+    "value": "radioGuGu",
     "disables": [
       [
         0,

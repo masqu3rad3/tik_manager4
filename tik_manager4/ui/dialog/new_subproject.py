@@ -71,7 +71,7 @@ class NewSubproject(QtWidgets.QDialog):
                 },
                 "fps": {
                     "type": "spinnerInt",
-                    "object_name": "fps_sp",
+                    "object_name": "fps",
                     "value": self._parent_sub.fps,
                 }
             }
@@ -88,8 +88,8 @@ class NewSubproject(QtWidgets.QDialog):
                 "mode": {
                     "type": "combo",
                     "object_name": "mode",
-                    "items": ["", "Asset", "Shot"],
-                    "value": self._parent_sub.mode_as_code,
+                    "items": ["", "asset", "shot"],
+                    "value": self._parent_sub.mode,
                 }
             }
         })

@@ -123,9 +123,13 @@ class TikTaskView(QtWidgets.QTreeView):
                 self.setColumnHidden(self.model.columns.index(column), False)
 
     def set_tasks(self, tasks_gen):
+        pass
+        # print(tasks_gen)
+        # for task in tasks_gen:
+        #     print(task)
         self.model.clear()
         for task in tasks_gen:
-            print(task)
+            # print(task)
             self.model.append_task(task)
         # tasks = [value for item, value in tasks_dictionary.items()]
         # self.model.set_tasks(tasks)
