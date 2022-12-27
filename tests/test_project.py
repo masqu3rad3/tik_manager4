@@ -172,11 +172,11 @@ class TestProject:
         #         leaf.add_category(category)
 
         shots = self.tik.project.add_sub_project("Shots")
-        sequence_a = shots.add_sub_project("SequenceA", mode="sequence")
+        sequence_a = shots.add_sub_project("SequenceA", mode="shot")
         leaf_shots = [sequence_a.add_sub_project("SHOT_010"), sequence_a.add_sub_project("SHOT_020", mode="shot"),
                       sequence_a.add_sub_project("SHOT_030"), sequence_a.add_sub_project("SHOT_040", mode="shot"),]
 
-        sequence_b = shots.add_sub_project("SequenceB", mode="sequence")
+        sequence_b = shots.add_sub_project("SequenceB", mode="shot")
         leaf_shots.append(sequence_b.add_sub_project("SHOT_010", mode="shot"))
         leaf_shots.append(sequence_b.add_sub_project("SHOT_070", mode="shot"))
         leaf_shots.append(sequence_b.add_sub_project("SHOT_120", mode="shot"))

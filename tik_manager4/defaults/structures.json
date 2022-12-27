@@ -131,7 +131,7 @@
       {
         "name": "Sequence",
         "path": "Sequence",
-        "mode": "sequence",
+        "mode": "shot",
         "subs": []
       }
     ]
