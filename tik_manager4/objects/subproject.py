@@ -20,6 +20,7 @@ class Subproject(Entity):
         self.__fps = fps
         self.__resolution = resolution
         self.__mode = mode or ""
+        # self.__mode = None
         self.__shot_data = shot_data
         self.__parent_sub = parent_sub
         self._sub_projects = {}
@@ -100,6 +101,16 @@ class Subproject(Entity):
             self.__fps = val
             return 1
         msg = "%s is not a valid fps value. must be int or float." % val
+        LOG.error(msg, proceed=False)
+
+    def set_mode(self, val):
+        state = self._check_permissions(level=2)
+        if state != 1:
+            return -1
+        if isinstance(val, str):
+            self.__mode = val
+            return 1
+        msg = "%s is not a valid mode. must be str." % val
         LOG.error(msg, proceed=False)
 
     def get_sub_tree(self):

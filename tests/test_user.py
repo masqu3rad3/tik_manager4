@@ -7,8 +7,8 @@ class TestUser(object):
     mock = Mockup()
     mock.prepare()
     user.User(common_directory=mock.common)  # this is for not popping up the "missing common folder" message
-    from tik_manager4.objects.main import Main  # importing main checks the common folder definition, thats why its here
-    tik = Main()
+    import tik_manager4 # importing main checks the common folder definition, thats why its here
+    tik = tik_manager4.initialize("Standalone")
 
     @clean_user
     def test_reinitializing_user(self):
