@@ -96,6 +96,7 @@ class Project(Subproject):
             parent_path: (String) Parent Sub-Project Relative path. If uid defined this will be skipped
             resolution: (Tuple) If not defined, parent resolution will be inherited
             fps: (int) If not defined parent fps will be inherited
+            mode: (String) If not defined parent mode will be inherited
 
         Returns:
             <class Subproject>

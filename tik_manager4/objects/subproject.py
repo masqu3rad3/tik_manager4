@@ -17,10 +17,15 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 class Subproject(Entity):
     def __init__(self, parent_sub=None, resolution=None, fps=None, mode=None, shot_data=None, **kwargs):
         super(Subproject, self).__init__(**kwargs)
+        # print("fps", fps)
+        # print("mode", mode)
+        # print("resolution", resolution)
+        # print("shot_data", shot_data)
+
         self.__fps = fps
         self.__resolution = resolution
-        self.__mode = mode or ""
-        # self.__mode = None
+        # self.__mode = mode or ""
+        self.__mode = mode
         self.__shot_data = shot_data
         self.__parent_sub = parent_sub
         self._sub_projects = {}
@@ -160,6 +165,10 @@ class Subproject(Entity):
                     if neighbour.fps != self.fps:
                         sub_data["fps"] = neighbour.fps
                         self.overridden_fps = False
+                    # print("mode", neighbour.mode, self.mode)
+                    # print("resolution", neighbour.resolution, self.resolution)
+                    # print("fps", neighbour.fps, self.fps)
+                    # print("shot_data", neighbour.shot_data, self.shot_data)
                     if neighbour.mode != self.mode:
                         sub_data["mode"] = neighbour.mode
                         self.overridden_mode = False
@@ -246,7 +255,7 @@ class Subproject(Entity):
             return -1
             # return 0
 
-        # inherit the resolution and fps if not overriden
+        # inherit the resolution, fps, mode and shot_data if not overriden
         resolution = resolution or self.resolution
         fps = fps or self.fps
         mode = mode or self.mode

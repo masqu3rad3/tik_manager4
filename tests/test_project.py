@@ -151,8 +151,8 @@ class TestProject:
         # asset_categories = ["Model", "LookDev", "Rig"]
         # shot_categories = ["Layout", "Animation", "Lighting", "Render"]
 
-        assets = self.tik.project.add_sub_project("Assets", )
-        chars = assets.add_sub_project("Characters", fps=60, mode="asset")
+        assets = self.tik.project.add_sub_project("Assets", mode="asset")
+        chars = assets.add_sub_project("Characters", fps=60)
         props = assets.add_sub_project("Props")
         env = assets.add_sub_project("Environment")
 
@@ -171,15 +171,15 @@ class TestProject:
         #     for category in asset_categories:
         #         leaf.add_category(category)
 
-        shots = self.tik.project.add_sub_project("Shots")
-        sequence_a = shots.add_sub_project("SequenceA", mode="shot")
+        shots = self.tik.project.add_sub_project("Shots", mode="shot")
+        sequence_a = shots.add_sub_project("SequenceA")
         leaf_shots = [sequence_a.add_sub_project("SHOT_010"), sequence_a.add_sub_project("SHOT_020", mode="shot"),
                       sequence_a.add_sub_project("SHOT_030"), sequence_a.add_sub_project("SHOT_040", mode="shot"),]
 
-        sequence_b = shots.add_sub_project("SequenceB", mode="shot")
-        leaf_shots.append(sequence_b.add_sub_project("SHOT_010", mode="shot"))
-        leaf_shots.append(sequence_b.add_sub_project("SHOT_070", mode="shot"))
-        leaf_shots.append(sequence_b.add_sub_project("SHOT_120", mode="shot"))
+        sequence_b = shots.add_sub_project("SequenceB")
+        leaf_shots.append(sequence_b.add_sub_project("SHOT_010"))
+        leaf_shots.append(sequence_b.add_sub_project("SHOT_070"))
+        leaf_shots.append(sequence_b.add_sub_project("SHOT_120"))
 
         # for leaf in leaf_shots:
         #     for category in shot_categories:

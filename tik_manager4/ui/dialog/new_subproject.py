@@ -89,7 +89,7 @@ class NewSubproject(QtWidgets.QDialog):
                     "type": "combo",
                     "object_name": "mode",
                     "items": ["", "asset", "shot"],
-                    "value": self._parent_sub.mode,
+                    "value": self._parent_sub.mode or "",
                 }
             }
         })
