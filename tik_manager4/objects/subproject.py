@@ -17,11 +17,6 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 class Subproject(Entity):
     def __init__(self, parent_sub=None, resolution=None, fps=None, mode=None, shot_data=None, **kwargs):
         super(Subproject, self).__init__(**kwargs)
-        # print("fps", fps)
-        # print("mode", mode)
-        # print("resolution", resolution)
-        # print("shot_data", shot_data)
-
         self.__fps = fps
         self.__resolution = resolution
         # self.__mode = mode or ""
@@ -159,16 +154,23 @@ class Subproject(Entity):
                         # "categories": [{"name": category.name, "id": category.id} for category in neighbour.categories],
                         "subs": [],  # this will be filled with the while loop
                     }
+
+                    # if sub.resolution != neighbour.resolution:
+                    #     sub_data["resolution"] = neighbour.resolution
+                    # if sub.fps != neighbour.fps:
+                    #     sub_data["fps"] = neighbour.fps
+                    # if sub.mode != neighbour.mode:
+                    #     sub_data["mode"] = neighbour.mode
+                    # if sub.shot_data != neighbour.shot_data:
+                    #     sub_data["shot_data"] = neighbour.shot_data
+
+
                     if neighbour.resolution != self.resolution:
                         sub_data["resolution"] = neighbour.resolution
                         self.overridden_resolution = False
                     if neighbour.fps != self.fps:
                         sub_data["fps"] = neighbour.fps
                         self.overridden_fps = False
-                    # print("mode", neighbour.mode, self.mode)
-                    # print("resolution", neighbour.resolution, self.resolution)
-                    # print("fps", neighbour.fps, self.fps)
-                    # print("shot_data", neighbour.shot_data, self.shot_data)
                     if neighbour.mode != self.mode:
                         sub_data["mode"] = neighbour.mode
                         self.overridden_mode = False
@@ -188,6 +190,7 @@ class Subproject(Entity):
         This is for building back the hierarchy from json data
 
         """
+        print(data)
         visited = []
         queue = []
         self.id = data.get("id", None)
@@ -213,15 +216,23 @@ class Subproject(Entity):
                     _name = neighbour.get("name", None)
                     _relative_path = neighbour.get("path", None)
                     _resolution = neighbour.get("resolution", self.resolution)
+                    # _resolution = neighbour.get("resolution", sub.resolution)
                     _fps = neighbour.get("fps", self.fps)
-                    _mode = neighbour.get("mode", self.mode)
+                    # _fps = neighbour.get("fps", sub.fps)
+                    # _mode = neighbour.get("mode", self.mode)
+                    _mode = neighbour.get("mode", sub.mode)
+                    print("name: ", _name, neighbour.get("resolution", None), neighbour.get("fps", None), neighbour.get("mode", None))
+                    # print("=======================================")
+
                     _shot_data = neighbour.get("shot_data", self.shot_data)
-                    # _categories = neighbour.get("categories", [])
+                    print("SUBP: ", sub.name, sub.resolution, sub.fps, sub.mode)
+
                     sub_project = sub.__build_sub_project(_name, neighbour, _resolution, _fps, _mode, _shot_data, _id)
+                    print("name: ", sub_project.name, sub_project.resolution, sub_project.fps, sub_project.mode)
+                    print("=======================================")
                     # define the path and categories separately
                     sub_project._relative_path = _relative_path
-                    # _ = [sub_project.__build_category(x) for x in _categories]
-                    # _ = [sub_project.__build_category(x.get("name", None), x.get("id", None)) for x in _categories]
+
                     if neighbour.get("resolution", None):
                         sub_project.overridden_resolution = True
                     if neighbour.get("fps", None):
@@ -260,6 +271,8 @@ class Subproject(Entity):
         fps = fps or self.fps
         mode = mode or self.mode
         shot_data = shot_data or self.shot_data
+
+        # print("WRIT: ", name, resolution, fps, mode)
 
         return self.__build_sub_project(name, parent_sub, resolution, fps, mode, shot_data, uid)  # keep uid at the end
 
