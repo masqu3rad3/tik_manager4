@@ -12,6 +12,28 @@ from tik_manager4.objects.task import Task
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
+class Metaitem(object):
+    def __init__(self, value, overridden=False):
+        self.value = value
+        self.overridden = overridden
+class Metadata(dict):
+    """Metadata class."""
+    def __init__(self, data_dictionary):
+        super(Metadata, self).__init__(data_dictionary)
+
+        # create a Metaitem for each key in the data_dictionary
+        for key, val in data_dictionary.items():
+            self.add_item(key, val)
+
+    def add_item(self, key, value):
+        """Add an item to the metadata."""
+        self[key] = Metaitem(value)
+        return self[key]
+
+    def get_all_items(self):
+        """Return all items in the metadata."""
+        for key, val in self.items():
+            yield key, val.value
 
 class Subproject(Entity):
     def __init__(self,
@@ -20,6 +42,7 @@ class Subproject(Entity):
                  fps=None,
                  mode=None,
                  shot_data=None,
+                 metadata=None,
                  **kwargs):
         super(Subproject, self).__init__(**kwargs)
         self.__fps = fps
@@ -29,6 +52,9 @@ class Subproject(Entity):
         self.__parent_sub = parent_sub
         self._sub_projects = {}
         self._tasks = {}
+
+        metadata = metadata or {}
+        self._metadata = Metadata(metadata)
 
         self.overridden_resolution = False
         self.overridden_fps = False
