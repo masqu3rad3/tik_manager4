@@ -9,17 +9,21 @@ from fnmatch import fnmatch
 from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.task import Task
-# from tik_manager4.objects.category import Category
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Subproject(Entity):
-    def __init__(self, parent_sub=None, resolution=None, fps=None, mode=None, shot_data=None, **kwargs):
+    def __init__(self,
+                 parent_sub=None,
+                 resolution=None,
+                 fps=None,
+                 mode=None,
+                 shot_data=None,
+                 **kwargs):
         super(Subproject, self).__init__(**kwargs)
         self.__fps = fps
         self.__resolution = resolution
-        # self.__mode = mode or ""
         self.__mode = mode
         self.__shot_data = shot_data
         self.__parent_sub = parent_sub
@@ -33,38 +37,47 @@ class Subproject(Entity):
 
     @property
     def parent(self):
+        """Return the parent subproject."""
         return self.__parent_sub
 
     @property
     def mode(self):
+        """Get the mode of the subproject."""
         return self.__mode
 
     @mode.setter
     def mode(self, value):
+        """Set the mode of the subproject."""
         self.__mode = value
 
     @property
     def shot_data(self):
+        """Return the shot data of the subproject."""
         return self.__shot_data
 
     @shot_data.setter
     def shot_data(self, value):
+        """Set the shot data of the subproject."""
         self.__shot_data = value
 
     @property
     def subs(self):
+        """Return the subprojects."""
         return self._sub_projects
 
     @property
     def tasks(self):
+        """Return the tasks of the subproject."""
         return self._tasks
 
     @property
     def resolution(self):
+        """Return the resolution of the subproject."""
         return self.__resolution
 
     @property
     def fps(self):
+        """Return the fps of the subproject."""
         return self.__fps
 
     @property
@@ -84,6 +97,7 @@ class Subproject(Entity):
         }
 
     def set_resolution(self, val):
+        """Set the resolution of the subproject."""
         state = self._check_permissions(level=2)
         if state != 1:
             return -1
@@ -94,6 +108,7 @@ class Subproject(Entity):
         LOG.error(msg, proceed=False)
 
     def set_fps(self, val):
+        """Set the fps of the subproject."""
         state = self._check_permissions(level=2)
         if state != 1:
             return -1
@@ -104,6 +119,7 @@ class Subproject(Entity):
         LOG.error(msg, proceed=False)
 
     def set_mode(self, val):
+        """Set the mode of the subproject."""
         state = self._check_permissions(level=2)
         if state != 1:
             return -1
@@ -114,6 +130,7 @@ class Subproject(Entity):
         LOG.error(msg, proceed=False)
 
     def get_sub_tree(self):
+        """Return the subproject tree as a dictionary"""
         visited = []
         queue = []
 
@@ -146,27 +163,9 @@ class Subproject(Entity):
                         "id": neighbour.id,
                         "name": neighbour.name,
                         "path": neighbour.path,
-                        # "mode": neighbour.mode,
-                        # "resolution": neighbour.resolution,
-                        # "fps": neighbour.fps,
-                        # "categories": list(neighbour.categories.keys()),
-                        # "categories": [category.name for category in neighbour.categories],
-                        # "categories": [{"name": category.name, "id": category.id} for category in neighbour.categories],
                         "subs": [],  # this will be filled with the while loop
                     }
 
-                    # if sub.resolution != neighbour.resolution:
-                    #     sub_data["resolution"] = neighbour.resolution
-                    # if sub.fps != neighbour.fps:
-                    #     sub_data["fps"] = neighbour.fps
-                    # if sub.mode != neighbour.mode:
-                    #     sub_data["mode"] = neighbour.mode
-                    # if sub.shot_data != neighbour.shot_data:
-                    #     sub_data["shot_data"] = neighbour.shot_data
-
-                    print("get_sub_tree")
-                    print(sub_data["name"], neighbour.overridden_fps)
-                    print("---------------")
                     if neighbour.overridden_resolution:
                         sub_data["resolution"] = neighbour.resolution
                     if neighbour.overridden_fps:
@@ -176,18 +175,6 @@ class Subproject(Entity):
                     if neighbour.overridden_shot_data:
                         sub_data["shot_data"] = neighbour.shot_data
 
-                    # if neighbour.resolution != self.resolution:
-                    #     sub_data["resolution"] = neighbour.resolution
-                    #     self.overridden_resolution = False
-                    # if neighbour.fps != self.fps:
-                    #     sub_data["fps"] = neighbour.fps
-                    #     self.overridden_fps = False
-                    # if neighbour.mode != self.mode:
-                    #     sub_data["mode"] = neighbour.mode
-                    #     self.overridden_mode = False
-                    # if neighbour.shot_data != self.shot_data:
-                    #     sub_data["shot_data"] = neighbour.shot_data
-                    #     self.overridden_shot_data = False
                     parent["subs"].append(sub_data)
 
                     visited.append(neighbour)
@@ -196,10 +183,8 @@ class Subproject(Entity):
         return all_data
 
     def set_sub_tree(self, data):
-        """
-        Creates the subproject from the data dictionary.
+        """Create the subproject from the data dictionary.
         This is for building back the hierarchy from json data
-
         """
         visited = []
         queue = []
@@ -210,7 +195,6 @@ class Subproject(Entity):
         self.__fps = data.get("fps", None)
         self.__mode = data.get("mode", None)
         self.__shot_data = data.get("shot_data", None)
-        # _ = [self.__build_category(x) for x in data.get("categories", [])]
 
         # append the subproject object and pointer for json as a queue element
         queue.append([self, data.get("subs", [])])
@@ -225,11 +209,8 @@ class Subproject(Entity):
                     _id = neighbour.get("id", None)
                     _name = neighbour.get("name", None)
                     _relative_path = neighbour.get("path", None)
-                    # _resolution = neighbour.get("resolution", self.resolution)
                     _resolution = neighbour.get("resolution", sub.resolution)
-                    # _fps = neighbour.get("fps", self.fps)
                     _fps = neighbour.get("fps", sub.fps)
-                    # _mode = neighbour.get("mode", self.mode)
                     _mode = neighbour.get("mode", sub.mode)
 
                     _shot_data = neighbour.get("shot_data", self.shot_data)
@@ -238,9 +219,6 @@ class Subproject(Entity):
                     # define the path and categories separately
                     sub_project._relative_path = _relative_path
 
-                    print("set_sub_tree")
-                    print(sub_project.name, sub_project.overridden_fps)
-                    print("---------------")
                     if neighbour.get("resolution", None):
                         sub_project.overridden_resolution = True
                     if neighbour.get("fps", None):
@@ -252,17 +230,41 @@ class Subproject(Entity):
 
                     visited.append(neighbour)
                     queue.append([sub_project, neighbour.get("subs", [])])
-    def __build_sub_project(self, name, parent_sub, resolution, fps, mode, shot_data, uid):
-        """Builds the sub-project inside class."""
 
-        sub_pr = Subproject(name=name, parent_sub=parent_sub, resolution=resolution, fps=fps, mode=mode, shot_data=shot_data, uid=uid)
+    def __build_sub_project(self,
+                            name,
+                            parent_sub,
+                            resolution,
+                            fps,
+                            mode,
+                            shot_data,
+                            uid
+                            ):
+        """Build the subproject inside class."""
+
+        sub_pr = Subproject(name=name,
+                            parent_sub=parent_sub,
+                            resolution=resolution,
+                            fps=fps,
+                            mode=mode,
+                            shot_data=shot_data,
+                            uid=uid)
         sub_pr.path = os.path.join(self.path, name)
         self._sub_projects[name] = sub_pr
         return sub_pr
-    def add_sub_project(self, name, parent_sub=None, resolution=None, fps=None, mode=None, shot_data=None, uid=None):
-        """
-        Adds a sub project. requires permissions. Does not create folders or store in the persistent database
 
+    def add_sub_project(self,
+                        name,
+                        parent_sub=None,
+                        resolution=None,
+                        fps=None,
+                        mode=None,
+                        shot_data=None,
+                        uid=None
+                        ):
+        """Add a subproject.
+        requires permissions.
+        Does not create folders or store in the persistent database
         """
 
         state = self._check_permissions(level=2)
@@ -280,7 +282,8 @@ class Subproject(Entity):
         _mode = mode or self.mode
         _shot_data = shot_data or self.shot_data
 
-        new_sub = self.__build_sub_project(name, parent_sub, _resolution, _fps, _mode, _shot_data, uid)  # keep uid at the end
+        new_sub = self.__build_sub_project(name, parent_sub, _resolution, _fps, _mode, _shot_data,
+                                           uid)  # keep uid at the end
         new_sub.overridden_resolution = bool(resolution)
         new_sub.overridden_fps = bool(fps)
         new_sub.overridden_mode = bool(mode)
@@ -289,13 +292,9 @@ class Subproject(Entity):
         return new_sub
 
         # # TODO Currently the overriden uid is not getting checked if it is really unique or not
-        # sub_pr = Subproject(name=name, resolution=resolution, fps=fps, uid=uid)
-        # # sub_pr._relative_path = os.path.join(self._relative_path, name)
-        # sub_pr.path = os.path.join(self.path, name)
-        # self._sub_projects[name] = sub_pr
-        # return sub_pr
 
     def scan_tasks(self):
+        """Scan the subproject for tasks."""
         _tasks_search_dir = self.get_abs_database_path()
         _task_paths = glob(os.path.join(_tasks_search_dir, '*.ttask'))
 
@@ -314,8 +313,6 @@ class Subproject(Entity):
     def add_task(self, name, categories, task_type=None):
         """Create a task."""
         task_type = task_type or self.__mode
-        # if not categories:
-        #     if not mode
         state = self._check_permissions(level=2)
         if state != 1:
             return -1
@@ -326,26 +323,29 @@ class Subproject(Entity):
             LOG.warning("There is a task under this sub-project with the same name => %s" % name)
             return -1
 
-        _task = Task(abs_path, name=name, categories=categories, path=self.path, file_name=file_name, task_type=task_type, parent_sub=self)
+        _task = Task(abs_path, name=name, categories=categories, path=self.path, file_name=file_name,
+                     task_type=task_type, parent_sub=self)
         _task.add_property("name", name)
         _task.add_property("creator", self.guard.user)
         _task.add_property("type", task_type)
         _task.add_property("task_id", _task.id)
         _task.add_property("categories", categories)
-        # _task.add_property("path", self.path)
         _task.add_property("path", self.path)
         _task.add_property("file_name", file_name)
         _task.apply_settings()
         self._tasks[name] = _task
         return _task
-    def __is_task_empty(self, task):
-        """Checks all categories and returns True if all are empty"""
+
+    @staticmethod
+    def __is_task_empty(task):
+        """Check all categories and return True if all are empty."""
         for category in task.categories:
             if not task.categories[category].is_empty():
                 return False
         return True
+
     def delete_task(self, task_name):
-        """Deletes the task from the sub-project"""
+        """Delete the task from the subproject."""
 
         # first get the task
         task = self._tasks.get(task_name, None)
@@ -374,6 +374,7 @@ class Subproject(Entity):
         return 1
 
     def find_sub_by_id(self, uid):
+        """Find the subproject by id."""
         queue = list(self.subs.values())
         while queue:
             current = queue.pop(0)
@@ -385,6 +386,8 @@ class Subproject(Entity):
         return -1
 
     def find_sub_by_path(self, path):
+        """Find the subproject by path."""
+
         if path == "":  # this is root
             return self
         queue = list(self.subs.values())
@@ -398,6 +401,7 @@ class Subproject(Entity):
         return -1
 
     def find_subs_by_wildcard(self, wildcard):
+        """Find the subproject by wildcard."""
         subs = []
         queue = list(self.subs.values())
         visited = []
@@ -410,15 +414,17 @@ class Subproject(Entity):
         return subs
 
     def get_uid_by_path(self, path):
+        """Get the uid of the subproject by path."""
         sub = self.find_sub_by_path(path)
         return sub.id if sub != -1 else sub
 
     def get_path_by_uid(self, uid):
+        """Get the path of the subproject by uid."""
         sub = self.find_sub_by_id(uid)
         return sub.path if sub != -1 else sub
 
     def _remove_sub_project(self, uid=None, path=None):
-        """Removes the sub project from the object but not from the database"""
+        """Removes the subproject from the object but not from the database"""
 
         if not uid and not path:
             LOG.error("Deleting sub project requires at least an id or path ")
@@ -443,19 +449,15 @@ class Subproject(Entity):
         return 1
 
     def _delete_folders(self, root, sub=None):
+        """Delete the folders of the subproject."""
         sub = sub or self
         folder = os.path.normpath(os.path.join(root, sub.path))
         shutil.rmtree(folder)
 
     def create_folders(self, root, sub=None):
-        """Creates folders for subprojects and categories below this starting from 'root' path"""
+        """Create folders for subprojects and categories below this starting from 'root' path"""
         sub = sub or self
         folder = os.path.join(root, sub.path)
         if not os.path.exists(folder):
             os.makedirs(folder)
-        # unfortunately python 2.x does not support  exist_ok argument...
-        # for category in sub.categories:
-        #     _f = os.path.join(folder, category.name)
-        #     if not os.path.exists(_f):
-        #         os.makedirs(_f)
         _ = [sub.create_folders(root, sub=sub) for sub in sub.subs.values()]
