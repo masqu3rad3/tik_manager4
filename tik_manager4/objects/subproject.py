@@ -164,19 +164,30 @@ class Subproject(Entity):
                     # if sub.shot_data != neighbour.shot_data:
                     #     sub_data["shot_data"] = neighbour.shot_data
 
-
-                    if neighbour.resolution != self.resolution:
+                    print("get_sub_tree")
+                    print(sub_data["name"], neighbour.overridden_fps)
+                    print("---------------")
+                    if neighbour.overridden_resolution:
                         sub_data["resolution"] = neighbour.resolution
-                        self.overridden_resolution = False
-                    if neighbour.fps != self.fps:
+                    if neighbour.overridden_fps:
                         sub_data["fps"] = neighbour.fps
-                        self.overridden_fps = False
-                    if neighbour.mode != self.mode:
+                    if neighbour.overridden_mode:
                         sub_data["mode"] = neighbour.mode
-                        self.overridden_mode = False
-                    if neighbour.shot_data != self.shot_data:
+                    if neighbour.overridden_shot_data:
                         sub_data["shot_data"] = neighbour.shot_data
-                        self.overridden_shot_data = False
+
+                    # if neighbour.resolution != self.resolution:
+                    #     sub_data["resolution"] = neighbour.resolution
+                    #     self.overridden_resolution = False
+                    # if neighbour.fps != self.fps:
+                    #     sub_data["fps"] = neighbour.fps
+                    #     self.overridden_fps = False
+                    # if neighbour.mode != self.mode:
+                    #     sub_data["mode"] = neighbour.mode
+                    #     self.overridden_mode = False
+                    # if neighbour.shot_data != self.shot_data:
+                    #     sub_data["shot_data"] = neighbour.shot_data
+                    #     self.overridden_shot_data = False
                     parent["subs"].append(sub_data)
 
                     visited.append(neighbour)
@@ -190,7 +201,6 @@ class Subproject(Entity):
         This is for building back the hierarchy from json data
 
         """
-        print(data)
         visited = []
         queue = []
         self.id = data.get("id", None)
@@ -215,24 +225,22 @@ class Subproject(Entity):
                     _id = neighbour.get("id", None)
                     _name = neighbour.get("name", None)
                     _relative_path = neighbour.get("path", None)
-                    _resolution = neighbour.get("resolution", self.resolution)
-                    # _resolution = neighbour.get("resolution", sub.resolution)
-                    _fps = neighbour.get("fps", self.fps)
-                    # _fps = neighbour.get("fps", sub.fps)
+                    # _resolution = neighbour.get("resolution", self.resolution)
+                    _resolution = neighbour.get("resolution", sub.resolution)
+                    # _fps = neighbour.get("fps", self.fps)
+                    _fps = neighbour.get("fps", sub.fps)
                     # _mode = neighbour.get("mode", self.mode)
                     _mode = neighbour.get("mode", sub.mode)
-                    print("name: ", _name, neighbour.get("resolution", None), neighbour.get("fps", None), neighbour.get("mode", None))
-                    # print("=======================================")
 
                     _shot_data = neighbour.get("shot_data", self.shot_data)
-                    print("SUBP: ", sub.name, sub.resolution, sub.fps, sub.mode)
 
                     sub_project = sub.__build_sub_project(_name, neighbour, _resolution, _fps, _mode, _shot_data, _id)
-                    print("name: ", sub_project.name, sub_project.resolution, sub_project.fps, sub_project.mode)
-                    print("=======================================")
                     # define the path and categories separately
                     sub_project._relative_path = _relative_path
 
+                    print("set_sub_tree")
+                    print(sub_project.name, sub_project.overridden_fps)
+                    print("---------------")
                     if neighbour.get("resolution", None):
                         sub_project.overridden_resolution = True
                     if neighbour.get("fps", None):
@@ -267,14 +275,18 @@ class Subproject(Entity):
             # return 0
 
         # inherit the resolution, fps, mode and shot_data if not overriden
-        resolution = resolution or self.resolution
-        fps = fps or self.fps
-        mode = mode or self.mode
-        shot_data = shot_data or self.shot_data
+        _resolution = resolution or self.resolution
+        _fps = fps or self.fps
+        _mode = mode or self.mode
+        _shot_data = shot_data or self.shot_data
 
-        # print("WRIT: ", name, resolution, fps, mode)
+        new_sub = self.__build_sub_project(name, parent_sub, _resolution, _fps, _mode, _shot_data, uid)  # keep uid at the end
+        new_sub.overridden_resolution = bool(resolution)
+        new_sub.overridden_fps = bool(fps)
+        new_sub.overridden_mode = bool(mode)
+        new_sub.overridden_shot_data = bool(shot_data)
 
-        return self.__build_sub_project(name, parent_sub, resolution, fps, mode, shot_data, uid)  # keep uid at the end
+        return new_sub
 
         # # TODO Currently the overriden uid is not getting checked if it is really unique or not
         # sub_pr = Subproject(name=name, resolution=resolution, fps=fps, uid=uid)
@@ -426,7 +438,6 @@ class Subproject(Entity):
             return -1
         parent_path = os.path.dirname(kill_sub.path) or ""
         parent_sub = self.find_sub_by_path(parent_path)
-        print(parent_sub, parent_path)
         del parent_sub.subs[kill_sub.name]
 
         return 1
@@ -434,7 +445,6 @@ class Subproject(Entity):
     def _delete_folders(self, root, sub=None):
         sub = sub or self
         folder = os.path.normpath(os.path.join(root, sub.path))
-        # print("TEST", folder)
         shutil.rmtree(folder)
 
     def create_folders(self, root, sub=None):

@@ -27,7 +27,6 @@ class ValueChangeStr(QtCore.QObject):
         super(ValueChangeStr, self).__init__()
 
     def valueChangeEvent(self, e):
-        print(e)
         self.valueChanged.emit(e)
 
 
@@ -36,8 +35,6 @@ class ValueChangeInt(QtCore.QObject):
     valueChanged = QtCore.Signal(int)
 
     def valueChangeEvent(self, e):
-        print(e)
-
         self.valueChanged.emit(e)
 
 
@@ -46,8 +43,6 @@ class ValueChangeFloat(QtCore.QObject):
     valueChanged = QtCore.Signal(float)
 
     def valueChangeEvent(self, e):
-        print(e)
-
         self.valueChanged.emit(e)
 
 
@@ -56,8 +51,6 @@ class ValueChangeBool(QtCore.QObject):
     valueChanged = QtCore.Signal(bool)
 
     def valueChangeEvent(self, e):
-        print(e)
-
         self.valueChanged.emit(e)
 
 
