@@ -122,6 +122,11 @@ class Subproject(Entity):
             "overridden_mode": self.overridden_mode
         }
 
+    @property
+    def metadata(self):
+        """Return the metadata of the subproject."""
+        return self._metadata
+
     def set_resolution(self, val):
         """Set the resolution of the subproject."""
         state = self._check_permissions(level=2)
@@ -191,6 +196,15 @@ class Subproject(Entity):
                         "path": neighbour.path,
                         "subs": [],  # this will be filled with the while loop
                     }
+                    for key, metaitem in neighbour.metadata.items():
+                        print("------------------")
+                        print("------------------")
+                        print(key, metaitem.value)
+                        if metaitem.overridden:
+                            print("overridden")
+                            sub_data[key] = metaitem.value
+                        print("------------------")
+                        print("------------------")
 
                     if neighbour.overridden_resolution:
                         sub_data["resolution"] = neighbour.resolution
@@ -212,6 +226,8 @@ class Subproject(Entity):
         """Create the subproject from the data dictionary.
         This is for building back the hierarchy from json data
         """
+        # persistent keys
+        persistent_keys = ["id", "name", "path", "resolution", "fps", "mode", "shot_data", "subs"]
         visited = []
         queue = []
         self.id = data.get("id", None)
@@ -221,6 +237,11 @@ class Subproject(Entity):
         self.__fps = data.get("fps", None)
         self.__mode = data.get("mode", None)
         self.__shot_data = data.get("shot_data", None)
+
+        # get all remaining keys as metadata
+        for key, value in data.items():
+            if key not in persistent_keys:
+                self._metadata.add_item(key, value)
 
         # append the subproject object and pointer for json as a queue element
         queue.append([self, data.get("subs", [])])
@@ -241,9 +262,21 @@ class Subproject(Entity):
 
                     _shot_data = neighbour.get("shot_data", self.shot_data)
 
-                    sub_project = sub.__build_sub_project(_name, neighbour, _resolution, _fps, _mode, _shot_data, _id)
+                    _metadata = {} # this will filled after subproject creation
+                    for key, value in neighbour.items():
+                        if key not in persistent_keys:
+                            _metadata[key] = value or sub.metadata.get(key, None)
+
+
+                    sub_project = sub.__build_sub_project(_name, neighbour, _resolution, _fps, _mode, _shot_data, _metadata, _id)
                     # define the path and categories separately
                     sub_project._relative_path = _relative_path
+
+                    # add and override metadata
+                    for key, metaitem in sub_project.metadata.items():
+                        if neighbour.get(key, None):
+                            # sub_project.metadata.add_item(key, value)
+                            sub_project.metadata[key].overridden = True
 
                     if neighbour.get("resolution", None):
                         sub_project.overridden_resolution = True
@@ -264,6 +297,7 @@ class Subproject(Entity):
                             fps,
                             mode,
                             shot_data,
+                            metadata,
                             uid
                             ):
         """Build the subproject inside class."""
@@ -274,6 +308,7 @@ class Subproject(Entity):
                             fps=fps,
                             mode=mode,
                             shot_data=shot_data,
+                            metadata=metadata,
                             uid=uid)
         sub_pr.path = os.path.join(self.path, name)
         self._sub_projects[name] = sub_pr
@@ -286,6 +321,7 @@ class Subproject(Entity):
                         fps=None,
                         mode=None,
                         shot_data=None,
+                        metadata=None,
                         uid=None
                         ):
         """Add a subproject.
@@ -308,8 +344,22 @@ class Subproject(Entity):
         _mode = mode or self.mode
         _shot_data = shot_data or self.shot_data
 
-        new_sub = self.__build_sub_project(name, parent_sub, _resolution, _fps, _mode, _shot_data,
+        # TODO this sandviching of the metadata is not good
+        # TODO try to find a better way to do this
+        metadata = metadata or {}
+        _inherited_metadata = metadata.copy()
+        # inherit the metadata from the parent
+        for key, metaitem in self.metadata.items():
+            if key not in metadata:
+                _inherited_metadata[key] = metaitem.value
+
+        new_sub = self.__build_sub_project(name, parent_sub, _resolution, _fps, _mode, _shot_data, _inherited_metadata,
                                            uid)  # keep uid at the end
+        # override the metadata if its found in the metadata dictionary
+        for key, metaitem in new_sub.metadata.items():
+            if metadata.get(key, None):
+                # new_sub.metadata.add_item(key, value)
+                new_sub.metadata[key].overridden = True
         new_sub.overridden_resolution = bool(resolution)
         new_sub.overridden_fps = bool(fps)
         new_sub.overridden_mode = bool(mode)
