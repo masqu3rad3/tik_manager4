@@ -35,6 +35,25 @@ class Metadata(dict):
         for key, val in self.items():
             yield key, val.value
 
+    def override(self, data_dictionary):
+        """Override the metadata with another metadata."""
+        for key, data in data_dictionary.items():
+            if key in self:
+                print("d2.1", data)
+                self[key].value = data
+                self[key].overridden = True
+            else:
+                print("d2.2", data)
+                self[key] = Metaitem(data, overridden=True)
+            #     self[key].overridden = True
+            # self.add_item(key, metaitem)
+            # self[key].overridden = True
+    # def update(self, data_dictionary, **kwargs):
+    #     """Update the metadata with a dictionary."""
+    #     super(Metadata, self).update(data_dictionary, **kwargs)
+    #     for key in data_dictionary.keys():
+    #         self[key].overridden = True
+
 class Subproject(Entity):
     def __init__(self,
                  parent_sub=None,
@@ -53,8 +72,7 @@ class Subproject(Entity):
         self._sub_projects = {}
         self._tasks = {}
 
-        metadata = metadata or {}
-        self._metadata = Metadata(metadata)
+        self._metadata = metadata or Metadata({})
 
         self.overridden_resolution = False
         self.overridden_fps = False
@@ -197,6 +215,7 @@ class Subproject(Entity):
                         "subs": [],  # this will be filled with the while loop
                     }
                     for key, metaitem in neighbour.metadata.items():
+                        # print(key, metaitem.value)
                         if metaitem.overridden:
                             sub_data[key] = metaitem.value
 
@@ -311,12 +330,13 @@ class Subproject(Entity):
     def add_sub_project(self,
                         name,
                         parent_sub=None,
+                        uid=None,
                         resolution=None,
                         fps=None,
                         mode=None,
                         shot_data=None,
-                        metadata=None,
-                        uid=None,
+                        # metadata=None,
+                        **properties
                         ):
         """Add a subproject.
         requires permissions.
@@ -338,22 +358,46 @@ class Subproject(Entity):
         _mode = mode or self.mode
         _shot_data = shot_data or self.shot_data
 
-        # TODO this sandwiching of the metadata is not good
-        # TODO try to find a better way to do this
-        metadata = metadata or {}
-        _inherited_metadata = metadata.copy()
-        # inherit the metadata from the parent
-        for key, metaitem in self.metadata.items():
-            if key not in metadata:
-                _inherited_metadata[key] = metaitem.value
+        # TODO below is a temporary solution
+        _metadata = Metadata(dict(self.metadata.get_all_items())) or Metadata({})
+        # _metadata = self.metadata or Metadata({})
+        # print("_metadata", _metadata)
+        # print("self.metadata", self.metadata)
+        _metadata.override(properties)
 
-        new_sub = self.__build_sub_project(name, parent_sub, _resolution, _fps, _mode, _shot_data, _inherited_metadata,
+        print("d1", _metadata.get("metatest", None))
+        test = _metadata.get("metatest", None)
+        if test:
+            print(test.value)
+
+        # properties = properties or {}
+        # # ihnerit the metadata from the parent
+        # for key, metaitem in self.metadata.items():
+        #     if key not in properties:
+        #         properties[key] = metaitem.value
+        #
+        # _inherited_metadata = metadata.copy()
+        # # inherit the metadata from the parent
+        # for key, metaitem in self.metadata.items():
+        #     if key not in metadata:
+        #         _inherited_metadata[key] = metaitem.value
+
+        # create the metadata object
+
+
+        new_sub = self.__build_sub_project(name,
+                                           parent_sub,
+                                           _resolution,
+                                           _fps,
+                                           _mode,
+                                           _shot_data,
+                                           _metadata,
                                            uid)  # keep uid at the end
         # override the metadata if its found in the metadata dictionary
-        for key, metaitem in new_sub.metadata.items():
-            if metadata.get(key, None):
-                # new_sub.metadata.add_item(key, value)
-                new_sub.metadata[key].overridden = True
+        # for key, metaitem in new_sub.metadata.items():
+        #     if metadata.get(key, None):
+        #         # new_sub.metadata.add_item(key, value)
+        #         new_sub.metadata[key].overridden = True
         new_sub.overridden_resolution = bool(resolution)
         new_sub.overridden_fps = bool(fps)
         new_sub.overridden_mode = bool(mode)

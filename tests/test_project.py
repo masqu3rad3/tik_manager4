@@ -153,7 +153,7 @@ class TestProject:
 
         assets = self.tik.project.add_sub_project("Assets", mode="asset")
         chars = assets.add_sub_project("Characters", fps=60)
-        props = assets.add_sub_project("Props", metadata={"test": "testoid"})
+        props = assets.add_sub_project("Props", metatest="uberMetaTestingen")
         env = assets.add_sub_project("Environment")
 
         leaf_assets = [chars.add_sub_project("Soldier"),
@@ -167,9 +167,9 @@ class TestProject:
                        env.add_sub_project("GroundD"),
                        ]
 
-        for leaf in leaf_assets:
-            print(leaf.name)
-            print(leaf.metadata)
+        # for leaf in leaf_assets:
+        #     print(leaf.name)
+        #     print(leaf.metadata)
 
         # for leaf in leaf_assets:
         #     for category in asset_categories:
