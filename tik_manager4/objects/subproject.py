@@ -197,14 +197,8 @@ class Subproject(Entity):
                         "subs": [],  # this will be filled with the while loop
                     }
                     for key, metaitem in neighbour.metadata.items():
-                        print("------------------")
-                        print("------------------")
-                        print(key, metaitem.value)
                         if metaitem.overridden:
-                            print("overridden")
                             sub_data[key] = metaitem.value
-                        print("------------------")
-                        print("------------------")
 
                     if neighbour.overridden_resolution:
                         sub_data["resolution"] = neighbour.resolution
@@ -322,7 +316,7 @@ class Subproject(Entity):
                         mode=None,
                         shot_data=None,
                         metadata=None,
-                        uid=None
+                        uid=None,
                         ):
         """Add a subproject.
         requires permissions.
@@ -344,7 +338,7 @@ class Subproject(Entity):
         _mode = mode or self.mode
         _shot_data = shot_data or self.shot_data
 
-        # TODO this sandviching of the metadata is not good
+        # TODO this sandwiching of the metadata is not good
         # TODO try to find a better way to do this
         metadata = metadata or {}
         _inherited_metadata = metadata.copy()
