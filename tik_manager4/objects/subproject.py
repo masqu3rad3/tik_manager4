@@ -41,15 +41,19 @@ class Metadata(dict):
             return self[key].value
         return fallback_value
 
+    def is_overridden(self, key):
+        """Check if a key is overridden."""
+        if key in self:
+            return self[key].overridden
+        return False
+
     def override(self, data_dictionary):
         """Override the metadata with another metadata."""
         for key, data in data_dictionary.items():
             if key in self:
-                print("d2.1", data)
                 self[key].value = data
                 self[key].overridden = True
             else:
-                print("d2.2", data)
                 self[key] = Metaitem(data, overridden=True)
             #     self[key].overridden = True
             # self.add_item(key, metaitem)
@@ -263,7 +267,6 @@ class Subproject(Entity):
         # get all remaining keys as metadata
         for key, value in data.items():
             if key not in persistent_keys:
-                print("zort", self._name, key, value)
                 self._metadata.add_item(key, value, overridden=True)
 
         # append the subproject object and pointer for json as a queue element
@@ -291,9 +294,6 @@ class Subproject(Entity):
                     for key, value in neighbour.items():
                         if key not in persistent_keys:
                             properties[key] = value
-                            # _value = value or sub.metadata.get(key, None)
-                            # print(("zart", _name, key, _value))
-                            # _metadata.add_item(key, _value)
 
                     _metadata.override(properties)
 

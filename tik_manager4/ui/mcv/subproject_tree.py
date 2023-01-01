@@ -108,7 +108,6 @@ class TikSubModel(QtGui.QStandardItemModel):
 
             for neighbour in list(sub.subs.values()):
                 if neighbour not in visited:
-                    # print(neighbour.path)
                     sub_data = {
                         "id": neighbour.id,
                         "name": neighbour.name,
@@ -142,16 +141,18 @@ class TikSubModel(QtGui.QStandardItemModel):
         _sub_item = TikSubItem(sub_obj)
         _row = [_sub_item]
         # generate the column texts
-        # for column in self.columns[1:]:
-        #     # get the override status
+        for column in self.columns[1:]:
+            # get the override status
+            _column_value = sub_obj.metadata.get_value(column, "")
+            _overridden = sub_obj.metadata.is_overridden(column)
         #     _properties = sub_obj.properties
         #     _column_value = _properties.get(column, None)
         #     if not _column_value:
         #         continue
         #     _overridden = sub_obj.properties.get("overridden_{}".format(column), False)
         #     # _overridden = False
-        #     _column_item = TikColumnItem(str(_column_value), _overridden)
-        #     _row.append(_column_item)
+            _column_item = TikColumnItem(str(_column_value), _overridden)
+            _row.append(_column_item)
 
         parent.appendRow(_row)
 
@@ -272,8 +273,6 @@ class TikSubView(QtWidgets.QTreeView):
         # the id needs to mapped from proxy to source
         index = self.proxy_model.mapToSource(idx)
         _item = self.model.itemFromIndex(index)
-
-        print(_item.data.metadata.get_value("resolution"))
 
         _tasks = self.collect_tasks(_item.data, recursive=self._recursive_task_scan)
         self.item_selected.emit(_tasks)
@@ -404,12 +403,10 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
         super(ProxyModel, self).__init__(parent)
         pass
     def filterAcceptsRow(self, source_row, source_parent):
-        # print(source_row, source_parent)
         model = self.sourceModel()
         index = model.index(source_row, 0, QtCore.QModelIndex())
 
         item = model.itemFromIndex(index)
-        # print(item.data)
         if isinstance(item, TikSubItem):
             pass
             # print(item.data.scan_tasks())
