@@ -25,15 +25,21 @@ class Metadata(dict):
         for key, val in data_dictionary.items():
             self.add_item(key, val)
 
-    def add_item(self, key, value):
+    def add_item(self, key, value, overridden=False):
         """Add an item to the metadata."""
-        self[key] = Metaitem(value)
+        self[key] = Metaitem(value, overridden=overridden)
         return self[key]
 
     def get_all_items(self):
         """Return all items in the metadata."""
         for key, val in self.items():
             yield key, val.value
+
+    def get_value(self, key, fallback_value=None):
+        """Get the value of a key."""
+        if key in self:
+            return self[key].value
+        return fallback_value
 
     def override(self, data_dictionary):
         """Override the metadata with another metadata."""
@@ -57,52 +63,52 @@ class Metadata(dict):
 class Subproject(Entity):
     def __init__(self,
                  parent_sub=None,
-                 resolution=None,
-                 fps=None,
-                 mode=None,
-                 shot_data=None,
+                 # resolution=None,
+                 # fps=None,
+                 # mode=None,
+                 # shot_data=None,
                  metadata=None,
                  **kwargs):
         super(Subproject, self).__init__(**kwargs)
-        self.__fps = fps
-        self.__resolution = resolution
-        self.__mode = mode
-        self.__shot_data = shot_data
+        # self.__fps = fps
+        # self.__resolution = resolution
+        # self.__mode = mode
+        # self.__shot_data = shot_data
         self.__parent_sub = parent_sub
         self._sub_projects = {}
         self._tasks = {}
 
         self._metadata = metadata or Metadata({})
 
-        self.overridden_resolution = False
-        self.overridden_fps = False
-        self.overridden_mode = False
-        self.overridden_shot_data = False
+        # self.overridden_resolution = False
+        # self.overridden_fps = False
+        # self.overridden_mode = False
+        # self.overridden_shot_data = False
 
     @property
     def parent(self):
         """Return the parent subproject."""
         return self.__parent_sub
 
-    @property
-    def mode(self):
-        """Get the mode of the subproject."""
-        return self.__mode
+    # @property
+    # def mode(self):
+    #     """Get the mode of the subproject."""
+    #     return self.__mode
 
-    @mode.setter
-    def mode(self, value):
-        """Set the mode of the subproject."""
-        self.__mode = value
+    # @mode.setter
+    # def mode(self, value):
+    #     """Set the mode of the subproject."""
+    #     self.__mode = value
 
-    @property
-    def shot_data(self):
-        """Return the shot data of the subproject."""
-        return self.__shot_data
+    # @property
+    # def shot_data(self):
+    #     """Return the shot data of the subproject."""
+    #     return self.__shot_data
 
-    @shot_data.setter
-    def shot_data(self, value):
-        """Set the shot data of the subproject."""
-        self.__shot_data = value
+    # @shot_data.setter
+    # def shot_data(self, value):
+    #     """Set the shot data of the subproject."""
+    #     self.__shot_data = value
 
     @property
     def subs(self):
@@ -114,15 +120,15 @@ class Subproject(Entity):
         """Return the tasks of the subproject."""
         return self._tasks
 
-    @property
-    def resolution(self):
-        """Return the resolution of the subproject."""
-        return self.__resolution
+    # @property
+    # def resolution(self):
+    #     """Return the resolution of the subproject."""
+    #     return self.__resolution
 
-    @property
-    def fps(self):
-        """Return the fps of the subproject."""
-        return self.__fps
+    # @property
+    # def fps(self):
+    #     """Return the fps of the subproject."""
+    #     return self.__fps
 
     @property
     def properties(self):
@@ -131,13 +137,13 @@ class Subproject(Entity):
             "id": self.id,
             "name": self.name,
             "path": self.path,
-            "resolution": self.resolution,
-            "fps": self.fps,
-            "mode": self.mode,
-            "shot_data": self.shot_data,
-            "overridden_resolution": self.overridden_resolution,
-            "overridden_fps": self.overridden_fps,
-            "overridden_mode": self.overridden_mode
+            # "resolution": self.resolution,
+            # "fps": self.fps,
+            # "mode": self.mode,
+            # "shot_data": self.shot_data,
+            # "overridden_resolution": self.overridden_resolution,
+            # "overridden_fps": self.overridden_fps,
+            # "overridden_mode": self.overridden_mode
         }
 
     @property
@@ -145,38 +151,38 @@ class Subproject(Entity):
         """Return the metadata of the subproject."""
         return self._metadata
 
-    def set_resolution(self, val):
-        """Set the resolution of the subproject."""
-        state = self._check_permissions(level=2)
-        if state != 1:
-            return -1
-        if isinstance(val, (list, tuple)):
-            self.__resolution = val
-            return 1
-        msg = "%s is not a valid resolution. must be list or tuple." % val
-        LOG.error(msg, proceed=False)
+    # def set_resolution(self, val):
+    #     """Set the resolution of the subproject."""
+    #     state = self._check_permissions(level=2)
+    #     if state != 1:
+    #         return -1
+    #     if isinstance(val, (list, tuple)):
+    #         self.__resolution = val
+    #         return 1
+    #     msg = "%s is not a valid resolution. must be list or tuple." % val
+    #     LOG.error(msg, proceed=False)
 
-    def set_fps(self, val):
-        """Set the fps of the subproject."""
-        state = self._check_permissions(level=2)
-        if state != 1:
-            return -1
-        if isinstance(val, (int, float)):
-            self.__fps = val
-            return 1
-        msg = "%s is not a valid fps value. must be int or float." % val
-        LOG.error(msg, proceed=False)
+    # def set_fps(self, val):
+    #     """Set the fps of the subproject."""
+    #     state = self._check_permissions(level=2)
+    #     if state != 1:
+    #         return -1
+    #     if isinstance(val, (int, float)):
+    #         self.__fps = val
+    #         return 1
+    #     msg = "%s is not a valid fps value. must be int or float." % val
+    #     LOG.error(msg, proceed=False)
 
-    def set_mode(self, val):
-        """Set the mode of the subproject."""
-        state = self._check_permissions(level=2)
-        if state != 1:
-            return -1
-        if isinstance(val, str):
-            self.__mode = val
-            return 1
-        msg = "%s is not a valid mode. must be str." % val
-        LOG.error(msg, proceed=False)
+    # def set_mode(self, val):
+    #     """Set the mode of the subproject."""
+    #     state = self._check_permissions(level=2)
+    #     if state != 1:
+    #         return -1
+    #     if isinstance(val, str):
+    #         self.__mode = val
+    #         return 1
+    #     msg = "%s is not a valid mode. must be str." % val
+    #     LOG.error(msg, proceed=False)
 
     def get_sub_tree(self):
         """Return the subproject tree as a dictionary"""
@@ -188,13 +194,16 @@ class Subproject(Entity):
             "id": self.id,
             "name": self.name,
             "path": self.path,
-            "resolution": self.resolution,
-            "fps": self.fps,
-            "mode": self.mode,
-            "shot_data": self.shot_data,
-            # "categories": [category.name for category in self.categories],
+            # "resolution": self.resolution,
+            # "fps": self.fps,
+            # "mode": self.mode,
+            # "shot_data": self.shot_data,
             "subs": [],  # this will be filled with the while loop
         }
+
+        for key, metaitem in self.metadata.items():
+            if metaitem.overridden:
+                all_data[key] = metaitem.value
 
         # add the initial dictionary and self into the queue
         # Each queue item is a list.
@@ -215,18 +224,17 @@ class Subproject(Entity):
                         "subs": [],  # this will be filled with the while loop
                     }
                     for key, metaitem in neighbour.metadata.items():
-                        # print(key, metaitem.value)
                         if metaitem.overridden:
                             sub_data[key] = metaitem.value
 
-                    if neighbour.overridden_resolution:
-                        sub_data["resolution"] = neighbour.resolution
-                    if neighbour.overridden_fps:
-                        sub_data["fps"] = neighbour.fps
-                    if neighbour.overridden_mode:
-                        sub_data["mode"] = neighbour.mode
-                    if neighbour.overridden_shot_data:
-                        sub_data["shot_data"] = neighbour.shot_data
+                    # if neighbour.overridden_resolution:
+                    #     sub_data["resolution"] = neighbour.resolution
+                    # if neighbour.overridden_fps:
+                    #     sub_data["fps"] = neighbour.fps
+                    # if neighbour.overridden_mode:
+                    #     sub_data["mode"] = neighbour.mode
+                    # if neighbour.overridden_shot_data:
+                    #     sub_data["shot_data"] = neighbour.shot_data
 
                     parent["subs"].append(sub_data)
 
@@ -240,21 +248,23 @@ class Subproject(Entity):
         This is for building back the hierarchy from json data
         """
         # persistent keys
-        persistent_keys = ["id", "name", "path", "resolution", "fps", "mode", "shot_data", "subs"]
+        # persistent_keys = ["id", "name", "path", "resolution", "fps", "mode", "shot_data", "subs"]
+        persistent_keys = ["id", "name", "path", "subs"]
         visited = []
         queue = []
         self.id = data.get("id", None)
         self._name = data.get("name", None)
         self._relative_path = data.get("path", None)
-        self.__resolution = data.get("resolution", None)
-        self.__fps = data.get("fps", None)
-        self.__mode = data.get("mode", None)
-        self.__shot_data = data.get("shot_data", None)
+        # self.__resolution = data.get("resolution", None)
+        # self.__fps = data.get("fps", None)
+        # self.__mode = data.get("mode", None)
+        # self.__shot_data = data.get("shot_data", None)
 
         # get all remaining keys as metadata
         for key, value in data.items():
             if key not in persistent_keys:
-                self._metadata.add_item(key, value)
+                print("zort", self._name, key, value)
+                self._metadata.add_item(key, value, overridden=True)
 
         # append the subproject object and pointer for json as a queue element
         queue.append([self, data.get("subs", [])])
@@ -269,36 +279,41 @@ class Subproject(Entity):
                     _id = neighbour.get("id", None)
                     _name = neighbour.get("name", None)
                     _relative_path = neighbour.get("path", None)
-                    _resolution = neighbour.get("resolution", sub.resolution)
-                    _fps = neighbour.get("fps", sub.fps)
-                    _mode = neighbour.get("mode", sub.mode)
+                    # _resolution = neighbour.get("resolution", sub.resolution)
+                    # _fps = neighbour.get("fps", sub.fps)
+                    # _mode = neighbour.get("mode", sub.mode)
+                    # _shot_data = neighbour.get("shot_data", self.shot_data)
 
-                    _shot_data = neighbour.get("shot_data", self.shot_data)
-
-                    _metadata = {} # this will filled after subproject creation
+                    # TODO below is a temporary solution
+                    _metadata = Metadata(dict(sub.metadata.get_all_items())) or Metadata({})
+                    # _metadata = Metadata({}) # this will filled after subproject creation
+                    properties = {}
                     for key, value in neighbour.items():
                         if key not in persistent_keys:
-                            _metadata[key] = value or sub.metadata.get(key, None)
+                            properties[key] = value
+                            # _value = value or sub.metadata.get(key, None)
+                            # print(("zart", _name, key, _value))
+                            # _metadata.add_item(key, _value)
 
+                    _metadata.override(properties)
 
-                    sub_project = sub.__build_sub_project(_name, neighbour, _resolution, _fps, _mode, _shot_data, _metadata, _id)
+                    sub_project = sub.__build_sub_project(_name, neighbour, _metadata, _id)
                     # define the path and categories separately
                     sub_project._relative_path = _relative_path
 
                     # add and override metadata
                     for key, metaitem in sub_project.metadata.items():
                         if neighbour.get(key, None):
-                            # sub_project.metadata.add_item(key, value)
                             sub_project.metadata[key].overridden = True
 
-                    if neighbour.get("resolution", None):
-                        sub_project.overridden_resolution = True
-                    if neighbour.get("fps", None):
-                        sub_project.overridden_fps = True
-                    if neighbour.get("mode", None):
-                        sub_project.overridden_mode = True
-                    if neighbour.get("shot_data", None):
-                        sub_project.overridden_shot_data = True
+                    # if neighbour.get("resolution", None):
+                    #     sub_project.overridden_resolution = True
+                    # if neighbour.get("fps", None):
+                    #     sub_project.overridden_fps = True
+                    # if neighbour.get("mode", None):
+                    #     sub_project.overridden_mode = True
+                    # if neighbour.get("shot_data", None):
+                    #     sub_project.overridden_shot_data = True
 
                     visited.append(neighbour)
                     queue.append([sub_project, neighbour.get("subs", [])])
@@ -306,10 +321,10 @@ class Subproject(Entity):
     def __build_sub_project(self,
                             name,
                             parent_sub,
-                            resolution,
-                            fps,
-                            mode,
-                            shot_data,
+                            # resolution,
+                            # fps,
+                            # mode,
+                            # shot_data,
                             metadata,
                             uid
                             ):
@@ -317,10 +332,10 @@ class Subproject(Entity):
 
         sub_pr = Subproject(name=name,
                             parent_sub=parent_sub,
-                            resolution=resolution,
-                            fps=fps,
-                            mode=mode,
-                            shot_data=shot_data,
+                            # resolution=resolution,
+                            # fps=fps,
+                            # mode=mode,
+                            # shot_data=shot_data,
                             metadata=metadata,
                             uid=uid)
         sub_pr.path = os.path.join(self.path, name)
@@ -331,11 +346,10 @@ class Subproject(Entity):
                         name,
                         parent_sub=None,
                         uid=None,
-                        resolution=None,
-                        fps=None,
-                        mode=None,
-                        shot_data=None,
-                        # metadata=None,
+                        # resolution=None,
+                        # fps=None,
+                        # mode=None,
+                        # shot_data=None,
                         **properties
                         ):
         """Add a subproject.
@@ -353,55 +367,28 @@ class Subproject(Entity):
             # return 0
 
         # inherit the resolution, fps, mode and shot_data if not overriden
-        _resolution = resolution or self.resolution
-        _fps = fps or self.fps
-        _mode = mode or self.mode
-        _shot_data = shot_data or self.shot_data
+        # _resolution = resolution or self.resolution
+        # _fps = fps or self.fps
+        # _mode = mode or self.mode
+        # _shot_data = shot_data or self.shot_data
 
         # TODO below is a temporary solution
         _metadata = Metadata(dict(self.metadata.get_all_items())) or Metadata({})
-        # _metadata = self.metadata or Metadata({})
-        # print("_metadata", _metadata)
-        # print("self.metadata", self.metadata)
         _metadata.override(properties)
-
-        print("d1", _metadata.get("metatest", None))
-        test = _metadata.get("metatest", None)
-        if test:
-            print(test.value)
-
-        # properties = properties or {}
-        # # ihnerit the metadata from the parent
-        # for key, metaitem in self.metadata.items():
-        #     if key not in properties:
-        #         properties[key] = metaitem.value
-        #
-        # _inherited_metadata = metadata.copy()
-        # # inherit the metadata from the parent
-        # for key, metaitem in self.metadata.items():
-        #     if key not in metadata:
-        #         _inherited_metadata[key] = metaitem.value
-
-        # create the metadata object
-
 
         new_sub = self.__build_sub_project(name,
                                            parent_sub,
-                                           _resolution,
-                                           _fps,
-                                           _mode,
-                                           _shot_data,
+                                           # _resolution,
+                                           # _fps,
+                                           # _mode,
+                                           # _shot_data,
                                            _metadata,
                                            uid)  # keep uid at the end
-        # override the metadata if its found in the metadata dictionary
-        # for key, metaitem in new_sub.metadata.items():
-        #     if metadata.get(key, None):
-        #         # new_sub.metadata.add_item(key, value)
-        #         new_sub.metadata[key].overridden = True
-        new_sub.overridden_resolution = bool(resolution)
-        new_sub.overridden_fps = bool(fps)
-        new_sub.overridden_mode = bool(mode)
-        new_sub.overridden_shot_data = bool(shot_data)
+
+        # new_sub.overridden_resolution = bool(resolution)
+        # new_sub.overridden_fps = bool(fps)
+        # new_sub.overridden_mode = bool(mode)
+        # new_sub.overridden_shot_data = bool(shot_data)
 
         return new_sub
 
@@ -426,7 +413,8 @@ class Subproject(Entity):
 
     def add_task(self, name, categories, task_type=None):
         """Create a task."""
-        task_type = task_type or self.__mode
+        # task_type = task_type or self.__mode
+        task_type = task_type or self.metadata.get_value("mode", None)
         state = self._check_permissions(level=2)
         if state != 1:
             return -1

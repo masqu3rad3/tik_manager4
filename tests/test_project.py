@@ -33,32 +33,32 @@ class TestProject:
         assert self.tik.project.guard.project_root == os.path.join(utils.get_home_dir(), "TM4_default")
         assert self.tik.project.guard.database_root == os.path.join(utils.get_home_dir(), "TM4_default", "tikDatabase")
 
-    @clean_user
-    def test_resolution_and_fps(self):
-        """Tests setting and getting resolution of fps values"""
-        test_resolution = [1000, 1000]
-        test_fps = 30
-        assert self.tik.project.set_resolution(test_resolution) == -1
-        assert self.tik.project.set_fps(test_fps) == -1
-        self.tik.user.set("Admin")
-        assert self.tik.project.set_resolution(test_resolution) == -1
-        assert self.tik.project.set_fps(test_fps) == -1
-        self.tik.user.authenticate("1234")
-        assert self.tik.project.set_resolution(test_resolution) == 1
-        assert self.tik.project.set_fps(test_fps) == 1
-
-        # fails
-        with pytest.raises(Exception) as e_info:
-            self.tik.project.set_resolution("NOT VALID RESOLUTION")
-        with pytest.raises(Exception) as e_info:
-            self.tik.project.set_fps("NOT VALID FPS")
-
-        self.tik.project.save_structure()
-
-        # # re-init the project and read back the values
-        self.tik.project.set(os.path.join(utils.get_home_dir(), "TM4_default"))
-        assert self.tik.project.resolution == test_resolution
-        assert self.tik.project.fps == test_fps
+    # @clean_user
+    # def test_resolution_and_fps(self):
+    #     """Tests setting and getting resolution of fps values"""
+    #     test_resolution = [1000, 1000]
+    #     test_fps = 30
+    #     assert self.tik.project.set_resolution(test_resolution) == -1
+    #     assert self.tik.project.set_fps(test_fps) == -1
+    #     self.tik.user.set("Admin")
+    #     assert self.tik.project.set_resolution(test_resolution) == -1
+    #     assert self.tik.project.set_fps(test_fps) == -1
+    #     self.tik.user.authenticate("1234")
+    #     assert self.tik.project.set_resolution(test_resolution) == 1
+    #     assert self.tik.project.set_fps(test_fps) == 1
+    #
+    #     # fails
+    #     with pytest.raises(Exception) as e_info:
+    #         self.tik.project.set_resolution("NOT VALID RESOLUTION")
+    #     with pytest.raises(Exception) as e_info:
+    #         self.tik.project.set_fps("NOT VALID FPS")
+    #
+    #     self.tik.project.save_structure()
+    #
+    #     # # re-init the project and read back the values
+    #     self.tik.project.set(os.path.join(utils.get_home_dir(), "TM4_default"))
+    #     assert self.tik.project.resolution == test_resolution
+    #     assert self.tik.project.fps == test_fps
 
     @clean_user
     def test_create_new_project(self):

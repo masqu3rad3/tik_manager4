@@ -85,9 +85,9 @@ class TikSubModel(QtGui.QStandardItemModel):
             "id": self.project.id,
             "name": self.project.name,
             "path": self.project.path,
-            "resolution": self.project.resolution,
-            "fps": self.project.fps,
-            "mode": self.project.mode,
+            # "resolution": self.project.resolution,
+            # "fps": self.project.fps,
+            # "mode": self.project.mode,
             "tasks": self.project.tasks,
             # "categories": [category.name for category in self.project.categories],
             "subs": [],  # this will be filled with the while loop
@@ -116,12 +116,12 @@ class TikSubModel(QtGui.QStandardItemModel):
                         "tasks": neighbour.tasks,
                         "subs": [],  # this will be filled with the while loop
                     }
-                    if neighbour.mode != self.project.mode:
-                        sub_data["mode"] = neighbour.mode
-                    if neighbour.resolution != self.project.resolution:
-                        sub_data["resolution"] = neighbour.resolution
-                    if neighbour.fps != self.project.fps:
-                        sub_data["fps"] = neighbour.fps
+                    # if neighbour.mode != self.project.mode:
+                    #     sub_data["mode"] = neighbour.mode
+                    # if neighbour.resolution != self.project.resolution:
+                    #     sub_data["resolution"] = neighbour.resolution
+                    # if neighbour.fps != self.project.fps:
+                    #     sub_data["fps"] = neighbour.fps
                     parent["subs"].append(sub_data)
 
                     _item = self.append_sub(neighbour, parent_row)
@@ -142,16 +142,16 @@ class TikSubModel(QtGui.QStandardItemModel):
         _sub_item = TikSubItem(sub_obj)
         _row = [_sub_item]
         # generate the column texts
-        for column in self.columns[1:]:
-            # get the override status
-            _properties = sub_obj.properties
-            _column_value = _properties.get(column, None)
-            if not _column_value:
-                continue
-            _overridden = sub_obj.properties.get("overridden_{}".format(column), False)
-            # _overridden = False
-            _column_item = TikColumnItem(str(_column_value), _overridden)
-            _row.append(_column_item)
+        # for column in self.columns[1:]:
+        #     # get the override status
+        #     _properties = sub_obj.properties
+        #     _column_value = _properties.get(column, None)
+        #     if not _column_value:
+        #         continue
+        #     _overridden = sub_obj.properties.get("overridden_{}".format(column), False)
+        #     # _overridden = False
+        #     _column_item = TikColumnItem(str(_column_value), _overridden)
+        #     _row.append(_column_item)
 
         parent.appendRow(_row)
 
@@ -272,6 +272,8 @@ class TikSubView(QtWidgets.QTreeView):
         # the id needs to mapped from proxy to source
         index = self.proxy_model.mapToSource(idx)
         _item = self.model.itemFromIndex(index)
+
+        print(_item.data.metadata.get_value("resolution"))
 
         _tasks = self.collect_tasks(_item.data, recursive=self._recursive_task_scan)
         self.item_selected.emit(_tasks)

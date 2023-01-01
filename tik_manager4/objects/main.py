@@ -56,7 +56,7 @@ class Main(object):
             "path": "",
             "resolution": [1920, 1080],
             "fps": 25,
-            "categories": [],
+            "mode": "root",
             "subs": []
         }
         structure_data["name"] = "TM4_default"
@@ -96,7 +96,6 @@ class Main(object):
                               "resolution": [1920, 1080],
                               "fps": 25,
                               "mode": "root",
-                              "categories": [],
                               "subs": []
                             }
 
@@ -108,6 +107,8 @@ class Main(object):
         structure = settings.Settings(file_path=structure_file)
         structure.set_data(structure_data)
         structure.apply_settings()
+        print("heloloy")
+        print(structure.get_data())
 
         # define a project object to validate data and create folders
         if set_after_creation:
