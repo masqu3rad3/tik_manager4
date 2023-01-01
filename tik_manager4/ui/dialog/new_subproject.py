@@ -31,6 +31,7 @@ class NewSubproject(QtWidgets.QDialog):
         self._new_subproject = None
 
     def populate_settings(self):
+        print(self._parent_sub)
         self.settings.add_property("name", {
             "display_name": "Name :",
             "type": "string",
@@ -41,6 +42,20 @@ class NewSubproject(QtWidgets.QDialog):
             "type": "string",
             "value": self._parent_sub.path,
         })
+        # add a property for each inherited metadata
+        # for key, metaitem in self._parent_sub.metadata.items():
+        #     print("--------")
+        #     print(key)
+        #     print(type(metaitem.value).__name__)
+        #     print("--------")
+        #     if metaitem.value:
+        #         self.settings.add_property(key, {
+        #             "display_name": "{} :".format(key),
+        #             "type": type(metaitem.value).__name__,
+        #             "value": metaitem.value,
+        #         })
+
+        _resolution = self._parent_sub.metadata.get_value("resolution", [1920, 1080])
         self.settings.add_property("resolution_override", {
             "display_name": "Override Resolution :",
             "type": "multi",
@@ -52,11 +67,11 @@ class NewSubproject(QtWidgets.QDialog):
                 },
                 "resolutionX": {
                     "type": "spinnerInt",
-                    "value": self._parent_sub.resolution[0],
+                    "value": _resolution[0],
                 },
                 "resolutionY": {
                     "type": "spinnerInt",
-                    "value": self._parent_sub.resolution[1],
+                    "value": _resolution[1],
                 }
             }
         })
@@ -72,7 +87,7 @@ class NewSubproject(QtWidgets.QDialog):
                 "fps": {
                     "type": "spinnerInt",
                     "object_name": "fps",
-                    "value": self._parent_sub.fps,
+                    "value": self._parent_sub.metadata.get_value("fps", 24),
                 }
             }
         })
@@ -89,7 +104,7 @@ class NewSubproject(QtWidgets.QDialog):
                     "type": "combo",
                     "object_name": "mode",
                     "items": ["", "asset", "shot"],
-                    "value": self._parent_sub.mode or "",
+                    "value": self._parent_sub.metadata.get_value("mode") or "",
                 }
             }
         })

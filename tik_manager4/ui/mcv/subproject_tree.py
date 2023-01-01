@@ -346,6 +346,8 @@ class TikSubView(QtWidgets.QTreeView):
         index_under_pointer = self.indexAt(position)
         if not index_under_pointer.isValid():
             return
+        # make sure the idx is pointing to the first column
+        index_under_pointer = index_under_pointer.sibling(index_under_pointer.row(), 0)
         mapped_index = self.proxy_model.mapToSource(index_under_pointer)
         item = self.model.itemFromIndex(mapped_index)
         if len(indexes) > 0:

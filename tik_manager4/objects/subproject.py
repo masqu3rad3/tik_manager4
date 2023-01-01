@@ -13,12 +13,22 @@ from tik_manager4.objects.task import Task
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class Metaitem(object):
+    """Hold the value and overridden status of a property."""
     def __init__(self, value, overridden=False):
+        """Initialize Metaitem.
+        Args:
+            value (any): The value of the property.
+            overridden (bool): Whether the value is overridden or not.
+        """
         self.value = value
         self.overridden = overridden
 class Metadata(dict):
     """Metadata class."""
     def __init__(self, data_dictionary):
+        """Initialize Metadata object.
+        Args:
+            data_dictionary (dict): The dictionary to initialize the metadata with.
+        """
         super(Metadata, self).__init__(data_dictionary)
 
         # create a Metaitem for each key in the data_dictionary
@@ -48,71 +58,38 @@ class Metadata(dict):
         return False
 
     def override(self, data_dictionary):
-        """Override the metadata with another metadata."""
+        """Override the metadata with a new dictionary."""
         for key, data in data_dictionary.items():
-            if key in self:
-                self[key].value = data
-                self[key].overridden = True
-            else:
-                self[key] = Metaitem(data, overridden=True)
+            self[key] = Metaitem(data, overridden=True)
+            # if key in self:
+            #     self[key].value = data
             #     self[key].overridden = True
-            # self.add_item(key, metaitem)
-            # self[key].overridden = True
-    # def update(self, data_dictionary, **kwargs):
-    #     """Update the metadata with a dictionary."""
-    #     super(Metadata, self).update(data_dictionary, **kwargs)
-    #     for key in data_dictionary.keys():
-    #         self[key].overridden = True
+            # else:
+            #     self[key] = Metaitem(data, overridden=True)
+
 
 class Subproject(Entity):
+    """Subproject object to hold subproject data and hierarchy."""
     def __init__(self,
                  parent_sub=None,
-                 # resolution=None,
-                 # fps=None,
-                 # mode=None,
-                 # shot_data=None,
                  metadata=None,
                  **kwargs):
+        """Initialize Subproject object.
+        Args:
+            parent_sub (Subproject): The parent subproject object.
+            metadata (Metadata): Metadata object to hold any extra data.
+            **kwargs:
+        """
         super(Subproject, self).__init__(**kwargs)
-        # self.__fps = fps
-        # self.__resolution = resolution
-        # self.__mode = mode
-        # self.__shot_data = shot_data
         self.__parent_sub = parent_sub
         self._sub_projects = {}
         self._tasks = {}
-
         self._metadata = metadata or Metadata({})
-
-        # self.overridden_resolution = False
-        # self.overridden_fps = False
-        # self.overridden_mode = False
-        # self.overridden_shot_data = False
 
     @property
     def parent(self):
         """Return the parent subproject."""
         return self.__parent_sub
-
-    # @property
-    # def mode(self):
-    #     """Get the mode of the subproject."""
-    #     return self.__mode
-
-    # @mode.setter
-    # def mode(self, value):
-    #     """Set the mode of the subproject."""
-    #     self.__mode = value
-
-    # @property
-    # def shot_data(self):
-    #     """Return the shot data of the subproject."""
-    #     return self.__shot_data
-
-    # @shot_data.setter
-    # def shot_data(self, value):
-    #     """Set the shot data of the subproject."""
-    #     self.__shot_data = value
 
     @property
     def subs(self):
@@ -125,68 +102,18 @@ class Subproject(Entity):
         return self._tasks
 
     # @property
-    # def resolution(self):
-    #     """Return the resolution of the subproject."""
-    #     return self.__resolution
-
-    # @property
-    # def fps(self):
-    #     """Return the fps of the subproject."""
-    #     return self.__fps
-
-    @property
-    def properties(self):
-        """Return the subproject properties as a dictionary"""
-        return {
-            "id": self.id,
-            "name": self.name,
-            "path": self.path,
-            # "resolution": self.resolution,
-            # "fps": self.fps,
-            # "mode": self.mode,
-            # "shot_data": self.shot_data,
-            # "overridden_resolution": self.overridden_resolution,
-            # "overridden_fps": self.overridden_fps,
-            # "overridden_mode": self.overridden_mode
-        }
+    # def properties(self):
+    #     """Return the subproject properties as a dictionary"""
+    #     return {
+    #         "id": self.id,
+    #         "name": self.name,
+    #         "path": self.path,
+    #     }
 
     @property
     def metadata(self):
-        """Return the metadata of the subproject."""
+        """Return the metadata."""
         return self._metadata
-
-    # def set_resolution(self, val):
-    #     """Set the resolution of the subproject."""
-    #     state = self._check_permissions(level=2)
-    #     if state != 1:
-    #         return -1
-    #     if isinstance(val, (list, tuple)):
-    #         self.__resolution = val
-    #         return 1
-    #     msg = "%s is not a valid resolution. must be list or tuple." % val
-    #     LOG.error(msg, proceed=False)
-
-    # def set_fps(self, val):
-    #     """Set the fps of the subproject."""
-    #     state = self._check_permissions(level=2)
-    #     if state != 1:
-    #         return -1
-    #     if isinstance(val, (int, float)):
-    #         self.__fps = val
-    #         return 1
-    #     msg = "%s is not a valid fps value. must be int or float." % val
-    #     LOG.error(msg, proceed=False)
-
-    # def set_mode(self, val):
-    #     """Set the mode of the subproject."""
-    #     state = self._check_permissions(level=2)
-    #     if state != 1:
-    #         return -1
-    #     if isinstance(val, str):
-    #         self.__mode = val
-    #         return 1
-    #     msg = "%s is not a valid mode. must be str." % val
-    #     LOG.error(msg, proceed=False)
 
     def get_sub_tree(self):
         """Return the subproject tree as a dictionary"""
@@ -198,10 +125,6 @@ class Subproject(Entity):
             "id": self.id,
             "name": self.name,
             "path": self.path,
-            # "resolution": self.resolution,
-            # "fps": self.fps,
-            # "mode": self.mode,
-            # "shot_data": self.shot_data,
             "subs": [],  # this will be filled with the while loop
         }
 
@@ -231,17 +154,7 @@ class Subproject(Entity):
                         if metaitem.overridden:
                             sub_data[key] = metaitem.value
 
-                    # if neighbour.overridden_resolution:
-                    #     sub_data["resolution"] = neighbour.resolution
-                    # if neighbour.overridden_fps:
-                    #     sub_data["fps"] = neighbour.fps
-                    # if neighbour.overridden_mode:
-                    #     sub_data["mode"] = neighbour.mode
-                    # if neighbour.overridden_shot_data:
-                    #     sub_data["shot_data"] = neighbour.shot_data
-
                     parent["subs"].append(sub_data)
-
                     visited.append(neighbour)
                     queue.append([sub_data, neighbour])
 
@@ -251,18 +164,12 @@ class Subproject(Entity):
         """Create the subproject from the data dictionary.
         This is for building back the hierarchy from json data
         """
-        # persistent keys
-        # persistent_keys = ["id", "name", "path", "resolution", "fps", "mode", "shot_data", "subs"]
         persistent_keys = ["id", "name", "path", "subs"]
         visited = []
         queue = []
         self.id = data.get("id", None)
         self._name = data.get("name", None)
         self._relative_path = data.get("path", None)
-        # self.__resolution = data.get("resolution", None)
-        # self.__fps = data.get("fps", None)
-        # self.__mode = data.get("mode", None)
-        # self.__shot_data = data.get("shot_data", None)
 
         # get all remaining keys as metadata
         for key, value in data.items():
@@ -282,21 +189,15 @@ class Subproject(Entity):
                     _id = neighbour.get("id", None)
                     _name = neighbour.get("name", None)
                     _relative_path = neighbour.get("path", None)
-                    # _resolution = neighbour.get("resolution", sub.resolution)
-                    # _fps = neighbour.get("fps", sub.fps)
-                    # _mode = neighbour.get("mode", sub.mode)
-                    # _shot_data = neighbour.get("shot_data", self.shot_data)
 
-                    # TODO below is a temporary solution
+                    # TODO take a look at this if it can be improved
                     _metadata = Metadata(dict(sub.metadata.get_all_items())) or Metadata({})
-                    # _metadata = Metadata({}) # this will filled after subproject creation
                     properties = {}
                     for key, value in neighbour.items():
                         if key not in persistent_keys:
                             properties[key] = value
 
                     _metadata.override(properties)
-
                     sub_project = sub.__build_sub_project(_name, neighbour, _metadata, _id)
                     # define the path and categories separately
                     sub_project._relative_path = _relative_path
@@ -306,36 +207,29 @@ class Subproject(Entity):
                         if neighbour.get(key, None):
                             sub_project.metadata[key].overridden = True
 
-                    # if neighbour.get("resolution", None):
-                    #     sub_project.overridden_resolution = True
-                    # if neighbour.get("fps", None):
-                    #     sub_project.overridden_fps = True
-                    # if neighbour.get("mode", None):
-                    #     sub_project.overridden_mode = True
-                    # if neighbour.get("shot_data", None):
-                    #     sub_project.overridden_shot_data = True
-
                     visited.append(neighbour)
                     queue.append([sub_project, neighbour.get("subs", [])])
 
     def __build_sub_project(self,
                             name,
                             parent_sub,
-                            # resolution,
-                            # fps,
-                            # mode,
-                            # shot_data,
                             metadata,
                             uid
                             ):
-        """Build the subproject inside class."""
+        """Build a nested subproject.
+
+        Args:
+            name (str): Name of the subproject.
+            parent_sub (Subproject): Parent subproject object.
+            metadata (Metadata): Metadata object to hold any extra data.
+            uid (int): Unique id of the subproject.
+
+        Returns:
+
+        """
 
         sub_pr = Subproject(name=name,
                             parent_sub=parent_sub,
-                            # resolution=resolution,
-                            # fps=fps,
-                            # mode=mode,
-                            # shot_data=shot_data,
                             metadata=metadata,
                             uid=uid)
         sub_pr.path = os.path.join(self.path, name)
@@ -346,15 +240,19 @@ class Subproject(Entity):
                         name,
                         parent_sub=None,
                         uid=None,
-                        # resolution=None,
-                        # fps=None,
-                        # mode=None,
-                        # shot_data=None,
                         **properties
                         ):
         """Add a subproject.
-        requires permissions.
-        Does not create folders or store in the persistent database
+        Requires permissions. Does not create folders or store in
+        the persistent database
+        Args:
+            name (str): Name of the subproject.
+            parent_sub (Subproject): Parent subproject object.
+            uid (int): Unique id of the subproject.
+            **properties (dict): Any extra properties to be added to the subproject.
+
+        Returns:
+            Subproject: The newly created subproject object.
         """
 
         state = self._check_permissions(level=2)
@@ -366,29 +264,14 @@ class Subproject(Entity):
             return -1
             # return 0
 
-        # inherit the resolution, fps, mode and shot_data if not overriden
-        # _resolution = resolution or self.resolution
-        # _fps = fps or self.fps
-        # _mode = mode or self.mode
-        # _shot_data = shot_data or self.shot_data
-
-        # TODO below is a temporary solution
+        # TODO look at this if it can be improved
         _metadata = Metadata(dict(self.metadata.get_all_items())) or Metadata({})
         _metadata.override(properties)
 
         new_sub = self.__build_sub_project(name,
                                            parent_sub,
-                                           # _resolution,
-                                           # _fps,
-                                           # _mode,
-                                           # _shot_data,
                                            _metadata,
                                            uid)  # keep uid at the end
-
-        # new_sub.overridden_resolution = bool(resolution)
-        # new_sub.overridden_fps = bool(fps)
-        # new_sub.overridden_mode = bool(mode)
-        # new_sub.overridden_shot_data = bool(shot_data)
 
         return new_sub
 
@@ -412,8 +295,18 @@ class Subproject(Entity):
         return self._tasks
 
     def add_task(self, name, categories, task_type=None):
-        """Create a task."""
-        # task_type = task_type or self.__mode
+        """
+        Add a task to the subproject.
+        Args:
+            name (str): Name of the task.
+            categories (list): List of categories.
+            task_type (str): Type of the task.
+
+        Returns:
+            Task: The newly created task object.
+
+        """
+        # inherit the task type from the parent subproject 'mode' if not specified
         task_type = task_type or self.metadata.get_value("mode", None)
         state = self._check_permissions(level=2)
         if state != 1:
@@ -448,7 +341,6 @@ class Subproject(Entity):
 
     def delete_task(self, task_name):
         """Delete the task from the subproject."""
-
         # first get the task
         task = self._tasks.get(task_name, None)
         if not task:
@@ -489,7 +381,6 @@ class Subproject(Entity):
 
     def find_sub_by_path(self, path):
         """Find the subproject by path."""
-
         if path == "":  # this is root
             return self
         queue = list(self.subs.values())
