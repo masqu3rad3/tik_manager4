@@ -266,6 +266,8 @@ class Subproject(Entity):
 
         # TODO look at this if it can be improved
         _metadata = Metadata(dict(self.metadata.get_all_items())) or Metadata({})
+        # eliminate the None values
+        properties = {k: v for k, v in properties.items() if v is not None}
         _metadata.override(properties)
 
         new_sub = self.__build_sub_project(name,
