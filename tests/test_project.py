@@ -287,7 +287,7 @@ class TestProject:
         self.tik.project.set(test_project_path)
 
         # create a task from the main project
-        task = self.tik.project.create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier")
+        task = self.tik.project.on_create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier")
         assert task.name == "superman"
         assert task.creator == "Admin"
         assert list(task.categories.keys()) == ["Model", "Rig", "Lookdev"]
@@ -297,11 +297,11 @@ class TestProject:
         task = self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].add_task("batman", categories=["Model", "Rig", "Lookdev"], task_type="Asset")
 
         # try to create a duplicate task
-        assert self.tik.project.create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
+        assert self.tik.project.on_create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
 
         # check if the user permissions check works
         self.tik.user.set("Generic", password="1234")
-        assert self.tik.project.create_task("this_asset_shouldnt_exist", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
+        assert self.tik.project.on_create_task("this_asset_shouldnt_exist", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
         # check if the log message is correct
         assert self.tik.log.get_last_message() == ('This user does not have permissions for this action', 'warning')
 
@@ -346,9 +346,9 @@ class TestProject:
         #create some addigional tasks
         asset_categories = ["Model", "Rig", "Lookdev"]
 
-        bizarro_task = self.tik.project.create_task("bizarro", categories=asset_categories, parent_path="Assets/Characters/Soldier")
-        ultraman_task = self.tik.project.create_task("ultraman", categories=asset_categories, parent_path="Assets/Characters/Soldier")
-        superboy_task = self.tik.project.create_task("superboy", categories=asset_categories, parent_path="Assets/Characters/Soldier")
+        bizarro_task = self.tik.project.on_create_task("bizarro", categories=asset_categories, parent_path="Assets/Characters/Soldier")
+        ultraman_task = self.tik.project.on_create_task("ultraman", categories=asset_categories, parent_path="Assets/Characters/Soldier")
+        superboy_task = self.tik.project.on_create_task("superboy", categories=asset_categories, parent_path="Assets/Characters/Soldier")
 
         # create a work
         bizarro_task.categories["Model"].create_work("default")

@@ -34,7 +34,8 @@ class NewTask(QtWidgets.QDialog):
     def populate_settings(self):
         """Populate settings."""
 
-        _mode = self._parent_sub.mode or ""
+        # _mode = self._parent_sub.mode or ""
+        _mode = self._parent_sub.metadata.get_value("mode", "")
         if _mode.lower() == "asset":
             _default_categories = self.tik_project.guard.asset_categories
         elif _mode.lower() == "shot":
@@ -60,9 +61,7 @@ class NewTask(QtWidgets.QDialog):
 
     def _init_ui(self):
         self.main_layout = QtWidgets.QVBoxLayout(self)
-        print("d1")
         self.settings_layout = SettingsLayout(self.settings, parent=self)
-        print("d2")
         self.main_layout.addLayout(self.settings_layout)
 
         # create a button box
@@ -70,18 +69,20 @@ class NewTask(QtWidgets.QDialog):
         self.main_layout.addWidget(self.button_box)
 
         # SIGNALS
-        self.button_box.accepted.connect(self.create_task)
+        self.button_box.accepted.connect(self.on_create_task)
         self.button_box.rejected.connect(self.reject)
 
-    def create_task(self):
+    def on_create_task(self):
         """Create task."""
         self._new_task = self.tik_project.create_task(
-            name=self.settings.name.value,
-            path=self.settings.path.value,
-            categories=self.settings.categories.value,
-            parent=self._parent_sub,
+            name=self.settings.get_property("name")["value"],
+            # path=self.settings.get_property("path")["value"],
+            categories=self.settings.get_property("categories")["value"],
+            parent_uid=self._parent_sub.id,
         )
         self.accept()
+    def get_created_task(self):
+        return self._new_task
 
     # def _init_ui(self):
     #

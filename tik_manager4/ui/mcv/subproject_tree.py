@@ -141,62 +141,18 @@ class TikSubModel(QtGui.QStandardItemModel):
         _sub_item = TikSubItem(sub_obj)
         _row = [_sub_item]
         # generate the column texts
-        for column in self.columns[1:]:
+        # id and path are mandatory, start with them
+        _row.append(TikColumnItem(str(sub_obj.id)))
+        _row.append(TikColumnItem(sub_obj.path))
+        for column in self.columns[3:]: # skip the first 3 columns which are mandatory
             # get the override status
             _column_value = sub_obj.metadata.get_value(column, "")
             _overridden = sub_obj.metadata.is_overridden(column)
-        #     _properties = sub_obj.properties
-        #     _column_value = _properties.get(column, None)
-        #     if not _column_value:
-        #         continue
-        #     _overridden = sub_obj.properties.get("overridden_{}".format(column), False)
-        #     # _overridden = False
             _column_item = TikColumnItem(str(_column_value), _overridden)
             _row.append(_column_item)
 
         parent.appendRow(_row)
-
-
-        # # create a QStandardItem for each column and block the signal emission
-        # pid = QtGui.QStandardItem(str(sub_obj.id))
-        # path = QtGui.QStandardItem(sub_obj.path)
-        # res = QtGui.QStandardItem(str(sub_obj.resolution))
-        # fps = QtGui.QStandardItem(str(sub_obj.fps))
-        # mode = QtGui.QStandardItem(str(sub_obj.mode))
-        # parent.appendRow([
-        #     _sub_item,
-        #     pid,
-        #     path,
-        #     res,
-        #     fps,
-        #     mode
-        # ]
-        # )
         return _sub_item
-
-    # def append_category(self, category_obj, parent):
-    #     category_name = TikSubItem(category_obj.name, rgb=(255, 255, 0))
-    #     category_id = TikSubItem(str(category_obj.id), rgb=(255, 255, 0))
-    #     parent.appendRow([category_name, category_id])
-    #     return category_name
-    # def append_tasks(self, tasks_dict, parent_sub):
-    #     for _, task_obj in tasks_dict.items():
-    #         # if self.filter_key and self.filter_key not in task_obj.name:
-    #         #     continue
-    #         _task = TikTaskItem(task_obj)
-    #     # _task.data = task_obj
-    #     # task_id = TikSubItem(str(task_obj.id), rgb=(255, 255, 0))
-    #     # parent.appendRow([_task, task_id])
-    #         parent_sub.appendRow([_task])
-    #     return
-    # def append_task(self, task_obj, parent):
-    #     _task = TikTaskItem(task_obj)
-    #     # _task.data = task_obj
-    #     # task_id = TikSubItem(str(task_obj.id), rgb=(255, 255, 0))
-    #     # parent.appendRow([_task, task_id])
-    #     parent.appendRow([_task])
-    #     return _task
-
 
 class TikSubView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
@@ -206,8 +162,6 @@ class TikSubView(QtWidgets.QTreeView):
         self._feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        # self.setSortingEnabled(True)
-
 
         self.model = None
         if project_obj:
@@ -223,16 +177,6 @@ class TikSubView(QtWidgets.QTreeView):
         self.header().setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.header().customContextMenuRequested.connect(self.header_right_click_menu)
 
-        # TODO make this part re-usable
-        # dirname = os.path.dirname(os.path.abspath(__file__))
-        # tik_manager_dir = os.path.abspath(os.path.join(dirname, os.pardir))
-        # print(tik_manager_dir)
-        # QtCore.QDir.addSearchPath("css", os.path.join(tik_manager_dir, "theme"))
-        # QtCore.QDir.addSearchPath("rc", os.path.join(tik_manager_dir, "theme/rc"))
-        #
-        # style_file = QtCore.QFile("css:tikManager.qss")
-        # style_file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
-        # self.setStyleSheet(str(style_file.readAll(), 'utf-8'))
         self.expandAll()
         self._recursive_task_scan = False
 
@@ -261,9 +205,6 @@ class TikSubView(QtWidgets.QTreeView):
                 for key, value in sub.scan_tasks().items():
                     yield value
                 queue.extend(list(sub.subs.values()))
-            # for _, _sub in sub_item.subs.items():
-            #     print(_sub.name)
-            #     self.collect_tasks(_sub, recursive=True)
 
 
     def get_tasks(self, idx):
@@ -386,7 +327,9 @@ class TikSubView(QtWidgets.QTreeView):
             _dialog = NewTask(self.model.project, parent_sub=item.data, parent=self)
             state = _dialog.exec_()
             if state:
-                self.model.append_task(_dialog.get_created_task(), item)
+                # emit clicked signal
+                self.item_selected.emit([_dialog.get_created_task()])
+                # self.model.append_task(_dialog.get_created_task(), item)
         else:
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)

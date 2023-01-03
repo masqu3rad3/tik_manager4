@@ -121,10 +121,10 @@ class NewSubproject(QtWidgets.QDialog):
         self.main_layout.addWidget(self.button_box)
 
         # SIGNALS
-        self.button_box.accepted.connect(self.create_subproject)
+        self.button_box.accepted.connect(self.on_create_subproject)
         self.button_box.rejected.connect(self.reject)
 
-    def create_subproject(self):
+    def on_create_subproject(self):
         name = self.settings.get_property("name")["value"]
         path = self.settings.get_property("path")["value"]
 
