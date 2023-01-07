@@ -99,13 +99,6 @@ class TikTaskView(QtWidgets.QTreeView):
         super(TikTaskView, self).expandAll()
         self.resizeColumnToContents(0)
 
-    # def test(self, idx):
-    #     """Test"""
-    #     # the id needs to mapped from proxy to source
-    #     index = self.proxy_model.mapToSource(idx)
-    #     _item = self.model.itemFromIndex(index)
-    #     # _item = self.model.itemFromIndex(idx)
-
     def hide_columns(self, columns):
         """ If the given column exists in the model, hides it"""
         if not isinstance(columns, list):
