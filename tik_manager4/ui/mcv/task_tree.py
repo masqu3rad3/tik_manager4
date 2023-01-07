@@ -1,12 +1,17 @@
-import sys
-import os
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui, Qt
+from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+
 
 class TikTaskItem(QtGui.QStandardItem):
     color_dict = {
         "subproject": (255, 255, 255)
     }
+
     def __init__(self, task_obj):
+        """
+        Initialize the item with the given task object.
+        Args:
+            task_obj (tik_manager4.objects.task.Task): Task object
+        """
         super(TikTaskItem, self).__init__()
 
         self.data = task_obj
@@ -19,10 +24,13 @@ class TikTaskItem(QtGui.QStandardItem):
         self.setFont(fnt)
         self.setText(task_obj.name)
 
+
 class TikTaskModel(QtGui.QStandardItemModel):
     columns = ["name", "id", "path"]
     filter_key = "super"
+
     def __init__(self):
+        """Initialize the model"""
         super(TikTaskModel, self).__init__()
 
         self.setHorizontalHeaderLabels(self.columns)
@@ -30,6 +38,7 @@ class TikTaskModel(QtGui.QStandardItemModel):
         self._tasks = []
 
     def clear(self):
+        """Clear the model"""
         self.setRowCount(0)
 
     def set_tasks(self, tasks_list):
@@ -38,19 +47,15 @@ class TikTaskModel(QtGui.QStandardItemModel):
         self._tasks.clear()
         self._tasks = tasks_list
 
-    # def add_task(self, task):
-    #     """Add a task to the model"""
-    #     self._tasks.append(task)
-
     def populate(self):
+        """Populate the model"""
         self.clear()
 
         for task in self._tasks:
-           self.append_task(task)
+            self.append_task(task)
 
     def append_task(self, sub_data):
-        # if self.filter_key and self.filter_key not in sub_data.name:
-        #     return
+        """Append a task to the model"""
         _sub_item = TikTaskItem(sub_data)
         pid = QtGui.QStandardItem(str(sub_data.id))
         path = QtGui.QStandardItem(sub_data.path)
@@ -66,10 +71,10 @@ class TikTaskModel(QtGui.QStandardItemModel):
 
 class TikTaskView(QtWidgets.QTreeView):
     def __init__(self):
+        """Initialize the view"""
         super(TikTaskView, self).__init__()
         self.setUniformRowHeights(True)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        # self.setSortingEnabled(True)
 
         # do not show branches
         self.setRootIsDecorated(False)
@@ -85,24 +90,21 @@ class TikTaskView(QtWidgets.QTreeView):
         # SIGNALS
 
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        # self.customContextMenuRequested.connect(self.right_click_menu)
         self.clicked.connect(self.test)
 
         self.expandAll()
 
     def expandAll(self):
+        """Expand all the items in the view"""
         super(TikTaskView, self).expandAll()
         self.resizeColumnToContents(0)
-        # self.resizeColumnToContents(1)
-        # self.resizeColumnToContents(2)
-        # self.resizeColumnToContents(3)
-        # self.resizeColumnToContents(4)
 
-    def test(self, idx):
-        # the id needs to mapped from proxy to source
-        index = self.proxy_model.mapToSource(idx)
-        _item = self.model.itemFromIndex(index)
-        # _item = self.model.itemFromIndex(idx)
+    # def test(self, idx):
+    #     """Test"""
+    #     # the id needs to mapped from proxy to source
+    #     index = self.proxy_model.mapToSource(idx)
+    #     _item = self.model.itemFromIndex(index)
+    #     # _item = self.model.itemFromIndex(idx)
 
     def hide_columns(self, columns):
         """ If the given column exists in the model, hides it"""
@@ -123,7 +125,7 @@ class TikTaskView(QtWidgets.QTreeView):
                 self.setColumnHidden(self.model.columns.index(column), False)
 
     def set_tasks(self, tasks_gen):
-        pass
+        """Set the data for the model"""
         # print(tasks_gen)
         # for task in tasks_gen:
         #     print(task)
@@ -137,13 +139,15 @@ class TikTaskView(QtWidgets.QTreeView):
         self.expandAll()
 
     def filter(self, text):
-        # pass
+        """Filter the model"""
         self.proxy_model.setFilterRegExp(QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))
         # exclude TikTaskItems from the filter
         # self.proxy_model.setFilterKeyColumn(0)
 
+
 class TikTaskLayout(QtWidgets.QVBoxLayout):
     def __init__(self):
+        """Initialize the layout"""
         super(TikTaskLayout, self).__init__()
         self.task_view = TikTaskView()
         self.addWidget(self.task_view)
