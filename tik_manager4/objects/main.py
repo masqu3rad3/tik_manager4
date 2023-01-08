@@ -37,7 +37,7 @@ class Main(object):
         else:
             _project = default_project
 
-        self.project.set(_project)
+        self.project._set(_project)
         self.user.add_recent_project(_project)
 
     def _create_default_project(self):
@@ -107,8 +107,6 @@ class Main(object):
         structure = settings.Settings(file_path=structure_file)
         structure.set_data(structure_data)
         structure.apply_settings()
-        print("heloloy")
-        print(structure.get_data())
 
         # define a project object to validate data and create folders
         if set_after_creation:
@@ -116,9 +114,13 @@ class Main(object):
         else:
             project_obj = project.Project()  # this will be temporary
 
-        project_obj.set(path)
+        project_obj._set(path)
         project_obj.create_folders(project_obj.absolute_path)
         project_obj.create_folders(project_obj.database_path)
         project_obj.save_structure()  # This makes sure IDs are getting saved to the database file
         return 1
 
+    def set_project(self, absolute_path):
+        self.project._set(absolute_path)
+        # add to recent projects
+        self.user.add_recent_project(absolute_path)

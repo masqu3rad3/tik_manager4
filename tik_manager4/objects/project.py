@@ -24,7 +24,7 @@ class Project(Subproject):
         # This makes sure the project folder is tik_manager4 ready
         if path:
             # self.set(path)
-            self.set(path)
+            self._set(path)
 
         # Absolute path do not go into the project_structure.json
         self._absolute_path = ""
@@ -50,7 +50,7 @@ class Project(Subproject):
         self.create_folders(root=self.absolute_path)
         self.structure.apply_settings()
 
-    def set(self, absolute_path):
+    def _set(self, absolute_path):
         self._absolute_path = absolute_path
         self._relative_path = ""
         self.name = os.path.basename(absolute_path)
