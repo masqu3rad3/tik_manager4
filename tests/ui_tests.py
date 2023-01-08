@@ -12,8 +12,8 @@ if __name__ == '__main__':
     test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
     # test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_project_DO_NOT_USE")
     tik = tik_manager4.initialize("Standalone")
-    tik.user._set("Admin", "1234")
-    tik.project._set(test_project_path)
+    tik.user.set("Admin", "1234")
+    tik.set_project(test_project_path)
 
     app = QtWidgets.QApplication(sys.argv)
     test_dialog = QtWidgets.QDialog()

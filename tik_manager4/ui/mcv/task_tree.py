@@ -90,7 +90,7 @@ class TikTaskView(QtWidgets.QTreeView):
         # SIGNALS
 
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.clicked.connect(self.test)
+        # self.clicked.connect(self.test)
 
         self.expandAll()
 
