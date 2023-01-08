@@ -13,21 +13,16 @@ class TikSubItem(QtGui.QStandardItem):
     }
     def __init__(self, sub_obj):
         super(TikSubItem, self).__init__()
-
-        self.data = sub_obj
+        self.subproject = sub_obj
         #
         fnt = QtGui.QFont('Open Sans', 12)
         fnt.setBold(False)
         self.setEditable(False)
+        # raise
 
         self.setForeground(QtGui.QColor(255, 255, 255))
         self.setFont(fnt)
         self.setText(sub_obj.name)
-
-        # pid = TikSubItem(str(sub_obj.id))
-        # path = TikSubItem(sub_data.path)
-        # res = TikSubItem(str(sub_data.resolution))
-        # fps = TikSubItem(str(sub_data.fps))
 
 class TikColumnItem(QtGui.QStandardItem):
     def __init__(self, name, overridden=False):
@@ -215,7 +210,7 @@ class TikSubView(QtWidgets.QTreeView):
         index = self.proxy_model.mapToSource(idx)
         _item = self.model.itemFromIndex(index)
 
-        _tasks = self.collect_tasks(_item.data, recursive=self._recursive_task_scan)
+        _tasks = self.collect_tasks(_item.subproject, recursive=self._recursive_task_scan)
         self.item_selected.emit(_tasks)
 
     def hide_columns(self, columns):
@@ -313,7 +308,7 @@ class TikSubView(QtWidgets.QTreeView):
     def new_sub_project(self, item):
         # first check for the user permission:
         if self.model.project._check_permissions(level=2) != -1:
-            _dialog = NewSubproject(self.model.project, parent_sub=item.data, parent=self)
+            _dialog = NewSubproject(self.model.project, parent_sub=item.subproject, parent=self)
             state = _dialog.exec_()
             if state:
                 self.model.append_sub(_dialog.get_created_subproject(), item)
@@ -324,7 +319,7 @@ class TikSubView(QtWidgets.QTreeView):
     def new_task(self, item):
         # first check for the user permission:
         if self.model.project._check_permissions(level=2) != -1:
-            _dialog = NewTask(self.model.project, parent_sub=item.data, parent=self)
+            _dialog = NewTask(self.model.project, parent_sub=item.subproject, parent=self)
             state = _dialog.exec_()
             if state:
                 # emit clicked signal
@@ -335,7 +330,7 @@ class TikSubView(QtWidgets.QTreeView):
             self._feedback.pop_info(title.capitalize(), message)
 
     def delete_sub_project(self, item):
-        state = self.model.project.delete_sub_project(uid=item.data.id)
+        state = self.model.project.delete_sub_project(uid=item.subproject.id)
         if state != -1:
             self.model.removeRow(item.row(), item.parent().index())
         else:
@@ -354,7 +349,7 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
         item = model.itemFromIndex(index)
         if isinstance(item, TikSubItem):
             pass
-            # print(item.data.scan_tasks())
+            # print(item.subproject.scan_tasks())
             # return False
         # for role, value in self.excludes.iteritems():
         #     data = model.data(index, role)
@@ -372,6 +367,7 @@ class TikProjectLayout(QtWidgets.QVBoxLayout):
         self.recursive_search_cb = QtWidgets.QCheckBox("Get Tasks Recursively")
         self.recursive_search_cb.setChecked(True)
         self.addWidget(self.recursive_search_cb)
+        # add a search bar
 
         self.sub_view = TikSubView(project_obj)
         self.addWidget(self.sub_view)
@@ -387,31 +383,31 @@ class TikProjectLayout(QtWidgets.QVBoxLayout):
         self.filter_le.returnPressed.connect(self.sub_view.setFocus)
 
 
-if __name__ == '__main__':
-    test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
-    tik = tik_manager4.initialize("Standalone")
-    tik.user._set("Admin", "1234")
-    tik.project._set(test_project_path)
-
-
-    app = QtWidgets.QApplication(sys.argv)
-    test_dialog = QtWidgets.QDialog()
-
-    dirname = os.path.dirname(os.path.abspath(__file__))
-    tik_manager_dir = os.path.abspath(os.path.join(dirname, os.pardir))
-    QtCore.QDir.addSearchPath("css", os.path.join(tik_manager_dir, "theme"))
-    QtCore.QDir.addSearchPath("rc", os.path.join(tik_manager_dir, "theme/rc"))
-
-    style_file = QtCore.QFile("css:tikManager.qss")
-    style_file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
-    test_dialog.setStyleSheet(str(style_file.readAll(), 'utf-8'))
-
-    # view = TikSubView()
-    # view.set_project(tik.project)
-    # view.hide_columns(["id", "path", "resolution", "fps"])
-    view = TikProjectLayout(tik.project)
-    test_dialog.setLayout(view)
-
-    test_dialog.show()
-    # view.show()
-    sys.exit(app.exec_())
+# if __name__ == '__main__':
+#     test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
+#     tik = tik_manager4.initialize("Standalone")
+#     tik.user._set("Admin", "1234")
+#     tik.project._set(test_project_path)
+#
+#
+#     app = QtWidgets.QApplication(sys.argv)
+#     test_dialog = QtWidgets.QDialog()
+#
+#     dirname = os.path.dirname(os.path.abspath(__file__))
+#     tik_manager_dir = os.path.abspath(os.path.join(dirname, os.pardir))
+#     QtCore.QDir.addSearchPath("css", os.path.join(tik_manager_dir, "theme"))
+#     QtCore.QDir.addSearchPath("rc", os.path.join(tik_manager_dir, "theme/rc"))
+#
+#     style_file = QtCore.QFile("css:tikManager.qss")
+#     style_file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
+#     test_dialog.setStyleSheet(str(style_file.readAll(), 'utf-8'))
+#
+#     # view = TikSubView()
+#     # view.set_project(tik.project)
+#     # view.hide_columns(["id", "path", "resolution", "fps"])
+#     view = TikProjectLayout(tik.project)
+#     test_dialog.setLayout(view)
+#
+#     test_dialog.show()
+#     # view.show()
+#     sys.exit(app.exec_())

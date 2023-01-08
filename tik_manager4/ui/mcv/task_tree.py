@@ -14,7 +14,7 @@ class TikTaskItem(QtGui.QStandardItem):
         """
         super(TikTaskItem, self).__init__()
 
-        self.data = task_obj
+        self.task = task_obj
         #
         fnt = QtGui.QFont('Open Sans', 12)
         fnt.setBold(True)
@@ -147,7 +147,7 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
         self.filter_le = QtWidgets.QLineEdit()
         self.addWidget(self.filter_le)
         self.filter_le.textChanged.connect(self.task_view.filter)
-        self.filter_le.setPlaceholderText("🔍")
+        self.filter_le.setPlaceholderText("Filter")
         self.filter_le.setClearButtonEnabled(True)
         self.filter_le.setFocus()
         self.filter_le.returnPressed.connect(self.task_view.setFocus)
