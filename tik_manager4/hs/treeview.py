@@ -256,7 +256,7 @@ if __name__ == '__main__':
 
     test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
     tik = main.Main()
-    tik.project.set(test_project_path)
+    tik.project._set(test_project_path)
 
     app = QtWidgets.QApplication(sys.argv)
 

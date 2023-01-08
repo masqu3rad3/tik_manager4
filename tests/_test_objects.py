@@ -33,7 +33,7 @@ def test_project_path():
     test_project = os.path.join(os.path.expanduser("~"), "test_project")
     if os.path.exists(test_project):
         shutil.rmtree(test_project)
-    pr.set(test_project)
+    pr._set(test_project)
     assert pr.absolute_path == test_project
 
 
@@ -101,7 +101,7 @@ def test_create_a_shot_asset_project_structure():
 def test_validating_existing_project():
     """Tests reading an existing project structure and compares it to the created one on-the-fly"""
     existing_project = project.Project()
-    existing_project.set(pr.absolute_path)
+    existing_project._set(pr.absolute_path)
     # pprint(existing_project.get_sub_tree())
 
     # check if read and written match

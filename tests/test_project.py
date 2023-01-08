@@ -86,7 +86,7 @@ class TestProject:
     def test_create_sub_project(self):
         """Tests creating sub-projects with parent id and path"""
         test_project_path = self.test_create_new_project()
-        self.tik.project.set(test_project_path)
+        self.tik.set_project(test_project_path)
 
         # no permission test
         self.tik.user.set("Generic")
@@ -146,7 +146,7 @@ class TestProject:
 
         self.tik.user.set("Admin", password="1234")
         self.tik.create_project(test_project_path, structure_template="empty")
-        self.tik.project.set(test_project_path)
+        self.tik.set_project(test_project_path)
 
         # asset_categories = ["Model", "LookDev", "Rig"]
         # shot_categories = ["Layout", "Animation", "Lighting", "Render"]
@@ -209,7 +209,7 @@ class TestProject:
         self.tik.user.__init__()
 
         # print(test_project_path)
-        self.tik.project.set(test_project_path)
+        self.tik.set_project(test_project_path)
         existing_subtree = self.tik.project.get_sub_tree()
         pprint(existing_subtree)
         assert current_subtree == existing_subtree, "Read and Write of project structure does not match"
@@ -218,7 +218,7 @@ class TestProject:
     def test_deleting_sub_projects(self):
         """Tests deleting the sub-projects"""
         test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
-        self.tik.project.set(test_project_path)
+        self.tik.set_project(test_project_path)
         self.tik.user.set("Generic")
         assert self.tik.project.delete_sub_project(path="Assets/Props") == -1
 
@@ -241,7 +241,7 @@ class TestProject:
     @clean_user
     def test_find_subs_by_path_and_id(self):
         test_project_path = self.test_create_new_project()
-        self.tik.project.set(test_project_path)
+        self.tik.set_project(test_project_path)
         sub_by_path = self.tik.project.find_sub_by_path("Assets")
         assert sub_by_path.path == "Assets"
         sub_by_id = self.tik.project.find_sub_by_id(sub_by_path.id)
@@ -255,7 +255,7 @@ class TestProject:
     @clean_user
     def test_find_subs_by_wildcard(self):
         test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
-        self.tik.project.set(test_project_path)
+        self.tik.set_project(test_project_path)
         shots = (self.tik.project.find_subs_by_wildcard("SHOT_*"))
         # _ = [print(shot.name) for shot in shots]
         assert shots
@@ -264,7 +264,7 @@ class TestProject:
     @clean_user
     def test_get_uid_and_get_path(self):
         test_project_path = self.test_create_new_project()
-        self.tik.project.set(test_project_path)
+        self.tik.set_project(test_project_path)
         compare_path = "Assets/Props"
         uid = self.tik.project.get_uid_by_path("Assets/Props")
         path = self.tik.project.get_path_by_uid(uid)
@@ -284,10 +284,10 @@ class TestProject:
     @clean_user
     def test_creating_and_adding_new_tasks(self):
         test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
-        self.tik.project.set(test_project_path)
+        self.tik.set_project(test_project_path)
 
         # create a task from the main project
-        task = self.tik.project.on_create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier")
+        task = self.tik.project.create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier")
         assert task.name == "superman"
         assert task.creator == "Admin"
         assert list(task.categories.keys()) == ["Model", "Rig", "Lookdev"]
@@ -297,11 +297,11 @@ class TestProject:
         task = self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].add_task("batman", categories=["Model", "Rig", "Lookdev"], task_type="Asset")
 
         # try to create a duplicate task
-        assert self.tik.project.on_create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
+        assert self.tik.project.create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
 
         # check if the user permissions check works
         self.tik.user.set("Generic", password="1234")
-        assert self.tik.project.on_create_task("this_asset_shouldnt_exist", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
+        assert self.tik.project.create_task("this_asset_shouldnt_exist", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
         # check if the log message is correct
         assert self.tik.log.get_last_message() == ('This user does not have permissions for this action', 'warning')
 
@@ -346,9 +346,9 @@ class TestProject:
         #create some addigional tasks
         asset_categories = ["Model", "Rig", "Lookdev"]
 
-        bizarro_task = self.tik.project.on_create_task("bizarro", categories=asset_categories, parent_path="Assets/Characters/Soldier")
-        ultraman_task = self.tik.project.on_create_task("ultraman", categories=asset_categories, parent_path="Assets/Characters/Soldier")
-        superboy_task = self.tik.project.on_create_task("superboy", categories=asset_categories, parent_path="Assets/Characters/Soldier")
+        bizarro_task = self.tik.project.create_task("bizarro", categories=asset_categories, parent_path="Assets/Characters/Soldier")
+        ultraman_task = self.tik.project.create_task("ultraman", categories=asset_categories, parent_path="Assets/Characters/Soldier")
+        superboy_task = self.tik.project.create_task("superboy", categories=asset_categories, parent_path="Assets/Characters/Soldier")
 
         # create a work
         bizarro_task.categories["Model"].create_work("default")
