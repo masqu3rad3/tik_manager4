@@ -70,7 +70,7 @@ class Work(Settings, Entity):
         }
         self._versions.append(_version)
         self.edit_property("versions", self._versions)
-        self.apply_settings()
+        self.apply_settings(force=True)
     def make_publish(self):
         """Create a publish from the currently loaded version on DCC."""
         pass

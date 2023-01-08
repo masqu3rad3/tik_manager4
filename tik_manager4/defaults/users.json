@@ -4,9 +4,19 @@
         "pass": "7110eda4d09e062aa5e4a390b0a572ac0d2c0220",
         "permissionLevel": 3
     },
+    "Experienced": {
+        "initials": "exp",
+        "pass": "7110eda4d09e062aa5e4a390b0a572ac0d2c0220",
+        "permissionLevel": 2
+    },
     "Generic": {
         "initials": "gn",
         "pass": "7110eda4d09e062aa5e4a390b0a572ac0d2c0220",
         "permissionLevel": 1
+    },
+    "Observer": {
+        "initials": "ob",
+        "pass": "7110eda4d09e062aa5e4a390b0a572ac0d2c0220",
+        "permissionLevel": 0
     }
 }

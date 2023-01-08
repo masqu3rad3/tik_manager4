@@ -350,6 +350,14 @@ class TestProject:
         ultraman_task = self.tik.project.create_task("ultraman", categories=asset_categories, parent_path="Assets/Characters/Soldier")
         superboy_task = self.tik.project.create_task("superboy", categories=asset_categories, parent_path="Assets/Characters/Soldier")
 
+        # check if a category is empty or not
+        assert superboy_task.categories["Model"].is_empty() == True
+
+        self.tik.user.set("Observer", 1234)
+        assert bizarro_task.categories["Model"].create_work("default") == -1
+
+        self.tik.user.set("Admin", 1234)
+
         # create a work
         bizarro_task.categories["Model"].create_work("default")
         bizarro_task.categories["Model"].create_work("main", file_format=".txt")
@@ -367,11 +375,24 @@ class TestProject:
         ultraman_task.categories["Rig"].create_work("varB")
         ultraman_task.categories["Rig"].create_work("varC")
 
+        # when an existing work name used, it should iterate a version over existing work
+        this_should_have_2_versions = ultraman_task.categories["Rig"].create_work("varC")
+        assert this_should_have_2_versions.version_count() == 2
+
+
+
     @clean_user
     def test_scanning_works(self):
         self.test_creating_works()
 
         # scan all works
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works(all_dcc=True)
+
+        # add another work version to the first work and scan again
+        _w = self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"]._works
+        work_obj = (_w[list(_w.keys())[0]])
+        work_obj.new_version()
+
         assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works(all_dcc=True)
 
         # override the guard.dcc

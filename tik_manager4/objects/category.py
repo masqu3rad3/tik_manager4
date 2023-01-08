@@ -22,10 +22,6 @@ class Category(Entity):
         self.type = "category"
         self.parent_task = parent_task
         self._relative_path = os.path.join(self.parent_task._relative_path, self.name)
-        # print("-"*30)
-        # print("-"*30)
-        # print("-"*30)
-        # print(self._relative_path)
 
     @property
     def works(self):
