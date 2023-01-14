@@ -1,6 +1,6 @@
 {
   "model": {
-    "display_name": "Model",,
+    "display_name": "Model",
     "type": "asset",
     "validations": [],
     "extracts": ["scene_file"]
