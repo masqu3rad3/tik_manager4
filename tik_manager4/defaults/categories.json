@@ -1,0 +1,44 @@
+{
+  "model": {
+    "display_name": "Model",,
+    "type": "asset",
+    "validations": [],
+    "extracts": ["scene_file"]
+  },
+  "look_dev": {
+    "display_name": "Look Dev",
+    "type": "asset",
+    "validations": [],
+    "extracts": ["scene_file"]
+  },
+  "rig": {
+    "display_name": "Rig",
+    "type": "asset",
+    "validations": [],
+    "extracts": ["scene_file"]
+  },
+    "animation": {
+        "display_name": "Animation",
+        "type": "shot",
+        "validations": [],
+        "extracts": ["scene_file"]
+    },
+    "layout": {
+        "display_name": "Layout",
+        "type": "shot",
+        "validations": [],
+        "extracts": ["scene_file"]
+    },
+    "lighting": {
+        "display_name": "Lighting",
+        "type": "shot",
+        "validations": [],
+        "extracts": ["scene_file"]
+    },
+    "fx": {
+        "display_name": "FX",
+        "type": "shot",
+        "validations": [],
+        "extracts": ["scene_file"]
+    }
+}
