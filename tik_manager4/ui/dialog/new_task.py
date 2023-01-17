@@ -25,23 +25,63 @@ class NewTask(QtWidgets.QDialog):
         self.setFixedSize(600, 400)
         self.setModal(True)
 
+        self.categoty_type_dictionary = self._categorize_category_definitions()
 
         self.populate_settings()
         self._init_ui()
 
         self._new_task = None
 
+    def _categorize_category_definitions(self):
+        """Categorize category definitions."""
+        _items  = self._parent_sub.guard.category_definitions.get_data().items()
+
+        # seperate groups by type
+        _groups = {}
+        for key, val in _items:
+            _type = val.get("type", "null")
+            if _type not in _groups.keys():
+                _groups[_type] = []
+            _groups[_type].append(val)
+        return _groups
+
+    def _collect_category_display_names(self, category_definition_data, mode=None):
+        """Collect category display names and return a dictionary.
+        This essentially uses the display name as the key and category_definition key as the value.
+        """
+        _display_name_dict = {}
+        for key, data in category_definition_data.items():
+            if data.get("type", None) == mode:
+                _display_name_dict[data["display_name"]] = key
+        return _display_name_dict
+
+    def filter_category_definitions(self, category_definition_data, mode=None):
+        """Filter category definitions."""
+        filtered_data = {}
+        for key, data in category_definition_data.items():
+            _type = data.get("type", None)
+            _archived = data.get("archived", False)
+            if _archived:
+                continue
+            if _type and _type != mode:
+                continue
+            filtered_data[key] = data
+        return filtered_data
     def populate_settings(self):
         """Populate settings."""
 
         # _mode = self._parent_sub.mode or ""
         _mode = self._parent_sub.metadata.get_value("mode", "")
-        if _mode.lower() == "asset":
-            _default_categories = self.tik_project.guard.asset_categories
-        elif _mode.lower() == "shot":
-            _default_categories = self.tik_project.guard.shot_categories
-        else:
-            _default_categories = self.tik_project.guard.null_categories
+        # _default_categories = self._parent_sub.guard.category_definitions.get_data()
+        _default_categories = self.filter_category_definitions(self._parent_sub.guard.category_definitions.get_data(), mode=_mode)
+
+        # TODO FIX THIS
+        # if _mode.lower() == "asset":
+        #     _default_categories = self.tik_project.guard.asset_categories
+        # elif _mode.lower() == "shot":
+        #     _default_categories = self.tik_project.guard.shot_categories
+        # else:
+        #     _default_categories = self.tik_project.guard.null_categories
 
         self.settings.add_property("name", {
             "display_name": "Name :",
@@ -56,7 +96,7 @@ class NewTask(QtWidgets.QDialog):
         self.settings.add_property("categories", {
             "display_name": "Categories :",
             "type": "list",
-            "value": _default_categories
+            "value": list(_default_categories.keys())
         })
 
     def _init_ui(self):
@@ -80,6 +120,9 @@ class NewTask(QtWidgets.QDialog):
             categories=self.settings.get_property("categories")["value"],
             parent_uid=self._parent_sub.id,
         )
+        if self._new_task == -1:
+            self._feedback.pop_info(title="Failed to create task.", text=self.tik_project.log.last_message, critical=True)
+            return
         self.accept()
     def get_created_task(self):
         return self._new_task

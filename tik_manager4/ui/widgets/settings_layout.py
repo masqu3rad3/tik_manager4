@@ -53,6 +53,13 @@ class ValueChangeBool(QtCore.QObject):
     def valueChangeEvent(self, e):
         self.valueChanged.emit(e)
 
+class ValueChangeList(QtCore.QObject):
+    """Simple QObject inheritance to pass the Signal and event to custom widgets"""
+    valueChanged = QtCore.Signal(list)
+
+    def valueChangeEvent(self, e):
+        self.valueChanged.emit(e)
+
 
 # ######################### CUSTOM WIDGETS #######################################
 class Boolean(QtWidgets.QCheckBox):
@@ -135,7 +142,7 @@ class List(QtWidgets.QWidget):
     """Customized List widget with buttons to manage the list"""
     def __init__(self, name, object_name=None, value=None, disables=None, **kwargs):
         super(List, self).__init__()
-        self.com = ValueChangeInt()
+        self.com = ValueChangeList()
         self.value = value or []
         self.setObjectName(object_name or name)
         self.disables = disables or []
@@ -191,11 +198,11 @@ class List(QtWidgets.QWidget):
                 return
             self.list.addItem(item_name)
             self.value.append(item_name)
-            self.com.valueChangeEvent(self.list.currentRow())
+            self.com.valueChangeEvent(self.value)
     def remove_item(self):
         self.list.takeItem(self.list.currentRow())
         self.value.pop(self.list.currentRow())
-        self.com.valueChangeEvent(self.list.currentRow())
+        self.com.valueChangeEvent(self.value)
 
     def up_item(self):
         """Move the selected item up in the list of items."""
@@ -205,7 +212,7 @@ class List(QtWidgets.QWidget):
             self.list.insertItem(current_row - 1, item)
             self.list.setCurrentRow(current_row - 1)
             self.value.insert(current_row - 1, self.value.pop(current_row))
-            self.com.valueChangeEvent(self.list.currentRow())
+            self.com.valueChangeEvent(self.value)
 
     def down_item(self):
         """Move the selected item down in the list of items."""
@@ -215,7 +222,7 @@ class List(QtWidgets.QWidget):
             self.list.insertItem(current_row + 1, item)
             self.list.setCurrentRow(current_row + 1)
             self.value.insert(current_row + 1, self.value.pop(current_row))
-            self.com.valueChangeEvent(self.list.currentRow())
+            self.com.valueChangeEvent(self.value)
 
 
 class SettingsLayout(QtWidgets.QFormLayout):

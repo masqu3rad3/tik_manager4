@@ -27,6 +27,7 @@ class TestProject:
     @clean_user
     def test_default_project_paths(self):
         assert self.tik.project.path == "" # this is overridden by project class and must always return empty string
+        self.tik.set_project(os.path.join(utils.get_home_dir(), "TM4_default"))
         assert self.tik.project.absolute_path == os.path.join(utils.get_home_dir(), "TM4_default")
         assert self.tik.project.database_path == os.path.join(utils.get_home_dir(), "TM4_default", "tikDatabase")
         assert self.tik.project.name == "TM4_default"
@@ -167,13 +168,6 @@ class TestProject:
                        env.add_sub_project("GroundD"),
                        ]
 
-        # for leaf in leaf_assets:
-        #     print(leaf.name)
-        #     print(leaf.metadata)
-
-        # for leaf in leaf_assets:
-        #     for category in asset_categories:
-        #         leaf.add_category(category)
 
         shots = self.tik.project.add_sub_project("Shots", mode="shot")
         sequence_a = shots.add_sub_project("SequenceA")
@@ -185,9 +179,6 @@ class TestProject:
         leaf_shots.append(sequence_b.add_sub_project("SHOT_070"))
         leaf_shots.append(sequence_b.add_sub_project("SHOT_120"))
 
-        # for leaf in leaf_shots:
-        #     for category in shot_categories:
-        #         leaf.add_category(category)
 
         # print("\n")
 
@@ -287,21 +278,23 @@ class TestProject:
         self.tik.set_project(test_project_path)
 
         # create a task from the main project
-        task = self.tik.project.create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier")
+        task = self.tik.project.create_task("superman", categories=["Model", "Rig", "LookDev"], parent_path="Assets/Characters/Soldier")
         assert task.name == "superman"
         assert task.creator == "Admin"
-        assert list(task.categories.keys()) == ["Model", "Rig", "Lookdev"]
+        assert list(task.categories.keys()) == ["Model", "Rig", "LookDev"]
         assert task.type == "asset"
 
         # create a task directly from a sub-project
-        task = self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].add_task("batman", categories=["Model", "Rig", "Lookdev"], task_type="Asset")
+        task = self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].add_task("batman", categories=["Model", "Rig", "LookDev"], task_type="Asset")
+
+        # TODO make a test to create illegal categories (not defined in the category definitions)
 
         # try to create a duplicate task
-        assert self.tik.project.create_task("superman", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
+        assert self.tik.project.create_task("superman", categories=["Model", "Rig", "LookDev"], parent_path="Assets/Characters/Soldier") == -1
 
         # check if the user permissions check works
         self.tik.user.set("Generic", password="1234")
-        assert self.tik.project.create_task("this_asset_shouldnt_exist", categories=["Model", "Rig", "Lookdev"], parent_path="Assets/Characters/Soldier") == -1
+        assert self.tik.project.create_task("this_asset_shouldnt_exist", categories=["Model", "Rig", "LookDev"], parent_path="Assets/Characters/Soldier") == -1
         # check if the log message is correct
         assert self.tik.log.get_last_message() == ('This user does not have permissions for this action', 'warning')
 
@@ -344,7 +337,7 @@ class TestProject:
         self.tik.user.set("Admin", 1234)
 
         #create some addigional tasks
-        asset_categories = ["Model", "Rig", "Lookdev"]
+        asset_categories = ["Model", "Rig", "LookDev"]
 
         bizarro_task = self.tik.project.create_task("bizarro", categories=asset_categories, parent_path="Assets/Characters/Soldier")
         ultraman_task = self.tik.project.create_task("ultraman", categories=asset_categories, parent_path="Assets/Characters/Soldier")

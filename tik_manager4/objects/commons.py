@@ -35,6 +35,7 @@ class Commons(object):
 
         self.exportSettings = Settings(file_path=os.path.join(self._folder_path, "exportSettings.json"))
         self.importSettings = Settings(file_path=os.path.join(self._folder_path, "importSettings.json"))
+        self.category_definitions = Settings(file_path=os.path.join(self._folder_path, "category_definitions.json"))
         # self.manager = Settings(file_path=os.path.join(self._folder_path, "manager_DEPRECATED.json"))
         self.user_settings = Settings(file_path=os.path.join(self._folder_path, "user_settings.json"))
         self.users = Settings(file_path=os.path.join(self._folder_path, "users.json"))
@@ -47,8 +48,8 @@ class Commons(object):
 
     def get_users(self):
         """Returns the list of all active users"""
-        return self.users.all_properties
+        return self.users.keys
 
     def get_project_structures(self):
         """Returns list of available project structures defined in defaults"""
-        return self.structures.all_properties
+        return self.structures.keys
