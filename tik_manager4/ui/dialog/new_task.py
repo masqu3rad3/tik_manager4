@@ -75,10 +75,9 @@ class NewTask(QtWidgets.QDialog):
         # _default_categories = self._parent_sub.guard.category_definitions.get_data()
         _default_categories = self.filter_category_definitions(self._parent_sub.guard.category_definitions.get_data(), mode=_mode)
 
-        # TODO: Instead of a simple string, make it a validated string which won't allow spaces and illegal characters
         self.settings.add_property("name", {
             "display_name": "Name :",
-            "type": "string",
+            "type": "validatedString",
             "value": "",
             "tooltip": "Name of the new task.",
             # "disables": [["", "categories"]]
@@ -99,16 +98,23 @@ class NewTask(QtWidgets.QDialog):
     def _init_ui(self):
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.settings_layout = SettingsLayout(self.settings, parent=self)
-        # TODO: Make it fool proof (i.e. disable the ok button if the name is empty)
+
         self.main_layout.addLayout(self.settings_layout)
 
         # create a button box
         self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+
+        # get the name ValidatedString widget and connect it to the ok button
+        _name_line_edit = self.settings_layout.find("name")
+        _name_line_edit.add_connected_widget(self.button_box.button(QtWidgets.QDialogButtonBox.Ok))
+
         self.main_layout.addWidget(self.button_box)
 
         # SIGNALS
         self.button_box.accepted.connect(self.on_create_task)
         self.button_box.rejected.connect(self.reject)
+
+
 
     def on_create_task(self):
         """Create task."""
