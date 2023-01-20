@@ -13,13 +13,16 @@ log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Category(Entity):
-    def __init__(self, parent_task,  **kwargs):
+    def __init__(self, parent_task, definition=None, **kwargs):
         super(Category, self).__init__(**kwargs)
-
+        definition = definition or {}
         # self._name = name
         self._works = {}
         # self._publishes = {}
-        self.type = "category"
+        self.type = definition.get("type", None)
+        self.display_name = definition.get("display_name", None)
+        self.validations = definition.get("validations", [])
+        self.extracts = definition.get("extracts", [])
         self.parent_task = parent_task
         self._relative_path = os.path.join(self.parent_task._relative_path, self.name)
 

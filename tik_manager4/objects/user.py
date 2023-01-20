@@ -55,6 +55,10 @@ class User(object):
         cls._guard.set_permission_level(level)
 
     @classmethod
+    def __set_category_definitions(cls, category_definitions):
+        cls._guard.set_category_definitions(category_definitions)
+
+    @classmethod
     def __set_asset_categories(cls, asset_categories):
         cls._guard.set_asset_categories(asset_categories)
 
@@ -92,9 +96,10 @@ class User(object):
         self.settings.apply_settings()
 
         self.commons = Commons(self.common_directory)
-        self.__set_asset_categories(self.commons.structures.get_property("asset_categories"))
-        self.__set_shot_categories(self.commons.structures.get_property("shot_categories"))
-        self.__set_null_categories(self.commons.structures.get_property("null_categories"))
+        self.__set_category_definitions(self.commons.category_definitions)
+        # self.__set_asset_categories(self.commons.structures.get_property("asset_categories"))
+        # self.__set_shot_categories(self.commons.structures.get_property("shot_categories"))
+        # self.__set_null_categories(self.commons.structures.get_property("null_categories"))
 
         # set the default keys for missing ones
         # for key, val in self.commons.manager.get_property("defaultUserSettings").items():
@@ -169,7 +174,7 @@ class User(object):
         if not self.is_authenticated:
             return -1, log.warning("Active user is not authenticated or the password is wrong")
 
-        if new_user_name in self.commons.users.all_properties:
+        if new_user_name in self.commons.users.keys:
             return -1, log.error("User %s already exists. Aborting" % new_user_name)
         user_data = {
             "initials": new_user_initials,
@@ -197,7 +202,7 @@ class User(object):
         if user_name == "Generic":
             return -1, log.warning("Generic User cannot be deleted")
 
-        if user_name not in self.commons.users.all_properties:
+        if user_name not in self.commons.users.keys:
             return -1, log.error("User %s does not exist. Aborting" % user_name)
         self.commons.users.delete_property(user_name)
         self.commons.users.apply_settings()
@@ -224,7 +229,7 @@ class User(object):
         if user_name == "Generic":
             return -1, log.warning("Generic User permission levels cannot be altered")
 
-        if user_name not in self.commons.users.all_properties:
+        if user_name not in self.commons.users.keys:
             return -1, log.error("User %s does not exist. Aborting" % user_name)
 
         user_data = self.commons.users.get_property(user_name)

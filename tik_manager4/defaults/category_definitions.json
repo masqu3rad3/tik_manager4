@@ -1,0 +1,53 @@
+{
+  "Model": {
+    "type": "asset",
+    "validations": [],
+    "extracts": ["scene_file"]
+  },
+  "LookDev": {
+    "type": "asset",
+    "validations": [],
+    "extracts": ["scene_file"]
+  },
+  "Rig": {
+    "type": "asset",
+    "validations": [],
+    "extracts": ["scene_file"]
+  },
+  "Animation": {
+        "type": "shot",
+        "validations": [],
+        "extracts": ["scene_file"]
+    },
+  "Layout": {
+        "type": "shot",
+        "validations": [],
+        "extracts": ["scene_file"]
+    },
+  "Lighting": {
+        "type": "shot",
+        "validations": [],
+        "extracts": ["scene_file"]
+    },
+  "Fx": {
+        "type": "shot",
+        "validations": [],
+        "extracts": ["scene_file"]
+    },
+  "Comp": {
+        "type": "shot",
+        "validations": [],
+        "extracts": ["scene_file"]
+    },
+  "Temp": {
+        "type": "",
+        "validations": [],
+        "extracts": ["scene_file"]
+    },
+  "Garbage": {
+        "type": "",
+        "validations": [],
+        "extracts": ["scene_file"],
+        "archived": true
+    }
+}

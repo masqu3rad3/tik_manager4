@@ -31,9 +31,14 @@ class Settings(object):
             self.initialize(self._io.read())
 
     @property
-    def all_properties(self):
+    def keys(self):
         """Returns all keys in the current data"""
         return self._currentValue.keys()
+
+    @property
+    def values(self):
+        """Returns all values in the current data"""
+        return self._currentValue.values()
 
     @property
     def properties(self):
@@ -51,8 +56,8 @@ class Settings(object):
     def initialize(self, data):
         """Initializes the settings data"""
         data = data or {}
-        self._originalValue.clear()
-        self._currentValue.clear()
+        self._originalValue = {}
+        self._currentValue = {}
         self._originalValue.update(data)
         self._currentValue.update(data)
 

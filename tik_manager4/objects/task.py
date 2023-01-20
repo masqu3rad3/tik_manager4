@@ -58,7 +58,13 @@ class Task(Settings, Entity):
         # _categories = OrderedDict()
         _categories = {}
         for category in category_list:
-            _categories[category] = (Category(name=category, parent_task=self))
+            # check if the category defined in category definitions
+            if category in self.guard.category_definitions.properties.keys():
+                category_definition = self.guard.category_definitions.get_property(category)
+                _categories[category] = (Category(name=category, parent_task=self, definition=category_definition))
+            else:
+                LOG.error("Category '{0}' is not defined in category definitions.".format(category))
+                raise ValueError
         return _categories
 
 

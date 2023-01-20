@@ -15,7 +15,9 @@ import sys
 from tik_manager4.core.settings import Settings
 # from PyQt5 import QtWidgets, QtGui, QtCore
 #
+import re
 from tik_manager4.ui.Qt import QtWidgets, QtGui, QtCore
+
 
 
 # Signal - Slot requires QObject inheritance
@@ -49,6 +51,14 @@ class ValueChangeFloat(QtCore.QObject):
 class ValueChangeBool(QtCore.QObject):
     """Simple QObject inheritance to pass the Signal and event to custom widgets"""
     valueChanged = QtCore.Signal(bool)
+
+    def valueChangeEvent(self, e):
+        self.valueChanged.emit(e)
+
+
+class ValueChangeList(QtCore.QObject):
+    """Simple QObject inheritance to pass the Signal and event to custom widgets"""
+    valueChanged = QtCore.Signal(list)
 
     def valueChangeEvent(self, e):
         self.valueChanged.emit(e)
@@ -107,11 +117,13 @@ class SpinnerInt(QtWidgets.QSpinBox):
         self.valueChanged.connect(self.com.valueChangeEvent)
         self.disables = disables or []
 
+
 class Integer(SpinnerInt):
 
     def __init__(self, *args, **kwargs):
         super(Integer, self).__init__(*args, **kwargs)
         self.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+
 
 class SpinnerFloat(QtWidgets.QDoubleSpinBox):
 
@@ -126,16 +138,19 @@ class SpinnerFloat(QtWidgets.QDoubleSpinBox):
         self.valueChanged.connect(self.com.valueChangeEvent)
         self.disables = disables or []
 
+
 class Float(SpinnerFloat):
     def __init__(self, *args, **kwargs):
         super(Float, self).__init__(*args, **kwargs)
         self.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
+
 class List(QtWidgets.QWidget):
     """Customized List widget with buttons to manage the list"""
+
     def __init__(self, name, object_name=None, value=None, disables=None, **kwargs):
         super(List, self).__init__()
-        self.com = ValueChangeInt()
+        self.com = ValueChangeList()
         self.value = value or []
         self.setObjectName(object_name or name)
         self.disables = disables or []
@@ -146,16 +161,11 @@ class List(QtWidgets.QWidget):
         self.buttons = []
         self._create_buttons()
         self.build()
+
     def build(self):
         self.list.addItems(self.value)
         self.list.itemChanged.connect(self.com.valueChangeEvent)
         self.layout.addWidget(self.list)
-        # self.add_button = QtWidgets.QPushButton("Add")
-        # self.add_button.clicked.connect(self.add_item)
-        # self.remove_button = QtWidgets.QPushButton("Remove")
-        # self.remove_button.clicked.connect(self.remove_item)
-        # self.button_layout.addWidget(self.add_button)
-        # self.button_layout.addWidget(self.remove_button)
         self.layout.addLayout(self.button_layout)
 
     def get_button(self, name):
@@ -191,11 +201,15 @@ class List(QtWidgets.QWidget):
                 return
             self.list.addItem(item_name)
             self.value.append(item_name)
-            self.com.valueChangeEvent(self.list.currentRow())
+            self.com.valueChangeEvent(self.value)
+
     def remove_item(self):
-        self.list.takeItem(self.list.currentRow())
-        self.value.pop(self.list.currentRow())
-        self.com.valueChangeEvent(self.list.currentRow())
+        """Remove the selected item from the list and from the self.value"""
+        item = self.list.currentItem()
+        if item:
+            self.list.takeItem(self.list.row(item))
+            self.value.remove(item.text())
+            self.com.valueChangeEvent(self.value)
 
     def up_item(self):
         """Move the selected item up in the list of items."""
@@ -205,7 +219,7 @@ class List(QtWidgets.QWidget):
             self.list.insertItem(current_row - 1, item)
             self.list.setCurrentRow(current_row - 1)
             self.value.insert(current_row - 1, self.value.pop(current_row))
-            self.com.valueChangeEvent(self.list.currentRow())
+            self.com.valueChangeEvent(self.value)
 
     def down_item(self):
         """Move the selected item down in the list of items."""
@@ -215,7 +229,112 @@ class List(QtWidgets.QWidget):
             self.list.insertItem(current_row + 1, item)
             self.list.setCurrentRow(current_row + 1)
             self.value.insert(current_row + 1, self.value.pop(current_row))
-            self.com.valueChangeEvent(self.list.currentRow())
+            self.com.valueChangeEvent(self.value)
+
+
+class CategoryList(List):
+    """A special list widget purposed for category selection"""
+
+    def __init__(self, name, object_name=None, value=None, disables=None, category_list=None, **kwargs):
+        super(CategoryList, self).__init__(name, object_name, value, disables, **kwargs)
+        self.category_list = category_list or list(self.value)
+
+    def add_item(self):
+        """Add a new item from the category list"""
+        # Make a dialog with a combo box to select the item from the category list
+        dialog = QtWidgets.QDialog(self)
+        dialog.setWindowTitle("Add Item")
+        dialog_layout = QtWidgets.QVBoxLayout(dialog)
+        combo = QtWidgets.QComboBox()
+        combo.addItems(self.category_list)
+        dialog_layout.addWidget(combo)
+        button_layout = QtWidgets.QHBoxLayout()
+        # create the buttons with button box
+        button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        button_layout.addWidget(button_box)
+        dialog_layout.addLayout(button_layout)
+
+        if dialog.exec_():
+            # if the item is already in the list, do nothing
+            if combo.currentText() in self.value:
+                print("combo.currentText()", combo.currentText())
+                print("self.value", self.value)
+                return
+            self.list.addItem(combo.currentText())
+            self.value.append(combo.currentText())
+            self.com.valueChangeEvent(self.value)
+
+class ValidatedString(String):
+    def __init__(self, *args, connected_widgets=None, allow_spaces=False, allow_directory=False, allow_empty=False, **kwargs):
+        """Custom QLineEdit widget to validate entered values"""
+        super(ValidatedString, self).__init__(*args, **kwargs)
+        self.allow_spaces = allow_spaces
+        self.allow_directory = allow_directory
+        self.allow_empty = allow_empty
+        self.connected_widgets = connected_widgets or []
+        self.default_stylesheet = self.styleSheet()
+        if connected_widgets:
+            self.set_connected_widgets(connected_widgets) # validate and toggle connected widgets
+        else:
+            self._validate() # just validate the value
+
+    def set_connected_widgets(self, widgets):
+        if not isinstance(widgets, (list, tuple)):
+            self.connected_widgets = [widgets]
+        else:
+            self.connected_widgets = widgets
+        self._validate()
+
+    def add_connected_widget(self, widget):
+        self.connected_widgets.append(widget)
+        self._validate()
+
+    def get_connected_widgets(self):
+        return self._connected_widgets
+
+    def keyPressEvent(self, *args, **kwargs):
+        super(ValidatedString, self).keyPressEvent(*args, **kwargs)
+        self._validate()
+
+    def _validate(self):
+        current_text = self.text()
+        if not self.allow_empty and not current_text:
+            self._fail()
+        elif not self.string_value(current_text, allow_spaces=self.allow_spaces, directory=self.allow_directory):
+            self._fail()
+        else:
+            self.setStyleSheet(self.default_stylesheet)
+            if self.connected_widgets:
+                for wid in self.connected_widgets:
+                    wid.setEnabled(True)
+
+    def _fail(self):
+        """Disable the connected widgets and set the background color to red"""
+        self.setStyleSheet("background-color: rgb(40,40,40); color: red")
+        if self.connected_widgets:
+            for wid in self.connected_widgets:
+                wid.setEnabled(False)
+
+    def _pass(self):
+        """Enable the connected widgets and set the background color to the default"""
+        self.setStyleSheet(self.default_stylesheet)
+        if self.connected_widgets:
+            for wid in self.connected_widgets:
+                wid.setEnabled(True)
+    @staticmethod
+    def string_value(input_text, allow_spaces=False, directory=False):
+        """Check the text for illegal characters."""
+        allow_spaces = " " if allow_spaces else ""
+        directory = "/\\\\:" if directory else ""
+
+        pattern = r'^[:A-Za-z0-9%s%s.A_-]*$' % (directory, allow_spaces)
+
+        if re.match(pattern, input_text):
+            return True
+        else:
+            return False
 
 
 class SettingsLayout(QtWidgets.QFormLayout):
@@ -228,7 +347,9 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "float": Float,
         "spinnerInt": SpinnerInt,
         "spinnerFloat": SpinnerFloat,
-        "list": List
+        "list": List,
+        "categoryList": CategoryList,
+        "validatedString": ValidatedString
     }
 
     def __init__(self, settings_obj, *args, **kwargs):
@@ -238,11 +359,13 @@ class SettingsLayout(QtWidgets.QFormLayout):
         self.signal_connections(self.widgets)
 
     def populate(self):
-        """Creates the widgets"""
-        _widgets = [] # flattened list of all widgets
+        """Create the widgets."""
+        _widgets = []  # flattened list of all widgets
         for name, properties in self.settings_data._currentValue.items():
             _display_name = properties.get("display_name", name)
             _label = QtWidgets.QLabel(text=_display_name)
+            _tooltip = properties.get("tooltip", "")
+            _label.setToolTip(_tooltip)
             _type = properties.get("type", None)
             if _type == "multi":
                 multi_properties = properties.get("value", {})
@@ -257,7 +380,8 @@ class SettingsLayout(QtWidgets.QFormLayout):
                         continue
                     _widget = _widget_class(key, **data)
                     _layout.addWidget(_widget)
-                    _widget.com.valueChanged.connect(lambda x, n=name, k=key: self.settings_data.edit_sub_property([n, "value", k, "value"], x))
+                    _widget.com.valueChanged.connect(
+                        lambda x, n=name, k=key: self.settings_data.edit_sub_property([n, "value", k, "value"], x))
                     _widgets.append(_widget)
                 self.addRow(_label, _layout)
             else:
@@ -265,7 +389,8 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 if not _widget_class:
                     continue
                 _widget = _widget_class(name, **properties)
-                _widget.com.valueChanged.connect(lambda x, n=name: self.settings_data.edit_sub_property([n, "value"], x))
+                _widget.com.valueChanged.connect(
+                    lambda x, n=name: self.settings_data.edit_sub_property([n, "value"], x))
                 self.addRow(_label, _widget)
                 _widgets.append(_widget)
 
@@ -284,7 +409,8 @@ class SettingsLayout(QtWidgets.QFormLayout):
 
                 if not disable_widget:
                     continue
-                widget.com.valueChanged.connect(lambda state, wgt=disable_widget, cnd=condition: self.__toggle_enabled(state, cnd, wgt))
+                widget.com.valueChanged.connect(
+                    lambda state, wgt=disable_widget, cnd=condition: self.__toggle_enabled(state, cnd, wgt))
                 # widget.com.valueChanged.connect(lambda state, disable_widget, condition: self.__toggle_enabled(state, condition, disable_widget))
                 self.__toggle_enabled(widget.value, condition, disable_widget)
 
@@ -296,34 +422,12 @@ class SettingsLayout(QtWidgets.QFormLayout):
             widget.setEnabled(True)
 
     def __find_widget(self, object_name, widget_list):
-        """Finds the widget by given object name inside the widget list"""
+        """Find the widget by given object name inside the widget list"""
         for widget in widget_list:
             if widget.objectName() == object_name:
                 return widget
         return None
 
-
-def main():
-    app = QtWidgets.QApplication(sys.argv)
-    test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uiSettings_testA.json")
-
-    test_settings = Settings(test_file)
-    # test_settings = Settings()
-    # test_check = {
-    #     "type": "boolean",
-    #     "value": True,
-    #     "disables": []
-    # }
-    # test_settings.add_property("testCheck", test_check)
-
-    dialog = QtWidgets.QDialog()
-    setting_lay = SettingsLayout(test_settings)
-
-    dialog.setLayout(setting_lay)
-    dialog.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == '__main__':
-    main()
-
+    def find(self, object_name):
+        """Find the widget by given object name inside the widget list"""
+        return self.__find_widget(object_name, self.widgets)

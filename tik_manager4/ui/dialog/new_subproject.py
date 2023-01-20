@@ -34,7 +34,7 @@ class NewSubproject(QtWidgets.QDialog):
         print(self._parent_sub)
         self.settings.add_property("name", {
             "display_name": "Name :",
-            "type": "string",
+            "type": "validatedString",
             "value": "",
         })
         self.settings.add_property("path", {
@@ -118,6 +118,11 @@ class NewSubproject(QtWidgets.QDialog):
 
         # create a button box
         self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+
+        # get the name ValidatedString widget and connect it to the ok button
+        _name_line_edit = self.settings_layout.find("name")
+        _name_line_edit.add_connected_widget(self.button_box.button(QtWidgets.QDialogButtonBox.Ok))
+
         self.main_layout.addWidget(self.button_box)
 
         # SIGNALS
