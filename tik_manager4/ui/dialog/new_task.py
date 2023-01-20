@@ -75,33 +75,31 @@ class NewTask(QtWidgets.QDialog):
         # _default_categories = self._parent_sub.guard.category_definitions.get_data()
         _default_categories = self.filter_category_definitions(self._parent_sub.guard.category_definitions.get_data(), mode=_mode)
 
-        # TODO FIX THIS
-        # if _mode.lower() == "asset":
-        #     _default_categories = self.tik_project.guard.asset_categories
-        # elif _mode.lower() == "shot":
-        #     _default_categories = self.tik_project.guard.shot_categories
-        # else:
-        #     _default_categories = self.tik_project.guard.null_categories
-
+        # TODO: Instead of a simple string, make it a validated string which won't allow spaces and illegal characters
         self.settings.add_property("name", {
             "display_name": "Name :",
             "type": "string",
             "value": "",
+            "tooltip": "Name of the new task.",
+            # "disables": [["", "categories"]]
         })
         self.settings.add_property("path", {
             "display_name": "Path :",
             "type": "string",
             "value": self._parent_sub.path,
+            "tooltip": "Path of the new task.",
         })
         self.settings.add_property("categories", {
             "display_name": "Categories :",
-            "type": "list",
-            "value": list(_default_categories.keys())
+            "type": "categoryList",
+            "value": list(_default_categories.keys()),
+            "tooltip": "Categories of the new task.",
         })
 
     def _init_ui(self):
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.settings_layout = SettingsLayout(self.settings, parent=self)
+        # TODO: Make it fool proof (i.e. disable the ok button if the name is empty)
         self.main_layout.addLayout(self.settings_layout)
 
         # create a button box
@@ -116,7 +114,6 @@ class NewTask(QtWidgets.QDialog):
         """Create task."""
         self._new_task = self.tik_project.create_task(
             name=self.settings.get_property("name")["value"],
-            # path=self.settings.get_property("path")["value"],
             categories=self.settings.get_property("categories")["value"],
             parent_uid=self._parent_sub.id,
         )
