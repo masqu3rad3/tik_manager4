@@ -110,29 +110,17 @@ class TikSubModel(QtGui.QStandardItemModel):
                         "tasks": neighbour.tasks,
                         "subs": [],  # this will be filled with the while loop
                     }
-                    # if neighbour.mode != self.project.mode:
-                    #     sub_data["mode"] = neighbour.mode
-                    # if neighbour.resolution != self.project.resolution:
-                    #     sub_data["resolution"] = neighbour.resolution
-                    # if neighbour.fps != self.project.fps:
-                    #     sub_data["fps"] = neighbour.fps
                     parent["subs"].append(sub_data)
-
                     _item = self.append_sub(neighbour, parent_row)
-                    # _item = self.append_sub(sub_data, parent_row)
 
                     # add tasks
                     neighbour.scan_tasks()
-                    # self.append_tasks(neighbour.tasks, _item)
-
                     visited.append(neighbour)
                     queue.append([sub_data, neighbour, _item])
 
         return all_data
 
     def append_sub(self, sub_obj, parent):
-        # if self.filter_key and self.filter_key not in sub_data.name:
-        #     return
         _sub_item = TikSubItem(sub_obj)
         _row = [_sub_item]
         # generate the column texts
@@ -151,6 +139,7 @@ class TikSubModel(QtGui.QStandardItemModel):
 
 class TikSubView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
+    add_item = QtCore.Signal(object)
     def __init__(self, project_obj=None):
         super(TikSubView, self).__init__()
 
@@ -323,7 +312,8 @@ class TikSubView(QtWidgets.QTreeView):
             state = _dialog.exec_()
             if state:
                 # emit clicked signal
-                self.item_selected.emit([_dialog.get_created_task()])
+                # self.item_selected.emit([_dialog.get_created_task()])
+                self.add_item.emit(_dialog.get_created_task())
                 # self.model.append_task(_dialog.get_created_task(), item)
         else:
             message, title = self.model.project.log.get_last_message()

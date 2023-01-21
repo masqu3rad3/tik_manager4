@@ -352,16 +352,28 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "validatedString": ValidatedString
     }
 
-    def __init__(self, settings_obj, *args, **kwargs):
+    def __init__(self, ui_definition, settings_data=None, *args, **kwargs):
         super(SettingsLayout, self).__init__(*args, **kwargs)
-        self.settings_data = settings_obj
+        self.ui_definition = ui_definition
+        # TODO validate settings data type
+        self.settings_data = settings_data or Settings()
+        self.validate_settings_data()
         self.widgets = self.populate()
         self.signal_connections(self.widgets)
+
+    def validate_settings_data(self):
+        """Make sure all the keys are already present in settings data and all value keys are unique."""
+        for key, data in self.ui_definition.items():
+            if data["type"] == "multi":
+                for sub_key, sub_data in data["value"].items():
+                    self.settings_data.add_property(sub_key, sub_data["value"], force=False)
+            else:
+                self.settings_data.add_property(key, data["value"], force=False) # do not force the value to be set
 
     def populate(self):
         """Create the widgets."""
         _widgets = []  # flattened list of all widgets
-        for name, properties in self.settings_data._currentValue.items():
+        for name, properties in self.ui_definition.items():
             _display_name = properties.get("display_name", name)
             _label = QtWidgets.QLabel(text=_display_name)
             _tooltip = properties.get("tooltip", "")
@@ -381,7 +393,9 @@ class SettingsLayout(QtWidgets.QFormLayout):
                     _widget = _widget_class(key, **data)
                     _layout.addWidget(_widget)
                     _widget.com.valueChanged.connect(
-                        lambda x, n=name, k=key: self.settings_data.edit_sub_property([n, "value", k, "value"], x))
+                        # lambda x, n=name, k=key: self.ui_definition.edit_sub_property([n, "value", k, "value"], x))
+                        lambda x, n=name, k=key: self.settings_data.edit_property(k, x)
+                    )
                     _widgets.append(_widget)
                 self.addRow(_label, _layout)
             else:
@@ -390,11 +404,14 @@ class SettingsLayout(QtWidgets.QFormLayout):
                     continue
                 _widget = _widget_class(name, **properties)
                 _widget.com.valueChanged.connect(
-                    lambda x, n=name: self.settings_data.edit_sub_property([n, "value"], x))
+                    # lambda x, n=name: self.ui_definition.edit_sub_property([n, "value"], x)
+                    lambda x, n=name: self.settings_data.edit_property(n, x)
+                )
                 self.addRow(_label, _widget)
                 _widgets.append(_widget)
 
         return _widgets
+
 
     def signal_connections(self, widget_list):
         """Creates the enable/disable logic between widgets. This needs to be done after population"""

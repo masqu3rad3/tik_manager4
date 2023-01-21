@@ -74,11 +74,11 @@ class Settings(object):
         return True
 
     def reset_settings(self):
-        """Reverts back the unsaved changes to the original state"""
+        """Revert back the unsaved changes to the original state."""
         self._currentValue = deepcopy(self._originalValue)
 
     def edit_property(self, key, val):
-        """Updates the property key with given value"""
+        """Update the property key with given value."""
         self._currentValue.update({key: val})
 
     # def edit_sub_property(self, key, sub_key, val):
@@ -86,6 +86,7 @@ class Settings(object):
     #     self._currentValue[key].update({sub_key: val})
 
     def edit_sub_property(self, sub_keys, new_val):
+        """Edit nested properties."""
         val = self._currentValue
         for key in sub_keys[:-1]:
             val = val[key]
@@ -93,9 +94,12 @@ class Settings(object):
         # Assign a new value to the final key
         val[sub_keys[-1]] = new_val
 
-    def add_property(self, key, val):
-        """Creates a property key with given value"""
+    def add_property(self, key, val, force=True):
+        """Create a property key with given value."""
+        if key in self._currentValue and not force:
+            return False
         self._currentValue.update({key: val})
+        return True
 
     def delete_property(self, key):
         """Deletes the given property key"""
