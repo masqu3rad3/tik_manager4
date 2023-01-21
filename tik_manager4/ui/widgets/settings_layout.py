@@ -370,7 +370,6 @@ class SettingsLayout(QtWidgets.QFormLayout):
             else:
                 self.settings_data.add_property(key, data["value"], force=False) # do not force the value to be set
 
-
     def populate(self):
         """Create the widgets."""
         _widgets = []  # flattened list of all widgets
