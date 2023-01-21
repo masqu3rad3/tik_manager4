@@ -131,6 +131,11 @@ class TikTaskView(QtWidgets.QTreeView):
         # self.model.populate()
         self.expandAll()
 
+    def add_task(self, task):
+        """Add a task to the model"""
+        self.model.append_task(task)
+        self.expandAll()
+
     def filter(self, text):
         """Filter the model"""
         self.proxy_model.setFilterRegExp(QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))

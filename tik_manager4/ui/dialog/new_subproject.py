@@ -36,24 +36,27 @@ class NewSubproject(QtWidgets.QDialog):
 
         # TODO settings data will be flat and will be created from the _ui_definition.
         # TODO This means everything under 'multi' type keys will moved into same level
-        # TODO We need to make sure that the sub-keys under 'value' in 'multi' type are unique
         _ui_definition = {
             "name":
                {
                    "display_name": "Name :",
                    "type": "validatedString",
                    "value": "",
+                   "tooltip": "Name of the subproject",
                },
             "path":
                {
                    "display_name": "Path :",
                    "type": "string",
                    "value": self._parent_sub.path,
+                   "tooltip": "Path of the subproject",
                },
             "resolution_override":
                 {
                     "display_name": "Override Resolution :",
                     "type": "multi",
+                    "tooltip": "Override the resolution of the subproject. \
+                    If not checked, the resolution will be inherited from the parent.",
                     "value": {
                         "overrideResolution": {
                             "type": "boolean",
@@ -74,6 +77,8 @@ class NewSubproject(QtWidgets.QDialog):
                 {
                     "display_name": "FPS Override :",
                     "type": "multi",
+                    "tooltip": "Override the FPS of the subproject. \
+                    If not checked, the FPS will be inherited from the parent.",
                     "value": {
                         "overrideFPS": {
                             "type": "boolean",
@@ -91,6 +96,8 @@ class NewSubproject(QtWidgets.QDialog):
                 {
                     "display_name": "Mode Override :",
                     "type": "multi",
+                    "tooltip": "Override the mode of the subproject. \
+                    If not checked, the mode will be inherited from the parent.",
                     "value": {
                         "overrideMode": {
                             "type": "boolean",
@@ -109,98 +116,18 @@ class NewSubproject(QtWidgets.QDialog):
 
         return _ui_definition
 
-    # def define_initial_settings_data(self):
-    #     """Create a flat dictionary by grabbing the values from the ui_definition."""
-    #
-    #     _settings_data = Settings()
-    #     for _key, _value in self.ui_definition.items():
-    #         _settings_data.set_value(_key, _value["value"])
-
-
-
-        # self.ui_definition.add_property("name", {
-        #     "display_name": "Name :",
-        #     "type": "validatedString",
-        #     "value": "",
-        # })
-        # self.ui_definition.add_property("path", {
-        #     "display_name": "Path :",
-        #     "type": "string",
-        #     "value": self._parent_sub.path,
-        # })
-
-
-        # _resolution = self._parent_sub.metadata.get_value("resolution", [1920, 1080])
-        # self.ui_definition.add_property("resolution_override", {
-        #     "display_name": "Override Resolution :",
-        #     "type": "multi",
-        #     "value": {
-        #         "override": {
-        #             "type": "boolean",
-        #             "value": False,
-        #             "disables": [[False, "resolutionX"], [False, "resolutionY"]]
-        #         },
-        #         "resolutionX": {
-        #             "type": "spinnerInt",
-        #             "value": _resolution[0],
-        #         },
-        #         "resolutionY": {
-        #             "type": "spinnerInt",
-        #             "value": _resolution[1],
-        #         }
-        #     }
-        # })
-        # self.ui_definition.add_property("fps_override", {
-        #     "display_name": "FPS Override :",
-        #     "type": "multi",
-        #     "value": {
-        #         "override": {
-        #             "type": "boolean",
-        #             "value": False,
-        #             "disables": [[False, "fps"]]
-        #         },
-        #         "fps": {
-        #             "type": "spinnerInt",
-        #             "object_name": "fps",
-        #             "value": self._parent_sub.metadata.get_value("fps", 24),
-        #         }
-        #     }
-        # })
-        # self.ui_definition.add_property("mode_override", {
-        #     "display_name": "Mode Override :",
-        #     "type": "multi",
-        #     "value": {
-        #         "override": {
-        #             "type": "boolean",
-        #             "value": False,
-        #             "disables": [[False, "mode"]]
-        #         },
-        #         "mode": {
-        #             "type": "combo",
-        #             "object_name": "mode",
-        #             "items": ["", "asset", "shot"],
-        #             "value": self._parent_sub.metadata.get_value("mode") or "",
-        #         }
-        #     }
-        # })
-
     def _init_ui(self):
-
+        """Initialize the UI."""
         self.main_layout = QtWidgets.QVBoxLayout(self)
-
         self.settings_data = Settings()
         self.settings_layout = SettingsLayout(self.ui_definition, self.settings_data, parent=self)
         self.main_layout.addLayout(self.settings_layout)
-
         # create a button box
         self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
-
         # get the name ValidatedString widget and connect it to the ok button
         _name_line_edit = self.settings_layout.find("name")
         _name_line_edit.add_connected_widget(self.button_box.button(QtWidgets.QDialogButtonBox.Ok))
-
         self.main_layout.addWidget(self.button_box)
-
         # SIGNALS
         self.button_box.accepted.connect(self.on_create_subproject)
         self.button_box.rejected.connect(self.reject)
