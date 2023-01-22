@@ -41,6 +41,7 @@ class Commons(object):
         self.users = Settings(file_path=os.path.join(self._folder_path, "users.json"))
         self.template = Settings(file_path=os.path.join(self._folder_path, "templates.json"))
         self.structures = Settings(file_path=os.path.join(self._folder_path, "structures.json"))
+        self.metadata = Settings(file_path=os.path.join(self._folder_path, "metadata.json"))
 
     def check_user_permission_level(self, user_name):
         """Returns the permission level for given user"""

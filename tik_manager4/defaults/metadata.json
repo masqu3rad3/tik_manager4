@@ -1,0 +1,33 @@
+{
+  "mode": {
+    "default": "",
+    "enum": ["", "asset", "shot"]
+  },
+  "colorspace": {
+    "default": "linear"
+  },
+  "resolution": {
+    "default": [1920, 1080]
+  },
+  "fps": {
+    "default": 24.0
+  },
+  "frame_range": {
+    "default": [1001, 1100]
+  },
+  "pre_roll": {
+    "default": 30
+  },
+  "post_roll": {
+    "default": 2
+  },
+  "lens": {
+    "default": 50.0
+  },
+  "camera": {
+    "default": "generic"
+  },
+  "exposure": {
+    "default": 0.0
+  }
+}
