@@ -1,5 +1,7 @@
 import uuid
 import os
+import subprocess
+import platform
 from tik_manager4.objects.guard import Guard
 from tik_manager4.core import filelog
 
@@ -69,3 +71,24 @@ class Entity(object):
         return os.path.normpath(os.path.join(self.guard.project_root, "__purgatory", self.path, *args))
     def get_purgatory_database_path(self, *args):
         return os.path.normpath(os.path.join(self.guard.project_root, "__purgatory", "tikDatabase", self.path, *args))
+
+    @staticmethod
+    def _open_folder(target):
+        """Open the path in Windows Explorer(Windows) or Nautilus(Linux)."""
+        if os.path.isfile(target):
+            target = os.path.dirname(target)
+        if platform.system() == "Windows":
+            os.startfile(target)
+        elif platform.system() == "Linux":
+            subprocess.Popen(["xdg-open", target])
+        else:
+            subprocess.Popen(["open", target])
+    def show_project_folder(self):
+        """Open the path in Windows Explorer(Windows) or Nautilus(Linux)"""
+        self._open_folder(self.get_abs_project_path())
+
+    def show_database_folder(self):
+        """Open the database path in Windows Explorer(Windows) or Nautilus(Linux)."""
+        self._open_folder(self.get_abs_database_path())
+
+

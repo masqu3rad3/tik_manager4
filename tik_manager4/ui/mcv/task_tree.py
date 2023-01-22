@@ -160,7 +160,7 @@ class TikTaskView(QtWidgets.QTreeView):
         # self.proxy_model.setFilterKeyColumn(0)
 
     def header_right_click_menu(self, position):
-        menu = QtWidgets.QMenu()
+        menu = QtWidgets.QMenu(self)
 
         # add checkable actions for each column
         for column in self.model.columns:
@@ -177,7 +177,7 @@ class TikTaskView(QtWidgets.QTreeView):
     def right_click_menu(self, position):
         indexes = self.sender().selectedIndexes()
         index_under_pointer = self.indexAt(position)
-        right_click_menu = QtWidgets.QMenu()
+        right_click_menu = QtWidgets.QMenu(self)
         if not index_under_pointer.isValid():
             # act_new_task = right_click_menu.addAction(self.tr("New Task"))
             # act_new_task.triggered.connect(self.new_task)

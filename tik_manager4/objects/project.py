@@ -113,6 +113,20 @@ class Project(Subproject):
         self.create_folders(self._database_path)
         return new_sub
 
+    def edit_sub_project(self, uid=None, path=None, name=None, **properties):
+        """Edits a subproject and stores it in persistent database"""
+        state = self._check_permissions(level=2)
+        if state != 1:
+            return -1
+        sub = self.__validate_and_get_sub(uid, path)
+        if sub == -1:
+            return -1
+        if name:
+            sub.name = name
+        sub.metadata.override(properties)
+        self.save_structure()
+        return 1
+
     def create_task(self, name, categories=None, parent_uid=None, parent_path=None):
         """Creates a task and stores it in persistent database"""
 

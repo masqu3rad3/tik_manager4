@@ -9,8 +9,8 @@ from tik_manager4.ui.mcv.task_tree import TikTaskLayout
 import tik_manager4
 
 if __name__ == '__main__':
-    test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
-    # test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_project_DO_NOT_USE")
+    # test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
+    test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_project_DO_NOT_USE")
     tik = tik_manager4.initialize("Standalone")
     tik.user.set("Admin", "1234")
     tik.set_project(test_project_path)

@@ -333,6 +333,23 @@ class Subproject(Entity):
         self._tasks[name] = _task
         return _task
 
+    # def edit_task(self, name, new_name=None, categories=None, task_type=None):
+    #     """Edit a task."""
+    #     # find the task
+    #     _task = self._tasks.get(name, None)
+    #     if not _task:
+    #         LOG.warning("Task not found")
+    #         return -1
+    #     # check if the new name is already taken
+    #     if new_name and new_name != name:
+    #         if new_name in self._tasks:
+    #             LOG.warning("Task with the same name already exist")
+    #             return -1
+    #         # rename the task
+    #         _task.(new_name)
+    #         self._tasks[new_name] = _task
+    #         del self._tasks[name]
+
     @staticmethod
     def is_task_empty(task):
         """Check all categories and return True if all are empty."""
@@ -357,8 +374,7 @@ class Subproject(Entity):
             return -1
 
         self._tasks.pop(task_name)
-        # delete the file
-        os.remove(task.settings_file)
+
 
         # move everything to the purgatory
         if not _is_empty:
@@ -368,6 +384,8 @@ class Subproject(Entity):
             io.IO().folder_check(self.get_purgatory_project_path())
             shutil.move(self.get_abs_database_path(task.file_name), self.get_purgatory_database_path(task.file_name))
             shutil.move(self.get_abs_project_path(), self.get_purgatory_project_path())
+        else: # if the task is empty, just delete the database file
+            os.remove(task.settings_file)
 
         return 1
 

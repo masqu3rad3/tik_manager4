@@ -251,7 +251,7 @@ class TikSubView(QtWidgets.QTreeView):
         # self.proxy_model.setFilterKeyColumn(0)
 
     def header_right_click_menu(self, position):
-        menu = QtWidgets.QMenu()
+        menu = QtWidgets.QMenu(self)
 
         # add checkable actions for each column
         for column in self.model.columns:
@@ -283,18 +283,28 @@ class TikSubView(QtWidgets.QTreeView):
                 level += 1
         else:
             level = 0
-        right_click_menu = QtWidgets.QMenu()
+        right_click_menu = QtWidgets.QMenu(self)
         act_new_sub = right_click_menu.addAction(self.tr("New Sub-Project"))
         act_new_sub.triggered.connect(lambda _, x=item: self.new_sub_project(item))
         act_edit_sub = right_click_menu.addAction(self.tr("Edit Sub-Project"))
         act_edit_sub.triggered.connect(lambda _, x=item: self.edit_sub_project(item))
         act_delete_sub = right_click_menu.addAction(self.tr("Delete Sub-Project"))
         act_delete_sub.triggered.connect(lambda _, x=item: self.delete_sub_project(item))
-        # act_new_sub.triggered.connect(partial(self.TreeItem_Add, level, mdlIdx))
-        # act_new_category = right_click_menu.addAction(self.tr("New Category"))
+
+        right_click_menu.addSeparator()
+
         act_new_task = right_click_menu.addAction(self.tr("New Task"))
         act_new_task.triggered.connect(lambda _, x=item: self.new_task(item))
+
+        right_click_menu.addSeparator()
+
+        act_open_project_folder = right_click_menu.addAction(self.tr("Open Project Folder In Explorer"))
+        act_open_database_folder = right_click_menu.addAction(self.tr("Open Database Folder In Explorer"))
+        act_open_project_folder.triggered.connect(lambda _, x=item: item.subproject.show_project_folder())
+        act_open_database_folder.triggered.connect(lambda _, x=item: item.subproject.show_database_folder())
+
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
+
 
     def new_sub_project(self, item):
         # first check for the user permission:
