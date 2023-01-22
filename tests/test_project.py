@@ -109,32 +109,26 @@ class TestProject:
         assert self.tik.project.create_sub_project("anotherSub", parent_uid=new_sub.id) == -1
         assert log.get_last_message() == ("anotherSub already exist in sub-projects of testSub", "warning")
 
-        # # try creating a sub-project with a wrong parent id
-        # pytest.raises(Exception, self.tik.project.create_sub_project, "wrongSub", parent_uid=0)
-        #
-        # # try creating a sub-project with a wrong parent path
-        # pytest.raises(Exception, self.tik.project.create_sub_project, "wrongSub", parent_path="THIS_PATH_DOES_NOT_EXIST")
-        #
-        # # try creating a sub-project without a parent path or parent id
-        # pytest.raises(Exception, self.tik.project.create_sub_project, "wrongSub")
+    @clean_user
+    def test_edit_sub_project(self):
+        """Test editing sub-projects with parent id and path"""
 
-    # @clean_user
-    # def test_create_category(self):
-    #     test_project_path = self.test_create_new_project()
-    #     self.tik.project.set(test_project_path)
-    #
-    #     # no permission test
-    #     self.tik.user.set("Generic")
-    #     assert self.tik.project.create_category("testCategory", parent_path="Assets") == -1
-    #     assert self.tik.project.subs["Assets"].add_category("testCategory") == -1
-    #
-    #     self.tik.user.set("Admin", "1234")
-    #     new_category = self.tik.project.create_category("testCategory", parent_path="Assets")
-    #     assert new_category.path == "Assets/testCategory"
-    #
-    #     # try creating an existing one
-    #     assert self.tik.project.create_category("testCategory", parent_path="Assets") == -1
-    #     assert log.last_warning == "testCategory already exists in categories of Assets"
+        test_project_path = self.test_create_new_project()
+        self.tik.set_project(test_project_path)
+
+        # first create a sub project
+        self.tik.user.set("Admin", "1234")
+        new_sub = self.tik.project.create_sub_project("testToEditSub", parent_path="")
+
+        # no permission test
+        self.tik.user.set("Generic")
+        assert self.tik.project.edit_sub_project(uid=new_sub.id, name="testEditedSub", resolution=[4096, 2144], fps=39) == -1
+        self.tik.user.set("Admin", "1234")
+        # test with uid
+        assert self.tik.project.edit_sub_project(uid=new_sub.id, name="testEditedSub", resolution=[4096, 2144], fps=39) == 1
+
+        # test with path
+        assert self.tik.project.edit_sub_project(path=new_sub.path, name="testEditedSub", resolution=[4096, 2144], fps=40, lens=50) == 1
 
     @clean_user
     def test_create_a_shot_asset_project_structure(self, print_results=False):
@@ -297,6 +291,47 @@ class TestProject:
         assert self.tik.project.create_task("this_asset_shouldnt_exist", categories=["Model", "Rig", "LookDev"], parent_path="Assets/Characters/Soldier") == -1
         # check if the log message is correct
         assert self.tik.log.get_last_message() == ('This user does not have permissions for this action', 'warning')
+        self.tik.user.set("Admin", password="1234")
+
+    @clean_user
+    def test_edit_task(self):
+        test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
+        self.tik.set_project(test_project_path)
+
+        # create a task from the main project
+        task = self.tik.project.create_task("Poseidon", categories=["Model", "Rig", "LookDev"], parent_path="Assets/Characters/Soldier")
+
+        assert task.name == "Poseidon"
+        assert task.creator == "Admin"
+        assert task.reference_id == task._task_id
+
+        # no permissions
+        self.tik.user.set("Generic", password="1234")
+        assert task.edit(name="Aquaman", categories=["Model", "Rig", "LookDev", "Animation"], task_type="Shot") == -1
+        assert self.tik.log.get_last_message() == ('This user does not have permissions for this action', 'warning')
+        self.tik.user.set("Admin", password="1234")
+
+        # existing task name
+        existing_task = self.tik.project.create_task("Wonderboy", categories=["Model", "Rig", "LookDev"],
+                                            parent_path="Assets/Characters/Soldier")
+        assert task.edit(name="Wonderboy", categories=["Model", "Rig", "LookDev", "Animation"], task_type="Shot") == -1
+        assert self.tik.log.get_last_message() == ("Task name 'Wonderboy' already exists in sub 'Soldier'.", 'error')
+
+        # wrong category type
+        with pytest.raises(Exception):
+            task.edit(name="Aquaman", categories="ThisIsWrong", task_type="Shot")
+        # category not defined
+        with pytest.raises(Exception):
+            task.edit(name="Aquaman", categories=["Model", "Rig", "LookDev", "Animation", "ThisIsWrong"], task_type="Shot")
+
+        # edit the task
+        task.edit(name="Aquaman", categories=["Model", "Rig", "LookDev", "Animation"], task_type="Shot")
+
+        assert list(task.categories.keys()) == ["Model", "Rig", "LookDev", "Animation"]
+        assert task.name == "Aquaman"
+        assert task.type == "Shot"
+
+
 
     @clean_user
     def test_adding_categories(self):
@@ -306,15 +341,47 @@ class TestProject:
 
         # try to add category without permissions
         self.tik.user.set("Generic", password="1234")
-        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].add_category("Gotham") == -1
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].add_category("Temp") == -1
         self.tik.user.set("Admin", password="1234")
         # add the Gotham category to Batman task
-        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].add_category("Gotham")
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].add_category("Temp")
 
         # try to add a duplicate category
-        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].add_category("Gotham") == -1
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].add_category("Temp") == -1
         # check the log message
-        assert self.tik.log.get_last_message() == ("Category 'Gotham' already exists in task 'batman'.", 'warning')
+        assert self.tik.log.get_last_message() == ("Category 'Temp' already exists in task 'batman'.", 'warning')
+
+        # try to add a category that is not defined in the category definitions
+        with pytest.raises(Exception) as e_info:
+            self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].add_category("Burhan")
+        # check the log message
+        assert self.tik.log.get_last_message() == ("Category 'Burhan' is not defined in category definitions.", 'error')
+
+
+    @clean_user
+    def test_order_categories(self):
+        self.test_creating_and_adding_new_tasks()
+
+        # order categories
+        _test_tasks = self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["superman"].order_categories(["Model", "LookDev", "Rig"]) == 1
+
+        # try to order categories without permissions
+        self.tik.user.set("Generic", password="1234")
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["superman"].order_categories(["Model", "LookDev", "Rig"]) == -1
+        self.tik.user.set("Admin", password="1234")
+
+        # try to order categories with a wrong length
+        with pytest.raises(Exception) as e_info:
+            self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["superman"].order_categories(["LookDev", "Model"])
+        # check the log message
+        assert self.tik.log.get_last_message() == ("New order list is not the same length as the current categories list.", 'error')
+
+        # try to order categories with an item not in the current categories list
+        with pytest.raises(Exception) as e_info:
+            self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["superman"].order_categories(["Model", "LookDev", "Temp"])
+        # check the log message
+        assert self.tik.log.get_last_message() == ("New order list contains a category that is not in the current categories list.", 'error')
 
 
     @clean_user
@@ -326,7 +393,7 @@ class TestProject:
 
         # modify one of the tasks and scan again
         # no permission
-        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["superman"].add_category("Testing")
+        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["superman"].add_category("Temp")
         self.tik.user.set("Admin", password=1234)
         assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].scan_tasks()
 
@@ -418,7 +485,7 @@ class TestProject:
 
         # try to delete a category without permissions
         self.tik.user.set("Generic", password="1234")
-        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Gotham") == -1
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Model") == -1
         self.tik.user.set("Admin", password="1234")
         # try to delete a non-existing category
         assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Burhan") == -1
@@ -430,10 +497,11 @@ class TestProject:
     def test_deleting_non_empty_categories(self):
         self.test_adding_categories()
         # add a version to the Gotham category
-        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories["Gotham"].create_work("test_work")
+        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories["Temp"].create_work("test_work")
         # try to delete a non-empty category
         self.tik.user.set("Admin", password="1234")
-        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories["Gotham"].is_empty() == False
-        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Gotham")
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories["Temp"].is_empty() == False
+        self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Temp")
         # check the log message
+        assert self.tik.log.get_last_message() == ("Sending category 'Temp' from task 'batman' to purgatory.", 'warning')
 

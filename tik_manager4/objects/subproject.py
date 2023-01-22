@@ -333,8 +333,25 @@ class Subproject(Entity):
         self._tasks[name] = _task
         return _task
 
+    # def edit_task(self, name, new_name=None, categories=None, task_type=None):
+    #     """Edit a task."""
+    #     # find the task
+    #     _task = self._tasks.get(name, None)
+    #     if not _task:
+    #         LOG.warning("Task not found")
+    #         return -1
+    #     # check if the new name is already taken
+    #     if new_name and new_name != name:
+    #         if new_name in self._tasks:
+    #             LOG.warning("Task with the same name already exist")
+    #             return -1
+    #         # rename the task
+    #         _task.(new_name)
+    #         self._tasks[new_name] = _task
+    #         del self._tasks[name]
+
     @staticmethod
-    def __is_task_empty(task):
+    def is_task_empty(task):
         """Check all categories and return True if all are empty."""
         for category in task.categories:
             if not task.categories[category].is_empty():
@@ -350,13 +367,14 @@ class Subproject(Entity):
             return -1
 
         # check all categories are empty
-        _is_empty = self.__is_task_empty(task)
+        _is_empty = self.is_task_empty(task)
         permission_level = 2 if _is_empty else 3
         state = self._check_permissions(level=permission_level)
         if state != 1:
             return -1
 
         self._tasks.pop(task_name)
+
 
         # move everything to the purgatory
         if not _is_empty:
@@ -366,6 +384,8 @@ class Subproject(Entity):
             io.IO().folder_check(self.get_purgatory_project_path())
             shutil.move(self.get_abs_database_path(task.file_name), self.get_purgatory_database_path(task.file_name))
             shutil.move(self.get_abs_project_path(), self.get_purgatory_project_path())
+        else: # if the task is empty, just delete the database file
+            os.remove(task.settings_file)
 
         return 1
 
@@ -418,6 +438,12 @@ class Subproject(Entity):
         sub = self.find_sub_by_id(uid)
         return sub.path if sub != -1 else sub
 
+    @staticmethod
+    def is_subproject_empty(sub):
+        """Check if the subproject has other subprojects or tasks."""
+        sub.scan_tasks()
+        return not sub.subs and not sub.tasks
+
     def _remove_sub_project(self, uid=None, path=None):
         """Removes the subproject from the object but not from the database"""
 
@@ -425,6 +451,7 @@ class Subproject(Entity):
             LOG.error("Deleting sub project requires at least an id or path ")
             return -1
 
+        # Minimum required permission level is 2
         state = self._check_permissions(level=2)
         if state != 1:
             return -1
@@ -437,6 +464,13 @@ class Subproject(Entity):
         if kill_sub == -1:
             LOG.warning("Subproject cannot be found")
             return -1
+
+        # if the subproject is not empty, we need to have level 3
+        if not self.is_subproject_empty(kill_sub):
+            state = self._check_permissions(level=3)
+            if state != 1:
+                return -1
+
         parent_path = os.path.dirname(kill_sub.path) or ""
         parent_sub = self.find_sub_by_path(parent_path)
         del parent_sub.subs[kill_sub.name]

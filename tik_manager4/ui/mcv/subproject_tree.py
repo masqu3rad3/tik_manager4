@@ -251,7 +251,7 @@ class TikSubView(QtWidgets.QTreeView):
         # self.proxy_model.setFilterKeyColumn(0)
 
     def header_right_click_menu(self, position):
-        menu = QtWidgets.QMenu()
+        menu = QtWidgets.QMenu(self)
 
         # add checkable actions for each column
         for column in self.model.columns:
@@ -283,16 +283,28 @@ class TikSubView(QtWidgets.QTreeView):
                 level += 1
         else:
             level = 0
-        right_click_menu = QtWidgets.QMenu()
+        right_click_menu = QtWidgets.QMenu(self)
         act_new_sub = right_click_menu.addAction(self.tr("New Sub-Project"))
         act_new_sub.triggered.connect(lambda _, x=item: self.new_sub_project(item))
+        act_edit_sub = right_click_menu.addAction(self.tr("Edit Sub-Project"))
+        act_edit_sub.triggered.connect(lambda _, x=item: self.edit_sub_project(item))
         act_delete_sub = right_click_menu.addAction(self.tr("Delete Sub-Project"))
         act_delete_sub.triggered.connect(lambda _, x=item: self.delete_sub_project(item))
-        # act_new_sub.triggered.connect(partial(self.TreeItem_Add, level, mdlIdx))
-        # act_new_category = right_click_menu.addAction(self.tr("New Category"))
+
+        right_click_menu.addSeparator()
+
         act_new_task = right_click_menu.addAction(self.tr("New Task"))
         act_new_task.triggered.connect(lambda _, x=item: self.new_task(item))
+
+        right_click_menu.addSeparator()
+
+        act_open_project_folder = right_click_menu.addAction(self.tr("Open Project Folder In Explorer"))
+        act_open_database_folder = right_click_menu.addAction(self.tr("Open Database Folder In Explorer"))
+        act_open_project_folder.triggered.connect(lambda _, x=item: item.subproject.show_project_folder())
+        act_open_database_folder.triggered.connect(lambda _, x=item: item.subproject.show_database_folder())
+
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
+
 
     def new_sub_project(self, item):
         # first check for the user permission:
@@ -305,12 +317,25 @@ class TikSubView(QtWidgets.QTreeView):
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
 
-    def new_task(self, item):
+    def edit_sub_project(self, item):
         # first check for the user permission:
         if self.model.project._check_permissions(level=2) != -1:
-            _dialog = NewTask(self.model.project, parent_sub=item.subproject, parent=self)
-            state = _dialog.exec_()
-            if state:
+            pass
+            # TODO implement the edit subproject dialog
+            # _dialog = EditSubproject(item.subproject, parent=self)
+            # state = _dialog.exec_()
+            # if state:
+            #     self.model.update_sub(item)
+        else:
+            message, title = self.model.project.log.get_last_message()
+            self._feedback.pop_info(title.capitalize(), message)
+
+    def new_task(self, item):
+        # first check for the user permission:
+        # if self.model.project._check_permissions(level=2) != -1:
+        _dialog = NewTask(self.model.project, parent_sub=item.subproject, parent=self)
+        state = _dialog.exec_()
+        if state:
                 # emit clicked signal
                 # self.item_selected.emit([_dialog.get_created_task()])
                 self.add_item.emit(_dialog.get_created_task())
@@ -320,12 +345,33 @@ class TikSubView(QtWidgets.QTreeView):
             self._feedback.pop_info(title.capitalize(), message)
 
     def delete_sub_project(self, item):
-        state = self.model.project.delete_sub_project(uid=item.subproject.id)
-        if state != -1:
-            self.model.removeRow(item.row(), item.parent().index())
+        # Prompt the user to confirm the deletion
+        message = "Are you sure you want to delete the sub-project: {}?".format(item.subproject.name)
+        title = "Delete Sub-Project"
+        sure = self._feedback.pop_question(title, message, buttons=["ok", "cancel"])
+        if sure == "ok":
+            # double check if the sub-project is not empty
+            if not item.subproject.is_subproject_empty(item.subproject):
+                message = "The sub-project is not empty.\n\nALL TASKS AND SUB-PROJECTS WILL BE DELETED!\n\nARE YOU " \
+                          "SURE YOU WANT TO CONTINUE? "
+                title = "NON EMPTY SUB-PROJECT"
+                really_sure = self._feedback.pop_question(title, message, buttons=["ok", "cancel"])
+                if really_sure != "ok":
+                    return
+            state = self.model.project.delete_sub_project(uid=item.subproject.id)
+            if state != -1:
+                self.model.removeRow(item.row(), item.parent().index())
+
+                # after removing the row, find the current selected one and emit the clicked signal
+                self.get_tasks(self.currentIndex())
+
+            else:
+                message, title = self.model.project.log.get_last_message()
+                self._feedback.pop_info(title.capitalize(), message)
         else:
-            message, title = self.model.project.log.get_last_message()
-            self._feedback.pop_info(title.capitalize(), message)
+            return
+
+
 
 
 class ProxyModel(QtCore.QSortFilterProxyModel):
