@@ -6,14 +6,23 @@
   "colorspace": {
     "default": "linear"
   },
-  "resolution": {
-    "default": [1920, 1080]
+  "resolutionX": {
+    "default": 1920
+  },
+  "resolutionY": {
+    "default": 1080
+  },
+  "pixel_aspect": {
+    "default": 1.0
   },
   "fps": {
     "default": 24.0
   },
-  "frame_range": {
-    "default": [1001, 1100]
+  "start_frame": {
+    "default": 1001
+  },
+  "end_frame": {
+    "default": 1100
   },
   "pre_roll": {
     "default": 30
@@ -29,5 +38,8 @@
   },
   "exposure": {
     "default": 0.0
+  },
+  "sub_steps": {
+    "default": 1
   }
 }
