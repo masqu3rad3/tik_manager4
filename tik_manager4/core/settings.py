@@ -33,12 +33,12 @@ class Settings(object):
     @property
     def keys(self):
         """Returns all keys in the current data"""
-        return self._currentValue.keys()
+        return list(self._currentValue.keys())
 
     @property
     def values(self):
         """Returns all values in the current data"""
-        return self._currentValue.values()
+        return list(self._currentValue.values())
 
     @property
     def properties(self):
