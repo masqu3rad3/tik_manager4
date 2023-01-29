@@ -55,26 +55,33 @@ class NewSubproject(QtWidgets.QDialog):
                }
         }
 
+        # The next part of metadata is for displaying and overriding
+        # the existing metadata keys in the stream
         for key, data in metadata_definitions.properties.items():
             if key in self._parent_sub.metadata.keys():
-                # if the metadata already defined, create it with overrride option
-                # _default_value = data.get("default", None)
+                # if the metadata already defined, create it with override option
                 _default_value = self._parent_sub.metadata.get_value(key, None)
                 _enum = data.get("enum", [])
                 if _default_value is None:
                     raise ValueError("No default value defined for metadata {}".format(key))
 
-                if isinstance(_default_value, int):
-                    _value_type = "spinnerInt"
-                elif isinstance(_default_value, float):
-                    _value_type = "spinnerFloat"
-                elif isinstance(_default_value, str):
-                    _value_type = "string"
+                # define what widget to use to display and manipulate the metadata
 
+                # if there is an enum value, it is always a combo box
                 if _enum:
                     _value_type = "combo"
+                else:
+                    if isinstance(_default_value, int):
+                        _value_type = "spinnerInt"
+                    elif isinstance(_default_value, float):
+                        _value_type = "spinnerFloat"
+                    elif isinstance(_default_value, str):
+                        _value_type = "string"
+                    else:
+                        raise ValueError("Unknown type for metadata {}".format(key))
 
-                # if there is an enum value, it should be a combo box
+                # TODO: collect keys ending with X,Y and X, Y, Z and create vector2 and vector3 widgets respectively
+
 
                 ui_definition["{}_override".format(key)] = {
                     "display_name": "Override {} :".format(key),
