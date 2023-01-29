@@ -19,7 +19,6 @@ import re
 from tik_manager4.ui.Qt import QtWidgets, QtGui, QtCore
 
 
-
 # Signal - Slot requires QObject inheritance
 class ValueChangeStr(QtCore.QObject):
     """Simple QObject inheritance to pass the Signal and event to custom widgets"""
@@ -73,9 +72,12 @@ class Boolean(QtWidgets.QCheckBox):
         self.value = value
         self.setObjectName(object_name or name)
         self.setChecked(value)
-        self.stateChanged.connect(self.com.valueChangeEvent)
-        # self.stateChanged.connect(self.valueChangeEvent)
+        self.stateChanged.connect(self.value_change_event)
         self.disables = disables or []
+
+    def value_change_event(self, e):
+        self.value = e
+        self.com.valueChangeEvent(e)
 
 
 class String(QtWidgets.QLineEdit):
@@ -87,8 +89,12 @@ class String(QtWidgets.QLineEdit):
         self.setObjectName(object_name or name)
         self.setText(value)
         self.setPlaceholderText(placeholder)
-        self.textEdited.connect(self.com.valueChangeEvent)
+        self.textEdited.connect(self.value_change_event)
         self.disables = disables or []
+
+    def value_change_event(self, e):
+        self.value = e
+        self.com.valueChangeEvent(e)
 
 
 class Combo(QtWidgets.QComboBox):
@@ -100,8 +106,12 @@ class Combo(QtWidgets.QComboBox):
         self.setObjectName(object_name or name)
         self.addItems(items or [])
         self.setCurrentText(value)
-        self.currentTextChanged.connect(self.com.valueChangeEvent)
+        self.currentTextChanged.connect(self.value_change_event)
         self.disables = disables or []
+
+    def value_change_event(self, e):
+        self.value = e
+        self.com.valueChangeEvent(e)
 
 
 class SpinnerInt(QtWidgets.QSpinBox):
@@ -114,8 +124,13 @@ class SpinnerInt(QtWidgets.QSpinBox):
         self.setMinimum(minimum)
         self.setMaximum(maximum)
         self.setValue(value)
-        self.valueChanged.connect(self.com.valueChangeEvent)
+        # self.valueChanged.connect(self.com.valueChangeEvent)
+        self.valueChanged.connect(self.value_change_event)
         self.disables = disables or []
+
+    def value_change_event(self, e):
+        self.value = e
+        self.com.valueChangeEvent(e)
 
 
 class Integer(SpinnerInt):
@@ -138,11 +153,127 @@ class SpinnerFloat(QtWidgets.QDoubleSpinBox):
         self.valueChanged.connect(self.com.valueChangeEvent)
         self.disables = disables or []
 
+    def value_change_event(self, e):
+        self.value = e
+        self.com.valueChangeEvent(e)
+
 
 class Float(SpinnerFloat):
     def __init__(self, *args, **kwargs):
         super(Float, self).__init__(*args, **kwargs)
         self.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+
+
+class _Vector(QtWidgets.QWidget):
+    """Convenient class for other vector widget classes"""
+    def __init__(self, name, object_name=None, value=None, minimum=None, maximum=None, disables=None, **kwargs):
+        super(_Vector, self).__init__()
+        self.com = ValueChangeList()
+        self.value = value
+        self.setObjectName(object_name or name)
+        # self.valueChanged.connect(self.com.valueChangeEvent)
+        self.disables = disables or []
+
+        self.layout = QtWidgets.QHBoxLayout()
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self.layout)
+
+
+class Vector2Float(_Vector):
+    def __init__(self, *args, **kwargs):
+        super(Vector2Float, self).__init__(*args, **kwargs)
+        self.x = Float("x", value=self.value[0])
+        self.y = Float("y", value=self.value[1])
+        self.layout.addWidget(self.x)
+        self.layout.addWidget(self.y)
+        self.x.valueChanged.connect(self.value_change_event)
+        self.y.valueChanged.connect(self.value_change_event)
+        self.layout.addStretch()
+
+    def value_change_event(self, e):
+        self.value = [self.x.value, self.y.value]
+        self.com.valueChangeEvent(self.value)
+
+
+class Vector3Float(_Vector):
+    def __init__(self, *args, **kwargs):
+        super(Vector3Float, self).__init__(*args, **kwargs)
+        self.x = Float("x", value=self.value[0])
+        self.y = Float("y", value=self.value[1])
+        self.z = Float("z", value=self.value[2])
+        self.layout.addWidget(self.x)
+        self.layout.addWidget(self.y)
+        self.layout.addWidget(self.z)
+        self.x.valueChanged.connect(self.value_change_event)
+        self.y.valueChanged.connect(self.value_change_event)
+        self.z.valueChanged.connect(self.value_change_event)
+        self.layout.addStretch()
+
+    def value_change_event(self, e):
+        self.value = [self.x.value, self.y.value, self.z.value]
+        self.com.valueChangeEvent(self.value)
+
+
+class Vector2Int(_Vector):
+    def __init__(self, *args, **kwargs):
+        super(Vector2Int, self).__init__(*args, **kwargs)
+        self.x = Integer("x", value=self.value[0])
+        self.y = Integer("y", value=self.value[1])
+        self.layout.addWidget(self.x)
+        self.layout.addWidget(self.y)
+        self.x.valueChanged.connect(self.value_change_event)
+        self.y.valueChanged.connect(self.value_change_event)
+        self.layout.addStretch()
+
+    def value_change_event(self, e):
+        self.value = [self.x.value, self.y.value]
+        self.com.valueChangeEvent(self.value)
+
+
+class Vector3Int(_Vector):
+    def __init__(self, *args, **kwargs):
+        super(Vector3Int, self).__init__(*args, **kwargs)
+        self.x = Integer("x", value=self.value[0])
+        self.y = Integer("y", value=self.value[1])
+        self.z = Integer("z", value=self.value[2])
+        self.layout.addWidget(self.x)
+        self.layout.addWidget(self.y)
+        self.layout.addWidget(self.z)
+        self.x.valueChanged.connect(self.valueChangeEvent)
+        self.y.valueChanged.connect(self.valueChangeEvent)
+        self.z.valueChanged.connect(self.valueChangeEvent)
+        self.layout.addStretch()
+
+    def valueChangeEvent(self, e):
+        self.value = [self.x.value, self.y.value, self.z.value]
+        self.com.valueChangeEvent(self.value)
+
+# class Vector2Int(QtWidgets.QWidget):
+#     """A Class to draw 2D integer vectors"""
+#     def __init__(self, name, object_name=None, value=None, minimum=-99999, maximum=99999, disables=None, **kwargs):
+#         super(Vector2Int, self).__init__()
+#         self.com = ValueChangeList()
+#         self.value = value
+#         self.setObjectName(object_name or name)
+#         self.disables = disables or []
+#         self.setLayout(QtWidgets.QHBoxLayout())
+#         self.layout().setContentsMargins(0, 0, 0, 0)
+#         # self.layout().setSpacing(0)
+#         self.x = Integer("x", value=value[0], minimum=minimum, maximum=maximum)
+#         self.y = Integer("y", value=value[1], minimum=minimum, maximum=maximum)
+#         self.x.setMinimum(minimum)
+#         self.y.setMaximum(maximum)
+#         self.x.setValue(value[0])
+#         self.y.setValue(value[1])
+#
+#         self.layout().addWidget(self.x)
+#         self.layout().addWidget(self.y)
+#         self.layout().addStretch()
+#         self.x.valueChanged.connect(self.valueChangeEvent)
+#         self.y.valueChanged.connect(self.valueChangeEvent)
+#
+#     def valueChangeEvent(self, e):
+#         self.com.valueChangeEvent([self.x.value, self.y.value])
 
 
 class List(QtWidgets.QWidget):
@@ -259,12 +390,11 @@ class CategoryList(List):
         if dialog.exec_():
             # if the item is already in the list, do nothing
             if combo.currentText() in self.value:
-                print("combo.currentText()", combo.currentText())
-                print("self.value", self.value)
                 return
             self.list.addItem(combo.currentText())
             self.value.append(combo.currentText())
             self.com.valueChangeEvent(self.value)
+
 
 class ValidatedString(String):
     def __init__(self, *args, connected_widgets=None, allow_spaces=False, allow_directory=False, allow_empty=False, **kwargs):
@@ -349,7 +479,11 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "spinnerFloat": SpinnerFloat,
         "list": List,
         "categoryList": CategoryList,
-        "validatedString": ValidatedString
+        "validatedString": ValidatedString,
+        "vector2Int": Vector2Int,
+        "vector2Float": Vector2Float,
+        "vector3Int": Vector3Int,
+        "vector3Float": Vector3Float
     }
 
     def __init__(self, ui_definition, settings_data=None, *args, **kwargs):
@@ -448,3 +582,41 @@ class SettingsLayout(QtWidgets.QFormLayout):
     def find(self, object_name):
         """Find the widget by given object name inside the widget list"""
         return self.__find_widget(object_name, self.widgets)
+
+def main():
+    app = QtWidgets.QApplication(sys.argv)
+    test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uiSettings_testA.json")
+
+    test_settings = Settings(test_file)
+    # test_settings = Settings()
+    # test_check = {
+    #     "type": "boolean",
+    #     "value": True,
+    #     "disables": []
+    # }
+    # test_settings.add_property("testCheck", test_check)
+
+    dialog = QtWidgets.QDialog()
+    setting_lay = SettingsLayout(test_settings.get_data())
+    # setting_lay.addRow(QtWidgets.QLabel("test"), QtWidgets.QLabel("ASDFASDF"))
+
+    dialog.setLayout(setting_lay)
+    dialog.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()
+    # app = QtWidgets.QApplication(sys.argv)
+    # test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uiSettings_test.json")
+    #
+    # test_settings = Settings(test_file)
+    #
+    # dialog = QtWidgets.QDialog()
+    # setting_lay = SettingsLayout(test_settings)
+    # # setting_lay.addRow(QtWidgets.QLabel("test"), QtWidgets.QLabel("ASDFASDF"))
+    #
+    # dialog.setLayout(setting_lay)
+    # dialog.show()
+    # sys.exit(app.exec_())
+

@@ -66,7 +66,6 @@ class NewSubproject(QtWidgets.QDialog):
                     raise ValueError("No default value defined for metadata {}".format(key))
 
                 # define what widget to use to display and manipulate the metadata
-
                 # if there is an enum value, it is always a combo box
                 if _enum:
                     _value_type = "combo"
@@ -77,11 +76,22 @@ class NewSubproject(QtWidgets.QDialog):
                         _value_type = "spinnerFloat"
                     elif isinstance(_default_value, str):
                         _value_type = "string"
+                    elif isinstance(_default_value, list):
+                        # currently only lists with floats or ints are supported
+                        # Also the list lenght is limited with 3 items (vector3)
+                        if 2 > len(_default_value) > 3:
+                            raise ValueError("List lenght is limited to 2 or 3 items")
+                        for item in _default_value:
+                            if not isinstance(item, (float, int)):
+                                raise ValueError("List items must be float or int")
+                        # if any of the items is float, the value type is float
+                        if any([isinstance(item, float) for item in _default_value]):
+                            _value_suffix = "Float"
+                        else:
+                            _value_suffix = "Int"
+                        _value_type = "vector{0}{1}".format(len(_default_value), _value_suffix)
                     else:
                         raise ValueError("Unknown type for metadata {}".format(key))
-
-                # TODO: collect keys ending with X,Y and X, Y, Z and create vector2 and vector3 widgets respectively
-
 
                 ui_definition["{}_override".format(key)] = {
                     "display_name": "Override {} :".format(key),
@@ -100,90 +110,6 @@ class NewSubproject(QtWidgets.QDialog):
                         },
                     },
                 }
-
-
-        # TODO resolution fallback need to be implemented and not hard coded
-        # _resolution = self._parent_sub.metadata.get_value("resolution", [1920, 1080])
-
-        # TODO settings data will be flat and will be created from the _ui_definition.
-        # TODO This means everything under 'multi' type keys will moved into same level
-        # _ui_definition = {
-        #     "name":
-        #        {
-        #            "display_name": "Name :",
-        #            "type": "validatedString",
-        #            "value": "",
-        #            "tooltip": "Name of the subproject",
-        #        },
-        #     "path":
-        #        {
-        #            "display_name": "Path :",
-        #            "type": "string",
-        #            "value": self._parent_sub.path,
-        #            "tooltip": "Path of the subproject",
-        #        },
-        #     "resolution_override":
-        #         {
-        #             "display_name": "Override Resolution :",
-        #             "type": "multi",
-        #             "tooltip": "Override the resolution of the subproject. \
-        #             If not checked, the resolution will be inherited from the parent.",
-        #             "value": {
-        #                 "overrideResolution": {
-        #                     "type": "boolean",
-        #                     "value": False,
-        #                     "disables": [[False, "resolutionX"], [False, "resolutionY"]]
-        #                 },
-        #                 "resolutionX": {
-        #                     "type": "spinnerInt",
-        #                     "value": _resolution[0],
-        #                 },
-        #                 "resolutionY": {
-        #                     "type": "spinnerInt",
-        #                     "value": _resolution[1],
-        #                 }
-        #             }
-        #         },
-        #     "fps_override":
-        #         {
-        #             "display_name": "FPS Override :",
-        #             "type": "multi",
-        #             "tooltip": "Override the FPS of the subproject. \
-        #             If not checked, the FPS will be inherited from the parent.",
-        #             "value": {
-        #                 "overrideFPS": {
-        #                     "type": "boolean",
-        #                     "value": False,
-        #                     "disables": [[False, "fps"]]
-        #                 },
-        #                 "fps": {
-        #                     "type": "spinnerInt",
-        #                     "object_name": "fps",
-        #                     "value": self._parent_sub.metadata.get_value("fps", 24),
-        #                 }
-        #             }
-        #         },
-        #     "mode_override":
-        #         {
-        #             "display_name": "Mode Override :",
-        #             "type": "multi",
-        #             "tooltip": "Override the mode of the subproject. \
-        #             If not checked, the mode will be inherited from the parent.",
-        #             "value": {
-        #                 "overrideMode": {
-        #                     "type": "boolean",
-        #                     "value": False,
-        #                     "disables": [[False, "mode"]]
-        #                 },
-        #                 "mode": {
-        #                     "type": "combo",
-        #                     "object_name": "mode",
-        #                     "items": ["", "asset", "shot"],
-        #                     "value": self._parent_sub.metadata.get_value("mode") or "",
-        #                 }
-        #             }
-        #         }
-        # }
 
         return ui_definition
 
@@ -230,7 +156,6 @@ class NewSubproject(QtWidgets.QDialog):
         # build a new kwargs dictionary by filtering the settings_data
         filtered_data = {}
         for key, value in self.settings_data.get_data().items():
-            print(self.settings_data.get_data().keys())
             # if it starts __override, skip
             if key.startswith("__override"):
                 continue
