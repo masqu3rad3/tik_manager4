@@ -62,5 +62,6 @@ if __name__ == '__main__':
     sub_projects.sub_view.add_item.connect(tasks.task_view.add_task)
 
     test_dialog.show()
+
     # view.show()
     sys.exit(app.exec_())
