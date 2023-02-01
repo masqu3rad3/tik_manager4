@@ -27,8 +27,11 @@ class NewSubproject(QtWidgets.QDialog):
         self.metadata_definitions = guard.Guard.commons.metadata
 
         self.primary_definition = self.define_primary_ui()
-        self.secondary_definition = self.define_secondary_ui()
-        self.tertiary_definition = self.define_tertiary_ui()
+        self.secondary_definition, self.tertiary_definition = self.define_other_ui()
+
+        self.primary_data = Settings()
+        self.secondary_data = Settings()
+        self.tertiary_data = Settings()
 
         self.build_ui()
 
@@ -53,50 +56,50 @@ class NewSubproject(QtWidgets.QDialog):
         }
         return _primary_ui
 
-    def define_secondary_ui(self):
+    def define_other_ui(self):
         """Define the secondary UI."""
         _secondary_ui = {}
+        _tertiary_ui = {}
         # The next part of metadata is for displaying and overriding
         # the existing metadata keys in the stream
         for key, data in self.metadata_definitions.properties.items():
-            if key in self._parent_sub.metadata.keys():
-                print(key)
-                # if the metadata already defined, create it with override option
-                _default_value = self._parent_sub.metadata.get_value(key, None)
-                _enum = data.get("enum", [])
-                if _default_value is None:
-                    raise ValueError("No default value defined for metadata {}".format(key))
+            _default_value = self._parent_sub.metadata.get_value(key, None) or data.get("default", None)
+            _enum = data.get("enum", [])
+            if _default_value is None:
+                raise ValueError("No default value defined for metadata {}".format(key))
 
-                # define what widget to use to display and manipulate the metadata
-                # if there is an enum value, it is always a combo box
-                if _enum:
-                    _value_type = "combo"
-                else:
-                    if isinstance(_default_value, int):
-                        _value_type = "spinnerInt"
-                    elif isinstance(_default_value, float):
-                        _value_type = "spinnerFloat"
-                    elif isinstance(_default_value, str):
-                        _value_type = "string"
-                    elif isinstance(_default_value, list):
-                        # currently only lists with floats or ints are supported
-                        # Also the list lenght is limited with 3 items (vector3)
-                        if 2 > len(_default_value) > 3:
-                            raise ValueError("List lenght is limited to 2 or 3 items")
-                        for item in _default_value:
-                            if not isinstance(item, (float, int)):
-                                raise ValueError("List items must be float or int")
-                        # if any of the items is float, the value type is float
-                        if any([isinstance(item, float) for item in _default_value]):
-                            _value_suffix = "Float"
-                        else:
-                            _value_suffix = "Int"
-                        _value_type = "vector{0}{1}".format(len(_default_value), _value_suffix)
+            # define what widget to use to display and manipulate the metadata
+            # if there is an enum value, it is always a combo box
+            if _enum:
+                _value_type = "combo"
+            else:
+                if isinstance(_default_value, int):
+                    _value_type = "spinnerInt"
+                elif isinstance(_default_value, float):
+                    _value_type = "spinnerFloat"
+                elif isinstance(_default_value, str):
+                    _value_type = "string"
+                elif isinstance(_default_value, list):
+                    # currently only lists with floats or ints are supported
+                    # Also the list lenght is limited with 3 items (vector3)
+                    if 2 > len(_default_value) > 3:
+                        raise ValueError("List lenght is limited to 2 or 3 items")
+                    for item in _default_value:
+                        if not isinstance(item, (float, int)):
+                            raise ValueError("List items must be float or int")
+                    # if any of the items is float, the value type is float
+                    if any([isinstance(item, float) for item in _default_value]):
+                        _value_suffix = "Float"
                     else:
-                        raise ValueError("Unknown type for metadata {}".format(key))
+                        _value_suffix = "Int"
+                    _value_type = "vector{0}{1}".format(len(_default_value), _value_suffix)
+                else:
+                    raise ValueError("Unknown type for metadata {}".format(key))
 
+            if key in self._parent_sub.metadata.keys():
+                # if the metadata already defined, create it with override option
                 _secondary_ui["{}_override".format(key)] = {
-                    "display_name": "Override {} :".format(key),
+                    "display_name": "{} (Override):".format(key),
                     "type": "multi",
                     "tooltip": "Override {}".format(key),
                     "value": {
@@ -112,42 +115,78 @@ class NewSubproject(QtWidgets.QDialog):
                         },
                     },
                 }
+            else:
+                # if the metadata is not defined, create it with new option
+                _tertiary_ui[key] = {
+                    "display_name": "{} :".format(key),
+                    "type": "multi",
+                    "tooltip": "New {}".format(key),
+                    "value": {
+                        "__new_{}".format(key): {
+                            "type": "boolean",
+                            "value": False,
+                            "disables": [[False, key]]
+                        },
+                        key: {
+                            "type": _value_type,
+                            "value": _default_value,
+                            "items": _enum,
+                        },
+                    },
+                }
 
-        return _secondary_ui
-
-    def define_tertiary_ui(self):
-        """Define the tertiary UI."""
-        _tertiary_ui = {}
-        return _tertiary_ui
+        return _secondary_ui, _tertiary_ui
 
     def build_ui(self):
         """Initialize the UI."""
-        self.main_layout = QtWidgets.QVBoxLayout(self)
+        # create a scroll area
+        scroll_area = QtWidgets.QScrollArea(self)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QtWidgets.QFrame.NoFrame)
+        scroll_area.setFrameShadow(QtWidgets.QFrame.Plain)
+        scroll_area.setLineWidth(0)
+        scroll_area.setMidLineWidth(0)
+        scroll_area.setContentsMargins(0, 0, 0, 0)
+
+        # creata a widget for contents
+        contents_widget = QtWidgets.QWidget()
+        contents_widget.setContentsMargins(0, 0, 0, 0)
+
+        scroll_area.setWidget(contents_widget)
+
+        main_layout = QtWidgets.QVBoxLayout(self)
+        # main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.addWidget(scroll_area)
+        # self.main_layout.addWidget(self.scroll_area)
+
+        scroll_layout = QtWidgets.QVBoxLayout(contents_widget)
+        scroll_layout.setContentsMargins(0, 0, 0, 0)
+
         # create a collapsible widget for each section
-        self.primary_layout = CollapsibleLayout("Main Properties", parent = self.main_layout, expanded=True)
-        self.main_layout.addLayout(self.primary_layout)
-        self.secondary_layout = CollapsibleLayout("Inherited Properties", parent = self.main_layout, expanded=True)
-        self.main_layout.addLayout(self.secondary_layout)
-        self.tertiary_layout = CollapsibleLayout("New Properties", parent = self.main_layout, expanded=False)
-        self.main_layout.addLayout(self.tertiary_layout)
+        primary_layout = CollapsibleLayout("Main Properties", expanded=True)
+        scroll_layout.addLayout(primary_layout)
+        secondary_layout = CollapsibleLayout("Inherited Properties", expanded=True)
+        scroll_layout.addLayout(secondary_layout)
+        tertiary_layout = CollapsibleLayout("New Properties", expanded=False)
+        scroll_layout.addLayout(tertiary_layout)
 
-        self.main_layout.addStretch()
+        scroll_layout.addStretch()
 
-        self.primary_data = Settings()
-        self.primary_content = SettingsLayout(self.primary_definition, self.primary_data, parent=self)
-        self.primary_layout.contents_layout.addLayout(self.primary_content)
-        self.secondary_data = Settings()
-        self.secondary_content = SettingsLayout(self.secondary_definition, self.secondary_data, parent=self)
-        self.secondary_layout.contents_layout.addLayout(self.secondary_content)
+        primary_content = SettingsLayout(self.primary_definition, self.primary_data, parent=self)
+        primary_layout.contents_layout.addLayout(primary_content)
+        secondary_content = SettingsLayout(self.secondary_definition, self.secondary_data, parent=self)
+        secondary_layout.contents_layout.addLayout(secondary_content)
+        tertiary_content = SettingsLayout(self.tertiary_definition, self.tertiary_data, parent=self)
+        tertiary_layout.contents_layout.addLayout(tertiary_content)
         # create a button box
-        self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         # get the name ValidatedString widget and connect it to the ok button
-        _name_line_edit = self.primary_content.find("name")
-        _name_line_edit.add_connected_widget(self.button_box.button(QtWidgets.QDialogButtonBox.Ok))
-        self.main_layout.addWidget(self.button_box)
+        _name_line_edit = primary_content.find("name")
+        _name_line_edit.add_connected_widget(button_box.button(QtWidgets.QDialogButtonBox.Ok))
+        main_layout.addWidget(button_box)
         # SIGNALS
-        self.button_box.accepted.connect(self.on_create_subproject)
-        self.button_box.rejected.connect(self.reject)
+        button_box.accepted.connect(self.on_create_subproject)
+        button_box.rejected.connect(self.reject)
 
     def on_create_subproject(self):
         # build a new kwargs dictionary by filtering the settings_data
@@ -167,6 +206,13 @@ class NewSubproject(QtWidgets.QDialog):
             else:
                 if self.secondary_data.get_property(_override_key):
                     filtered_data[key] = value
+        for key, value in self.tertiary_data.get_data().items():
+            if key.startswith("__new"):
+                continue
+            # if the new checked box is checked, add the key to the filtered_data
+            _new_key = "__new_{}".format(key)
+            if self.tertiary_data.get_property(_new_key):
+                filtered_data[key] = value
 
         sub = self.tik_project.create_sub_project(**filtered_data)
         if sub != -1:

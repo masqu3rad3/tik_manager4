@@ -5,6 +5,7 @@ from tik_manager4.ui.dialog.new_subproject import NewSubproject
 from tik_manager4.ui.dialog.new_task import NewTask
 from tik_manager4.ui.dialog.feedback import Feedback
 # from tik_manager4.objects import main
+from tik_manager4.objects import guard
 import tik_manager4
 
 class TikSubItem(QtGui.QStandardItem):
@@ -46,10 +47,12 @@ class TikColumnItem(QtGui.QStandardItem):
         self.setFont(fnt)
 
 class TikSubModel(QtGui.QStandardItemModel):
-    columns = ["name", "id", "path", "resolution", "fps", "mode"]
+    # columns = list(guard.Guard.commons.metadata.keys())
+    # columns = ["name", "id", "path", "resolution", "fps", "mode"]
     filter_key = ""
     def __init__(self, structure_object):
         super(TikSubModel, self).__init__()
+        self.columns = ["name", "id", "path"] + list(guard.Guard.commons.metadata.properties.keys())
 
         self.setHorizontalHeaderLabels(self.columns)
 
