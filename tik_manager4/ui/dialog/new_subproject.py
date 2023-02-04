@@ -1,13 +1,12 @@
 """Dialog for new subproject creation."""
-import sys
 from tik_manager4.core.settings import Settings
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
-from tik_manager4.ui import utils
+from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog import feedback
-from tik_manager4.ui.widgets.settings_layout import SettingsLayout
+from tik_manager4.ui.layouts.settings_layout import SettingsLayout
+from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
 
-# if __name__ == '__main__':
-#     app = QtWidgets.QApplication(sys.argv)
+from tik_manager4.objects import guard
+
 
 class NewSubproject(QtWidgets.QDialog):
     def __init__(self, project_object, parent_sub=None, parent=None, *args, **kwargs):
@@ -24,139 +23,200 @@ class NewSubproject(QtWidgets.QDialog):
         # self.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.setFixedSize(600, 400)
         self.setModal(True)
-        self.ui_definition = self.define_ui_dictionary()
-        self._init_ui()
+
+        self.metadata_definitions = guard.Guard.commons.metadata
+
+        self.primary_definition = self.define_primary_ui()
+        self.secondary_definition, self.tertiary_definition = self.define_other_ui()
+
+        self.primary_data = Settings()
+        self.secondary_data = Settings()
+        self.tertiary_data = Settings()
+
+        self.build_ui()
 
         self._new_subproject = None
 
-    def define_ui_dictionary(self):
-
-        # TODO resolution fallback need to be implemented and not hard coded
-        _resolution = self._parent_sub.metadata.get_value("resolution", [1920, 1080])
-
-        # TODO settings data will be flat and will be created from the _ui_definition.
-        # TODO This means everything under 'multi' type keys will moved into same level
-        _ui_definition = {
-            "name":
-               {
+    def define_primary_ui(self):
+        """Define the primary UI."""
+        _primary_ui = {
+            "name": {
                    "display_name": "Name :",
                    "type": "validatedString",
                    "value": "",
                    "tooltip": "Name of the subproject",
                },
-            "path":
+            "parent_path":
                {
                    "display_name": "Path :",
-                   "type": "string",
+                   # "type": "pathBrowser",
+                   "type": "subprojectBrowser",
+                   "project_object": self.tik_project,
                    "value": self._parent_sub.path,
                    "tooltip": "Path of the subproject",
-               },
-            "resolution_override":
-                {
-                    "display_name": "Override Resolution :",
-                    "type": "multi",
-                    "tooltip": "Override the resolution of the subproject. \
-                    If not checked, the resolution will be inherited from the parent.",
-                    "value": {
-                        "overrideResolution": {
-                            "type": "boolean",
-                            "value": False,
-                            "disables": [[False, "resolutionX"], [False, "resolutionY"]]
-                        },
-                        "resolutionX": {
-                            "type": "spinnerInt",
-                            "value": _resolution[0],
-                        },
-                        "resolutionY": {
-                            "type": "spinnerInt",
-                            "value": _resolution[1],
-                        }
-                    }
-                },
-            "fps_override":
-                {
-                    "display_name": "FPS Override :",
-                    "type": "multi",
-                    "tooltip": "Override the FPS of the subproject. \
-                    If not checked, the FPS will be inherited from the parent.",
-                    "value": {
-                        "overrideFPS": {
-                            "type": "boolean",
-                            "value": False,
-                            "disables": [[False, "fps"]]
-                        },
-                        "fps": {
-                            "type": "spinnerInt",
-                            "object_name": "fps",
-                            "value": self._parent_sub.metadata.get_value("fps", 24),
-                        }
-                    }
-                },
-            "mode_override":
-                {
-                    "display_name": "Mode Override :",
-                    "type": "multi",
-                    "tooltip": "Override the mode of the subproject. \
-                    If not checked, the mode will be inherited from the parent.",
-                    "value": {
-                        "overrideMode": {
-                            "type": "boolean",
-                            "value": False,
-                            "disables": [[False, "mode"]]
-                        },
-                        "mode": {
-                            "type": "combo",
-                            "object_name": "mode",
-                            "items": ["", "asset", "shot"],
-                            "value": self._parent_sub.metadata.get_value("mode") or "",
-                        }
-                    }
-                }
+               }
         }
+        return _primary_ui
 
-        return _ui_definition
+    def define_other_ui(self):
+        """Define the secondary UI."""
+        _secondary_ui = {}
+        _tertiary_ui = {}
+        # The next part of metadata is for displaying and overriding
+        # the existing metadata keys in the stream
+        for key, data in self.metadata_definitions.properties.items():
+            _default_value = self._parent_sub.metadata.get_value(key, None) or data.get("default", None)
+            _enum = data.get("enum", [])
+            if _default_value is None:
+                raise ValueError("No default value defined for metadata {}".format(key))
 
-    def _init_ui(self):
+            # define what widget to use to display and manipulate the metadata
+            # if there is an enum value, it is always a combo box
+            if _enum:
+                _value_type = "combo"
+            else:
+                if isinstance(_default_value, int):
+                    _value_type = "spinnerInt"
+                elif isinstance(_default_value, float):
+                    _value_type = "spinnerFloat"
+                elif isinstance(_default_value, str):
+                    _value_type = "string"
+                elif isinstance(_default_value, list):
+                    # currently only lists with floats or ints are supported
+                    # Also the list lenght is limited with 3 items (vector3)
+                    if 2 > len(_default_value) > 3:
+                        raise ValueError("List lenght is limited to 2 or 3 items")
+                    for item in _default_value:
+                        if not isinstance(item, (float, int)):
+                            raise ValueError("List items must be float or int")
+                    # if any of the items is float, the value type is float
+                    if any([isinstance(item, float) for item in _default_value]):
+                        _value_suffix = "Float"
+                    else:
+                        _value_suffix = "Int"
+                    _value_type = "vector{0}{1}".format(len(_default_value), _value_suffix)
+                else:
+                    raise ValueError("Unknown type for metadata {}".format(key))
+
+            if key in self._parent_sub.metadata.keys():
+                # if the metadata already defined, create it with override option
+                _secondary_ui["{}_override".format(key)] = {
+                    "display_name": "{} (Override):".format(key),
+                    "type": "multi",
+                    "tooltip": "Override {}".format(key),
+                    "value": {
+                        "__override_{}".format(key): {
+                            "type": "boolean",
+                            "value": False,
+                            "disables": [[False, key]]
+                        },
+                        key: {
+                            "type": _value_type,
+                            "value": _default_value,
+                            "items": _enum,
+                        },
+                    },
+                }
+            else:
+                # if the metadata is not defined, create it with new option
+                _tertiary_ui[key] = {
+                    "display_name": "{} :".format(key),
+                    "type": "multi",
+                    "tooltip": "New {}".format(key),
+                    "value": {
+                        "__new_{}".format(key): {
+                            "type": "boolean",
+                            "value": False,
+                            "disables": [[False, key]]
+                        },
+                        key: {
+                            "type": _value_type,
+                            "value": _default_value,
+                            "items": _enum,
+                        },
+                    },
+                }
+
+        return _secondary_ui, _tertiary_ui
+
+    def build_ui(self):
         """Initialize the UI."""
-        self.main_layout = QtWidgets.QVBoxLayout(self)
-        self.settings_data = Settings()
-        self.settings_layout = SettingsLayout(self.ui_definition, self.settings_data, parent=self)
-        self.main_layout.addLayout(self.settings_layout)
+        # create a scroll area
+        scroll_area = QtWidgets.QScrollArea(self)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QtWidgets.QFrame.NoFrame)
+        scroll_area.setFrameShadow(QtWidgets.QFrame.Plain)
+        scroll_area.setLineWidth(0)
+        scroll_area.setMidLineWidth(0)
+        scroll_area.setContentsMargins(0, 0, 0, 0)
+
+        # creata a widget for contents
+        contents_widget = QtWidgets.QWidget()
+        contents_widget.setContentsMargins(0, 0, 0, 0)
+
+        scroll_area.setWidget(contents_widget)
+
+        main_layout = QtWidgets.QVBoxLayout(self)
+        # main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.addWidget(scroll_area)
+        # self.main_layout.addWidget(self.scroll_area)
+
+        scroll_layout = QtWidgets.QVBoxLayout(contents_widget)
+        scroll_layout.setContentsMargins(0, 0, 0, 0)
+
+        # create a collapsible widget for each section
+        primary_layout = CollapsibleLayout("Main Properties", expanded=True)
+        scroll_layout.addLayout(primary_layout)
+        secondary_layout = CollapsibleLayout("Inherited Properties", expanded=True)
+        scroll_layout.addLayout(secondary_layout)
+        tertiary_layout = CollapsibleLayout("New Properties", expanded=False)
+        scroll_layout.addLayout(tertiary_layout)
+
+        scroll_layout.addStretch()
+
+        primary_content = SettingsLayout(self.primary_definition, self.primary_data, parent=self)
+        primary_layout.contents_layout.addLayout(primary_content)
+        secondary_content = SettingsLayout(self.secondary_definition, self.secondary_data, parent=self)
+        secondary_layout.contents_layout.addLayout(secondary_content)
+        tertiary_content = SettingsLayout(self.tertiary_definition, self.tertiary_data, parent=self)
+        tertiary_layout.contents_layout.addLayout(tertiary_content)
         # create a button box
-        self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         # get the name ValidatedString widget and connect it to the ok button
-        _name_line_edit = self.settings_layout.find("name")
-        _name_line_edit.add_connected_widget(self.button_box.button(QtWidgets.QDialogButtonBox.Ok))
-        self.main_layout.addWidget(self.button_box)
+        _name_line_edit = primary_content.find("name")
+        _name_line_edit.add_connected_widget(button_box.button(QtWidgets.QDialogButtonBox.Ok))
+        main_layout.addWidget(button_box)
         # SIGNALS
-        self.button_box.accepted.connect(self.on_create_subproject)
-        self.button_box.rejected.connect(self.reject)
+        button_box.accepted.connect(self.on_create_subproject)
+        button_box.rejected.connect(self.reject)
 
     def on_create_subproject(self):
-        name = self.settings_data.get_property("name")
-        path = self.settings_data.get_property("path")
+        # build a new kwargs dictionary by filtering the settings_data
+        filtered_data = {
+            "name": self.primary_data.get_property("name"),
+            "parent_path": self.primary_data.get_property("parent_path"),
+                         }
+        for key, value in self.secondary_data.get_data().items():
+            # if it starts __override, skip
+            if key.startswith("__override"):
+                continue
+            # if the key has a __override key, check if it is True
+            _override_key = "__override_{}".format(key)
+            # if the _override_key is in the settings_data and it is True, add the key to the filtered_data
+            if _override_key not in list(self.secondary_data.get_data().keys()):
+                filtered_data[key] = value
+            else:
+                if self.secondary_data.get_property(_override_key):
+                    filtered_data[key] = value
+        for key, value in self.tertiary_data.get_data().items():
+            if key.startswith("__new"):
+                continue
+            # if the new checked box is checked, add the key to the filtered_data
+            _new_key = "__new_{}".format(key)
+            if self.tertiary_data.get_property(_new_key):
+                filtered_data[key] = value
 
-        resolution_override = self.settings_data.get_property("overrideResolution")
-        if resolution_override:
-            _resolution_x = self.settings_data.get_property("resolutionX")
-            _resolution_y = self.settings_data.get_property("resolutionY")
-            resolution = [_resolution_x, _resolution_y]
-        else:
-            resolution = None
-
-        fps_override = self.settings_data.get_property("overrideFPS")
-        if fps_override:
-            fps = self.settings_data.get_property("fps")
-        else:
-            fps = None
-
-        mode_override = self.settings_data.get_property("overrideMode")
-        if mode_override:
-            mode = self.settings_data.get_property("mode")
-        else:
-            mode = None
-
-        sub = self.tik_project.create_sub_project(name, parent_path=path, resolution=resolution, fps=fps, mode=mode)
+        sub = self.tik_project.create_sub_project(**filtered_data)
         if sub != -1:
             self._new_subproject = sub
             self.accept()
@@ -178,8 +238,8 @@ if __name__ == "__main__":
 
     test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
     tik = tik_manager4.initialize("Standalone")
-    tik.user._set("Admin", "1234")
-    tik.project._set(test_project_path)
+    tik.user.set("Admin", "1234")
+    tik.set_project(test_project_path)
     dialog = NewSubproject(tik.project)
     dialog.show()
     app.exec_()

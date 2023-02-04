@@ -6,11 +6,8 @@
   "colorspace": {
     "default": "linear"
   },
-  "resolutionX": {
-    "default": 1920
-  },
-  "resolutionY": {
-    "default": 1080
+  "resolution": {
+    "default": [1920, 1080]
   },
   "pixel_aspect": {
     "default": 1.0

@@ -84,7 +84,8 @@ class Project(Subproject):
         self._delete_folders(os.path.join(self._database_path, _remove_path))
         return 1
 
-    def create_sub_project(self, name, parent_uid=None, parent_path=None, resolution=None, fps=None, mode=None):
+    # def create_sub_project(self, name, parent_uid=None, parent_path=None, resolution=None, fps=None, mode=None):
+    def create_sub_project(self, name, parent_uid=None, parent_path=None, **kwargs):
         """
              Similar to add_sub_project method but creates it under specified parent sub and writes data to
         persistent database
@@ -105,7 +106,7 @@ class Project(Subproject):
         if parent_sub == -1:
             return -1
 
-        new_sub = parent_sub.add_sub_project(name, parent_sub=parent_sub, resolution=resolution, fps=fps, mode=mode, uid=None)
+        new_sub = parent_sub.add_sub_project(name, parent_sub=parent_sub, **kwargs, uid=None)
         if new_sub == -1:
             return -1
         self.save_structure()

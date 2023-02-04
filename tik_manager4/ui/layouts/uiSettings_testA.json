@@ -10,6 +10,12 @@
       ]
     ]
   },
+  "resolutionTest": {
+    "display_name": "Resolution test",
+    "type": "vector2Int",
+    "value": [1024, 768],
+    "disables": []
+  },
   "testString": {
     "type": "string",
     "value": "",
