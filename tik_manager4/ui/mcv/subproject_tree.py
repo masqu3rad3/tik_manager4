@@ -167,6 +167,19 @@ class TikSubView(QtWidgets.QTreeView):
         self.expandAll()
         self._recursive_task_scan = False
 
+    def get_selected_item(self):
+        idx = self.currentIndex()
+        if not idx.isValid():
+            return None
+        idx = idx.sibling(idx.row(), 0)
+
+        # the id needs to mapped from proxy to source
+        index = self.proxy_model.mapToSource(idx)
+        _item = self.model.itemFromIndex(index)
+        print(_item)
+        return _item
+
+
     def set_recursive_task_scan(self, value):
         self._recursive_task_scan = value
 
@@ -195,6 +208,7 @@ class TikSubView(QtWidgets.QTreeView):
 
 
     def get_tasks(self, idx):
+        # self.get_selected_item()
         # make sure the idx is pointing to the first column
         idx = idx.sibling(idx.row(), 0)
 
@@ -229,6 +243,8 @@ class TikSubView(QtWidgets.QTreeView):
             self.unhide_columns(column)
         else:
             self.hide_columns(column)
+
+
     def set_project(self, project_obj):
         self.model = TikSubModel(project_obj)
         # self.model.setFilterRegExp(QtCore.QRegExp("Ass*", QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))
@@ -246,6 +262,7 @@ class TikSubView(QtWidgets.QTreeView):
         self.setModel(self.proxy_model)
 
         self.model.populate()
+
 
     def filter(self, text):
         # pass

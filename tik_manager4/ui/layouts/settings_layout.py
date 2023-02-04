@@ -13,7 +13,6 @@ Supported types:
 import os
 import sys
 from tik_manager4.core.settings import Settings
-# from PyQt5 import QtWidgets, QtGui, QtCore
 #
 import re
 from tik_manager4.ui.Qt import QtWidgets, QtGui, QtCore
@@ -248,33 +247,6 @@ class Vector3Int(_Vector):
         self.value = [self.x.value, self.y.value, self.z.value]
         self.com.valueChangeEvent(self.value)
 
-# class Vector2Int(QtWidgets.QWidget):
-#     """A Class to draw 2D integer vectors"""
-#     def __init__(self, name, object_name=None, value=None, minimum=-99999, maximum=99999, disables=None, **kwargs):
-#         super(Vector2Int, self).__init__()
-#         self.com = ValueChangeList()
-#         self.value = value
-#         self.setObjectName(object_name or name)
-#         self.disables = disables or []
-#         self.setLayout(QtWidgets.QHBoxLayout())
-#         self.layout().setContentsMargins(0, 0, 0, 0)
-#         # self.layout().setSpacing(0)
-#         self.x = Integer("x", value=value[0], minimum=minimum, maximum=maximum)
-#         self.y = Integer("y", value=value[1], minimum=minimum, maximum=maximum)
-#         self.x.setMinimum(minimum)
-#         self.y.setMaximum(maximum)
-#         self.x.setValue(value[0])
-#         self.y.setValue(value[1])
-#
-#         self.layout().addWidget(self.x)
-#         self.layout().addWidget(self.y)
-#         self.layout().addStretch()
-#         self.x.valueChanged.connect(self.valueChangeEvent)
-#         self.y.valueChanged.connect(self.valueChangeEvent)
-#
-#     def valueChangeEvent(self, e):
-#         self.com.valueChangeEvent([self.x.value, self.y.value])
-
 
 class List(QtWidgets.QWidget):
     """Customized List widget with buttons to manage the list"""
@@ -467,6 +439,92 @@ class ValidatedString(String):
             return False
 
 
+class PathBrowser(QtWidgets.QWidget):
+    """A custom QLineEdit widget purposed for browsing paths"""
+
+    def __init__(self, name, object_name=None, value=None, disables=None, **kwargs):
+        super(PathBrowser, self).__init__()
+        self.com = ValueChangeStr()
+        self.value = value or ""
+        self.disables = disables or []
+        self.setObjectName(object_name or name)
+        self.layout = QtWidgets.QHBoxLayout(self)
+        self.widget = ValidatedString(name, object_name, allow_spaces=False, allow_directory=True, allow_empty=True)
+        self.layout.addWidget(self.widget)
+        self.button = QtWidgets.QPushButton("Browse")
+        self.button.clicked.connect(self.browse)
+        self.layout.addWidget(self.button)
+
+    def browse(self):
+        """Open a file dialog to browse for paths"""
+        # create a dialog to browse for paths
+        dialog = QtWidgets.QFileDialog(self)
+        dialog.setFileMode(QtWidgets.QFileDialog.Directory)
+        dialog.setOption(QtWidgets.QFileDialog.ShowDirsOnly, True)
+        dialog.setOption(QtWidgets.QFileDialog.DontUseNativeDialog, True)
+        dialog.setOption(QtWidgets.QFileDialog.DontResolveSymlinks, True)
+        # show only the directories
+        dialog.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
+        if dialog.exec_():
+            self.widget.setText(dialog.selectedFiles()[0])
+            self.com.valueChangeEvent(self.widget.text())
+
+class SubprojectBrowser(PathBrowser):
+    """A custom QLineEdit widget purposed for browsing subprojects"""
+
+    def __init__(self, name, object_name=None, value=None, disables=None, project_object=None, **kwargs):
+        super(SubprojectBrowser, self).__init__(name, object_name=None, value=None, disables=None, project_object=None, **kwargs)
+        if not project_object:
+            raise ValueError("A project object must be provided to the SubprojectBrowser")
+        self.project_object = project_object
+        self.dialog = None
+
+    # def browse(self):
+    #     """Create a new custom dialog with OK / Cancel buttons"""
+    #
+    #     # create a dialog and show it
+    #     self.dialog = QtWidgets.QDialog()
+    #     self.dialog.setWindowTitle("Select Subproject")
+    #     self.dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+    #     self.dialog.show()
+
+
+    def browse(self):
+        """Create a TikSubProject tree inside a OK - Cancel dialog to select the subproject"""
+        from tik_manager4.ui.mcv.subproject_tree import TikProjectLayout
+
+        # create a dialog
+        self.dialog = QtWidgets.QDialog(self)
+        self.dialog.setWindowTitle("Select Subproject")
+        # self.dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+
+        # create a layout
+        layout = QtWidgets.QVBoxLayout(self.dialog)
+        self.dialog.setLayout(layout)
+
+        # create a subproject tree layout
+        sub_projects = TikProjectLayout(self.project_object)
+        layout.addLayout(sub_projects)
+
+        # create a button box
+        button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        layout.addWidget(button_box)
+        button_box.accepted.connect(self.dialog.accept)
+        button_box.rejected.connect(self.dialog.reject)
+
+        self.dialog.show()
+        # show the dialog
+
+        if self.dialog.exec_():
+            # get the model data from the selected item of TikProjectLayout
+            _tikSubItem = sub_projects.sub_view.get_selected_item()
+            if _tikSubItem:
+                print(_tikSubItem.subproject.path)
+                print(_tikSubItem.subproject.name)
+                self.widget.setText(_tikSubItem.subproject.path)
+                self.com.valueChangeEvent(_tikSubItem.subproject.path)
+
+
 class SettingsLayout(QtWidgets.QFormLayout):
     """Visualizes and edits Setting objects in a vertical layout"""
     widget_dict = {
@@ -483,7 +541,9 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "vector2Int": Vector2Int,
         "vector2Float": Vector2Float,
         "vector3Int": Vector3Int,
-        "vector3Float": Vector3Float
+        "vector3Float": Vector3Float,
+        "pathBrowser": PathBrowser,
+        "subprojectBrowser": SubprojectBrowser
     }
 
     def __init__(self, ui_definition, settings_data=None, *args, **kwargs):

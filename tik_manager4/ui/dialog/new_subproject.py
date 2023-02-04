@@ -49,7 +49,9 @@ class NewSubproject(QtWidgets.QDialog):
             "parent_path":
                {
                    "display_name": "Path :",
-                   "type": "string",
+                   # "type": "pathBrowser",
+                   "type": "subprojectBrowser",
+                   "project_object": self.tik_project,
                    "value": self._parent_sub.path,
                    "tooltip": "Path of the subproject",
                }
