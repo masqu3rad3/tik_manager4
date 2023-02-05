@@ -56,3 +56,13 @@ class CollapsibleLayout(QtWidgets.QVBoxLayout):
         self._button.setText("+ {}".format(self._title))
         self.contents_widget.setVisible(False)
         self._expanded = False
+
+    #
+
+    def clear(self):
+        # hide and delete contents widget
+        self.contents_widget.setVisible(False)
+        self.contents_widget.deleteLater()
+        # create new contents widget
+        self.contents_widget = QtWidgets.QWidget()
+        self.addWidget(self.contents_widget)

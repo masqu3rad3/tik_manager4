@@ -17,7 +17,7 @@ from tik_manager4.core.settings import Settings
 import re
 from tik_manager4.ui.widgets import value_widgets
 from tik_manager4.ui.widgets.category_list import CategoryList
-from tik_manager4.ui.widgets.browser import PathBrowser, SubprojectBrowser
+from tik_manager4.ui.widgets import browser
 from tik_manager4.ui.widgets.validated_string import ValidatedString
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 
@@ -39,8 +39,8 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "vector2Float": value_widgets.Vector2Float,
         "vector3Int": value_widgets.Vector3Int,
         "vector3Float": value_widgets.Vector3Float,
-        "pathBrowser": PathBrowser,
-        "subprojectBrowser": SubprojectBrowser
+        "pathBrowser": browser.PathBrowser,
+        "subprojectBrowser": browser.SubprojectBrowser
     }
 
     def __init__(self, ui_definition, settings_data=None, *args, **kwargs):
@@ -85,7 +85,8 @@ class SettingsLayout(QtWidgets.QFormLayout):
                     _layout.addWidget(_widget)
                     _widget.com.valueChanged.connect(
                         # lambda x, n=name, k=key: self.ui_definition.edit_sub_property([n, "value", k, "value"], x))
-                        lambda x, n=name, k=key: self.settings_data.edit_property(k, x)
+                        # lambda x, n=name, k=key: self.settings_data.edit_property(k, x)
+                        lambda x, k=key: self._test(k, x)
                     )
                     _widgets.append(_widget)
                 self.addRow(_label, _layout)
@@ -96,13 +97,20 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 _widget = _widget_class(name, **properties)
                 _widget.com.valueChanged.connect(
                     # lambda x, n=name: self.ui_definition.edit_sub_property([n, "value"], x)
-                    lambda x, n=name: self.settings_data.edit_property(n, x)
+                    # lambda x, n=name: self.settings_data.edit_property(n, x)
+                    lambda x, n=name: self._test(n, x)
                 )
                 self.addRow(_label, _widget)
                 _widgets.append(_widget)
 
         return _widgets
 
+    def _test(self, key, value):
+        print("_test")
+        print(key, value)
+        self.settings_data.edit_property(key, value)
+        print(self.settings_data.get_data())
+        print("============")
 
     def signal_connections(self, widget_list):
         """Creates the enable/disable logic between widgets. This needs to be done after population"""
@@ -140,6 +148,20 @@ class SettingsLayout(QtWidgets.QFormLayout):
     def find(self, object_name):
         """Find the widget by given object name inside the widget list"""
         return self.__find_widget(object_name, self.widgets)
+
+    def clear(self):
+        """Clear the layout"""
+        self._clear_layout(self)
+        self.settings_data.reset_settings()
+
+    def _clear_layout(self, layout):
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+            elif child.layout():
+                self._clear_layout(child.layout())
+
 
 def main():
     app = QtWidgets.QApplication(sys.argv)

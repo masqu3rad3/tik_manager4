@@ -21,7 +21,7 @@ class NewSubproject(QtWidgets.QDialog):
         self._feedback = feedback.Feedback(parent=self)
         self.setWindowTitle("New Subproject")
         # self.setWindowFlags(Qt.WindowStaysOnTopHint)
-        self.setFixedSize(600, 400)
+        # self.setFixedSize(600, 400)
         self.setModal(True)
 
         self.metadata_definitions = guard.Guard.commons.metadata
@@ -33,6 +33,14 @@ class NewSubproject(QtWidgets.QDialog):
         self.secondary_data = Settings()
         self.tertiary_data = Settings()
 
+        self.primary_layout = None
+        self.secondary_layout = None
+        self.tertiary_layout = None
+
+        self.primary_content = None
+        self.secondary_content = None
+        self.tertiary_content = None
+
         self.build_ui()
 
         self._new_subproject = None
@@ -43,12 +51,13 @@ class NewSubproject(QtWidgets.QDialog):
             "name": {
                    "display_name": "Name :",
                    "type": "validatedString",
+                   # "type": "string",
                    "value": "",
                    "tooltip": "Name of the subproject",
                },
             "parent_path":
                {
-                   "display_name": "Path :",
+                   "display_name": "Parent :",
                    # "type": "pathBrowser",
                    "type": "subprojectBrowser",
                    "project_object": self.tik_project,
@@ -139,6 +148,29 @@ class NewSubproject(QtWidgets.QDialog):
 
         return _secondary_ui, _tertiary_ui
 
+    def reinitilize_other_ui(self, new_parent_sub):
+        """Reinitialize the secondary and tertiary UIs."""
+        self._parent_sub = new_parent_sub
+        # delete the old setting_layouts
+        # self.clear_layout(self.secondary_content)
+        # self.clear_layout(self.tertiary_content)
+        self.secondary_content.clear()
+        self.tertiary_content.clear()
+        self.secondary_content.deleteLater()
+        self.tertiary_content.deleteLater()
+
+
+        self.secondary_definition, self.tertiary_definition = self.define_other_ui()
+        # self.secondary_data = Settings()
+        # self.tertiary_data = Settings()
+        self.secondary_content = None
+        self.tertiary_content = None
+
+        self.secondary_content = SettingsLayout(self.secondary_definition, self.secondary_data, parent=self)
+        self.secondary_layout.contents_layout.addLayout(self.secondary_content)
+        self.tertiary_content = SettingsLayout(self.tertiary_definition, self.tertiary_data, parent=self)
+        self.tertiary_layout.contents_layout.addLayout(self.tertiary_content)
+
     def build_ui(self):
         """Initialize the UI."""
         # create a scroll area
@@ -165,26 +197,30 @@ class NewSubproject(QtWidgets.QDialog):
         scroll_layout.setContentsMargins(0, 0, 0, 0)
 
         # create a collapsible widget for each section
-        primary_layout = CollapsibleLayout("Main Properties", expanded=True)
-        scroll_layout.addLayout(primary_layout)
-        secondary_layout = CollapsibleLayout("Inherited Properties", expanded=True)
-        scroll_layout.addLayout(secondary_layout)
-        tertiary_layout = CollapsibleLayout("New Properties", expanded=False)
-        scroll_layout.addLayout(tertiary_layout)
+        self.primary_layout = CollapsibleLayout("Main Properties", expanded=True)
+        scroll_layout.addLayout(self.primary_layout)
+        self.secondary_layout = CollapsibleLayout("Inherited Properties", expanded=True)
+        scroll_layout.addLayout(self.secondary_layout)
+        self.tertiary_layout = CollapsibleLayout("New Properties", expanded=False)
+        scroll_layout.addLayout(self.tertiary_layout)
 
         scroll_layout.addStretch()
 
-        primary_content = SettingsLayout(self.primary_definition, self.primary_data, parent=self)
-        primary_layout.contents_layout.addLayout(primary_content)
-        secondary_content = SettingsLayout(self.secondary_definition, self.secondary_data, parent=self)
-        secondary_layout.contents_layout.addLayout(secondary_content)
-        tertiary_content = SettingsLayout(self.tertiary_definition, self.tertiary_data, parent=self)
-        tertiary_layout.contents_layout.addLayout(tertiary_content)
+        self.primary_content = SettingsLayout(self.primary_definition, self.primary_data, parent=self)
+        self.primary_layout.contents_layout.addLayout(self.primary_content)
+        self.secondary_content = SettingsLayout(self.secondary_definition, self.secondary_data, parent=self)
+        self.secondary_layout.contents_layout.addLayout(self.secondary_content)
+        self.tertiary_content = SettingsLayout(self.tertiary_definition, self.tertiary_data, parent=self)
+        self.tertiary_layout.contents_layout.addLayout(self.tertiary_content)
+
         # create a button box
         button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         # get the name ValidatedString widget and connect it to the ok button
-        _name_line_edit = primary_content.find("name")
-        _name_line_edit.add_connected_widget(button_box.button(QtWidgets.QDialogButtonBox.Ok))
+        # _name_line_edit = self.primary_content.find("name")
+        # _name_line_edit.add_connected_widget(button_box.button(QtWidgets.QDialogButtonBox.Ok))
+        _browse_widget = self.primary_content.find("parent_path")
+        _browse_widget.sub.connect(lambda x: self.reinitilize_other_ui(x))
+        # _browse_widget.sub.connect(lambda x, project=self.tik_project, parent=self.parent: self.__init__(project, x, parent) )
         main_layout.addWidget(button_box)
         # SIGNALS
         button_box.accepted.connect(self.on_create_subproject)
@@ -192,6 +228,11 @@ class NewSubproject(QtWidgets.QDialog):
 
     def on_create_subproject(self):
         # build a new kwargs dictionary by filtering the settings_data
+        print("on_create_subproject")
+        print(self.primary_data.get_data())
+        print("------------------")
+        print(self.primary_data.get_property("parent_path"))
+        print("============")
         filtered_data = {
             "name": self.primary_data.get_property("name"),
             "parent_path": self.primary_data.get_property("parent_path"),

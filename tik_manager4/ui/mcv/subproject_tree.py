@@ -64,14 +64,7 @@ class TikSubModel(QtGui.QStandardItemModel):
 
 
     def set_data(self, structure_object):
-        self.project = self.check_data(structure_object)
-
-    @staticmethod
-    def check_data(structure_object):
-        """checks if this is a proper structural data"""
-        # if not isinstance(structure_object, main.project.Project):
-        #     raise Exception("The data that feeds into the TikTreeModel must be a Project object")
-        return structure_object
+        self.project = structure_object
 
     def populate(self):
         self.setRowCount(0)
@@ -139,6 +132,28 @@ class TikSubModel(QtGui.QStandardItemModel):
 
         parent.appendRow(_row)
         return _sub_item
+
+    # search all model tree for a given id
+    # def find_sub(self, sub_id):
+    #     for row in range(self.rowCount()):
+    #         _item = self.item(row)
+    #         if _item.subproject.id == sub_id:
+    #             return _item
+    #         else:
+    #             _sub_item = self.find_sub_recursive(_item, sub_id)
+    #             if _sub_item:
+    #                 return _sub_item
+    def find_sub_recursive(self, item, sub_id):
+        for row in range(item.rowCount()):
+            _item = item.child(row)
+            if _item.subproject.id == sub_id:
+                return _item
+            else:
+                _sub_item = self.find_sub_recursive(_item, sub_id)
+                if _sub_item:
+                    return _sub_item
+
+
 
 class TikSubView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
@@ -332,7 +347,21 @@ class TikSubView(QtWidgets.QTreeView):
             _dialog = NewSubproject(self.model.project, parent_sub=item.subproject, parent=self)
             state = _dialog.exec_()
             if state:
-                self.model.append_sub(_dialog.get_created_subproject(), item)
+                # TODO: is this overcomplicated?
+                _new_sub = _dialog.get_created_subproject()
+                # Find the parent item _new_sub id
+                _item_at_id_column = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)[0]
+                # find the index of the item
+                _index = self.model.indexFromItem(_item_at_id_column)
+                # make sure the index is pointing to the first column
+                first_column_index = _index.sibling(_index.row(), 0)
+                # get the item from index
+                _item = self.model.itemFromIndex(first_column_index)
+
+                # The reason we are doing this is that we may change the parent of the item on new subproject UI
+
+                # self.model.append_sub(_dialog.get_created_subproject(), item)
+                self.model.append_sub(_new_sub, _item)
         else:
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
