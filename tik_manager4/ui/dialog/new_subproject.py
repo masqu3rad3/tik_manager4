@@ -43,6 +43,9 @@ class NewSubproject(QtWidgets.QDialog):
 
         self.build_ui()
 
+        # make the ui to fit the content
+        self.adjustSize()
+
         self._new_subproject = None
 
     def define_primary_ui(self):

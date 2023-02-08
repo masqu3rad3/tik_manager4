@@ -61,7 +61,7 @@ class SubprojectBrowser(PathBrowser):
         self.dialog.setLayout(layout)
 
         # create a subproject tree layout
-        sub_projects = subproject_tree.TikProjectLayout(self.project_object)
+        sub_projects = subproject_tree.TikProjectLayout(self.project_object, recursive_enabled=False, right_click_enabled=False)
 
         # get all the columns from the model and hide all of them except the first one
         columns = sub_projects.sub_view.model.columns
@@ -73,8 +73,10 @@ class SubprojectBrowser(PathBrowser):
         layout.addWidget(button_box)
         button_box.accepted.connect(self.dialog.accept)
         button_box.rejected.connect(self.dialog.reject)
+        self.adjustSize()
 
         self.dialog.show()
+
         # show the dialog
 
         if self.dialog.exec_():

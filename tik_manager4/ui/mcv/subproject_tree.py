@@ -158,7 +158,7 @@ class TikSubModel(QtGui.QStandardItemModel):
 class TikSubView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
     add_item = QtCore.Signal(object)
-    def __init__(self, project_obj=None):
+    def __init__(self, project_obj=None, right_click_enabled=True):
         super(TikSubView, self).__init__()
 
         self._feedback = Feedback(parent=self)
@@ -172,7 +172,8 @@ class TikSubView(QtWidgets.QTreeView):
         # SIGNALS
 
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.right_click_menu)
+        if right_click_enabled:
+            self.customContextMenuRequested.connect(self.right_click_menu)
         self.clicked.connect(self.get_tasks)
 
         # create another context menu for columns
@@ -421,8 +422,6 @@ class TikSubView(QtWidgets.QTreeView):
             return
 
 
-
-
 class ProxyModel(QtCore.QSortFilterProxyModel):
     def __init__(self, parent=None):
         super(ProxyModel, self).__init__(parent)
@@ -445,16 +444,17 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
 
 
 class TikProjectLayout(QtWidgets.QVBoxLayout):
-    def __init__(self, project_obj):
+    def __init__(self, project_obj, recursive_enabled=True, right_click_enabled=True):
         super(TikProjectLayout, self).__init__()
         self.project_obj = project_obj
         # add a checkbox for recursive search
-        self.recursive_search_cb = QtWidgets.QCheckBox("Get Tasks Recursively")
-        self.recursive_search_cb.setChecked(True)
-        self.addWidget(self.recursive_search_cb)
+        if recursive_enabled:
+            self.recursive_search_cb = QtWidgets.QCheckBox("Get Tasks Recursively")
+            self.recursive_search_cb.setChecked(True)
+            self.addWidget(self.recursive_search_cb)
         # add a search bar
 
-        self.sub_view = TikSubView(project_obj)
+        self.sub_view = TikSubView(project_obj, right_click_enabled=right_click_enabled)
         self.addWidget(self.sub_view)
         self.filter_le = QtWidgets.QLineEdit()
         self.addWidget(self.filter_le)
@@ -463,8 +463,9 @@ class TikProjectLayout(QtWidgets.QVBoxLayout):
         self.filter_le.setClearButtonEnabled(True)
         self.filter_le.setFocus()
 
-        self.sub_view.set_recursive_task_scan(self.recursive_search_cb.isChecked())
-        self.recursive_search_cb.stateChanged.connect(self.sub_view.set_recursive_task_scan)
+        if recursive_enabled:
+            self.sub_view.set_recursive_task_scan(self.recursive_search_cb.isChecked())
+            self.recursive_search_cb.stateChanged.connect(self.sub_view.set_recursive_task_scan)
         self.filter_le.returnPressed.connect(self.sub_view.setFocus)
 
 
