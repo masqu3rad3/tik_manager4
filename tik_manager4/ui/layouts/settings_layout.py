@@ -108,11 +108,11 @@ class SettingsLayout(QtWidgets.QFormLayout):
         return _widgets
 
     def _test(self, key, value):
-        print("_test")
-        print(key, value)
+        # print("_test")
+        # print(key, value)
         self.settings_data.edit_property(key, value)
-        print(self.settings_data.get_data())
-        print("============")
+        # print(self.settings_data.get_data())
+        # print("============")
 
     def signal_connections(self, widget_list):
         """Creates the enable/disable logic between widgets. This needs to be done after population"""

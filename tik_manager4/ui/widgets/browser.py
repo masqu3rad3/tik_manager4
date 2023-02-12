@@ -75,7 +75,16 @@ class SubprojectBrowser(PathBrowser):
         button_box.rejected.connect(self.dialog.reject)
         self.adjustSize()
 
+
+
+
         self.dialog.show()
+        # make the dialog vertically longer but no longer than the desktop height
+        self.dialog.resize(self.dialog.width(), min(self.dialog.height() * 2, QtWidgets.QApplication.desktop().height() - 100))
+
+        # move the dialog next to its parent dialog but only horizontally
+
+        self.dialog.move(self.mapToGlobal(QtCore.QPoint(0, 0)) + QtCore.QPoint(self.width(), 0))
 
         # show the dialog
 

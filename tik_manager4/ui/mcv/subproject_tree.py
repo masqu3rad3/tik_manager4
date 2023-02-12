@@ -1,7 +1,7 @@
 import sys
 import os
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
-from tik_manager4.ui.dialog.new_subproject import NewSubproject
+from tik_manager4.ui.dialog.new_subproject import NewSubproject, EditSubproject
 from tik_manager4.ui.dialog.new_task import NewTask
 from tik_manager4.ui.dialog.feedback import Feedback
 # from tik_manager4.objects import main
@@ -30,7 +30,17 @@ class TikColumnItem(QtGui.QStandardItem):
         super(TikColumnItem, self).__init__()
         self.setEditable(False)
         self.setText(name)
-        if overridden:
+        self.set_overridden(overridden)
+        # if overridden:
+        #     self.tag_overridden()
+        # else:
+        #     self.tag_normal()
+
+    def set_value(self, value):
+        self.setText(str(value))
+
+    def set_overridden(self, value):
+        if value:
             self.tag_overridden()
         else:
             self.tag_normal()
@@ -133,26 +143,26 @@ class TikSubModel(QtGui.QStandardItemModel):
         parent.appendRow(_row)
         return _sub_item
 
-    # search all model tree for a given id
-    # def find_sub(self, sub_id):
-    #     for row in range(self.rowCount()):
-    #         _item = self.item(row)
-    #         if _item.subproject.id == sub_id:
-    #             return _item
-    #         else:
-    #             _sub_item = self.find_sub_recursive(_item, sub_id)
-    #             if _sub_item:
-    #                 return _sub_item
-    def find_sub_recursive(self, item, sub_id):
-        for row in range(item.rowCount()):
-            _item = item.child(row)
-            if _item.subproject.id == sub_id:
-                return _item
-            else:
-                _sub_item = self.find_sub_recursive(_item, sub_id)
-                if _sub_item:
-                    return _sub_item
 
+    def update_item(self, item, sub_obj):
+        """Update the item with the new subproject object"""
+
+        item.subproject = sub_obj
+        item.setText(sub_obj.name)
+
+        # get the parent item
+        _parent = item.parent()
+
+        # get the row of the item
+        _row = item.row()
+
+        for index, column in enumerate(self.columns):
+            _column_item = _parent.child(_row, index)
+            if isinstance(_column_item, TikColumnItem):
+                _column_value = sub_obj.metadata.get_value(column, "")
+                _overridden = sub_obj.metadata.is_overridden(column)
+                _column_item.set_overridden(_overridden)
+                _column_item.set_value(str(_column_value))
 
 
 class TikSubView(QtWidgets.QTreeView):
@@ -192,7 +202,7 @@ class TikSubView(QtWidgets.QTreeView):
         # the id needs to mapped from proxy to source
         index = self.proxy_model.mapToSource(idx)
         _item = self.model.itemFromIndex(index)
-        print(_item)
+        # print(_item)
         return _item
 
 
@@ -371,14 +381,24 @@ class TikSubView(QtWidgets.QTreeView):
         # first check for the user permission:
         if self.model.project._check_permissions(level=2) != -1:
             pass
-            # TODO implement the edit subproject dialog
-            # _dialog = EditSubproject(item.subproject, parent=self)
-            # state = _dialog.exec_()
-            # if state:
-            #     self.model.update_sub(item)
+            _dialog = EditSubproject(self.model.project, parent_sub=item.subproject, parent=self)
+            state = _dialog.exec_()
+            if state:
+                # reload the item
+                self.model.update_item(item, item.subproject)
+                # print(item)
         else:
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
+
+    # def find_row(self, item):
+    #     # find the index of the item
+    #     _index = self.model.indexFromItem(item)
+    #     # make sure the index is pointing to the first column
+    #     first_column_index = _index.sibling(_index.row(), 0)
+    #     # get the item from index
+    #     _item = self.model.itemFromIndex(first_column_index)
+    #     return _item.row()
 
     def new_task(self, item):
         # first check for the user permission:

@@ -38,6 +38,11 @@ class CollapsibleLayout(QtWidgets.QVBoxLayout):
         else:
             self.collapse()
         self._button.clicked.connect(self.toggle)
+
+    def set_hidden(self, state=True):
+        self._button.setHidden(state)
+        self.contents_widget.setHidden(state)
+
     def toggle(self):
         """Toggle the layout."""
         if self._expanded:
