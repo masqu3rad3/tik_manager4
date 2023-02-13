@@ -126,15 +126,26 @@ class Project(Subproject):
         if name:
             sub.name = name
 
-        properties.update(
-            {
-                "name": name,
-                "uid": sub.id,
-                "path": sub.path
-            }
-        )
+        # properties.update(
+        #     {
+        #         "name": name,
+        #         "uid": sub.id,
+        #         "path": sub.path
+        #     }
+        # )
+        # get the subproject tree
+        kill_list = []
+        sub_tree = sub.get_sub_tree()
+        for key, value in sub_tree.items():
+            if key not in ["name", "id", "path", "subs"]:
+                kill_list.append(key)
+        for key in kill_list:
+            del sub_tree[key]
 
-        sub.set_sub_tree(properties)
+        # update the sub_tree with properties
+        sub_tree.update(properties)
+
+        sub.set_sub_tree(sub_tree)
         # sub.metadata.override(properties)
         self.save_structure()
         return 1

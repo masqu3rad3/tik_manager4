@@ -166,7 +166,7 @@ class Subproject(Entity):
         """Create the subproject from the data dictionary.
         This is for building back the hierarchy from json data
         """
-        persistent_keys = ["id", "name", "path", "subs", "uid"]
+        persistent_keys = ["id", "name", "path", "subs"]
         visited = []
         queue = []
         self.id = data.get("id", None)
@@ -176,19 +176,6 @@ class Subproject(Entity):
         # get all remaining keys as metadata
         # inherit parents metadata
         if self.__parent_sub:
-            # print("================")
-            # print("================")
-            # print("================")
-            # from pprint import pprint
-            # pprint(self.__parent_data)
-            # print("parent data", self.__parent_data)
-            # _meta_dict = {}
-            # for key, value in self.__parent_data.items():
-            #     if key not in persistent_keys and key != "uid":
-            #         print("existing meta")
-            #         print(key, value)
-            #         _meta_dict[key] = value
-            # self._metadata = Metadata(_meta_dict)
             self._metadata = Metadata(dict(self.__parent_sub.metadata.get_all_items())) or Metadata({})
 
         for key, value in data.items():
@@ -217,11 +204,8 @@ class Subproject(Entity):
                             properties[key] = value
 
                     _metadata.override(properties)
-                    print("neighbour")
-                    print(neighbour)
-                    print(sub.name)
-                    print("----------------")
                     sub_project = sub.__build_sub_project(_name, sub, _metadata, _id)
+
                     # define the path and categories separately
                     sub_project._relative_path = _relative_path
 

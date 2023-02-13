@@ -188,6 +188,7 @@ class TikSubView(QtWidgets.QTreeView):
         if right_click_enabled:
             self.customContextMenuRequested.connect(self.right_click_menu)
         self.clicked.connect(self.get_tasks)
+        self.clicked.connect(self.test)
 
         # create another context menu for columns
         self.header().setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -227,7 +228,7 @@ class TikSubView(QtWidgets.QTreeView):
         #         expanded_items.append(index)
         # self.model.clear()
         self.model.populate()
-        self.expandAll()
+        # self.expandAll()
         # for index in expanded_items:
         #     self.setExpanded(index, True)
 
@@ -423,24 +424,57 @@ class TikSubView(QtWidgets.QTreeView):
             if state:
                 # re-populate the model
                 # first get the current state of expanded items
-                # print(item)
-                # print(item.subproject)
-                # print(item.subproject.name)
-                # print(item.subproject.path)
-                # print(item.subproject.id)
-                # print(item.subproject.metadata)
+                expanded_items = self.get_expanded_items()
 
-                # TODO : WHEN A SUBPROJECT IS EDITED, THE TREEVIEW IS NOT UPDATED
-                # TODO : THE SUBPROJECT OBJECTS ARE POSSIBLY NOT UPDATED AS WELL
-                # self.model.populate()
+                # TODO : It would be very nice to keep the expanded items expanded after the model is repopulated
                 self.refresh()
-                # self.model.clear()
-                # reload the item
-                # self.model.update_item(item, item.subproject)
-                # print(item)
+
+                # expand the items that were expanded before
+                self.expand_items(expanded_items)
+
+
+
+
         else:
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
+
+    def test(self, item=None):
+        item = item or self.model.rootItem
+        # get the index of the item
+        _index = self.model.indexFromItem(item)
+        # make sure the index is pointing to the first column
+        first_column_index = _index.sibling(_index.row(), 0)
+        _index.chil
+        print("test")
+        count = self.model.rowCount()
+        print(count)
+        for row in count:
+            index = self.model.index(row, 0)
+
+        # recursively find all expanded items
+
+
+    # def expand_items(self, items):
+    #     for item in items:
+    #         # find the item in the model
+    #         _item_at_id_column = self.model.findItems(str(item.subproject.id), QtCore.Qt.MatchRecursive, 1)[0]
+    #         # find the index of the item
+    #         _index = self.model.indexFromItem(_item_at_id_column)
+    #         # make sure the index is pointing to the first column
+    #         first_column_index = _index.sibling(_index.row(), 0)
+    #         # get the item from index
+    #         _item = self.model.itemFromIndex(first_column_index)
+    #         self.setExpanded(_index, True)
+    # def get_expanded_items(self):
+    #     """Find all expanded items recursively and return them as a list"""
+    #     expanded_items = []
+    #     for row in range(self.model.rowCount()):
+    #         index = self.model.index(row, 0)
+    #         if self.isExpanded(index):
+    #             expanded_items.append(self.model.itemFromIndex(index))
+    #             expanded_items.extend(self.get_expanded_items(index))
+    #     return expanded_items
 
     # def find_row(self, item):
     #     # find the index of the item
