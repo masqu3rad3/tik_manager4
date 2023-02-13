@@ -398,7 +398,7 @@ class TikSubView(QtWidgets.QTreeView):
                 _new_sub = _dialog.get_created_subproject()
                 # Find the parent item _new_sub id
                 # _item_at_id_column = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)[0]
-                _item_at_id_column = self.model.findItems(str(_new_sub.parent["id"]), QtCore.Qt.MatchRecursive, 1)[0]
+                _item_at_id_column = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)[0]
                 # find the index of the item
                 _index = self.model.indexFromItem(_item_at_id_column)
                 # make sure the index is pointing to the first column
@@ -423,17 +423,17 @@ class TikSubView(QtWidgets.QTreeView):
             if state:
                 # re-populate the model
                 # first get the current state of expanded items
-                print(item)
-                print(item.subproject)
-                print(item.subproject.name)
-                print(item.subproject.path)
-                print(item.subproject.id)
-                print(item.subproject.metadata)
+                # print(item)
+                # print(item.subproject)
+                # print(item.subproject.name)
+                # print(item.subproject.path)
+                # print(item.subproject.id)
+                # print(item.subproject.metadata)
 
                 # TODO : WHEN A SUBPROJECT IS EDITED, THE TREEVIEW IS NOT UPDATED
                 # TODO : THE SUBPROJECT OBJECTS ARE POSSIBLY NOT UPDATED AS WELL
-                self.model.populate()
-                # self.refresh()
+                # self.model.populate()
+                self.refresh()
                 # self.model.clear()
                 # reload the item
                 # self.model.update_item(item, item.subproject)

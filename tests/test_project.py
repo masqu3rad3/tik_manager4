@@ -102,8 +102,8 @@ class TestProject:
         assert another_sub.path == "testSub/anotherSub"
 
         # test the parent.name and parent.id
-        assert another_sub.parent["name"] == "testSub"
-        assert another_sub.parent["id"] == new_sub.id
+        assert another_sub.parent.name == "testSub"
+        assert another_sub.parent.id == new_sub.id
 
         # try creating an existing one
         assert self.tik.project.create_sub_project("anotherSub", parent_uid=new_sub.id) == -1
