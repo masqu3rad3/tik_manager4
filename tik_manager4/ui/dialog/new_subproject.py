@@ -92,6 +92,14 @@ class EditSubproject(QtWidgets.QDialog):
     def define_primary_ui(self):
         return {}
 
+    def get_metadata_value(self, key):
+        """Convenient method to get the metadata value."""
+        return self._parent_sub.metadata.get_value(key, None)
+
+    def _get_metadata_override(self, key):
+        """Convenient method to get the metadata override."""
+        return self._parent_sub.metadata.is_overridden(key)
+
     def define_other_ui(self):
         """Define the secondary UI."""
         _secondary_ui = {}
@@ -99,7 +107,7 @@ class EditSubproject(QtWidgets.QDialog):
         # The next part of metadata is for displaying and overriding
         # the existing metadata keys in the stream
         for key, data in self.metadata_definitions.properties.items():
-            _default_value = self._parent_sub.metadata.get_value(key, None) or data.get("default", None)
+            _default_value = self.get_metadata_value(key) or data.get("default", None)
             _enum = data.get("enum", [])
             if _default_value is None:
                 raise ValueError("No default value defined for metadata {}".format(key))
@@ -117,9 +125,9 @@ class EditSubproject(QtWidgets.QDialog):
                     _value_type = "string"
                 elif isinstance(_default_value, list):
                     # currently only lists with floats or ints are supported
-                    # Also the list lenght is limited with 3 items (vector3)
+                    # Also the list length is limited with 3 items (vector3)
                     if 2 > len(_default_value) > 3:
-                        raise ValueError("List lenght is limited to 2 or 3 items")
+                        raise ValueError("List length is limited to 2 or 3 items")
                     for item in _default_value:
                         if not isinstance(item, (float, int)):
                             raise ValueError("List items must be float or int")
@@ -141,7 +149,7 @@ class EditSubproject(QtWidgets.QDialog):
                     "value": {
                         "__override_{}".format(key): {
                             "type": "boolean",
-                            "value": False,
+                            "value": self._get_metadata_override(key),
                             "disables": [[False, key]]
                         },
                         key: {
@@ -246,6 +254,10 @@ class NewSubproject(EditSubproject):
         self.secondary_layout.contents_layout.addLayout(self.secondary_content)
         self.tertiary_content = SettingsLayout(self.tertiary_definition, self.tertiary_data, parent=self)
         self.tertiary_layout.contents_layout.addLayout(self.tertiary_content)
+
+    def _get_metadata_override(self, key):
+        """Override the function to return always False."""
+        return False
 
     def build_ui(self):
         """Initialize the UI."""

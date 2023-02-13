@@ -59,6 +59,8 @@ class Metadata(dict):
 
     def override(self, data_dictionary):
         """Override the metadata with a new dictionary."""
+        # clear metadata
+        # self.clear()
         for key, data in data_dictionary.items():
             self[key] = Metaitem(data, overridden=True)
             # if key in self:
@@ -71,17 +73,17 @@ class Metadata(dict):
 class Subproject(Entity):
     """Subproject object to hold subproject data and hierarchy."""
     def __init__(self,
-                 parent_sub=None,
+                 parent_data=None,
                  metadata=None,
                  **kwargs):
         """Initialize Subproject object.
         Args:
-            parent_sub (Subproject): The parent subproject object.
+            parent_data (Dictionary): The parent subproject data dictionary.
             metadata (Metadata): Metadata object to hold any extra data.
             **kwargs:
         """
         super(Subproject, self).__init__(**kwargs)
-        self.__parent_sub = parent_sub
+        self.__parent_data = parent_data
         self._sub_projects = {}
         self._tasks = {}
         self._metadata = metadata or Metadata({})
@@ -89,7 +91,7 @@ class Subproject(Entity):
     @property
     def parent(self):
         """Return the parent subproject."""
-        return self.__parent_sub
+        return self.__parent_data
 
     @property
     def subs(self):
@@ -164,7 +166,7 @@ class Subproject(Entity):
         """Create the subproject from the data dictionary.
         This is for building back the hierarchy from json data
         """
-        persistent_keys = ["id", "name", "path", "subs"]
+        persistent_keys = ["id", "name", "path", "subs", "uid"]
         visited = []
         queue = []
         self.id = data.get("id", None)
@@ -172,6 +174,16 @@ class Subproject(Entity):
         self._relative_path = data.get("path", None)
 
         # get all remaining keys as metadata
+        # inherit parents metadata
+        if self.__parent_data:
+            print("parent data", self.__parent_data)
+            _meta_dict = {}
+            for key, value in self.__parent_data.items():
+                if key not in persistent_keys and key != "uid":
+                    print("existing meta")
+                    print(key, value)
+                    _meta_dict[key] = value
+            self._metadata = Metadata(_meta_dict)
         for key, value in data.items():
             if key not in persistent_keys:
                 self._metadata.add_item(key, value, overridden=True)
@@ -229,7 +241,7 @@ class Subproject(Entity):
         """
 
         sub_pr = Subproject(name=name,
-                            parent_sub=parent_sub,
+                            parent_data=parent_sub,
                             metadata=metadata,
                             uid=uid)
         sub_pr.path = os.path.join(self.path, name)

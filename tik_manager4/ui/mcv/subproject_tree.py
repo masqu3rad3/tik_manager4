@@ -157,7 +157,10 @@ class TikSubModel(QtGui.QStandardItemModel):
         _row = item.row()
 
         for index, column in enumerate(self.columns):
-            _column_item = _parent.child(_row, index)
+            if _parent:
+                _column_item = _parent.child(_row, index)
+            else:
+                _column_item = self.item(_row, index)
             if isinstance(_column_item, TikColumnItem):
                 _column_value = sub_obj.metadata.get_value(column, "")
                 _overridden = sub_obj.metadata.is_overridden(column)
@@ -208,6 +211,39 @@ class TikSubView(QtWidgets.QTreeView):
 
     def set_recursive_task_scan(self, value):
         self._recursive_task_scan = value
+
+    def refresh(self):
+        """Re-populates the model keeping the expanded state"""
+        # # store the expanded items
+        # expanded_items = []
+        # # get all rows recursively
+        # for row in range(self.model.rowCount()):
+        #     # get the index of the row
+        #     idx = self.model.index(row, 0)
+        #     index = self.proxy_model.mapFromSource(idx)
+        #     _item = self.model.itemFromIndex(index)
+        #     print(_item)
+        #     if self.isExpanded(index):
+        #         expanded_items.append(index)
+        # self.model.clear()
+        self.model.populate()
+        self.expandAll()
+        # for index in expanded_items:
+        #     self.setExpanded(index, True)
+
+
+        #
+        # for index in range(self.model.rowCount()):
+        #     print(index)
+        #     item = self.model.item(index)
+        #     print(item)
+        #     if self.isExpanded(item.index()):
+        #         print(item, "is expanded")
+        #         expanded_items.append(item)
+        # self.model.populate()
+        # # self.expandAll()
+        # for item in expanded_items:
+        #     self.setExpanded(item.index(), True)
 
     def expandAll(self):
         super(TikSubView, self).expandAll()
@@ -361,7 +397,8 @@ class TikSubView(QtWidgets.QTreeView):
                 # TODO: is this overcomplicated?
                 _new_sub = _dialog.get_created_subproject()
                 # Find the parent item _new_sub id
-                _item_at_id_column = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)[0]
+                # _item_at_id_column = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)[0]
+                _item_at_id_column = self.model.findItems(str(_new_sub.parent["id"]), QtCore.Qt.MatchRecursive, 1)[0]
                 # find the index of the item
                 _index = self.model.indexFromItem(_item_at_id_column)
                 # make sure the index is pointing to the first column
@@ -384,8 +421,22 @@ class TikSubView(QtWidgets.QTreeView):
             _dialog = EditSubproject(self.model.project, parent_sub=item.subproject, parent=self)
             state = _dialog.exec_()
             if state:
+                # re-populate the model
+                # first get the current state of expanded items
+                print(item)
+                print(item.subproject)
+                print(item.subproject.name)
+                print(item.subproject.path)
+                print(item.subproject.id)
+                print(item.subproject.metadata)
+
+                # TODO : WHEN A SUBPROJECT IS EDITED, THE TREEVIEW IS NOT UPDATED
+                # TODO : THE SUBPROJECT OBJECTS ARE POSSIBLY NOT UPDATED AS WELL
+                self.model.populate()
+                # self.refresh()
+                # self.model.clear()
                 # reload the item
-                self.model.update_item(item, item.subproject)
+                # self.model.update_item(item, item.subproject)
                 # print(item)
         else:
             message, title = self.model.project.log.get_last_message()
