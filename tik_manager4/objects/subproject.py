@@ -59,6 +59,8 @@ class Metadata(dict):
 
     def override(self, data_dictionary):
         """Override the metadata with a new dictionary."""
+        # clear metadata
+        # self.clear()
         for key, data in data_dictionary.items():
             self[key] = Metaitem(data, overridden=True)
             # if key in self:
@@ -76,7 +78,7 @@ class Subproject(Entity):
                  **kwargs):
         """Initialize Subproject object.
         Args:
-            parent_sub (Subproject): The parent subproject object.
+            parent_sub (Subproject): The parent subproject.
             metadata (Metadata): Metadata object to hold any extra data.
             **kwargs:
         """
@@ -172,6 +174,10 @@ class Subproject(Entity):
         self._relative_path = data.get("path", None)
 
         # get all remaining keys as metadata
+        # inherit parents metadata
+        if self.__parent_sub:
+            self._metadata = Metadata(dict(self.__parent_sub.metadata.get_all_items())) or Metadata({})
+
         for key, value in data.items():
             if key not in persistent_keys:
                 self._metadata.add_item(key, value, overridden=True)
@@ -198,7 +204,8 @@ class Subproject(Entity):
                             properties[key] = value
 
                     _metadata.override(properties)
-                    sub_project = sub.__build_sub_project(_name, neighbour, _metadata, _id)
+                    sub_project = sub.__build_sub_project(_name, sub, _metadata, _id)
+
                     # define the path and categories separately
                     sub_project._relative_path = _relative_path
 

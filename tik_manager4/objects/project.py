@@ -107,6 +107,7 @@ class Project(Subproject):
             return -1
 
         new_sub = parent_sub.add_sub_project(name, parent_sub=parent_sub, **kwargs, uid=None)
+        # new_sub = parent_sub.add_sub_project(name, parent_sub=parent_sub.get_sub_tree(), **kwargs, uid=None)
         if new_sub == -1:
             return -1
         self.save_structure()
@@ -124,7 +125,28 @@ class Project(Subproject):
             return -1
         if name:
             sub.name = name
-        sub.metadata.override(properties)
+
+        # properties.update(
+        #     {
+        #         "name": name,
+        #         "uid": sub.id,
+        #         "path": sub.path
+        #     }
+        # )
+        # get the subproject tree
+        kill_list = []
+        sub_tree = sub.get_sub_tree()
+        for key, value in sub_tree.items():
+            if key not in ["name", "id", "path", "subs"]:
+                kill_list.append(key)
+        for key in kill_list:
+            del sub_tree[key]
+
+        # update the sub_tree with properties
+        sub_tree.update(properties)
+
+        sub.set_sub_tree(sub_tree)
+        # sub.metadata.override(properties)
         self.save_structure()
         return 1
 
