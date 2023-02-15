@@ -17,6 +17,7 @@ class Commons(object):
     users = None
     template = None
     structures = None
+    metadata = None
 
     def __init__(self, folder_path):
         super(Commons, self).__init__()

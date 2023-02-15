@@ -20,6 +20,7 @@ class Main(object):
     project = project.Project()
     # set the dcc to the guard object
     project.guard.set_dcc(dcc.NAME)
+    project.guard.set_commons(user.commons)
     dcc = dcc.Dcc()
     log = log
 

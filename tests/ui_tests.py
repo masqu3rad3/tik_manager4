@@ -57,10 +57,10 @@ if __name__ == '__main__':
     test_dialog.setLayout(master_lay)
 
 
-    # sub_projects.sub_view.item_selected.connect(lambda x: print(x))
     sub_projects.sub_view.item_selected.connect(tasks.task_view.set_tasks)
     sub_projects.sub_view.add_item.connect(tasks.task_view.add_task)
 
     test_dialog.show()
+
     # view.show()
     sys.exit(app.exec_())

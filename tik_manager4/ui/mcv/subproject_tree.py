@@ -1,10 +1,11 @@
 import sys
 import os
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
-from tik_manager4.ui.dialog.new_subproject import NewSubproject
+from tik_manager4.ui.dialog.new_subproject import NewSubproject, EditSubproject
 from tik_manager4.ui.dialog.new_task import NewTask
 from tik_manager4.ui.dialog.feedback import Feedback
 # from tik_manager4.objects import main
+from tik_manager4.objects import guard
 import tik_manager4
 
 class TikSubItem(QtGui.QStandardItem):
@@ -29,7 +30,17 @@ class TikColumnItem(QtGui.QStandardItem):
         super(TikColumnItem, self).__init__()
         self.setEditable(False)
         self.setText(name)
-        if overridden:
+        self.set_overridden(overridden)
+        # if overridden:
+        #     self.tag_overridden()
+        # else:
+        #     self.tag_normal()
+
+    def set_value(self, value):
+        self.setText(str(value))
+
+    def set_overridden(self, value):
+        if value:
             self.tag_overridden()
         else:
             self.tag_normal()
@@ -46,10 +57,12 @@ class TikColumnItem(QtGui.QStandardItem):
         self.setFont(fnt)
 
 class TikSubModel(QtGui.QStandardItemModel):
-    columns = ["name", "id", "path", "resolution", "fps", "mode"]
+    # columns = list(guard.Guard.commons.metadata.keys())
+    # columns = ["name", "id", "path", "resolution", "fps", "mode"]
     filter_key = ""
     def __init__(self, structure_object):
         super(TikSubModel, self).__init__()
+        self.columns = ["name", "id", "path"] + list(guard.Guard.commons.metadata.properties.keys())
 
         self.setHorizontalHeaderLabels(self.columns)
 
@@ -61,14 +74,7 @@ class TikSubModel(QtGui.QStandardItemModel):
 
 
     def set_data(self, structure_object):
-        self.project = self.check_data(structure_object)
-
-    @staticmethod
-    def check_data(structure_object):
-        """checks if this is a proper structural data"""
-        # if not isinstance(structure_object, main.project.Project):
-        #     raise Exception("The data that feeds into the TikTreeModel must be a Project object")
-        return structure_object
+        self.project = structure_object
 
     def populate(self):
         self.setRowCount(0)
@@ -137,10 +143,35 @@ class TikSubModel(QtGui.QStandardItemModel):
         parent.appendRow(_row)
         return _sub_item
 
+
+    def update_item(self, item, sub_obj):
+        """Update the item with the new subproject object"""
+
+        item.subproject = sub_obj
+        item.setText(sub_obj.name)
+
+        # get the parent item
+        _parent = item.parent()
+
+        # get the row of the item
+        _row = item.row()
+
+        for index, column in enumerate(self.columns):
+            if _parent:
+                _column_item = _parent.child(_row, index)
+            else:
+                _column_item = self.item(_row, index)
+            if isinstance(_column_item, TikColumnItem):
+                _column_value = sub_obj.metadata.get_value(column, "")
+                _overridden = sub_obj.metadata.is_overridden(column)
+                _column_item.set_overridden(_overridden)
+                _column_item.set_value(str(_column_value))
+
+
 class TikSubView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
     add_item = QtCore.Signal(object)
-    def __init__(self, project_obj=None):
+    def __init__(self, project_obj=None, right_click_enabled=True):
         super(TikSubView, self).__init__()
 
         self._feedback = Feedback(parent=self)
@@ -148,13 +179,15 @@ class TikSubView(QtWidgets.QTreeView):
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
         self.model = None
+        self.proxy_model = None
         if project_obj:
             self.set_project(project_obj)
 
         # SIGNALS
 
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.right_click_menu)
+        if right_click_enabled:
+            self.customContextMenuRequested.connect(self.right_click_menu)
         self.clicked.connect(self.get_tasks)
 
         # create another context menu for columns
@@ -164,8 +197,53 @@ class TikSubView(QtWidgets.QTreeView):
         self.expandAll()
         self._recursive_task_scan = False
 
+    def get_selected_item(self):
+        idx = self.currentIndex()
+        if not idx.isValid():
+            return None
+        idx = idx.sibling(idx.row(), 0)
+
+        # the id needs to mapped from proxy to source
+        index = self.proxy_model.mapToSource(idx)
+        _item = self.model.itemFromIndex(index)
+        return _item
+
     def set_recursive_task_scan(self, value):
         self._recursive_task_scan = value
+
+    def _save_expanded_state(self, index, expanded_state):
+        """Stores the subproject ids of the expanded items"""
+        view_index = self.proxy_model.mapFromSource(index)
+        if self.isExpanded(view_index):
+            # get the item from index
+            _item = self.model.itemFromIndex(index)
+            expanded_state.append(_item.subproject.id)
+
+        for row in range(self.model.rowCount(index)):
+            child_index = self.model.index(row, 0, index)
+            self._save_expanded_state(child_index, expanded_state)
+
+    def _restore_expanded_state(self, index, expanded_state):
+        """Restores the expanded state of the items by matching the subproject ids"""
+        view_index = self.proxy_model.mapFromSource(index)
+        _item = self.model.itemFromIndex(index)
+        if _item:
+            if _item.subproject.id in expanded_state:
+                self.expand(view_index)
+
+        for row in range(self.model.rowCount(index)):
+            child_index = self.model.index(row, 0, index)
+            self._restore_expanded_state(child_index, expanded_state)
+
+
+    def refresh(self):
+        """Re-populates the model keeping the expanded state"""
+        # store the expanded items
+        expanded_state = []
+        self._save_expanded_state(QtCore.QModelIndex(), expanded_state)
+        self.model.populate()
+        # restore the expanded state
+        self._restore_expanded_state(QtCore.QModelIndex(), expanded_state)
 
     def expandAll(self):
         super(TikSubView, self).expandAll()
@@ -175,7 +253,8 @@ class TikSubView(QtWidgets.QTreeView):
         self.resizeColumnToContents(3)
         self.resizeColumnToContents(4)
 
-    def collect_tasks(self, sub_item, recursive=True):
+    @staticmethod
+    def collect_tasks(sub_item, recursive=True):
         if not isinstance(sub_item, tik_manager4.objects.subproject.Subproject):
             # just to prevent crashes if something goes wrong
             return
@@ -189,7 +268,6 @@ class TikSubView(QtWidgets.QTreeView):
                 for key, value in sub.scan_tasks().items():
                     yield value
                 queue.extend(list(sub.subs.values()))
-
 
     def get_tasks(self, idx):
         # make sure the idx is pointing to the first column
@@ -226,10 +304,9 @@ class TikSubView(QtWidgets.QTreeView):
             self.unhide_columns(column)
         else:
             self.hide_columns(column)
+
     def set_project(self, project_obj):
         self.model = TikSubModel(project_obj)
-        # self.model.setFilterRegExp(QtCore.QRegExp("Ass*", QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))
-        # self.proxy_model = QtCore.QSortFilterProxyModel()
 
         self.proxy_model = ProxyModel()
         self.proxy_model.setSourceModel(self.model)
@@ -237,18 +314,12 @@ class TikSubView(QtWidgets.QTreeView):
         self.setSortingEnabled(True)
         # set sort indicator to ascending
         self.sortByColumn(0, QtCore.Qt.AscendingOrder)
-        # self.proxy_model.sort(2, QtCore.Qt.AscendingOrder)
-        # self.proxy_model.setFilterRegExp(QtCore.QRegExp("Sup*", QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))
-        # self.setModel(self.model)
         self.setModel(self.proxy_model)
-
         self.model.populate()
 
     def filter(self, text):
         # pass
         self.proxy_model.setFilterRegExp(QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))
-        # exclude TikTaskItems from the filter
-        # self.proxy_model.setFilterKeyColumn(0)
 
     def header_right_click_menu(self, position):
         menu = QtWidgets.QMenu(self)
@@ -260,11 +331,8 @@ class TikSubView(QtWidgets.QTreeView):
             action.setChecked(not self.isColumnHidden(self.model.columns.index(column)))
             # connect the action to the column's visibility
             action.toggled.connect(lambda state, c=column: self.toggle_column(c, state))
-
             menu.addAction(action)
-
         menu.exec_(self.mapToGlobal(position))
-
 
     def right_click_menu(self, position):
         indexes = self.sender().selectedIndexes()
@@ -305,14 +373,24 @@ class TikSubView(QtWidgets.QTreeView):
 
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
-
     def new_sub_project(self, item):
         # first check for the user permission:
         if self.model.project._check_permissions(level=2) != -1:
             _dialog = NewSubproject(self.model.project, parent_sub=item.subproject, parent=self)
             state = _dialog.exec_()
             if state:
-                self.model.append_sub(_dialog.get_created_subproject(), item)
+                # TODO: is this overcomplicated?
+                _new_sub = _dialog.get_created_subproject()
+                # Find the parent item _new_sub id
+                _item_at_id_column = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)[0]
+                # find the index of the item
+                _index = self.model.indexFromItem(_item_at_id_column)
+                # make sure the index is pointing to the first column
+                first_column_index = _index.sibling(_index.row(), 0)
+                # get the item from index
+                _item = self.model.itemFromIndex(first_column_index)
+                # The reason we are doing this is that we may change the parent of the item on new subproject UI
+                self.model.append_sub(_new_sub, _item)
         else:
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
@@ -321,11 +399,11 @@ class TikSubView(QtWidgets.QTreeView):
         # first check for the user permission:
         if self.model.project._check_permissions(level=2) != -1:
             pass
-            # TODO implement the edit subproject dialog
-            # _dialog = EditSubproject(item.subproject, parent=self)
-            # state = _dialog.exec_()
-            # if state:
-            #     self.model.update_sub(item)
+            _dialog = EditSubproject(self.model.project, parent_sub=item.subproject, parent=self)
+            state = _dialog.exec_()
+            if state:
+                # re-populate the model
+                self.refresh()
         else:
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
@@ -337,9 +415,7 @@ class TikSubView(QtWidgets.QTreeView):
         state = _dialog.exec_()
         if state:
                 # emit clicked signal
-                # self.item_selected.emit([_dialog.get_created_task()])
                 self.add_item.emit(_dialog.get_created_task())
-                # self.model.append_task(_dialog.get_created_task(), item)
         else:
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
@@ -372,8 +448,6 @@ class TikSubView(QtWidgets.QTreeView):
             return
 
 
-
-
 class ProxyModel(QtCore.QSortFilterProxyModel):
     def __init__(self, parent=None):
         super(ProxyModel, self).__init__(parent)
@@ -385,27 +459,22 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
         item = model.itemFromIndex(index)
         if isinstance(item, TikSubItem):
             pass
-            # print(item.subproject.scan_tasks())
-            # return False
-        # for role, value in self.excludes.iteritems():
-        #     data = model.data(index, role)
-        #     if data == value:
-        #         return False
 
         return super(ProxyModel, self).filterAcceptsRow(source_row, source_parent)
 
 
 class TikProjectLayout(QtWidgets.QVBoxLayout):
-    def __init__(self, project_obj):
+    def __init__(self, project_obj, recursive_enabled=True, right_click_enabled=True):
         super(TikProjectLayout, self).__init__()
         self.project_obj = project_obj
         # add a checkbox for recursive search
-        self.recursive_search_cb = QtWidgets.QCheckBox("Get Tasks Recursively")
-        self.recursive_search_cb.setChecked(True)
-        self.addWidget(self.recursive_search_cb)
+        if recursive_enabled:
+            self.recursive_search_cb = QtWidgets.QCheckBox("Get Tasks Recursively")
+            self.recursive_search_cb.setChecked(True)
+            self.addWidget(self.recursive_search_cb)
         # add a search bar
 
-        self.sub_view = TikSubView(project_obj)
+        self.sub_view = TikSubView(project_obj, right_click_enabled=right_click_enabled)
         self.addWidget(self.sub_view)
         self.filter_le = QtWidgets.QLineEdit()
         self.addWidget(self.filter_le)
@@ -414,36 +483,7 @@ class TikProjectLayout(QtWidgets.QVBoxLayout):
         self.filter_le.setClearButtonEnabled(True)
         self.filter_le.setFocus()
 
-        self.sub_view.set_recursive_task_scan(self.recursive_search_cb.isChecked())
-        self.recursive_search_cb.stateChanged.connect(self.sub_view.set_recursive_task_scan)
+        if recursive_enabled:
+            self.sub_view.set_recursive_task_scan(self.recursive_search_cb.isChecked())
+            self.recursive_search_cb.stateChanged.connect(self.sub_view.set_recursive_task_scan)
         self.filter_le.returnPressed.connect(self.sub_view.setFocus)
-
-
-# if __name__ == '__main__':
-#     test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
-#     tik = tik_manager4.initialize("Standalone")
-#     tik.user._set("Admin", "1234")
-#     tik.project._set(test_project_path)
-#
-#
-#     app = QtWidgets.QApplication(sys.argv)
-#     test_dialog = QtWidgets.QDialog()
-#
-#     dirname = os.path.dirname(os.path.abspath(__file__))
-#     tik_manager_dir = os.path.abspath(os.path.join(dirname, os.pardir))
-#     QtCore.QDir.addSearchPath("css", os.path.join(tik_manager_dir, "theme"))
-#     QtCore.QDir.addSearchPath("rc", os.path.join(tik_manager_dir, "theme/rc"))
-#
-#     style_file = QtCore.QFile("css:tikManager.qss")
-#     style_file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
-#     test_dialog.setStyleSheet(str(style_file.readAll(), 'utf-8'))
-#
-#     # view = TikSubView()
-#     # view.set_project(tik.project)
-#     # view.hide_columns(["id", "path", "resolution", "fps"])
-#     view = TikProjectLayout(tik.project)
-#     test_dialog.setLayout(view)
-#
-#     test_dialog.show()
-#     # view.show()
-#     sys.exit(app.exec_())

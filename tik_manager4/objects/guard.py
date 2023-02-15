@@ -15,6 +15,12 @@ class Guard(object):
     _asset_categories = []
     _shot_categories = []
     _null_categories = []
+    commons = None
+
+    @classmethod
+    def set_commons(cls, commons):
+        """Set the commons object"""
+        cls.commons = commons
 
     @classmethod
     def set_dcc(cls, dcc_name):

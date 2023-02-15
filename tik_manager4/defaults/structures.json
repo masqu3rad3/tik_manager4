@@ -1,13 +1,10 @@
 {
-  "asset_categories": ["Model", "Rig", "Lookdev"],
-  "shot_categories": ["Layout", "Animation", "FX", "Lighting", "Compositing"],
-  "null_categories": ["Model", "Shading", "Rig", "Animation", "Lighting", "Comp"],
   "empty": {
     "name": "Empty Project",
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
-    "mode": null,
+    "mode": "",
     "subs": []
   },
   "simple": {
@@ -15,7 +12,7 @@
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
-    "mode": null,
+    "mode": "",
     "subs": []
   },
   "asset_only": {
