@@ -1,4 +1,4 @@
-"""Main Modult for the Tik Manager"""
+"""Main Module for the Tik Manager"""
 
 import os
 import sys

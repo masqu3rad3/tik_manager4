@@ -6,6 +6,8 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore
 
 from tik_manager4.ui.mcv.subproject_tree import TikProjectLayout
 from tik_manager4.ui.mcv.task_tree import TikTaskLayout
+from tik_manager4.ui.mcv.category import TikCategoryLayout
+
 import tik_manager4
 
 if __name__ == '__main__':
@@ -41,6 +43,10 @@ if __name__ == '__main__':
     right_layout.setContentsMargins(0, 0, 0, 0)
     # splitter.setChildrenCollapsible(False)
 
+    category_widget = QtWidgets.QWidget(splitter)
+    category_layout = QtWidgets.QVBoxLayout(category_widget)
+    category_layout.setContentsMargins(0, 0, 0, 0)
+
     # view = TikSubView()
     # view.set_project(tik.project)
     # view.hide_columns(["id", "path", "resolution", "fps"])
@@ -53,6 +59,9 @@ if __name__ == '__main__':
     tasks = TikTaskLayout()
     tasks.task_view.hide_columns(["id", "path"])
     right_layout.addLayout(tasks)
+
+    categories = TikCategoryLayout()
+    category_layout.addLayout(categories)
 
     test_dialog.setLayout(master_lay)
 

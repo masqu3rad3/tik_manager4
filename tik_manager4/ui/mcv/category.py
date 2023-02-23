@@ -5,8 +5,6 @@ import sys
 import os
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
-from tik_manager4.objects import category
-from tik_manager4.objects import task
 
 class TikTaskItem(QtGui.QStandardItem):
     def __init__(self, structure_object, txt='', font_size=12, set_bold=False, rgb=None, *args, **kwargs):
@@ -32,9 +30,10 @@ class TikTaskItem(QtGui.QStandardItem):
     @staticmethod
     def check_data(structure_object):
         """checks if this is a proper structural data"""
-        if not isinstance(structure_object, task.Task):
-            raise Exception("The data that feeds into the TikListItem must be a Task object")
-        return structure_object
+        pass
+        # if not isinstance(structure_object, task.Task):
+        #     raise Exception("The data that feeds into the TikListItem must be a Task object")
+        # return structure_object
 
 class TikCategoryModel(QtGui.QStandardItemModel):
     columns = ["name", "date", "owner", "version_count", "publish_count"]
@@ -53,9 +52,10 @@ class TikCategoryModel(QtGui.QStandardItemModel):
     @staticmethod
     def check_data(structure_object):
         """checks if this is a proper structural data"""
-        if not isinstance(structure_object, category.Category):
-            raise Exception("The data that feeds into the TikListModel must be a Category object")
-        return structure_object
+        pass
+        # if not isinstance(structure_object, category.Category):
+        #     raise Exception("The data that feeds into the TikListModel must be a Category object")
+        # return structure_object
 
 class TikCategoryView(QtWidgets.QTreeView):
     def __init__(self, parent=None):
