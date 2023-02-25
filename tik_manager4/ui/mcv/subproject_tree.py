@@ -1,8 +1,10 @@
 import sys
 import os
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
-from tik_manager4.ui.dialog.new_subproject import NewSubproject, EditSubproject
-from tik_manager4.ui.dialog.new_task import NewTask
+# from tik_manager4.ui.dialog.new_subproject import NewSubproject, EditSubproject
+import tik_manager4.ui.dialog.new_subproject
+# from tik_manager4.ui.dialog.new_task import NewTask
+import tik_manager4.ui.dialog.new_task
 from tik_manager4.ui.dialog.feedback import Feedback
 # from tik_manager4.objects import main
 from tik_manager4.objects import guard
@@ -376,7 +378,7 @@ class TikSubView(QtWidgets.QTreeView):
     def new_sub_project(self, item):
         # first check for the user permission:
         if self.model.project._check_permissions(level=2) != -1:
-            _dialog = NewSubproject(self.model.project, parent_sub=item.subproject, parent=self)
+            _dialog = tik_manager4.ui.dialog.new_subproject.NewSubproject(self.model.project, parent_sub=item.subproject, parent=self)
             state = _dialog.exec_()
             if state:
                 # TODO: is this overcomplicated?
@@ -399,7 +401,7 @@ class TikSubView(QtWidgets.QTreeView):
         # first check for the user permission:
         if self.model.project._check_permissions(level=2) != -1:
             pass
-            _dialog = EditSubproject(self.model.project, parent_sub=item.subproject, parent=self)
+            _dialog = tik_manager4.ui.dialog.new_subproject.EditSubproject(self.model.project, parent_sub=item.subproject, parent=self)
             state = _dialog.exec_()
             if state:
                 # re-populate the model
@@ -411,7 +413,7 @@ class TikSubView(QtWidgets.QTreeView):
     def new_task(self, item):
         # first check for the user permission:
         # if self.model.project._check_permissions(level=2) != -1:
-        _dialog = NewTask(self.model.project, parent_sub=item.subproject, parent=self)
+        _dialog = tik_manager4.ui.dialog.new_task.NewTask(self.model.project, parent_sub=item.subproject, parent=self)
         state = _dialog.exec_()
         if state:
                 # emit clicked signal
