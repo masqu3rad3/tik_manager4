@@ -106,7 +106,7 @@ class TikSubModel(QtGui.QStandardItemModel):
             current = queue.pop(0)
             parent = current[0]
             sub = current[1]
-            sub.scan_tasks()
+            # sub.scan_tasks()
             parent_row = current[2]
 
             for neighbour in list(sub.subs.values()):
@@ -122,7 +122,7 @@ class TikSubModel(QtGui.QStandardItemModel):
                     _item = self.append_sub(neighbour, parent_row)
 
                     # add tasks
-                    neighbour.scan_tasks()
+                    # neighbour.scan_tasks()
                     visited.append(neighbour)
                     queue.append([sub_data, neighbour, _item])
 
@@ -180,6 +180,7 @@ class TikSubView(QtWidgets.QTreeView):
         self.setUniformRowHeights(True)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
+
         self.model = None
         self.proxy_model = None
         if project_obj:
@@ -198,6 +199,7 @@ class TikSubView(QtWidgets.QTreeView):
 
         self.expandAll()
         self._recursive_task_scan = False
+
 
     def get_selected_item(self):
         idx = self.currentIndex()

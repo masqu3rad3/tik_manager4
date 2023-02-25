@@ -301,6 +301,7 @@ class Subproject(Entity):
             else:
                 if existing_task.is_modified():
                     existing_task.reload()
+        # print("DEBUG: Scanned tasks for {0}".format(self._name))
         return self._tasks
 
     def add_task(self, name, categories, task_type=None):
