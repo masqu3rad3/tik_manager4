@@ -115,6 +115,7 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 
     def set_task(self, task):
         """Set the task"""
+        print(task.name)
         self.task = task
         self.populate_categories(self.task.categories)
 
@@ -135,13 +136,13 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 
     def on_category_change(self, index):
         """When the category tab changes"""
-        print(index)
+        # print(index)
         # get the current tab name
         current_tab_name = self.category_tab_widget.tabText(index)
-        print(current_tab_name)
+        # print(current_tab_name)
         if self.work_radio_button.isChecked():
             works = self.task.categories[current_tab_name].works
-            print(works)
+            # print(works)
             self.populate_work()
         else:
             self.populate_publish()

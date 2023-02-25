@@ -73,6 +73,7 @@ if __name__ == '__main__':
     # # #
     sub_projects.sub_view.item_selected.connect(tasks.task_view.set_tasks)
     sub_projects.sub_view.add_item.connect(tasks.task_view.add_task)
+    tasks.task_view.item_selected.connect(categories.set_task)
     # #
     test_dialog.show()
     #

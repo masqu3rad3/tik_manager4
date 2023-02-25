@@ -74,6 +74,7 @@ class TikTaskModel(QtGui.QStandardItemModel):
 
 
 class TikTaskView(QtWidgets.QTreeView):
+    item_selected = QtCore.Signal(object)
     def __init__(self):
         """Initialize the view"""
         super(TikTaskView, self).__init__()
@@ -102,7 +103,23 @@ class TikTaskView(QtWidgets.QTreeView):
         self.header().setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.header().customContextMenuRequested.connect(self.header_right_click_menu)
 
+        self.clicked.connect(self.item_clicked)
+
         self.expandAll()
+
+    def item_clicked(self, idx):
+        """Emit the item_selected signal when an item is clicked"""
+        # make sure the index is pointing to the first column
+        idx = idx.sibling(idx.row(), 0)
+
+        # the id needs to mapped from proxy to source
+        index = self.proxy_model.mapToSource(idx)
+        _item = self.model.itemFromIndex(index)
+
+        self.item_selected.emit(_item.task)
+
+
+
 
     def expandAll(self):
         """Expand all the items in the view"""
@@ -158,6 +175,7 @@ class TikTaskView(QtWidgets.QTreeView):
         self.proxy_model.setFilterRegExp(QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))
         # exclude TikTaskItems from the filter
         # self.proxy_model.setFilterKeyColumn(0)
+
 
     def header_right_click_menu(self, position):
         menu = QtWidgets.QMenu(self)
