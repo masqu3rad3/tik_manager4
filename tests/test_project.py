@@ -437,7 +437,7 @@ class TestProject:
 
         # when an existing work name used, it should iterate a version over existing work
         this_should_have_2_versions = ultraman_task.categories["Rig"].create_work("varC")
-        assert this_should_have_2_versions.version_count() == 2
+        assert this_should_have_2_versions.version_count == 2
 
 
 

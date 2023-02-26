@@ -8,6 +8,7 @@ from tik_manager4.core import filelog
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager")
 
+
 class IO(dict):
     # def __init__(self, file_name=None, folder_name=None, root_path=None, file_path=None):
     def __init__(self, file_path=None):
@@ -16,12 +17,6 @@ class IO(dict):
         self.default_extension = ".json"
         if file_path:
             self.file_path = file_path
-        # elif file_name:
-        #     self.folder_name = folder_name or ""
-        #     root_path = root_path or os.path.normpath(os.path.expanduser("~"))
-        #     self.file_path = os.path.join(root_path, self.folder_name, file_name)
-        # else:
-        #     log.error("IO class cannot initialized. At least a file name or file_path must be defined")
 
     @property
     def file_path(self):
@@ -50,7 +45,8 @@ class IO(dict):
         self._dump_json(data, file_path)
         return file_path
 
-    def _load_json(self, file_path):
+    @staticmethod
+    def _load_json(file_path):
         """Loads the given json file"""
         if os.path.isfile(file_path):
             try:
@@ -69,19 +65,20 @@ class IO(dict):
     def file_exists(file_path):
         return os.path.isfile(file_path)
 
-    def _dump_json(self, data, file_path):
+    @staticmethod
+    def _dump_json(data, file_path):
         """Saves the data to the json file"""
         with open(file_path, "w") as f:
             json.dump(data, f, indent=4)
 
     @staticmethod
-    def folder_check(checkpath):
+    def folder_check(check_path):
         """Checks if the folder exists, creates it if doesnt"""
-        basefolder = os.path.split(checkpath)[0] # in case it is a file path
+        base_folder = os.path.split(check_path)[0]  # in case it is a file path
 
-        if not os.path.isdir(os.path.normpath(basefolder)):
-            os.makedirs(os.path.normpath(basefolder))
-        return checkpath
+        if not os.path.isdir(os.path.normpath(base_folder)):
+            os.makedirs(os.path.normpath(base_folder))
+        return check_path
 
     def get_modified_time(self):
         """Get the modified time of the file"""

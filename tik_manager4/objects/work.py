@@ -29,9 +29,18 @@ class Work(Settings, Entity):
         self._publishes = {}
 
     @property
+    def dcc(self):
+        return self._dcc
+
+    @property
+    def creator(self):
+        return self._creator
+
+    @property
     def publishes(self):
         return self._publishes
 
+    @property
     def version_count(self):
         """Return the number of versions."""
         return len(self._versions)
@@ -46,11 +55,11 @@ class Work(Settings, Entity):
 
         # get filepath of current version
         _version_name = "{0}_{1}_v{2}{3}".format(self._name, self._creator,
-                                                 str(self.version_count() + 1).zfill(3),
+                                                 str(self.version_count + 1).zfill(3),
                                                  file_format)
         _abs_version_path = self.get_abs_project_path(_version_name)
         _thumbnail_name = "{0}_{1}_v{2}_thumbnail.jpg".format(self._name, self._creator,
-                                                              str(self.version_count() + 1).zfill(3))
+                                                              str(self.version_count + 1).zfill(3))
         _thumbnail_path = self.get_abs_database_path("thumbnails", _thumbnail_name)
         self._io.folder_check(_abs_version_path)
 

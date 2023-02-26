@@ -48,7 +48,7 @@ class TikTaskModel(QtGui.QStandardItemModel):
     def set_tasks(self, tasks_list):
         """Set the data for the model"""
         # TODO : validate
-        self._tasks.clear()
+        # self._tasks.clear()
         self._tasks = tasks_list
 
     def populate(self):
@@ -90,6 +90,8 @@ class TikTaskView(QtWidgets.QTreeView):
         self.proxy_model.setSourceModel(self.model)
         self.proxy_model.setRecursiveFilteringEnabled(True)
         self.setSortingEnabled(True)
+        # sort it alphabetically
+        self.sortByColumn(0, QtCore.Qt.AscendingOrder)
 
         self.setModel(self.proxy_model)
 
@@ -103,9 +105,14 @@ class TikTaskView(QtWidgets.QTreeView):
         self.header().setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.header().customContextMenuRequested.connect(self.header_right_click_menu)
 
-        self.clicked.connect(self.item_clicked)
+        # self.clicked.connect(self.item_clicked)
+        # self.dataChanged.connect(self.item_clicked)
 
         self.expandAll()
+
+    def currentChanged(self, *args, **kwargs):
+        super(TikTaskView, self).currentChanged(*args, **kwargs)
+        self.item_clicked(self.currentIndex())
 
     def item_clicked(self, idx):
         """Emit the item_selected signal when an item is clicked"""
@@ -115,8 +122,8 @@ class TikTaskView(QtWidgets.QTreeView):
         # the id needs to mapped from proxy to source
         index = self.proxy_model.mapToSource(idx)
         _item = self.model.itemFromIndex(index)
-
-        self.item_selected.emit(_item.task)
+        if _item:
+            self.item_selected.emit(_item.task)
 
 
 

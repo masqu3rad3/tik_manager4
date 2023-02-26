@@ -66,6 +66,7 @@ if __name__ == '__main__':
     right_layout.addLayout(tasks)
     # # #
     categories = TikCategoryLayout()
+    categories.work_tree_view.hide_columns(["id", "path"])
     category_layout.addLayout(categories)
     # #
     test_dialog.setLayout(master_lay)
