@@ -1,4 +1,4 @@
-"""Main Modult for the Tik Manager"""
+"""Main Module for the Tik Manager"""
 
 import os
 import sys
@@ -100,13 +100,18 @@ class Main(object):
                               "subs": []
                             }
 
+        print("")
+        print("structure_data before", structure_data)
         # override defined keys
         structure_data["name"] = project_name
         structure_data.update(kwargs)
 
+        print("structure_data after", structure_data)
+
         # create structure database file
         structure = settings.Settings(file_path=structure_file)
         structure.set_data(structure_data)
+        print("structure_file", structure.get_data())
         structure.apply_settings()
 
         # define a project object to validate data and create folders
@@ -114,14 +119,18 @@ class Main(object):
             project_obj = self.project  # our main project
         else:
             project_obj = project.Project()  # this will be temporary
-
         project_obj._set(path)
+        print(self.project.absolute_path)
         project_obj.create_folders(project_obj.absolute_path)
         project_obj.create_folders(project_obj.database_path)
         project_obj.save_structure()  # This makes sure IDs are getting saved to the database file
         return 1
 
     def set_project(self, absolute_path):
+        """Set the current project."""
+        if not os.path.exists(absolute_path):
+            log.error("Project Path does not exist. Aborting")
+            return -1
         self.project._set(absolute_path)
         # add to recent projects
         self.user.add_recent_project(absolute_path)

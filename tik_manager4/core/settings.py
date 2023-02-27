@@ -19,6 +19,13 @@ class Settings(object):
             self.settings_file = file_path
 
     @property
+    def date_modified(self):
+        # convert the _time_stamp to a readable date
+
+
+        return self._time_stamp
+
+    @property
     def settings_file(self):
         return self._filePath
 

@@ -3,7 +3,8 @@ import sys
 from tik_manager4.core.settings import Settings
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog import feedback
-from tik_manager4.ui.layouts.settings_layout import SettingsLayout
+# from tik_manager4.ui.layouts.settings_layout import SettingsLayout
+import tik_manager4.ui.layouts.settings_layout
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
@@ -105,7 +106,7 @@ class NewTask(QtWidgets.QDialog):
         """Initialize UI."""
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.settings_data = Settings()
-        self.settings_layout = SettingsLayout(self.ui_definition, self.settings_data, parent=self)
+        self.settings_layout = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.ui_definition, self.settings_data, parent=self)
         self.main_layout.addLayout(self.settings_layout)
         # create a button box
         self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)

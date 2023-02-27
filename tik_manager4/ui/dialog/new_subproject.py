@@ -2,7 +2,8 @@
 from tik_manager4.core.settings import Settings
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog import feedback
-from tik_manager4.ui.layouts.settings_layout import SettingsLayout
+# from tik_manager4.ui.layouts.settings_layout import SettingsLayout
+import tik_manager4.ui.layouts.settings_layout
 from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
 
 from tik_manager4.objects import guard
@@ -73,11 +74,11 @@ class EditSubproject(QtWidgets.QDialog):
 
         scroll_layout.addStretch()
 
-        self.primary_content = SettingsLayout(self.primary_definition, self.primary_data, parent=self)
+        self.primary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.primary_definition, self.primary_data, parent=self)
         self.primary_layout.contents_layout.addLayout(self.primary_content)
-        self.secondary_content = SettingsLayout(self.secondary_definition, self.secondary_data, parent=self)
+        self.secondary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.secondary_definition, self.secondary_data, parent=self)
         self.secondary_layout.contents_layout.addLayout(self.secondary_content)
-        self.tertiary_content = SettingsLayout(self.tertiary_definition, self.tertiary_data, parent=self)
+        self.tertiary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.tertiary_definition, self.tertiary_data, parent=self)
         self.tertiary_layout.contents_layout.addLayout(self.tertiary_content)
 
         # create a button box

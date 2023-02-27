@@ -437,7 +437,7 @@ class TestProject:
 
         # when an existing work name used, it should iterate a version over existing work
         this_should_have_2_versions = ultraman_task.categories["Rig"].create_work("varC")
-        assert this_should_have_2_versions.version_count() == 2
+        assert this_should_have_2_versions.version_count == 2
 
 
 
@@ -473,11 +473,6 @@ class TestProject:
         # delete the task
         self.tik.user.set("Admin", password="1234")
         assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].delete_task("superman") == 1
-    @clean_user
-    def test_deleting_non_empty_tasks(self):
-        self.test_creating_works()
-        self.tik.user.set("Admin", password="1234")
-        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].delete_task("superboy") == 1
 
     @clean_user
     def test_deleting_empty_categories(self):
@@ -505,3 +500,8 @@ class TestProject:
         # check the log message
         assert self.tik.log.get_last_message() == ("Sending category 'Temp' from task 'batman' to purgatory.", 'warning')
 
+    @clean_user
+    def test_deleting_non_empty_tasks(self):
+        self.test_creating_works()
+        self.tik.user.set("Admin", password="1234")
+        assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].delete_task("superboy") == 1

@@ -24,7 +24,8 @@ class Category(Entity):
         self.validations = definition.get("validations", [])
         self.extracts = definition.get("extracts", [])
         self.parent_task = parent_task
-        self._relative_path = os.path.join(self.parent_task._relative_path, self.name)
+        # self._relative_path = os.path.join(self.parent_task._relative_path, self.name)
+        self._relative_path = os.path.join(self.parent_task._relative_path, self.parent_task.name, self.name)
 
     @property
     def works(self):
@@ -44,7 +45,6 @@ class Category(Entity):
         else:
             _search_dir = self.get_abs_database_path()
             _work_paths = glob(os.path.join(_search_dir, "**", "*.twork"), recursive=True)
-        #     _work_paths = [y for x in os.walk(_search_dir) for y in glob(os.path.join(x[0], '*.twork'))]
 
         # add the file if it is new. if it is not new, check the modified time and update if necessary
         for _w_path, _w_data in dict(self._works).items():
@@ -60,10 +60,6 @@ class Category(Entity):
                     existing_work.reload()
         return self._works
 
-    # def get_modified_time(self, file_path):
-    #     """Get the modified time of the file"""
-    #     return os.path.getmtime(file_path)
-
     def is_empty(self):
         """Check if the category is empty"""
         return not bool(self.works)
@@ -76,8 +72,6 @@ class Category(Entity):
         if state != 1:
             return -1
 
-        # relative_path = os.path.join(self.path, "%s.twork" % name)
-        # abs_path = os.path.join(self._guard.database_root, relative_path)
         contructed_name = self.construct_name(name)
         relative_path = os.path.join(self.path, self.guard.dcc).replace("\\", "/")
         abs_path = self.get_abs_database_path(self.guard.dcc, "%s.twork" % contructed_name)
@@ -85,7 +79,6 @@ class Category(Entity):
             # in that case instantiate the work and iterate the version.
             _work = Work(absolute_path=abs_path)
             _work.new_version(file_format=file_format)
-            # log.warning("There is a work under this category with the same name => %s" % contructed_name)
             return _work
         _work = Work(abs_path, name=contructed_name, path=relative_path)
         _work.add_property("name", contructed_name)
