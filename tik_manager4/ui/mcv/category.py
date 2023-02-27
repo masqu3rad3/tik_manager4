@@ -20,7 +20,7 @@ class TikWorkItem(QtGui.QStandardItem):
         self.work = work_obj
         #
         fnt = QtGui.QFont('Open Sans', 10)
-        fnt.setBold(True)
+        fnt.setBold(False)
         self.setEditable(False)
 
         self.setFont(fnt)
@@ -281,7 +281,13 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.work_tree_view = TikCategoryView()
         self.addWidget(self.work_tree_view)
 
-
+        self.filter_le = QtWidgets.QLineEdit()
+        self.addWidget(self.filter_le)
+        self.filter_le.textChanged.connect(self.work_tree_view.filter)
+        self.filter_le.setPlaceholderText("Filter")
+        self.filter_le.setClearButtonEnabled(True)
+        self.filter_le.setFocus()
+        self.filter_le.returnPressed.connect(self.work_tree_view.setFocus)
 
 
         self.task = None
