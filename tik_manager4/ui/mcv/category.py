@@ -106,7 +106,7 @@ class TikCategoryView(QtWidgets.QTreeView):
         self.header().setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.header().customContextMenuRequested.connect(self.header_right_click_menu)
 
-        self.clicked.connect(self.item_clicked)
+        # self.clicked.connect(self.item_clicked)
 
         self.expandAll()
 
@@ -116,6 +116,8 @@ class TikCategoryView(QtWidgets.QTreeView):
 
     def item_clicked(self, idx):
         """Emit the item_selected signal when an item is clicked"""
+        # block signals to prevent infinite loop
+        self.blockSignals(True)
         # make sure the index is pointing to the first column
         idx = idx.sibling(idx.row(), 0)
 
@@ -123,6 +125,7 @@ class TikCategoryView(QtWidgets.QTreeView):
         index = self.proxy_model.mapToSource(idx)
         _item = self.model.itemFromIndex(index)
 
+        self.blockSignals(False)
         if _item:
             self.item_selected.emit(_item.work)
         else:
@@ -267,6 +270,12 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 
     def set_task(self, task):
         """Set the task"""
+        if not task:
+            self.category_tab_widget.blockSignals(True)
+            self.work_tree_view.model.clear()
+            self.category_tab_widget.clear()
+            self.category_tab_widget.blockSignals(False)
+            return
         self.task = task
         self.populate_categories(self.task.categories)
 

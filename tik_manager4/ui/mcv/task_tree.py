@@ -124,6 +124,8 @@ class TikTaskView(QtWidgets.QTreeView):
         _item = self.model.itemFromIndex(index)
         if _item:
             self.item_selected.emit(_item.task)
+        else:
+            self.item_selected.emit(None)
 
 
 

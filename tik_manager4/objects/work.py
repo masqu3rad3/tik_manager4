@@ -48,11 +48,18 @@ class Work(Settings, Entity):
 
     def get_last_version(self):
         """Return the last version of the work."""
-        # First try to get last version from the versions list. If not found, return the total version count.
+        # First try to get last version from the versions list. If not found, return 0.
         if self._versions:
             return self._versions[-1].get("version_number", self.version_count)
         else:
             return 0
+
+    def get_version(self, version_number):
+        """Return the version dictionary by version number."""
+        for version in self._versions:
+            if version.get("version_number") == version_number:
+                return version
+
 
     def new_version(self, file_format=None, notes=""):
         """Create a new version of the work."""
