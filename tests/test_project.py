@@ -420,23 +420,23 @@ class TestProject:
 
         # create a work
         bizarro_task.categories["Model"].create_work("default")
-        bizarro_task.categories["Model"].create_work("main", file_format=".txt")
-        bizarro_task.categories["Model"].create_work("lod300", file_format=".txt")
+        bizarro_task.categories["Model"].create_work("main", file_format=".txt", notes="This is a note. Very default.")
+        bizarro_task.categories["Model"].create_work("lod300", file_format=".txt", notes="This is a note. Lod300.")
 
         bizarro_task.categories["Rig"].create_work("default")
-        bizarro_task.categories["Rig"].create_work("main", file_format=".txt")
-        bizarro_task.categories["Rig"].create_work("lod300", file_format=".txt")
+        bizarro_task.categories["Rig"].create_work("main", file_format=".txt", notes="This is a note. Very default Rig.")
+        bizarro_task.categories["Rig"].create_work("lod300", file_format=".txt", notes="This is a note. Lod300 Rig.")
 
-        ultraman_task.categories["Model"].create_work("varA")
-        ultraman_task.categories["Model"].create_work("varB")
-        ultraman_task.categories["Model"].create_work("varC")
+        ultraman_task.categories["Model"].create_work("varA", notes="This is a Model note for varA")
+        ultraman_task.categories["Model"].create_work("varB", notes="This is a Model note for varB")
+        ultraman_task.categories["Model"].create_work("varC", notes="This is a Model note for varC")
 
-        ultraman_task.categories["Rig"].create_work("varA")
-        ultraman_task.categories["Rig"].create_work("varB")
-        ultraman_task.categories["Rig"].create_work("varC")
+        ultraman_task.categories["Rig"].create_work("varA", notes="This is a note for varA")
+        ultraman_task.categories["Rig"].create_work("varB", notes="This is a note for varB")
+        ultraman_task.categories["Rig"].create_work("varC", notes="This is a note for varC")
 
         # when an existing work name used, it should iterate a version over existing work
-        this_should_have_2_versions = ultraman_task.categories["Rig"].create_work("varC")
+        this_should_have_2_versions = ultraman_task.categories["Rig"].create_work("varC", notes="this is a complete new version of varC")
         assert this_should_have_2_versions.version_count == 2
 
 

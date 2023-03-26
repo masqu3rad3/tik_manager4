@@ -12,8 +12,8 @@ from tik_manager4.ui.mcv.version import TikVersionLayout
 import tik_manager4
 
 if __name__ == '__main__':
-    test_project_path = os.path.join(os.path.expanduser("~"), "t4_stress_test_DO_NOT_USE")
-    # test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
+    # test_project_path = os.path.join(os.path.expanduser("~"), "t4_stress_test_DO_NOT_USE")
+    test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
     # test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_project_DO_NOT_USE")
 
     if not os.path.exists(test_project_path):
@@ -84,8 +84,9 @@ if __name__ == '__main__':
     sub_projects.sub_view.item_selected.connect(tasks.task_view.set_tasks)
     sub_projects.sub_view.add_item.connect(tasks.task_view.add_task)
     tasks.task_view.item_selected.connect(categories.set_task)
+    categories.work_tree_view.item_selected.connect(versions.set_base)
     # #
     test_dialog.show()
-    #
+
     # view.show()
     sys.exit(app.exec_())

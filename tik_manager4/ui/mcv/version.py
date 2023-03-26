@@ -34,11 +34,29 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.version_dropdown.currentIndexChanged.connect(self.version_changed)
 
     def set_base(self, base):
+        self.clear()
+        if not base:
+            # only clear
+            return
         self.base = base
-        self.populate_versions()
+        self.populate_versions(base._versions)
 
+    def clear(self):
+        self.version_dropdown.clear()
+        self.notes_editor.clear()
+        self.thumbnail.clear()
     def populate_versions(self, versions):
-        pass
+        """Populate the version dropdown with the versions from the base object."""
+        for version in versions:
+            # add the version number to the dropdown. Version number is integer, convert it to string
+            self.version_dropdown.addItem(str(version.get("version_number")))
+            # add the notes to the notes editor
+            # self.notes_editor.appendPlainText(version.get("notes"))
+            self.notes_editor.setPlainText(version.get("notes"))
+            # add the thumbnail to the thumbnail widget
+            self.thumbnail.setPixmap(QtGui.QPixmap(version.get("thumbnail_path")))
+        # alyways select the last version
+        self.version_dropdown.setCurrentIndex(self.version_dropdown.count() - 1)
 
     def version_changed(self):
         pass

@@ -91,6 +91,7 @@ class NewTask(QtWidgets.QDialog):
                 "type": "string",
                 "value": self._parent_sub.path,
                 "tooltip": "Path of the new task.",
+                "editable": False,
             },
             "categories": {
                 "display_name": "Categories :",

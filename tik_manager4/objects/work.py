@@ -54,7 +54,7 @@ class Work(Settings, Entity):
         else:
             return 0
 
-    def new_version(self, file_format=None):
+    def new_version(self, file_format=None, notes=""):
         """Create a new version of the work."""
 
         # validate file format
@@ -83,8 +83,11 @@ class Work(Settings, Entity):
         _version = {
             "version_number": _version_number,
             "workstation": socket.gethostname(),
-            "thumbnail": os.path.join(self._relative_path, "thumbnails", _thumbnail_name).replace("\\", "/"),
-            "scene_path": os.path.join(self._relative_path, _version_name).replace("\\", "/"),
+            "notes": notes,
+            # "thumbnail": os.path.join(self._relative_path, "thumbnails", _thumbnail_name).replace("\\", "/"),
+            "thumbnail": os.path.join("thumbnails", _thumbnail_name).replace("\\", "/"),
+            # "scene_path": os.path.join(self._relative_path, _version_name).replace("\\", "/"),
+            "scene_path": os.path.join("", _version_name).replace("\\", "/"),
             "user": self.guard.user,
             "preview": "",
         }
