@@ -1,7 +1,9 @@
 """UI Layout for work and publish objects."""
+import os.path
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.core import filelog
+from tik_manager4.ui import pick
 from tik_manager4.ui.dialog.feedback import Feedback
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
@@ -28,6 +30,16 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         notes_layout.addWidget(self.notes_editor)
 
         self.thumbnail = ImageWidget()
+        self.empty_pixmap = pick.image("empty_thumbnail.png")
+        # self.empty_pixmap = QtGui.QPixmap(":/images/CSS/rc/empty_thumbnail.png")
+        self.thumbnail.setToolTip("Right Click for replace options")
+        self.thumbnail.setProperty("image", True)
+        self.thumbnail.setPixmap(self.empty_pixmap)
+
+        self.thumbnail.setMinimumSize(QtCore.QSize(221, 124))
+        self.thumbnail.setFrameShape(QtWidgets.QFrame.Box)
+        self.thumbnail.setScaledContents(True)
+        self.thumbnail.setAlignment(QtCore.Qt.AlignCenter)
         self.addWidget(self.thumbnail)
 
         # SIGNALS
@@ -84,7 +96,11 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.notes_editor.clear()
         self.thumbnail.clear()
         self.notes_editor.setPlainText(_version.get("notes"))
-        self.thumbnail.setPixmap(QtGui.QPixmap(_version.get("thumbnail_path")))
+        _thumbnail_path = self.base.get_abs_database_path(_version.get("thumbnail", ""))
+        if os.path.isfile(_thumbnail_path):
+            self.thumbnail.setPixmap(QtGui.QPixmap(_thumbnail_path))
+        else:
+            self.thumbnail.setPixmap(self.empty_pixmap)
 
 class ImageWidget(QtWidgets.QLabel):
     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
