@@ -303,7 +303,6 @@ class Subproject(Entity):
             else:
                 if existing_task.is_modified():
                     existing_task.reload()
-        # print("DEBUG: Scanned tasks for {0}".format(self._name))
         return self._tasks
 
     def add_task(self, name, categories, task_type=None):
@@ -483,11 +482,6 @@ class Subproject(Entity):
             if state != 1:
                 return -1
 
-        print("=================")
-        print("=================")
-        print(kill_sub.path)
-        print("=================")
-        print("=================")
         parent_path = os.path.dirname(kill_sub.path) or ""
         parent_sub = self.find_sub_by_path(parent_path)
         del parent_sub.subs[kill_sub.name]
