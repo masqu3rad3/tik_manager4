@@ -440,7 +440,10 @@ class TikSubView(QtWidgets.QTreeView):
                     return
             state = self.model.project.delete_sub_project(uid=item.subproject.id)
             if state != -1:
-                self.model.removeRow(item.row(), item.parent().index())
+                _parent = item.parent()
+                _index = _parent.index() if _parent else QtCore.QModelIndex()
+                # _index = _parent.index() if _parent else 0
+                self.model.removeRow(item.row(), _index)
 
                 # after removing the row, find the current selected one and emit the clicked signal
                 self.get_tasks(self.currentIndex())

@@ -166,6 +166,8 @@ class Subproject(Entity):
         """Create the subproject from the data dictionary.
         This is for building back the hierarchy from json data
         """
+        # first clear the subprojects
+        self._sub_projects = {}
         persistent_keys = ["id", "name", "path", "subs"]
         visited = []
         queue = []
@@ -479,6 +481,11 @@ class Subproject(Entity):
             if state != 1:
                 return -1
 
+        print("=================")
+        print("=================")
+        print(kill_sub.path)
+        print("=================")
+        print("=================")
         parent_path = os.path.dirname(kill_sub.path) or ""
         parent_sub = self.find_sub_by_path(parent_path)
         del parent_sub.subs[kill_sub.name]
@@ -489,7 +496,8 @@ class Subproject(Entity):
         """Delete the folders of the subproject."""
         sub = sub or self
         folder = os.path.normpath(os.path.join(root, sub.path))
-        shutil.rmtree(folder)
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
 
     def create_folders(self, root, sub=None):
         """Create folders for subprojects and categories below this starting from 'root' path"""
