@@ -5,8 +5,7 @@ from tik_manager4.dcc.template import DccTemplate
 
 
 class Dcc(DccTemplate):
-    @staticmethod
-    def new_scene(force=True, fps=None):
+    def new_scene(self, force=True, fps=None):
         """
         Opens a new scene
 
@@ -19,16 +18,16 @@ class Dcc(DccTemplate):
         """
         cmds.file(new=True, f=force)
         if fps:
-            fpsDict = {15: "game",
+            fps_dict = {15: "game",
                        24: "film",
                        25: "pal",
                        30: "ntsc",
                        48: "show",
                        50: "palf",
                        60: "ntscf"}
-            ranges = get_ranges()
-            cmds.currentUnit(time=fpsDict[fps])
-            set_ranges(ranges)
+            ranges = self.get_ranges()
+            cmds.currentUnit(time=fps_dict[fps])
+            self.set_ranges(ranges)
             cmds.currentTime(1)
 
     @staticmethod

@@ -21,7 +21,7 @@ class Category(Entity):
         # self._publishes = {}
         self.type = definition.get("type", None)
         self.display_name = definition.get("display_name", None)
-        self.validations = definition.get("validations", [])
+        self.validations = definition.get("validate", [])
         self.extracts = definition.get("extracts", [])
         self.parent_task = parent_task
         # self._relative_path = os.path.join(self.parent_task._relative_path, self.name)
@@ -64,7 +64,7 @@ class Category(Entity):
         """Check if the category is empty"""
         return not bool(self.works)
 
-    def create_work(self, name, file_format=None):
+    def create_work(self, name, file_format=None, notes=""):
         """Creates a task under the category"""
 
         # valid file_format keyword can be collected from main.dcc.formats
@@ -78,7 +78,7 @@ class Category(Entity):
         if os.path.exists(abs_path):
             # in that case instantiate the work and iterate the version.
             _work = Work(absolute_path=abs_path)
-            _work.new_version(file_format=file_format)
+            _work.new_version(file_format=file_format, notes=notes)
             return _work
         _work = Work(abs_path, name=contructed_name, path=relative_path)
         _work.add_property("name", contructed_name)
@@ -86,9 +86,9 @@ class Category(Entity):
         _work.add_property("category", self.name)
         _work.add_property("dcc", self.guard.dcc)
         _work.add_property("versions", [])
-        _work.add_property("task_id", _work.id)
+        _work.add_property("work_id", _work.id)
         _work.add_property("path", relative_path)
-        _work.new_version()
+        _work.new_version(file_format=file_format, notes=notes)
         return _work
 
     def delete_work(self, name):

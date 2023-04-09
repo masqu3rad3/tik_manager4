@@ -7,12 +7,13 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore
 from tik_manager4.ui.mcv.subproject_tree import TikProjectLayout
 from tik_manager4.ui.mcv.task_tree import TikTaskLayout
 from tik_manager4.ui.mcv.category import TikCategoryLayout
+from tik_manager4.ui.mcv.version import TikVersionLayout
 
 import tik_manager4
 
 if __name__ == '__main__':
-    test_project_path = os.path.join(os.path.expanduser("~"), "t4_stress_test_DO_NOT_USE")
-    # test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
+    # test_project_path = os.path.join(os.path.expanduser("~"), "t4_stress_test_DO_NOT_USE")
+    test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
     # test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_project_DO_NOT_USE")
 
     if not os.path.exists(test_project_path):
@@ -52,6 +53,10 @@ if __name__ == '__main__':
     category_layout = QtWidgets.QVBoxLayout(category_widget)
     category_layout.setContentsMargins(0, 0, 0, 0)
 
+    versions_widget = QtWidgets.QWidget(splitter)
+    versions_layout = QtWidgets.QVBoxLayout(versions_widget)
+    versions_layout.setContentsMargins(0, 0, 0, 0)
+
     # view = TikSubView()
     # view.set_project(tik.project)
     # view.hide_columns(["id", "path", "resolution", "fps"])
@@ -69,14 +74,19 @@ if __name__ == '__main__':
     categories.work_tree_view.hide_columns(["id", "path"])
     category_layout.addLayout(categories)
     # #
+    versions = TikVersionLayout()
+    versions_layout.addLayout(versions)
+
+
     test_dialog.setLayout(master_lay)
     # # #
     # # #
     sub_projects.sub_view.item_selected.connect(tasks.task_view.set_tasks)
     sub_projects.sub_view.add_item.connect(tasks.task_view.add_task)
     tasks.task_view.item_selected.connect(categories.set_task)
+    categories.work_tree_view.item_selected.connect(versions.set_base)
     # #
     test_dialog.show()
-    #
+
     # view.show()
     sys.exit(app.exec_())

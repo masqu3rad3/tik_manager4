@@ -19,9 +19,10 @@ class Work(Settings, Entity):
 
         self._name = self.get_property("name") or name
         self._creator = self.get_property("creator") or self.guard.user
+        self._category = self.get_property("category") or None
         self._dcc = self.get_property("dcc") or self.guard.dcc
         self._versions = self.get_property("versions") or []
-        self._reference_id = self.get_property("referenceID") or None
+        self._work_id = self.get_property("work_id") or self.id
         self._relative_path = self.get_property("path") or path
         self._software_version = self.get_property("softwareVersion") or None
         self.modified_time = None  # to compare and update if necessary
@@ -45,7 +46,22 @@ class Work(Settings, Entity):
         """Return the number of versions."""
         return len(self._versions)
 
-    def new_version(self, file_format=None):
+    def get_last_version(self):
+        """Return the last version of the work."""
+        # First try to get last version from the versions list. If not found, return 0.
+        if self._versions:
+            return self._versions[-1].get("version_number", self.version_count)
+        else:
+            return 0
+
+    def get_version(self, version_number):
+        """Return the version dictionary by version number."""
+        for version in self._versions:
+            if version.get("version_number") == version_number:
+                return version
+
+
+    def new_version(self, file_format=None, notes=""):
         """Create a new version of the work."""
 
         # validate file format
@@ -54,12 +70,13 @@ class Work(Settings, Entity):
             raise ValueError("File format is not valid.")
 
         # get filepath of current version
+        _version_number = self.get_last_version() + 1
         _version_name = "{0}_{1}_v{2}{3}".format(self._name, self._creator,
-                                                 str(self.version_count + 1).zfill(3),
+                                                 str(_version_number).zfill(3),
                                                  file_format)
         _abs_version_path = self.get_abs_project_path(_version_name)
         _thumbnail_name = "{0}_{1}_v{2}_thumbnail.jpg".format(self._name, self._creator,
-                                                              str(self.version_count + 1).zfill(3))
+                                                              str(_version_number).zfill(3))
         _thumbnail_path = self.get_abs_database_path("thumbnails", _thumbnail_name)
         self._io.folder_check(_abs_version_path)
 
@@ -71,9 +88,13 @@ class Work(Settings, Entity):
 
         # add it to the versions
         _version = {
+            "version_number": _version_number,
             "workstation": socket.gethostname(),
-            "thumbnail": os.path.join(self._relative_path, "thumbnails", _thumbnail_name).replace("\\", "/"),
-            "scene_path": os.path.join(self._relative_path, _version_name).replace("\\", "/"),
+            "notes": notes,
+            # "thumbnail": os.path.join(self._relative_path, "thumbnails", _thumbnail_name).replace("\\", "/"),
+            "thumbnail": os.path.join("thumbnails", _thumbnail_name).replace("\\", "/"),
+            # "scene_path": os.path.join(self._relative_path, _version_name).replace("\\", "/"),
+            "scene_path": os.path.join("", _version_name).replace("\\", "/"),
             "user": self.guard.user,
             "preview": "",
         }

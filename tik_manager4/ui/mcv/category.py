@@ -7,13 +7,13 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 
 
-
 class TikWorkItem(QtGui.QStandardItem):
     color_dict = {
         "working": (255, 255, 0),
         "has_publish": (0, 255, 0),
         "omit": (255, 0, 0)
     }
+
     def __init__(self, work_obj):
         super(TikWorkItem, self).__init__()
 
@@ -43,9 +43,6 @@ class TikCategoryModel(QtGui.QStandardItemModel):
 
         self._works = []
         self._publishes = []
-        #
-        # self.category = None
-        # self.set_data(structure_object)
 
     def clear(self):
         self.setRowCount(0)
@@ -78,9 +75,6 @@ class TikCategoryModel(QtGui.QStandardItemModel):
     def check_data(structure_object):
         """checks if this is a proper structural data"""
         return structure_object
-        # if not isinstance(structure_object, category.Category):
-        #     raise Exception("The data that feeds into the TikListModel must be a Category object")
-        # return structure_object
 
 
 class TikCategoryView(QtWidgets.QTreeView):
@@ -107,18 +101,23 @@ class TikCategoryView(QtWidgets.QTreeView):
 
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.right_click_menu)
-        # self.clicked.connect(self.test)
 
         # create another context menu for columns
         self.header().setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.header().customContextMenuRequested.connect(self.header_right_click_menu)
 
-        self.clicked.connect(self.item_clicked)
+        # self.clicked.connect(self.item_clicked)
 
         self.expandAll()
 
+    def currentChanged(self, *args, **kwargs):
+        super(TikCategoryView, self).currentChanged(*args, **kwargs)
+        self.item_clicked(self.currentIndex())
+
     def item_clicked(self, idx):
         """Emit the item_selected signal when an item is clicked"""
+        # block signals to prevent infinite loop
+        self.blockSignals(True)
         # make sure the index is pointing to the first column
         idx = idx.sibling(idx.row(), 0)
 
@@ -126,18 +125,11 @@ class TikCategoryView(QtWidgets.QTreeView):
         index = self.proxy_model.mapToSource(idx)
         _item = self.model.itemFromIndex(index)
 
-        # test
-        # print("name:", _item.work.name)
-        # print("creator", _item.work.creator)
-        # print("dcc:", _item.work.dcc)
-        # print("id:", _item.work.id)
-        # print("path:", _item.work.path)
-        # from datetime import datetime
-        # print("date:", datetime.fromtimestamp(_item.work.date_modified).strftime('%Y/%m/%d %H:%M:%S'))
-        # # print("time:", datetime.fromtimestamp(_item.work.date_modified).strftime('%H:%M:%S'))
-        # print("version count:", _item.work.version_count)
-
-        self.item_selected.emit(_item.work)
+        self.blockSignals(False)
+        if _item:
+            self.item_selected.emit(_item.work)
+        else:
+            self.item_selected.emit(None)
 
     def expandAll(self):
         """Expand all the items in the view"""
@@ -212,42 +204,12 @@ class TikCategoryView(QtWidgets.QTreeView):
         act_delete_sub.triggered.connect(lambda _, x=item: self.delete_task(item))
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
-    # def set_works(self, works_list):
-    #     """Set the data for the model"""
-    #     # print(tasks_gen)
-    #     # for task in tasks_gen:
-    #     #     print(task)
-    #     self.model.clear()
-    #     for task in works_list:
-    #         # print(task)
-    #         self.model.append_task(task)
-    #     # tasks = [value for item, value in tasks_dictionary.items()]
-    #     # self.model.set_tasks(tasks)
-    #     # self.model.populate()
-    #     self.expandAll()
-
-
-
-
-# class CategoryTabWidget(QtWidgets.QTabWidget):
-#     """Custom tab widget to hold the category items too"""
-#
-#     def __init__(self):
-#         super(CategoryTabWidget, self).__init__()
-#
-#     def add_category(self, category_name, category_data):
-#         # create a widget to hold the
-#
-
-
-
 
 class TikCategoryLayout(QtWidgets.QVBoxLayout):
     def __init__(self, *args, **kwargs):
         super(TikCategoryLayout, self).__init__(*args, **kwargs)
 
         self.setContentsMargins(0, 0, 0, 0)
-        # self.setSpacing(0)
 
         # create two radio buttons one for work and one for publish
         self.work_radio_button = QtWidgets.QRadioButton("Work")
@@ -258,7 +220,6 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 
         # create a horizontal layout for the radio buttons
         self.radio_button_layout = QtWidgets.QHBoxLayout()
-        # self.radio_button_layout.setContentsMargins(0, 0, 0, 0)
         self.radio_button_layout.setSpacing(6)
         self.radio_button_layout.addWidget(self.work_radio_button)
         self.radio_button_layout.addWidget(self.publish_radio_button)
@@ -296,15 +257,32 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 
         self.category_tab_widget.currentChanged.connect(self.on_category_change)
 
+        # TODO: get this from the last state of the user
+        self._last_category = None
+
+    def get_category_index(self):
+        """Get the index of the category."""
+        if self._last_category:
+            for idx, category in enumerate(self.task.categories.keys()):
+                if category == self._last_category:
+                    return idx
+        return 0
+
     def set_task(self, task):
         """Set the task"""
+        if not task:
+            self.category_tab_widget.blockSignals(True)
+            self.work_tree_view.model.clear()
+            self.category_tab_widget.clear()
+            self.category_tab_widget.blockSignals(False)
+            return
         self.task = task
         self.populate_categories(self.task.categories)
 
-        # TODO: Instead of setting the current index to 0, try set it to the last tab that was open
         # set the current tab to the first tab
-        self.category_tab_widget.setCurrentIndex(0)
-        self.on_category_change(0)
+        idx = self.get_category_index()
+        self.category_tab_widget.setCurrentIndex(idx)
+        self.on_category_change(idx)
         self.work_tree_view.expandAll()
 
     def populate_categories(self, categories):
@@ -323,25 +301,13 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 
     def on_category_change(self, index):
         """When the category tab changes"""
-        # print(index)
         # get the current tab name
-        current_tab_name = self.category_tab_widget.tabText(index)
-        # print(current_tab_name)
+        self._last_category = self.category_tab_widget.tabText(index)
         if self.work_radio_button.isChecked():
-            works = self.task.categories[current_tab_name].works
+            works = self.task.categories[self._last_category].works
             self.work_tree_view.model.set_works(works.values())
-            self.populate_work()
         else:
-            self.populate_publish()
-        pass
-
-    def populate_work(self):
-        """Populate the work tab"""
-        pass
-
-    def populate_publish(self):
-        """Populate the publish tab"""
-        pass
+            pass
 
 
 

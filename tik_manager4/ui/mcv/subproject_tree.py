@@ -401,11 +401,15 @@ class TikSubView(QtWidgets.QTreeView):
         _dialog = tik_manager4.ui.dialog.new_task.NewTask(self.model.project, parent_sub=item.subproject, parent=self)
         state = _dialog.exec_()
         if state:
+            print(state)
             # emit clicked signal
             self.add_item.emit(_dialog.get_created_task())
         else:
-            message, title = self.model.project.log.get_last_message()
-            self._feedback.pop_info(title.capitalize(), message)
+            pass
+            # print(state)
+            # message, title = self.model.project.log.get_last_message()
+            # self._feedback.pop_info(title.capitalize(), message)
+
 
     def delete_sub_project(self, item):
         # Prompt the user to confirm the deletion
