@@ -401,6 +401,8 @@ class Subproject(Entity):
 
     def find_sub_by_id(self, uid):
         """Find the subproject by id."""
+        if self.id == uid:
+            return self
         queue = list(self.subs.values())
         while queue:
             current = queue.pop(0)

@@ -13,7 +13,7 @@ class Task(Settings, Entity):
     def __init__(self, absolute_path,
                  name=None,
                  categories=None,
-                 path=None,
+                 path="",
                  file_name=None,
                  task_type=None,
                  parent_sub=None,

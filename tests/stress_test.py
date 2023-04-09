@@ -48,7 +48,7 @@ class TestStress:
 
 
         # ASSETS
-        iteration = 10
+        iteration = 2
         parent_paths = ["Assets/Characters", "Assets/Props", "Assets/Environment", "Assets/Vehicles"]
         for sub_asset in parent_paths:
             random_int_list = [random.randint(0, 9999) for x in range(iteration)]

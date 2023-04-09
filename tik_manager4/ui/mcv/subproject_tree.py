@@ -182,6 +182,15 @@ class TikSubView(QtWidgets.QTreeView):
         self.expandAll()
         self._recursive_task_scan = False
 
+    def mousePressEvent(self, event):
+        super(TikSubView, self).mousePressEvent(event)
+        index = self.indexAt(event.pos())  # returns  -1 if click is outside
+        if index.row() == -1:
+            self.clearSelection()
+            # self.deselected.emit(True)
+            self.get_tasks(QtCore.QModelIndex())
+        QtWidgets.QTreeView.mousePressEvent(self, event)
+
     def currentChanged(self, *args, **kwargs):
         super(TikSubView, self).currentChanged(*args, **kwargs)
         self.get_tasks(self.currentIndex())
@@ -263,7 +272,7 @@ class TikSubView(QtWidgets.QTreeView):
 
         # the id needs to mapped from proxy to source
         index = self.proxy_model.mapToSource(idx)
-        _item = self.model.itemFromIndex(index)
+        _item = self.model.itemFromIndex(index) or self.model.root_item
         if _item:
             _tasks = self.collect_tasks(_item.subproject, recursive=self._recursive_task_scan)
             self.item_selected.emit(_tasks)
@@ -326,7 +335,6 @@ class TikSubView(QtWidgets.QTreeView):
         indexes = self.sender().selectedIndexes()
         index_under_pointer = self.indexAt(position)
         if not index_under_pointer.isValid():
-            # print("hedehot")
             # If nothing is selected, that means we are referring to the root item
             item = self.model.root_item
             # return
@@ -411,15 +419,14 @@ class TikSubView(QtWidgets.QTreeView):
     def new_task(self, item):
         # first check for the user permission:
         # if self.model.project._check_permissions(level=2) != -1:
+
         _dialog = tik_manager4.ui.dialog.new_task.NewTask(self.model.project, parent_sub=item.subproject, parent=self)
         state = _dialog.exec_()
         if state:
-            print(state)
             # emit clicked signal
             self.add_item.emit(_dialog.get_created_task())
         else:
             pass
-            # print(state)
             # message, title = self.model.project.log.get_last_message()
             # self._feedback.pop_info(title.capitalize(), message)
 

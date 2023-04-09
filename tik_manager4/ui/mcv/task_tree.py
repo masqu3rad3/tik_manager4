@@ -127,9 +127,6 @@ class TikTaskView(QtWidgets.QTreeView):
         else:
             self.item_selected.emit(None)
 
-
-
-
     def expandAll(self):
         """Expand all the items in the view"""
         super(TikTaskView, self).expandAll()
@@ -167,7 +164,7 @@ class TikTaskView(QtWidgets.QTreeView):
         #     print(task)
         self.model.clear()
         for task in tasks_gen:
-            # print(task)
+            print(task)
             self.model.append_task(task)
         # tasks = [value for item, value in tasks_dictionary.items()]
         # self.model.set_tasks(tasks)
@@ -184,7 +181,6 @@ class TikTaskView(QtWidgets.QTreeView):
         self.proxy_model.setFilterRegExp(QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))
         # exclude TikTaskItems from the filter
         # self.proxy_model.setFilterKeyColumn(0)
-
 
     def header_right_click_menu(self, position):
         menu = QtWidgets.QMenu(self)

@@ -152,6 +152,13 @@ class Project(Subproject):
 
     def create_task(self, name, categories=None, parent_uid=None, parent_path=None):
         """Creates a task and stores it in persistent database"""
+        print("DEBUG: create_task")
+        print("name", name)
+        print("categories", categories)
+        print("parent_uid", parent_uid)
+        print("parent_path", parent_path)
+        # print("DEBUG ------END")
+
 
         if not parent_uid and not parent_path:
             self.log.error("Requires at least a parent uid or parent path ")
@@ -160,12 +167,14 @@ class Project(Subproject):
         # if state != 1:
         #     return -1
         parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
+        print("parent_sub", parent_sub)
         # confirm category exists
         # category_object = parent_sub.get_category(category)
         # if category_object == -1:
         #     log.error("Category %s does not exist" % category)
         #     return -1
         task = parent_sub.add_task(name, categories=categories)
+        print("task", task)
         if not task:
             return -1  # There is a task with same absolute path
         return task
