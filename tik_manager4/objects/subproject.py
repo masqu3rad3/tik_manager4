@@ -166,6 +166,8 @@ class Subproject(Entity):
         """Create the subproject from the data dictionary.
         This is for building back the hierarchy from json data
         """
+        # first clear the subprojects
+        self._sub_projects = {}
         persistent_keys = ["id", "name", "path", "subs"]
         visited = []
         queue = []
@@ -301,7 +303,6 @@ class Subproject(Entity):
             else:
                 if existing_task.is_modified():
                     existing_task.reload()
-        # print("DEBUG: Scanned tasks for {0}".format(self._name))
         return self._tasks
 
     def add_task(self, name, categories, task_type=None):
@@ -399,6 +400,8 @@ class Subproject(Entity):
 
     def find_sub_by_id(self, uid):
         """Find the subproject by id."""
+        if self.id == uid:
+            return self
         queue = list(self.subs.values())
         while queue:
             current = queue.pop(0)
@@ -489,7 +492,8 @@ class Subproject(Entity):
         """Delete the folders of the subproject."""
         sub = sub or self
         folder = os.path.normpath(os.path.join(root, sub.path))
-        shutil.rmtree(folder)
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
 
     def create_folders(self, root, sub=None):
         """Create folders for subprojects and categories below this starting from 'root' path"""

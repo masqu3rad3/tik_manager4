@@ -62,6 +62,7 @@ class TikSubModel(QtGui.QStandardItemModel):
         self.setHorizontalHeaderLabels(self.columns)
 
         self.project = None
+        self.root_item = None
         self.set_data(structure_object)
 
     def set_data(self, structure_object):
@@ -85,7 +86,9 @@ class TikSubModel(QtGui.QStandardItemModel):
         # Each queue item is a list.
         # first element is the dictionary point and second is the subproject object
         parent_row = self
+        self.root_item = TikSubItem(self.project)
         queue.append([all_data, self.project, parent_row])
+        # queue.append([all_data, self.project, self.root_item])
 
         while queue:
             current = queue.pop(0)
@@ -179,6 +182,15 @@ class TikSubView(QtWidgets.QTreeView):
         self.expandAll()
         self._recursive_task_scan = False
 
+    def mousePressEvent(self, event):
+        super(TikSubView, self).mousePressEvent(event)
+        index = self.indexAt(event.pos())  # returns  -1 if click is outside
+        if index.row() == -1:
+            self.clearSelection()
+            # self.deselected.emit(True)
+            self.get_tasks(QtCore.QModelIndex())
+        QtWidgets.QTreeView.mousePressEvent(self, event)
+
     def currentChanged(self, *args, **kwargs):
         super(TikSubView, self).currentChanged(*args, **kwargs)
         self.get_tasks(self.currentIndex())
@@ -260,7 +272,7 @@ class TikSubView(QtWidgets.QTreeView):
 
         # the id needs to mapped from proxy to source
         index = self.proxy_model.mapToSource(idx)
-        _item = self.model.itemFromIndex(index)
+        _item = self.model.itemFromIndex(index) or self.model.root_item
         if _item:
             _tasks = self.collect_tasks(_item.subproject, recursive=self._recursive_task_scan)
             self.item_selected.emit(_tasks)
@@ -323,11 +335,14 @@ class TikSubView(QtWidgets.QTreeView):
         indexes = self.sender().selectedIndexes()
         index_under_pointer = self.indexAt(position)
         if not index_under_pointer.isValid():
-            return
-        # make sure the idx is pointing to the first column
-        index_under_pointer = index_under_pointer.sibling(index_under_pointer.row(), 0)
-        mapped_index = self.proxy_model.mapToSource(index_under_pointer)
-        item = self.model.itemFromIndex(mapped_index)
+            # If nothing is selected, that means we are referring to the root item
+            item = self.model.root_item
+            # return
+        else:
+            # make sure the idx is pointing to the first column
+            index_under_pointer = index_under_pointer.sibling(index_under_pointer.row(), 0)
+            mapped_index = self.proxy_model.mapToSource(index_under_pointer)
+            item = self.model.itemFromIndex(mapped_index)
         if len(indexes) > 0:
             level = 0
             index = indexes[0]
@@ -368,15 +383,21 @@ class TikSubView(QtWidgets.QTreeView):
                 # TODO: is this overcomplicated?
                 _new_sub = _dialog.get_created_subproject()
                 # Find the parent item _new_sub id
-                _item_at_id_column = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)[0]
-                # find the index of the item
-                _index = self.model.indexFromItem(_item_at_id_column)
-                # make sure the index is pointing to the first column
-                first_column_index = _index.sibling(_index.row(), 0)
-                # get the item from index
-                _item = self.model.itemFromIndex(first_column_index)
-                # The reason we are doing this is that we may change the parent of the item on new subproject UI
+                _items = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)
+                if _items:
+                    _item_at_id_column = _items[0]
+                    # _item_at_id_column = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)[0]
+                    # find the index of the item
+                    _index = self.model.indexFromItem(_item_at_id_column)
+                    # make sure the index is pointing to the first column
+                    first_column_index = _index.sibling(_index.row(), 0)
+                    # get the item from index
+                    _item = self.model.itemFromIndex(first_column_index)
+                    # The reason we are doing this is that we may change the parent of the item on new subproject UI
+                else:
+                    _item = self.model
                 self.model.append_sub(_new_sub, _item)
+                # self.model.append_sub(_new_sub, self.model)
         else:
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
@@ -398,15 +419,14 @@ class TikSubView(QtWidgets.QTreeView):
     def new_task(self, item):
         # first check for the user permission:
         # if self.model.project._check_permissions(level=2) != -1:
+
         _dialog = tik_manager4.ui.dialog.new_task.NewTask(self.model.project, parent_sub=item.subproject, parent=self)
         state = _dialog.exec_()
         if state:
-            print(state)
             # emit clicked signal
             self.add_item.emit(_dialog.get_created_task())
         else:
             pass
-            # print(state)
             # message, title = self.model.project.log.get_last_message()
             # self._feedback.pop_info(title.capitalize(), message)
 
@@ -427,7 +447,10 @@ class TikSubView(QtWidgets.QTreeView):
                     return
             state = self.model.project.delete_sub_project(uid=item.subproject.id)
             if state != -1:
-                self.model.removeRow(item.row(), item.parent().index())
+                _parent = item.parent()
+                _index = _parent.index() if _parent else QtCore.QModelIndex()
+                # _index = _parent.index() if _parent else 0
+                self.model.removeRow(item.row(), _index)
 
                 # after removing the row, find the current selected one and emit the clicked signal
                 self.get_tasks(self.currentIndex())

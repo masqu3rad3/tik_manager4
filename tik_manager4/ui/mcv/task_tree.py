@@ -127,9 +127,6 @@ class TikTaskView(QtWidgets.QTreeView):
         else:
             self.item_selected.emit(None)
 
-
-
-
     def expandAll(self):
         """Expand all the items in the view"""
         super(TikTaskView, self).expandAll()
@@ -162,12 +159,8 @@ class TikTaskView(QtWidgets.QTreeView):
 
     def set_tasks(self, tasks_gen):
         """Set the data for the model"""
-        # print(tasks_gen)
-        # for task in tasks_gen:
-        #     print(task)
         self.model.clear()
         for task in tasks_gen:
-            # print(task)
             self.model.append_task(task)
         # tasks = [value for item, value in tasks_dictionary.items()]
         # self.model.set_tasks(tasks)
@@ -184,7 +177,6 @@ class TikTaskView(QtWidgets.QTreeView):
         self.proxy_model.setFilterRegExp(QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))
         # exclude TikTaskItems from the filter
         # self.proxy_model.setFilterKeyColumn(0)
-
 
     def header_right_click_menu(self, position):
         menu = QtWidgets.QMenu(self)
@@ -225,15 +217,19 @@ class TikTaskView(QtWidgets.QTreeView):
         # right_click_menu = QtWidgets.QMenu()
         # act_new_task = right_click_menu.addAction(self.tr("New Task"))
         # act_new_sub.triggered.connect(lambda _, x=item: self.new_sub_project(item))
-        act_edit_sub = right_click_menu.addAction(self.tr("Edit Task"))
-        act_edit_sub.triggered.connect(lambda _, x=item: self.edit_sub_project(item))
-        act_delete_sub = right_click_menu.addAction(self.tr("Delete Task"))
-        act_delete_sub.triggered.connect(lambda _, x=item: self.delete_task(item))
+        act_edit_task = right_click_menu.addAction(self.tr("Edit Task"))
+        act_edit_task.triggered.connect(lambda _, x=item: self.edit_task(item))
+        act_delete_task = right_click_menu.addAction(self.tr("Delete Task"))
+        act_delete_task.triggered.connect(lambda _, x=item: self.delete_task(item))
         # act_new_sub.triggered.connect(partial(self.TreeItem_Add, level, mdlIdx))
         # act_new_category = right_click_menu.addAction(self.tr("New Category"))
         # act_new_task = right_click_menu.addAction(self.tr("New Task"))
         # act_new_task.triggered.connect(lambda _, x=item: self.new_task(item))
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
+
+    def edit_task(self, item):
+        LOG.error("Edit Task not implemented yet")
+        pass
 
     def delete_task(self, item):
         # first check for the user permission:

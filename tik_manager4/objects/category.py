@@ -24,7 +24,6 @@ class Category(Entity):
         self.validations = definition.get("validate", [])
         self.extracts = definition.get("extracts", [])
         self.parent_task = parent_task
-        # self._relative_path = os.path.join(self.parent_task._relative_path, self.name)
         self._relative_path = os.path.join(self.parent_task._relative_path, self.parent_task.name, self.name)
 
     @property

@@ -80,8 +80,8 @@ class Project(Subproject):
 
         if self._remove_sub_project(uid, path) == -1:
             return -1
-        self.save_structure()
         self._delete_folders(os.path.join(self._database_path, _remove_path))
+        self.save_structure()
         return 1
 
     # def create_sub_project(self, name, parent_uid=None, parent_path=None, resolution=None, fps=None, mode=None):
@@ -152,7 +152,6 @@ class Project(Subproject):
 
     def create_task(self, name, categories=None, parent_uid=None, parent_path=None):
         """Creates a task and stores it in persistent database"""
-
         if not parent_uid and not parent_path:
             self.log.error("Requires at least a parent uid or parent path ")
             return -1

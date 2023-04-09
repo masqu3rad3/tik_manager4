@@ -74,10 +74,14 @@ class NewTask(QtWidgets.QDialog):
         """Populate settings."""
 
         _mode = self._parent_sub.metadata.get_value("mode", "")
-        _default_categories = self.filter_category_definitions(
-            self._parent_sub.guard.category_definitions.get_data(),
-            mode=_mode
-        )
+        all_categories = self._parent_sub.guard.category_definitions.get_data()
+        if _mode == "":
+            _default_categories = all_categories
+        else:
+            _default_categories = self.filter_category_definitions(
+                all_categories,
+                mode=_mode
+            )
 
         _ui_definition = {
             "name": {
