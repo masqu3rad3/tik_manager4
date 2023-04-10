@@ -9,6 +9,8 @@ from tik_manager4.ui.mcv.task_tree import TikTaskLayout
 from tik_manager4.ui.mcv.category import TikCategoryLayout
 from tik_manager4.ui.mcv.version import TikVersionLayout
 
+from tik_manager4.ui import pick
+
 import tik_manager4
 
 if __name__ == '__main__':
@@ -29,14 +31,15 @@ if __name__ == '__main__':
     #
     master_lay = QtWidgets.QVBoxLayout(test_dialog)
     #
-    dirname = os.path.dirname(os.path.abspath(__file__))
-    tik_manager_dir = os.path.abspath(os.path.join(dirname, os.pardir, "tik_manager4", "ui"))
-    QtCore.QDir.addSearchPath("css", os.path.join(tik_manager_dir, "theme"))
-    QtCore.QDir.addSearchPath("rc", os.path.join(tik_manager_dir, "theme/rc"))
-    #
-    style_file = QtCore.QFile("css:tikManager.qss")
-    style_file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
-    test_dialog.setStyleSheet(str(style_file.readAll(), 'utf-8'))
+    # dirname = os.path.dirname(os.path.abspath(__file__))
+    # tik_manager_dir = os.path.abspath(os.path.join(dirname, os.pardir, "tik_manager4", "ui"))
+    # QtCore.QDir.addSearchPath("css", os.path.join(tik_manager_dir, "theme"))
+    # QtCore.QDir.addSearchPath("rc", os.path.join(tik_manager_dir, "theme/rc"))
+    # #
+    # style_file = QtCore.QFile("css:tikManager.qss")
+    # style_file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
+    _style_file = pick.style_file()
+    test_dialog.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
     #
     splitter = QtWidgets.QSplitter(test_dialog, orientation=QtCore.Qt.Horizontal)
     master_lay.addWidget(splitter)
