@@ -62,7 +62,7 @@ class SubprojectBrowser(PathBrowser):
         self.dialog.setLayout(layout)
 
         # create a subproject tree layout
-        sub_projects = tik_manager4.ui.mcv.subproject_tree.TikProjectLayout(self.project_object, recursive_enabled=False, right_click_enabled=False)
+        sub_projects = tik_manager4.ui.mcv.subproject_tree.TikSubProjectLayout(self.project_object, recursive_enabled=False, right_click_enabled=False)
 
         # get all the columns from the model and hide all of them except the first one
         columns = sub_projects.sub_view.model.columns

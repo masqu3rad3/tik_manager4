@@ -478,9 +478,9 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
         return super(ProxyModel, self).filterAcceptsRow(source_row, source_parent)
 
 
-class TikProjectLayout(QtWidgets.QVBoxLayout):
+class TikSubProjectLayout(QtWidgets.QVBoxLayout):
     def __init__(self, project_obj, recursive_enabled=True, right_click_enabled=True):
-        super(TikProjectLayout, self).__init__()
+        super(TikSubProjectLayout, self).__init__()
         self.project_obj = project_obj
         # add a checkbox for recursive search
         if recursive_enabled:

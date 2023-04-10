@@ -2,7 +2,8 @@
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 
-from tik_manager4.ui.mcv.subproject_tree import TikProjectLayout
+from tik_manager4.ui.mcv.project import TikProjectLayout
+from tik_manager4.ui.mcv.subproject_tree import TikSubProjectLayout
 from tik_manager4.ui.mcv.task_tree import TikTaskLayout
 from tik_manager4.ui.mcv.category import TikCategoryLayout
 from tik_manager4.ui.mcv.version import TikVersionLayout
@@ -67,7 +68,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.initialize_mcv()
 
     def initialize_mcv(self):
-        subprojects_mcv = TikProjectLayout(self.tik.project)
+        project_mcv = TikProjectLayout(self.tik.project)
+        self.project_layout.addLayout(project_mcv)
+
+        subprojects_mcv = TikSubProjectLayout(self.tik.project)
         subprojects_mcv.sub_view.hide_columns(["id", "path"])
         self.subproject_tree_layout.addLayout(subprojects_mcv)
 
