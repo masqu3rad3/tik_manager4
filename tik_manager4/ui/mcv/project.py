@@ -25,10 +25,13 @@ class TikProjectLayout(QtWidgets.QHBoxLayout):
 
         self.set_project_btn = QtWidgets.QPushButton()
         self.set_project_btn.setText("SET")
+        self.set_project_btn.setToolTip("Opens up Set Project Dialog")
         self.addWidget(self.set_project_btn)
 
         self.recent_projects_btn = QtWidgets.QPushButton()
         self.recent_projects_btn.setText("R")
+        self.recent_projects_btn.setToolTip("Set recent project")
+        self.recent_projects_btn.setMaximumWidth(30)
         self.addWidget(self.recent_projects_btn)
 
         # SIGNALS

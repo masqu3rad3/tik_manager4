@@ -17,10 +17,15 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         version_layout = QtWidgets.QHBoxLayout()
         self.addLayout(version_layout)
-        version_lbl = QtWidgets.QLabel("Version:")
-        self.version_dropdown = QtWidgets.QComboBox()
+        # version_lbl = QtWidgets.QLabel("Version:")
+        version_lbl = QtWidgets.QLabel(text="Version: ")
+        version_lbl.setMinimumSize=QtCore.QSize(60, 30)
+        version_lbl.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignRight)
+        self.version_combo = QtWidgets.QComboBox()
+        # set its minimum height to 20
+        self.version_combo.setMinimumSize(QtCore.QSize(60, 30))
         version_layout.addWidget(version_lbl)
-        version_layout.addWidget(self.version_dropdown)
+        version_layout.addWidget(self.version_combo)
 
         notes_layout = QtWidgets.QVBoxLayout()
         self.addLayout(notes_layout)
@@ -43,55 +48,48 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.addWidget(self.thumbnail)
 
         # SIGNALS
-        self.version_dropdown.currentIndexChanged.connect(self.version_changed)
+        self.version_combo.currentIndexChanged.connect(self.version_changed)
 
     def set_base(self, base):
         # self.clear()
-        self.version_dropdown.blockSignals(True)
+        self.version_combo.blockSignals(True)
         if not base:
-            self.version_dropdown.clear()
+            self.version_combo.clear()
             self.notes_editor.clear()
             self.thumbnail.clear()
             return
         self.base = base
         self.populate_versions(base._versions)
 
-        self.version_dropdown.blockSignals(False)
-    # def clear(self):
-    #     self.version_dropdown.clear()
-    #     self.notes_editor.clear()
-    #     self.thumbnail.clear()
+        self.version_combo.blockSignals(False)
+
     def populate_versions(self, versions):
         """Populate the version dropdown with the versions from the base object."""
-        self.version_dropdown.blockSignals(True)
-        self.version_dropdown.clear()
+        self.version_combo.blockSignals(True)
+        self.version_combo.clear()
         for version in versions:
             # add the version number to the dropdown. Version number is integer, convert it to string
-            self.version_dropdown.addItem(str(version.get("version_number")))
+            self.version_combo.addItem(str(version.get("version_number")))
         # alyways select the last version
-        self.version_dropdown.setCurrentIndex(self.version_dropdown.count() - 1)
+        self.version_combo.setCurrentIndex(self.version_combo.count() - 1)
 
         # get the current selected version name from the version_dropdown
         self.version_changed()
-
-        # version_number = int(self.version_dropdown.currentText())
-        # self.populate_details(version_number)
-        # print(version_name)
-        self.version_dropdown.blockSignals(False)
-
-    # def populate_details(self, version_number):
-    #     """Populate the version details."""
-    #     # find the version from the version name
-    #     _version = self.base.get_version(version_number)
-    #     self.notes_editor.clear()
-    #     self.thumbnail.clear()
-    #     self.notes_editor.setPlainText(_version.get("notes"))
-    #     self.thumbnail.setPixmap(QtGui.QPixmap(_version.get("thumbnail_path")))
+        self.version_combo.blockSignals(False)
 
     def version_changed(self):
-        # print("version changed")
-        # print(self.version_dropdown.currentText())
-        version_number = int(self.version_dropdown.currentText())
+        """When the version dropdown is changed, update the notes and thumbnail."""
+        version_number = int(self.version_combo.currentText())
+        _index = self.version_combo.currentIndex()
+        # check if the _index is the latest in combo box
+        if _index == self.version_combo.count() - 1:
+            self.version_combo.setProperty("preVersion", False)
+        else:
+            self.version_combo.setProperty("preVersion", True)
+        self.version_combo.setStyleSheet("")
+
+
+
         _version = self.base.get_version(version_number)
         self.notes_editor.clear()
         self.thumbnail.clear()
@@ -101,6 +99,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.thumbnail.setPixmap(QtGui.QPixmap(_thumbnail_path))
         else:
             self.thumbnail.setPixmap(self.empty_pixmap)
+
 
 class ImageWidget(QtWidgets.QLabel):
     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
