@@ -14,8 +14,8 @@ from tik_manager4.ui import pick
 import tik_manager4
 
 if __name__ == '__main__':
-    # test_project_path = os.path.join(os.path.expanduser("~"), "t4_stress_test_DO_NOT_USE")
-    test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
+    test_project_path = os.path.join(os.path.expanduser("~"), "t4_stress_test_DO_NOT_USE")
+    # test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
     # test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_project_DO_NOT_USE")
 
     if not os.path.exists(test_project_path):

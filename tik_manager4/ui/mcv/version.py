@@ -19,7 +19,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.addLayout(version_layout)
         # version_lbl = QtWidgets.QLabel("Version:")
         version_lbl = QtWidgets.QLabel(text="Version: ")
-        version_lbl.setMinimumSize=QtCore.QSize(60, 30)
+        # set the font size to 12
+        version_lbl.setFont(QtGui.QFont("Arial", 10))
+        version_lbl.setMinimumSize = QtCore.QSize(60, 30)
         version_lbl.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignRight)
         self.version_combo = QtWidgets.QComboBox()
         # set its minimum height to 20
@@ -29,7 +31,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         notes_layout = QtWidgets.QVBoxLayout()
         self.addLayout(notes_layout)
-        notes_lbl = QtWidgets.QLabel("Notes:")
+        notes_lbl = QtWidgets.QLabel("Notes: ")
+        notes_lbl.setFont(QtGui.QFont("Arial", 10))
         self.notes_editor = QtWidgets.QPlainTextEdit()
         notes_layout.addWidget(notes_lbl)
         notes_layout.addWidget(self.notes_editor)

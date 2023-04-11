@@ -213,7 +213,10 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 
         # create two radio buttons one for work and one for publish
         self.work_radio_button = QtWidgets.QRadioButton("Work")
+        # make the radio button label larger
+        self.work_radio_button.setFont(QtGui.QFont("Arial", 10))
         self.publish_radio_button = QtWidgets.QRadioButton("Publish")
+        self.publish_radio_button.setFont(QtGui.QFont("Arial", 10))
 
         # TODO: this needs to come from the last state of the user
         self.work_radio_button.setChecked(True)
