@@ -8,10 +8,9 @@ from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
 
 from tik_manager4.objects import guard
 
-class EditSubproject(QtWidgets.QDialog):
+class EditSubprojectDialog(QtWidgets.QDialog):
     def __init__(self, project_object, parent_sub=None, parent=None, *args, **kwargs):
-        super(EditSubproject, self).__init__(parent=parent, *args, **kwargs)
-
+        super(EditSubprojectDialog, self).__init__(parent=parent, *args, **kwargs)
         self.tik_project = project_object
         self._parent_sub = parent_sub or project_object
         self.parent = parent
@@ -36,10 +35,10 @@ class EditSubproject(QtWidgets.QDialog):
         self.secondary_content = None
         self.tertiary_content = None
 
-        self.build_ui()
-
         self._new_subproject = None
         self.button_box = None
+
+        self.build_ui()
 
     def build_ui(self):
         """Initialize the UI."""
@@ -101,6 +100,35 @@ class EditSubproject(QtWidgets.QDialog):
         """Convenient method to get the metadata override."""
         return self._parent_sub.metadata.is_overridden(key)
 
+    def _get_metadata_type(self, data):
+        """Get the correct SettingsLayout type for the metadata value."""
+        default_value = data.get("default", None)
+        enum = data.get("enum", [])
+        if enum:
+            return "combo", default_value, enum
+        elif isinstance(default_value, int):
+            return "spinnerInt", default_value, enum
+        elif isinstance(default_value, float):
+            return "spinnerFloat", default_value, enum
+        elif isinstance(default_value, str):
+            return "string", default_value, enum
+        elif isinstance(default_value, list):
+            # currently only lists with floats or ints are supported
+            # Also the list length is limited with 3 items (vector3)
+            if 2 > len(default_value) > 3:
+                raise ValueError("List length is limited to 2 or 3 items")
+            for item in default_value:
+                if not isinstance(item, (float, int)):
+                    raise ValueError("List items must be float or int")
+            # if any of the items is float, the value type is float
+            if any([isinstance(item, float) for item in default_value]):
+                _value_suffix = "Float"
+            else:
+                _value_suffix = "Int"
+            return "vector{0}{1}".format(len(default_value), _value_suffix), default_value, enum
+        else:
+            raise ValueError("Unsupported metadata type: {}".format(type(default_value)))
+
     def define_other_ui(self):
         """Define the secondary UI."""
         _secondary_ui = {}
@@ -108,38 +136,39 @@ class EditSubproject(QtWidgets.QDialog):
         # The next part of metadata is for displaying and overriding
         # the existing metadata keys in the stream
         for key, data in self.metadata_definitions.properties.items():
-            _default_value = self.get_metadata_value(key) or data.get("default", None)
-            _enum = data.get("enum", [])
+            _value_type, _default_value, _enum = self._get_metadata_type(data)
+            # _default_value = self.get_metadata_value(key) or data.get("default", None)
+            _default_value = self.get_metadata_value(key) or _default_value
             if _default_value is None:
                 raise ValueError("No default value defined for metadata {}".format(key))
 
             # define what widget to use to display and manipulate the metadata
             # if there is an enum value, it is always a combo box
-            if _enum:
-                _value_type = "combo"
-            else:
-                if isinstance(_default_value, int):
-                    _value_type = "spinnerInt"
-                elif isinstance(_default_value, float):
-                    _value_type = "spinnerFloat"
-                elif isinstance(_default_value, str):
-                    _value_type = "string"
-                elif isinstance(_default_value, list):
-                    # currently only lists with floats or ints are supported
-                    # Also the list length is limited with 3 items (vector3)
-                    if 2 > len(_default_value) > 3:
-                        raise ValueError("List length is limited to 2 or 3 items")
-                    for item in _default_value:
-                        if not isinstance(item, (float, int)):
-                            raise ValueError("List items must be float or int")
-                    # if any of the items is float, the value type is float
-                    if any([isinstance(item, float) for item in _default_value]):
-                        _value_suffix = "Float"
-                    else:
-                        _value_suffix = "Int"
-                    _value_type = "vector{0}{1}".format(len(_default_value), _value_suffix)
-                else:
-                    raise ValueError("Unknown type for metadata {}".format(key))
+            # if _enum:
+            #     _value_type = "combo"
+            # else:
+                # if isinstance(_default_value, int):
+                #     _value_type = "spinnerInt"
+                # elif isinstance(_default_value, float):
+                #     _value_type = "spinnerFloat"
+                # elif isinstance(_default_value, str):
+                #     _value_type = "string"
+                # elif isinstance(_default_value, list):
+                #     # currently only lists with floats or ints are supported
+                #     # Also the list length is limited with 3 items (vector3)
+                #     if 2 > len(_default_value) > 3:
+                #         raise ValueError("List length is limited to 2 or 3 items")
+                #     for item in _default_value:
+                #         if not isinstance(item, (float, int)):
+                #             raise ValueError("List items must be float or int")
+                #     # if any of the items is float, the value type is float
+                #     if any([isinstance(item, float) for item in _default_value]):
+                #         _value_suffix = "Float"
+                #     else:
+                #         _value_suffix = "Int"
+                #     _value_type = "vector{0}{1}".format(len(_default_value), _value_suffix)
+                # else:
+                #     raise ValueError("Unknown type for metadata {}".format(key))
 
             if key in self._parent_sub.metadata.keys():
                 # if the metadata already defined, create it with override option
@@ -202,13 +231,13 @@ class EditSubproject(QtWidgets.QDialog):
             msg, title = self.tik_project.log.get_last_message()
             self._feedback.pop_info(title, msg, critical=True)
 
-class NewSubproject(EditSubproject):
+class NewSubprojectDialog(EditSubprojectDialog):
     def __init__(self, *args, **kwargs):
         """
         Dialog for new subproject creation.
 
         """
-        super(NewSubproject, self).__init__(*args, **kwargs)
+        super(NewSubprojectDialog, self).__init__(*args, **kwargs)
         self.setWindowTitle("New Subproject")
 
     def define_primary_ui(self):
@@ -251,9 +280,9 @@ class NewSubproject(EditSubproject):
         self.secondary_content = None
         self.tertiary_content = None
 
-        self.secondary_content = SettingsLayout(self.secondary_definition, self.secondary_data, parent=self)
+        self.secondary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.secondary_definition, self.secondary_data, parent=self)
         self.secondary_layout.contents_layout.addLayout(self.secondary_content)
-        self.tertiary_content = SettingsLayout(self.tertiary_definition, self.tertiary_data, parent=self)
+        self.tertiary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.tertiary_definition, self.tertiary_data, parent=self)
         self.tertiary_layout.contents_layout.addLayout(self.tertiary_content)
 
     def _get_metadata_override(self, key):
@@ -262,7 +291,7 @@ class NewSubproject(EditSubproject):
 
     def build_ui(self):
         """Initialize the UI."""
-        super(NewSubproject, self).build_ui()
+        super(NewSubprojectDialog, self).build_ui()
 
         # create a button box
         # get the name ValidatedString widget and connect it to the ok button
@@ -327,19 +356,19 @@ class FilteredData(dict):
 
 
 # test new subproject dialog
-if __name__ == "__main__":
-    import sys
-    import os
-    import tik_manager4
-
-    app = QtWidgets.QApplication(sys.argv)
-
-    test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
-    tik = tik_manager4.initialize("Standalone")
-    tik.user.set("Admin", "1234")
-    tik.set_project(test_project_path)
-    dialog = NewSubproject(tik.project)
-    dialog.show()
-    app.exec_()
-
-    sys.exit(app.exec_())
+# if __name__ == "__main__":
+#     import sys
+#     import os
+#     import tik_manager4
+#
+#     app = QtWidgets.QApplication(sys.argv)
+#
+#     test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
+#     tik = tik_manager4.initialize("Standalone")
+#     tik.user.set("Admin", "1234")
+#     tik.set_project(test_project_path)
+#     dialog = NewSubproject(tik.project)
+#     dialog.show()
+#     app.exec_()
+#
+#     sys.exit(app.exec_())

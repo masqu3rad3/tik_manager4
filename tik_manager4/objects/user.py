@@ -292,13 +292,14 @@ class User(object):
         return self.bookmarks.get_property("bookmarkedProjects")
 
     def add_recent_project(self, path):
+        print("adding recent project")
         recents_list = self.bookmarks.get_property("recentProjects")
         if path in recents_list:
             recents_list.remove(path)
         recents_list.append(path)
         if len(recents_list) > 10:
             recents_list.pop(0)
-        self.bookmarks.apply_settings()
+        self.bookmarks.apply_settings(force=True)
 
     def get_recent_projects(self):
         return self.bookmarks.get_property("recentProjects")

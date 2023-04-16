@@ -152,10 +152,11 @@ class SettingsLayout(QtWidgets.QFormLayout):
         """Find the widget by given object name inside the widget list"""
         return self.__find_widget(object_name, self.widgets)
 
-    def clear(self):
+    def clear(self, keep_settings=False):
         """Clear the layout"""
         self._clear_layout(self)
-        self.settings_data.reset_settings()
+        if not keep_settings:
+            self.settings_data.reset_settings()
 
     def _clear_layout(self, layout):
         while layout.count():
@@ -164,42 +165,3 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 child.widget().deleteLater()
             elif child.layout():
                 self._clear_layout(child.layout())
-
-
-def main():
-    app = QtWidgets.QApplication(sys.argv)
-    test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uiSettings_testA.json")
-
-    test_settings = Settings(test_file)
-    # test_settings = Settings()
-    # test_check = {
-    #     "type": "boolean",
-    #     "value": True,
-    #     "disables": []
-    # }
-    # test_settings.add_property("testCheck", test_check)
-
-    dialog = QtWidgets.QDialog()
-    setting_lay = SettingsLayout(test_settings.get_data())
-    # setting_lay.addRow(QtWidgets.QLabel("test"), QtWidgets.QLabel("ASDFASDF"))
-
-    dialog.setLayout(setting_lay)
-    dialog.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == '__main__':
-    main()
-    # app = QtWidgets.QApplication(sys.argv)
-    # test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uiSettings_test.json")
-    #
-    # test_settings = Settings(test_file)
-    #
-    # dialog = QtWidgets.QDialog()
-    # setting_lay = SettingsLayout(test_settings)
-    # # setting_lay.addRow(QtWidgets.QLabel("test"), QtWidgets.QLabel("ASDFASDF"))
-    #
-    # dialog.setLayout(setting_lay)
-    # dialog.show()
-    # sys.exit(app.exec_())
-

@@ -376,8 +376,8 @@ class TikSubView(QtWidgets.QTreeView):
     def new_sub_project(self, item):
         # first check for the user permission:
         if self.model.project._check_permissions(level=2) != -1:
-            _dialog = tik_manager4.ui.dialog.new_subproject.NewSubproject(self.model.project,
-                                                                          parent_sub=item.subproject, parent=self)
+            _dialog = tik_manager4.ui.dialog.new_subproject.NewSubprojectDialog(self.model.project,
+                                                                                parent_sub=item.subproject, parent=self)
             state = _dialog.exec_()
             if state:
                 # TODO: is this overcomplicated?
@@ -406,8 +406,8 @@ class TikSubView(QtWidgets.QTreeView):
         # first check for the user permission:
         if self.model.project._check_permissions(level=2) != -1:
             pass
-            _dialog = tik_manager4.ui.dialog.new_subproject.EditSubproject(self.model.project,
-                                                                           parent_sub=item.subproject, parent=self)
+            _dialog = tik_manager4.ui.dialog.new_subproject.EditSubprojectDialog(self.model.project,
+                                                                                 parent_sub=item.subproject, parent=self)
             state = _dialog.exec_()
             if state:
                 # re-populate the model
