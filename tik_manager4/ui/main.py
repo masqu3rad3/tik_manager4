@@ -7,6 +7,8 @@ from tik_manager4.ui.mcv.subproject_tree import TikSubProjectLayout
 from tik_manager4.ui.mcv.task_tree import TikTaskLayout
 from tik_manager4.ui.mcv.category import TikCategoryLayout
 from tik_manager4.ui.mcv.version import TikVersionLayout
+from tik_manager4.ui.dialog.new_project import NewProjectDialog
+from tik_manager4.ui.dialog.login import LoginDialog
 from tik_manager4.ui import pick
 import tik_manager4._version as version
 import tik_manager4
@@ -66,6 +68,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.master_layout.addLayout(self.buttons_layout)
 
         self.initialize_mcv()
+        self.build_menu_bar()
 
     def initialize_mcv(self):
         project_mcv = TikProjectLayout(self.tik.project)
@@ -90,6 +93,58 @@ class MainUI(QtWidgets.QMainWindow):
         subprojects_mcv.sub_view.add_item.connect(tasks_mcv.task_view.add_task)
         tasks_mcv.task_view.item_selected.connect(categories_mcv.set_task)
         categories_mcv.work_tree_view.item_selected.connect(versions_mcv.set_base)
+
+    def build_menu_bar(self):
+        """Build the menu bar."""
+        menu_bar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 1680, 18))
+        self.setMenuBar(menu_bar)
+        # menu_bar = self.menuBar()
+        file_menu = menu_bar.addMenu("File")
+        tools_menu = menu_bar.addMenu("Tools")
+        help_menu = menu_bar.addMenu("Help")
+
+        # File Menu
+        create_project = QtWidgets.QAction("&Create New Project", self)
+        file_menu.addAction(create_project)
+        file_menu.addSeparator()
+        user_login = QtWidgets.QAction("&User Login", self)
+        file_menu.addAction(user_login)
+        set_project = QtWidgets.QAction("&Set Project", self)
+        file_menu.addAction(set_project)
+
+        # Tools Menu
+
+        # Help Menu
+        about = QtWidgets.QAction("&About", self)
+        help_menu.addAction(about)
+        online_docs = QtWidgets.QAction("&Online Documentation", self)
+        help_menu.addAction(online_docs)
+        help_menu.addSeparator()
+        check_for_updates = QtWidgets.QAction("&Check for Updates", self)
+        help_menu.addAction(check_for_updates)
+
+        # SIGNALS
+        create_project.triggered.connect(self.on_create_new_project)
+        user_login.triggered.connect(self.on_login)
+
+    def on_create_new_project(self):
+        """Create a new project."""
+        dialog = NewProjectDialog(self.tik, parent=self)
+        dialog.show()
+        if dialog.exec_():
+            self.tik.project = dialog.main_object
+            # self.__init__(self.tik.dcc)
+
+    def on_login(self):
+        """Login."""
+        dialog = LoginDialog(self.tik, parent=self)
+        dialog.show()
+        # if dialog.exec_():
+        #     self.tik = dialog.tik
+            # self.__init__(self.tik.dcc)
+
+
+
 
 # test the MainUI class
 if __name__ == "__main__":

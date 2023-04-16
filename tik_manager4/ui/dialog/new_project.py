@@ -95,6 +95,31 @@ class NewProjectDialog(EditSubprojectDialog):
             }
         return _secondary_ui, _tertiary_ui
 
+    # def on_structure_template_changed(self, index):
+    #     """Override the function to update the metadata."""
+    #
+    #     # find the structure template in self.structure_dictionary by name
+    #     self.structure_data = self.structure_list[index]
+    #     # from pprint import pprint
+    #     # pprint(self.secondary_data.properties)
+    #     # _temp = self.secondary_data.properties.copy()
+    #     # self.secondary_content.clear(keep_settings=True)
+    #     self.secondary_content.clear()
+    #     self.secondary_ui = {}
+    #     # print(self.structure_data)
+    #     # self.secondary_data.properties.update(self.structure_data)
+    #     self.secondary_ui, _ = self.define_other_ui(self.structure_data)
+    #     # self.secondary_content.__init__(self.secondary_ui, self.secondary_data)
+    #     self.secondary_content.ui_definition = self.secondary_ui
+    #
+    #     # self.secondary_content.settings_data = _temp
+    #
+    #     self.secondary_content.widgets = self.secondary_content.populate()
+    #     self.secondary_content.signal_connections(self.secondary_content.widgets)
+    #
+    #     # self.secondary_data.set_data(_temp)
+    #     # self.secondary_data = self.secondary_content.settings_data
+
     def on_structure_template_changed(self, index):
         """Override the function to update the metadata."""
 
@@ -106,6 +131,8 @@ class NewProjectDialog(EditSubprojectDialog):
         # self.secondary_content.clear(keep_settings=True)
         # self.secondary_content.clear()
         # self.secondary_ui = {}
+        # print(self.structure_data)
+        # self.secondary_data.properties.update(self.structure_data)
         self.secondary_ui, _ = self.define_other_ui(self.structure_data)
         self.secondary_content.__init__(self.secondary_ui, self.secondary_data)
         # self.secondary_content.ui_definition = self.secondary_ui
@@ -142,7 +169,7 @@ class NewProjectDialog(EditSubprojectDialog):
 
         # get the primary data
         filtered_data = FilteredData(
-            structure_data = self.structure_data,
+            structure_data=self.structure_data,
             set_after_creation=True
         )
 
@@ -154,7 +181,10 @@ class NewProjectDialog(EditSubprojectDialog):
         pprint(filtered_data)
 
         self.main_object.create_project(path, **filtered_data)
-        # self.main_object.create_project(path, structure_template="asset_shot", resolution=[3840, 2160], fps=30)
+        print(self.main_object.project.absolute_path)
+        # close the dialog
+        self.close()
+
 
 # Test the dialog
 if __name__ == "__main__":

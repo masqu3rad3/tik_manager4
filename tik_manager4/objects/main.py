@@ -33,10 +33,16 @@ class Main(object):
         if not os.path.exists(os.path.join(default_project, "tikDatabase", "project_structure.json")):
             self._create_default_project()
 
+        _project = default_project
         if self.user.get_recent_projects():
-            _project = self.user.get_recent_projects()[-1]
-        else:
-            _project = default_project
+            recent_projects = self.user.get_recent_projects()
+            # try to find the last project that exists
+            for _project in reversed(recent_projects):
+                if os.path.exists(os.path.join(_project, "tikDatabase", "project_structure.json")):
+                    break
+            # _project = self.user.get_recent_projects()[-1]
+        # else:
+        #     _project = default_project
 
         self.project._set(_project)
         self.user.add_recent_project(_project)

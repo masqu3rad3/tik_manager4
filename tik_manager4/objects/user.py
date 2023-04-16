@@ -292,7 +292,6 @@ class User(object):
         return self.bookmarks.get_property("bookmarkedProjects")
 
     def add_recent_project(self, path):
-        print("adding recent project")
         recents_list = self.bookmarks.get_property("recentProjects")
         if path in recents_list:
             recents_list.remove(path)
