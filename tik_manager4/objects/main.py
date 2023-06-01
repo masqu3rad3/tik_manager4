@@ -75,29 +75,24 @@ class Main(object):
 
     def create_project(self, path, structure_template="empty", structure_data=None, set_after_creation=True, **kwargs):
         """Create a new project."""
-        print("1", path)
         if self.user.permission_level < 3:
             log.warning("This user does not have rights to perform this action")
             return -1
         if not self.user.is_authenticated:
             log.warning("User is not authenticated")
             return -1
-        print("2", path)
         database_path = os.path.join(path, "tikDatabase")
         if not os.path.exists(database_path):
             os.makedirs(database_path)
-        print("3", path)
         structure_file = os.path.join(database_path, "project_structure.json")
         if os.path.exists(structure_file):
             log.warning("Project already exists. Aborting")
             return -1
-        print("4", path)
         project_name = os.path.basename(path)
         if structure_data:
             structure_data = structure_data
         else:
             structure_data = self.user.commons.structures.get_property(structure_template)
-        print("5", path)
         if not structure_data:
             log.warning("Structure template %s is not defined. Creating empty project")
             structure_data = {
@@ -106,17 +101,14 @@ class Main(object):
                               "mode": "root",
                               "subs": []
                             }
-        print("6", path)
         # override defined keys
         structure_data["name"] = project_name
         structure_data.update(kwargs)
 
-        print("7", path)
         # create structure database file
         structure = settings.Settings(file_path=structure_file)
         structure.set_data(structure_data)
         structure.apply_settings()
-        print("8", path)
         # define a project object to validate data and create folders
 
         project_obj = project.Project()  # this will be temporary
@@ -125,7 +117,6 @@ class Main(object):
         project_obj.create_folders(project_obj.database_path)
         project_obj.save_structure()  # This makes sure IDs are getting saved to the database file
 
-        print("9", path)
         if set_after_creation:
             self.set_project(path)
         return 1
