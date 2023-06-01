@@ -161,8 +161,6 @@ class NewProjectDialog(EditSubprojectDialog):
         # run it once to update the secondary ui
         self.on_structure_template_changed(template_widget.currentIndex())
 
-
-
     def _execute(self):
         # build a new kwargs dictionary by filtering the settings_data
         path = os.path.join(self.primary_data.get_property("project_root"), self.primary_data.get_property("project_name"))
@@ -175,13 +173,16 @@ class NewProjectDialog(EditSubprojectDialog):
 
         # filtered_data.update_overridden_data(self.secondary_data)
         filtered_data.update_new_data(self.secondary_data)
-        from pprint import pprint
-        print("-" * 80)
-        print("-" * 80)
-        pprint(filtered_data)
+        # print("-" * 80)
+        # print("-" * 80)
+        # pprint(filtered_data)
+
+        # from pprint import pprint
+        # pprint(self.primary_data._currentValue)
+        # print("path", path)
 
         self.main_object.create_project(path, **filtered_data)
-        print(self.main_object.project.absolute_path)
+        # print(self.main_object.project.absolute_path)
         # close the dialog
         self.close()
 

@@ -9,6 +9,7 @@ from tik_manager4.ui.mcv.category import TikCategoryLayout
 from tik_manager4.ui.mcv.version import TikVersionLayout
 from tik_manager4.ui.dialog.new_project import NewProjectDialog
 from tik_manager4.ui.dialog.login import LoginDialog
+from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui import pick
 import tik_manager4._version as version
 import tik_manager4
@@ -21,7 +22,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.setWindowTitle("Tik Manager {}".format(version.__version__))
         self.tik = tik_manager4.initialize(dcc)
-
+        self.feedback = Feedback(self)
         # set window size
         self.resize(1200, 800)
         self.central_widget = QtWidgets.QWidget(self)
@@ -129,6 +130,11 @@ class MainUI(QtWidgets.QMainWindow):
 
     def on_create_new_project(self):
         """Create a new project."""
+        # check the user permissions
+        if not self.tik.user.permission_level < 3:
+            # required permission level is 3 or higher. Inform user
+            self.feedback.pop_info(title="Permission Error", text="You do not have the required permissions to create a new project.", critical=True)
+            return
         dialog = NewProjectDialog(self.tik, parent=self)
         dialog.show()
         if dialog.exec_():
