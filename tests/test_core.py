@@ -4,6 +4,7 @@ import glob
 import pytest
 from tik_manager4.core import filelog
 from tik_manager4.core import io
+from tik_manager4.external.filelock import FileLock, Timeout
 
 
 def test_filelog():
@@ -56,6 +57,14 @@ def test_io():
     _io = io.IO(file_path=os.path.join(os.path.expanduser("~"), "test_io.json"))
 
     test_data = {"test": "test"}
+
+    # test locked files
+    _lock = FileLock(os.path.join(os.path.expanduser("~"), "test_io.json.lock"))
+    _lock.acquire()
+    # write data to file
+    with pytest.raises(ValueError):
+        _io.write(test_data)
+    _lock.release()
 
     # write data to file
     _io.write(test_data)

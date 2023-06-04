@@ -5,6 +5,7 @@
 import os
 import json
 from tik_manager4.core import filelog
+from tik_manager4.external.filelock import FileLock, Timeout
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager")
 
@@ -42,8 +43,19 @@ class IO(dict):
 
     def write(self, data, file_path=None):
         file_path = file_path if file_path else self.file_path
-        self._dump_json(data, file_path)
-        return file_path
+        _lock_path = "{}.lock".format(file_path)
+        lock = FileLock(_lock_path, timeout=5)
+        try:
+            lock.acquire()
+            self._dump_json(data, file_path)
+        except Timeout:
+            raise ValueError("File is locked by another process")
+        finally:
+            lock.release()
+            return file_path
+
+
+
 
     @staticmethod
     def _load_json(file_path):

@@ -129,7 +129,7 @@ class User(object):
         """Returns the currently active user"""
         return self._active_user
 
-    def set(self, user_name, password=None, save_to_db=True):
+    def set(self, user_name, password=None, save_to_db=True, clear_db=False):
         """Sets the active user to the session"""
 
         # check if the user exists in common database
@@ -139,12 +139,22 @@ class User(object):
                     self.__set_authentication_status(True)
                 else:
                     return -1, log.warning("Wrong password provided for user %s" % user_name)
+            elif self.bookmarks.get_property("activeUser_dhash") == self.__hash_pass("{0}{1}".format(user_name, self.commons.users.get_property(user_name).get("pass"))):
+                self.__set_authentication_status(True)
             else:
                 self.__set_authentication_status(False)  # make sure it is not authenticated if no password
             self._active_user = user_name
             self._guard.set_user(self._active_user)
             if save_to_db:
                 self.bookmarks.edit_property("activeUser", self._active_user)
+                # self.bookmarks.edit_property("activeUser_dhash", self.__hash_pass("TESTING"))
+                _d_hash = self.__hash_pass("{0}{1}".format(self._active_user, self.commons.users.get_property(self._active_user).get("pass")))
+                self.bookmarks.edit_property("activeUser_dhash", _d_hash)
+                self.bookmarks.apply_settings()
+            if clear_db:
+                self.bookmarks.edit_property("activeUser", None)
+                self.bookmarks.edit_property("activeUser_dhash", None)
+                self.bookmarks.apply_settings()
             self.__set_permission_level(self.commons.check_user_permission_level(user_name))
             return user_name, "Success"
         else:
@@ -302,5 +312,14 @@ class User(object):
 
     def get_recent_projects(self):
         return self.bookmarks.get_property("recentProjects")
+
+    # def remember(self):
+    #     """Remember the active user and authentication.
+    #
+    #     Checks the activeUser ana activeUser_dhash. If both of them exists and d_hash is correct, then set the
+    #     active user and authenticate it."""
+    #     """
+
+
 
     # TODO Project Repositories

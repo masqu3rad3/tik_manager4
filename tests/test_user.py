@@ -2,12 +2,13 @@
 from .mockup import Mockup, clean_user
 from tik_manager4.objects import user
 
+
 class TestUser(object):
     """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
     mock = Mockup()
     mock.prepare()
     user.User(common_directory=mock.common)  # this is for not popping up the "missing common folder" message
-    import tik_manager4 # importing main checks the common folder definition, thats why its here
+    import tik_manager4  # importing main checks the common folder definition, thats why its here
     tik = tik_manager4.initialize("Standalone")
 
     @clean_user
@@ -62,7 +63,6 @@ class TestUser(object):
         assert self.tik.user.set("Generic", password="1234")
         assert self.tik.user.is_authenticated
 
-
     @clean_user
     def test_adding_new_users(self):
         """Tests adding new users to database"""
@@ -100,8 +100,8 @@ class TestUser(object):
         assert self.tik.user.set("Generic")
         # test providing wrong password
         assert self.tik.user.change_user_password("WRONG_PASS", "amazing_password") == (
-        -1, "Old password for Generic does "
-            "not match")
+            -1, "Old password for Generic does "
+                "not match")
         assert not self.tik.user.is_authenticated
         assert self.tik.user.authenticate("amazing_password") == (-1, "Wrong password provided for user Generic")
         assert not self.tik.user.is_authenticated
@@ -181,6 +181,3 @@ class TestUser(object):
         assert self.tik.user.get_project_bookmarks() == []
         self.tik.user.add_project_bookmark("a_project", "/path/to/a_project")
         assert self.tik.user.get_project_bookmarks() == [{'name': 'a_project', 'path': '/path/to/a_project'}]
-
-
-

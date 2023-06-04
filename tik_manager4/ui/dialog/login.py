@@ -5,7 +5,7 @@ from tik_manager4.ui.dialog.feedback import Feedback
 class LoginDialog(QtWidgets.QDialog):
     """Dialog for setting and authorizing the user"""
 
-    def __init__(self, main_object, selected_user=None, *args, **kwargs):
+    def __init__(self, main_object, *args, **kwargs):
         self.main_object = main_object
         super(LoginDialog, self).__init__(*args, **kwargs)
 
@@ -25,9 +25,12 @@ class LoginDialog(QtWidgets.QDialog):
         _user_name_lbl.setText("User :")
         self._users_combo = QtWidgets.QComboBox()
         self._users_combo.addItems(self.main_object.user.commons.users.keys)
-        # if the selected user is not None and among the users, select it
-        if selected_user and selected_user in self.main_object.user.commons.users.keys:
-            self._users_combo.setCurrentText(selected_user)
+
+        # get the activeUser
+        _active_user = self.main_object.user.bookmarks.get_property("activeUser")
+        # if the active user is in the list, select it
+        if _active_user and _active_user in self.main_object.user.commons.users.keys:
+            self._users_combo.setCurrentText(_active_user)
 
         _user_password_lbl = QtWidgets.QLabel()
         _user_password_lbl.setText("Password :")
@@ -53,57 +56,18 @@ class LoginDialog(QtWidgets.QDialog):
         self.button_box.accepted.connect(self.on_accept)
         self.button_box.rejected.connect(self.reject)
 
-        # self._user_name_le.textChanged.connect(self._on_user_name_changed)
-        # self._user_password_le.textChanged.connect(self._on_user_password_changed)
-
-        # self._user_name_le.setText(self.main_object.user.name)
-        # self._user_password_le.setText(self.main_object.user.password)
-
-        # self._user_name_le.setReadOnly(True)
-
-
-
-        # _user_name_layout = QtWidgets.QHBoxLayout()
-        # _user_name_layout.addWidget(_user_name_lbl)
-        # _user_name_layout.addWidget(self._users_combo)
-        #
-        # _user_password_layout = QtWidgets.QHBoxLayout()
-        # _user_password_layout.addWidget(_user_password_lbl)
-        # _user_password_layout.addWidget(self._user_password_le)
-        #
-        # _button_layout = QtWidgets.QHBoxLayout()
-        # _button_layout.addStretch(1)
-        # _button_layout.setContentsMargins(0, 0, 0, 0)
-        # _button_layout.setSpacing(0)
-        #
-        # _ok_btn = QtWidgets.QPushButton()
-        # _ok_btn.setText("OK")
-        # _ok_btn.clicked.connect(self.accept)
-        # _cancel_btn = QtWidgets.QPushButton()
-        # _cancel_btn.setText("Cancel")
-        # _cancel_btn.clicked.connect(self.reject)
-        #
-        # _button_layout.addWidget(_ok_btn)
-        # _button_layout.addWidget(_cancel_btn)
-        #
-        # main_layout = QtWidgets.QVBoxLayout()
-        # main_layout.addLayout(_user_name_layout)
-        # main_layout.addLayout(_user_password_layout)
-        # main_layout.addLayout(_button_layout)
-
     def on_accept(self):
         """Accept the dialog"""
         _user = self._users_combo.currentText()
         _password = self._user_password_le.text()
         _remember = self._remember_cb.isChecked()
         # TODO: _remember NEEDS TO CHECK double-hashes for 'some' security
-        state, msg = self.main_object.user.set(_user, _password, save_to_db=_remember)
+        state, msg = self.main_object.user.set(_user, _password, save_to_db=_remember, clear_db=not _remember)
         print("state", state)
         if state != -1:
             self.accept()
         else:
             self.feedback.pop_info(title="Error", text=msg, critical=True)
-
 
     def _on_user_name_changed(self, text):
         """Set the user name"""

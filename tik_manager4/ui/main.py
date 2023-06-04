@@ -112,6 +112,8 @@ class MainUI(QtWidgets.QMainWindow):
         file_menu.addAction(user_login)
         set_project = QtWidgets.QAction("&Set Project", self)
         file_menu.addAction(set_project)
+        PLACEHOLDER = QtWidgets.QAction("PLACEHOLDER", self)
+        tools_menu.addAction(PLACEHOLDER)
 
         # Tools Menu
 
@@ -131,14 +133,17 @@ class MainUI(QtWidgets.QMainWindow):
     def on_create_new_project(self):
         """Create a new project."""
         # check the user permissions
-        if not self.tik.user.permission_level < 3:
-            # required permission level is 3 or higher. Inform user
-            self.feedback.pop_info(title="Permission Error", text="You do not have the required permissions to create a new project.", critical=True)
+        # if self.tik.user.permission_level < 3:
+        if self.tik.project._check_permissions(level=3) != -1:
+            dialog = NewProjectDialog(self.tik, parent=self)
+            dialog.show()
+            if dialog.exec_():
+                self.tik.project = dialog.main_object
+        else:
+            message, title = self.tik.project.log.get_last_message()
+            self.feedback.pop_info(title.capitalize(), message)
             return
-        dialog = NewProjectDialog(self.tik, parent=self)
-        dialog.show()
-        if dialog.exec_():
-            self.tik.project = dialog.main_object
+
             # self.__init__(self.tik.dcc)
 
     def on_login(self):
