@@ -44,18 +44,12 @@ class IO(dict):
     def write(self, data, file_path=None):
         file_path = file_path if file_path else self.file_path
         _lock_path = "{}.lock".format(file_path)
-        lock = FileLock(_lock_path, timeout=5)
+        lock = FileLock(_lock_path, timeout=3)
         try:
             lock.acquire()
             self._dump_json(data, file_path)
         except Timeout:
-            raise ValueError("File is locked by another process")
-        finally:
-            lock.release()
-            return file_path
-
-
-
+            raise Timeout("File is locked by another process")
 
     @staticmethod
     def _load_json(file_path):

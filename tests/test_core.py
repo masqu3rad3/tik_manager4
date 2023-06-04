@@ -62,7 +62,7 @@ def test_io():
     _lock = FileLock(os.path.join(os.path.expanduser("~"), "test_io.json.lock"))
     _lock.acquire()
     # write data to file
-    with pytest.raises(ValueError):
+    with pytest.raises(Timeout):
         _io.write(test_data)
     _lock.release()
 
