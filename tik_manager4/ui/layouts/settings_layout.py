@@ -19,6 +19,7 @@ from tik_manager4.ui.widgets import value_widgets
 from tik_manager4.ui.widgets.category_list import CategoryList
 # from tik_manager4.ui.widgets import browser
 import tik_manager4.ui.widgets.browser
+import tik_manager4.ui.widgets.path_browser
 from tik_manager4.ui.widgets.validated_string import ValidatedString
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 
@@ -40,7 +41,7 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "vector2Float": value_widgets.Vector2Float,
         "vector3Int": value_widgets.Vector3Int,
         "vector3Float": value_widgets.Vector3Float,
-        "pathBrowser": tik_manager4.ui.widgets.browser.PathBrowser,
+        "pathBrowser": tik_manager4.ui.widgets.path_browser.PathBrowser,
         "subprojectBrowser": tik_manager4.ui.widgets.browser.SubprojectBrowser
     }
 

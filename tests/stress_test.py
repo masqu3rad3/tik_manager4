@@ -48,7 +48,7 @@ class TestStress:
 
 
         # ASSETS
-        iteration = 2
+        iteration = 4
         parent_paths = ["Assets/Characters", "Assets/Props", "Assets/Environment", "Assets/Vehicles"]
         for sub_asset in parent_paths:
             random_int_list = [random.randint(0, 9999) for x in range(iteration)]
@@ -75,7 +75,7 @@ class TestStress:
 
 
 
-        # create 100 Character, 100 Props, 100 Environment and 100 Vehicle sub-projects
+        # # create 100 Character, 100 Props, 100 Environment and 100 Vehicle sub-projects
         # random_int_list_a = [random.randint(0, 9999) for x in range(100)]
         # random_int_list_b = [random.randint(0, 9999) for x in range(100)]
         # random_int_list_c = [random.randint(0, 9999) for x in range(100)]
@@ -92,3 +92,12 @@ class TestStress:
         # for x in random_int_list_d:
         #     word = WORDS[x].decode("utf-8")
         #     self.tik.project.create_sub_project(word, parent_path="Assets/Vehicles")
+
+        # set the project
+        print(test_stress_project_path)
+        print(test_stress_project_path)
+        print(test_stress_project_path)
+        print(test_stress_project_path)
+        print(test_stress_project_path)
+        print(test_stress_project_path)
+        self.tik.set_project(test_stress_project_path)

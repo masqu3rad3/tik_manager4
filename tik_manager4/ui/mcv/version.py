@@ -38,7 +38,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         notes_layout.addWidget(self.notes_editor)
 
         self.thumbnail = ImageWidget()
-        self.empty_pixmap = pick.image("empty_thumbnail.png")
+        self.empty_pixmap = pick.pixmap("empty_thumbnail.png")
         # self.empty_pixmap = QtGui.QPixmap(":/images/CSS/rc/empty_thumbnail.png")
         self.thumbnail.setToolTip("Right Click for replace options")
         self.thumbnail.setProperty("image", True)

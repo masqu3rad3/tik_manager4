@@ -1,9 +1,9 @@
 """Dialog for creating a new project"""
 
 import os
-import tik_manager4
-from tik_manager4.core.settings import Settings
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+
+# from tik_manager4.core.settings import Settings
+from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog.new_subproject import EditSubprojectDialog, FilteredData
 import tik_manager4.ui.layouts.settings_layout
 
@@ -190,6 +190,7 @@ class NewProjectDialog(EditSubprojectDialog):
 # Test the dialog
 if __name__ == "__main__":
     import sys
+    import tik_manager4
     from tik_manager4.ui import pick
     app = QtWidgets.QApplication(sys.argv)
     tik = tik_manager4.initialize("Standalone")
