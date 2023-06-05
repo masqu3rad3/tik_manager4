@@ -1,6 +1,6 @@
 """Collection of simple value widgets."""
 
-from tik_manager4.ui.Qt import QtWidgets
+from tik_manager4.ui.Qt import QtWidgets, QtCore
 from tik_manager4.ui.widgets import signals
 
 
@@ -192,15 +192,23 @@ class Vector3Int(_Vector):
 class List(QtWidgets.QWidget):
     """Customized List widget with buttons to manage the list"""
 
-    def __init__(self, name, object_name=None, value=None, disables=None, **kwargs):
+    def __init__(self, name=None, object_name=None, value=None, disables=None, buttons_position="side", **kwargs):
         super(List, self).__init__()
         self.com = signals.ValueChangeList()
         self.value = value or []
         self.setObjectName(object_name or name)
         self.disables = disables or []
-        self.layout = QtWidgets.QHBoxLayout(self)
+
+        self.master_layout = QtWidgets.QVBoxLayout(self)
+        if name:
+            self.label = QtWidgets.QLabel(name)
+            self.master_layout.addWidget(self.label)
+        self.master_layout.addWidget(self.label)
+        self.layout = QtWidgets.QHBoxLayout() if buttons_position == "side" else QtWidgets.QVBoxLayout()
+        self.master_layout.addLayout(self.layout)
+        # self.layout = QtWidgets.QHBoxLayout(self) if buttons_position == "side" else QtWidgets.QVBoxLayout(self)
         self.list = QtWidgets.QListWidget()
-        self.button_layout = QtWidgets.QVBoxLayout()
+        self.button_layout = QtWidgets.QVBoxLayout() if buttons_position == "side" else QtWidgets.QHBoxLayout()
         self.button_names = kwargs.get("buttons", ["Add", "Remove", "Up", "Down"])
         self.buttons = []
         self._create_buttons()
@@ -274,3 +282,32 @@ class List(QtWidgets.QWidget):
             self.list.setCurrentRow(current_row + 1)
             self.value.insert(current_row + 1, self.value.pop(current_row))
             self.com.valueChangeEvent(self.value)
+
+
+class DropList(List):
+    """Custom List Widget which accepts drops"""
+    dropped = QtCore.Signal(str)
+
+    def __init__(self, parent=None, **kwargs):
+        super(DropList, self).__init__(parent=parent, **kwargs)
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat('text/uri-list'):
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasFormat('text/uri-list'):
+            event.setDropAction(QtCore.Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        # rawPath = event.mimeData().data('text/uri-list').__str__()
+        rawPath = event.mimeData().text()
+        path = rawPath.replace("file:///", "").splitlines()[0]
+        # path = path.replace("\\r\\n'", "")
+        self.dropped.emit(path)

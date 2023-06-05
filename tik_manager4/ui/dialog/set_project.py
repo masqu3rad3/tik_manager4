@@ -3,6 +3,7 @@
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 from tik_manager4.ui.widgets import path_browser
 from tik_manager4.ui.dialog.feedback import Feedback
+from tik_manager4.ui.widgets.value_widgets import DropList
 from tik_manager4.ui import pick
 
 
@@ -26,7 +27,7 @@ class SetProjectDialog(QtWidgets.QDialog):
         split_layout = QtWidgets.QHBoxLayout()
         main_layout.addLayout(split_layout)
         splitter = QtWidgets.QSplitter()
-        splitter.setHandleWidth(10)
+        # splitter.setHandleWidth(20)
         split_layout.addWidget(splitter)
         folders_tree_widget = QtWidgets.QWidget(splitter)
         folders_tree_layout = QtWidgets.QVBoxLayout(folders_tree_widget)
@@ -34,33 +35,40 @@ class SetProjectDialog(QtWidgets.QDialog):
         bookmarks_widget = QtWidgets.QWidget(splitter)
         bookmarks_layout = QtWidgets.QVBoxLayout(bookmarks_widget)
         bookmarks_layout.setContentsMargins(0, 0, 0, 0)
-
+        buttons_layout = QtWidgets.QHBoxLayout()
+        main_layout.addLayout(buttons_layout)
 
         look_in_lbl = QtWidgets.QLabel(text="Look in:")
         browser_wgt = path_browser.PathBrowser("lookIn")
-        # look_in_lbl = QtWidgets.QLabel(text="Look in:")
-        # self.look_in_le = QtWidgets.QLineEdit(self)
-        # header_layout.addWidget(look_in_lbl)
-        # header_layout.addWidget(self.look_in_le)
         header_layout.addWidget(look_in_lbl)
         header_layout.addWidget(browser_wgt)
-
-        # back_pb = QtWidgets.QPushButton()
-        # back_pb.setIcon(pick.icon("arrow_left.png"))
-        # back_pb.setToolTip("Go back")
-        # header_layout.addWidget(back_pb)
 
         recent_pb = QtWidgets.QPushButton(text="Recent")
         recent_pb.setToolTip("Recent projects")
         header_layout.addWidget(recent_pb)
 
+        # projects side
         folders_tree = QtWidgets.QTreeView(splitter, minimumSize=QtCore.QSize(0, 0), dragEnabled=True,
                                                     dragDropMode=QtWidgets.QAbstractItemView.DragOnly,
                                                     selectionMode=QtWidgets.QAbstractItemView.SingleSelection,
                                                     itemsExpandable=False, rootIsDecorated=False,
                                                     sortingEnabled=True, frameShape=QtWidgets.QFrame.NoFrame)
         folders_tree_layout.addWidget(folders_tree)
+        directory_filter = QtWidgets.QLineEdit()
+        directory_filter.setPlaceholderText("Filter")
+        folders_tree_layout.addWidget(directory_filter)
 
+
+        bookmarks_droplist = DropList(name="Bookmarks", buttons_position="down", buttons=["+", "-"])
+        bookmarks_layout.addWidget(bookmarks_droplist)
+
+        # make the right side of the splitter stretchable
+        splitter.setStretchFactor(0, 1)
+
+        # buttons
+        # create a button box as "set" and "cancel"
+        button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        buttons_layout.addWidget(button_box)
 
 
 # Test the dialog
