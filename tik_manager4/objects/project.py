@@ -23,17 +23,19 @@ class Project(Subproject):
 
         # This makes sure the project folder is tik_manager4 ready
         if path:
-            # self.set(path)
             self._set(path)
 
         # Absolute path do not go into the project_structure.json
         self._absolute_path = ""
-        # self._mode = "root"
-
 
     @property
     def absolute_path(self):
         return self._absolute_path
+
+    @property
+    def root(self):
+        """Return the root of the project, where all projects lives happily"""
+        return os.path.abspath(os.path.join(self._absolute_path, os.pardir))
 
     @property
     def path(self):

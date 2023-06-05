@@ -58,6 +58,14 @@ class SetProjectDialog(QtWidgets.QDialog):
         directory_filter.setPlaceholderText("Filter")
         folders_tree_layout.addWidget(directory_filter)
 
+        source_model = QtWidgets.QFileSystemModel()
+        source_model.setNameFilterDisables(False)
+        source_model.setNameFilters(["*"])
+        source_model.setRootPath(self.main_object.project.root)
+        source_model.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
+        folders_tree.setModel(source_model)
+        folders_tree.setRootIndex(source_model.index(self.main_object.project.root))
+
 
         bookmarks_droplist = DropList(name="Bookmarks", buttons_position="down", buttons=["+", "-"])
         bookmarks_layout.addWidget(bookmarks_droplist)
