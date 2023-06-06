@@ -277,10 +277,7 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
     def set_task(self, task):
         """Set the task"""
         if not task:
-            self.category_tab_widget.blockSignals(True)
-            self.work_tree_view.model.clear()
-            self.category_tab_widget.clear()
-            self.category_tab_widget.blockSignals(False)
+            self.clear()
             return
         self.task = task
         self.populate_categories(self.task.categories)
@@ -315,13 +312,12 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         else:
             pass
 
-    def refresh(self):
+    def clear(self):
         """Refresh the layout"""
-        if self.task:
-            self.populate_categories(self.task.categories)
-            self.work_tree_view.refresh()
-        else:
-            self.category_tab_widget.clear()
+        self.category_tab_widget.blockSignals(True)
+        self.category_tab_widget.clear()
+        self.work_tree_view.model.clear()
+        self.category_tab_widget.blockSignals(False)
 
 # test the TikCategoryLayout
 if __name__ == "__main__":

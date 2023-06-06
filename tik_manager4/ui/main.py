@@ -155,7 +155,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def refresh_categories(self):
         """Refresh the categories ui."""
-        self.categories_mcv.refresh()
+        self.categories_mcv.clear()
         self.refresh_versions()
 
     def refresh_versions(self):
