@@ -266,31 +266,31 @@ class User(object):
         else:
             return False
 
-    def add_project_bookmark(self, project_name, path):
-        """Adds the given project to the user bookmark database"""
-
-        bookmark_list = self.bookmarks.get_property("bookmarkedProjects")
-
-        all_bookmark_names = [x.get("name") for x in bookmark_list]
-        if project_name in all_bookmark_names:
-            return -1, log.warning("%s already exists in user bookmarks" % project_name)
-
-        bookmark_list.append({"name": project_name, "path": path})
-        self.bookmarks.apply_settings()
-        return 1, "%s added to bookmarks" % project_name
-
-    def delete_project_bookmark(self, project_name):
-        """Removes the project from user bookmarks"""
-
-        bookmark_list = self.bookmarks.get_property("bookmarkedProjects")
-
-        for nmb, bookmark in enumerate(bookmark_list):
-            if bookmark.get("name") == project_name:
-                bookmark_list.pop(nmb)
-                # self.bookmarks.edit_property("bookmarkedProjects", bookmark_list)
-                self.bookmarks.apply_settings()
-                return 1, "Success"
-        return -1, log.warning("%s doesn't exist in bookmarks. Aborting" % project_name)
+    # def add_project_bookmark(self, project_name, path):
+    #     """Adds the given project to the user bookmark database"""
+    #
+    #     bookmark_list = self.bookmarks.get_property("bookmarkedProjects")
+    #
+    #     all_bookmark_names = [x.get("name") for x in bookmark_list]
+    #     if project_name in all_bookmark_names:
+    #         return -1, log.warning("%s already exists in user bookmarks" % project_name)
+    #
+    #     bookmark_list.append({"name": project_name, "path": path})
+    #     self.bookmarks.apply_settings()
+    #     return 1, "%s added to bookmarks" % project_name
+    #
+    # def delete_project_bookmark(self, project_name):
+    #     """Removes the project from user bookmarks"""
+    #
+    #     bookmark_list = self.bookmarks.get_property("bookmarkedProjects")
+    #
+    #     for nmb, bookmark in enumerate(bookmark_list):
+    #         if bookmark.get("name") == project_name:
+    #             bookmark_list.pop(nmb)
+    #             # self.bookmarks.edit_property("bookmarkedProjects", bookmark_list)
+    #             self.bookmarks.apply_settings()
+    #             return 1, "Success"
+    #     return -1, log.warning("%s doesn't exist in bookmarks. Aborting" % project_name)
 
     @staticmethod
     def __hash_pass(password):
@@ -301,6 +301,25 @@ class User(object):
         """Returns the user bookmarked projects as list of dictionaries"""
         return self.bookmarks.get_property("bookmarkedProjects")
 
+    def add_project_bookmark(self, project_path):
+        """Add a new project bookmark to the user bookmarks"""
+        bookmark_list = self.bookmarks.get_property("bookmarkedProjects")
+        if project_path not in bookmark_list:
+            bookmark_list.append(project_path)
+            self.bookmarks.apply_settings()
+
+    def delete_project_bookmark(self, project_path):
+        """Delete a project bookmark from the user bookmarks"""
+        bookmark_list = self.bookmarks.get_property("bookmarkedProjects")
+        if project_path in bookmark_list:
+            bookmark_list.remove(project_path)
+            self.bookmarks.apply_settings()
+
+    @property
+    def bookmark_names(self):
+        """Return the bookmark names"""
+        return [os.path.basename(x) for x in self.get_project_bookmarks()]
+
     def add_recent_project(self, path):
         recents_list = self.bookmarks.get_property("recentProjects")
         if path in recents_list:
@@ -309,6 +328,7 @@ class User(object):
         if len(recents_list) > 10:
             recents_list.pop(0)
         self.bookmarks.apply_settings(force=True)
+
 
     def get_recent_projects(self):
         return self.bookmarks.get_property("recentProjects")

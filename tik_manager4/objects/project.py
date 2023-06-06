@@ -128,13 +128,6 @@ class Project(Subproject):
         if name:
             sub.name = name
 
-        # properties.update(
-        #     {
-        #         "name": name,
-        #         "uid": sub.id,
-        #         "path": sub.path
-        #     }
-        # )
         # get the subproject tree
         kill_list = []
         sub_tree = sub.get_sub_tree()

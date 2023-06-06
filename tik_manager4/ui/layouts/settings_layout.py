@@ -35,6 +35,7 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "spinnerInt": value_widgets.SpinnerInt,
         "spinnerFloat": value_widgets.SpinnerFloat,
         "list": value_widgets.List,
+        "dropList": value_widgets.DropList,
         "categoryList": CategoryList,
         "validatedString": ValidatedString,
         "vector2Int": value_widgets.Vector2Int,
