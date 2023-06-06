@@ -1,7 +1,7 @@
 """Dialog for setting project."""
 import os
 
-from tik_manager4.ui.Qt import QtWidgets, QtCore
+from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.widgets import path_browser
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.value_widgets import DropList
@@ -96,9 +96,23 @@ class SetProjectDialog(QtWidgets.QDialog):
         minus_btn.clicked.connect(self.on_remove_bookmark)
 
         button_box.accepted.connect(self.set_and_close)
-        self.bookmarks_droplist.list.doubleClicked.connect(self.set_and_close)
+        self.bookmarks_droplist.list.doubleClicked.connect(lambda: self.set_and_close()) # lambda is needed to pass the argument
         selection_model.selectionChanged.connect(self.activate_folders)
         self.bookmarks_droplist.list.currentRowChanged.connect(self.activate_bookmarks)
+        recent_pb.clicked.connect(self.recents_pop_menu)
+
+    def recents_pop_menu(self):
+        """Pop menu for recent projects."""
+        recents_list = self.main_object.user.get_recent_projects()
+
+        zort_menu = QtWidgets.QMenu(self)
+        for p in recents_list:
+            _temp_action = QtWidgets.QAction(p, self)
+            zort_menu.addAction(_temp_action)
+            _temp_action.triggered.connect(lambda _ignore=p, itemp=p: self.set_and_close(p))
+
+        zort_menu.exec_((QtGui.QCursor.pos()))
+
     def activate_folders(self):
         """Get the active project from folders tree and clear the bookmarks area selection."""
         index = self.folders_tree.currentIndex()
@@ -112,13 +126,17 @@ class SetProjectDialog(QtWidgets.QDialog):
             self.active_project = self.main_object.user.get_project_bookmarks()[row]
             self.folders_tree.clearSelection()
 
-    def set_and_close(self):
+    def set_and_close(self, project_path=None):
         """Set the active project and close the dialog."""
-
-        if not self.active_project:
+        project_to_set = project_path or self.active_project
+        if not project_to_set:
             self.feedback.pop_info(title="Cannot set project", text="No project selected.\nPlease select a project from the folders or bookmarks and press 'Set'")
             return
-        self.main_object.set_project(self.active_project)
+        print(project_to_set)
+        print(project_to_set)
+        print(project_to_set)
+        print(project_to_set)
+        self.main_object.set_project(project_to_set)
         self.close()
 
     def on_add_bookmark(self):

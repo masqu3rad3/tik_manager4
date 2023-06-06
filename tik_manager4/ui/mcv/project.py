@@ -38,6 +38,10 @@ class TikProjectLayout(QtWidgets.QHBoxLayout):
         self.set_project_btn.clicked.connect(self.on_set_project)
         self.recent_projects_btn.clicked.connect(self.on_recent_projects)
 
+    def refresh(self):
+        """Refresh the project path"""
+        self._project_path_le.setText(self.project_obj.absolute_path)
+
 
     def on_set_project(self, project):
         """Set the project to display"""

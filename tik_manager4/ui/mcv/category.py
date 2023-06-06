@@ -204,6 +204,9 @@ class TikCategoryView(QtWidgets.QTreeView):
         act_delete_sub.triggered.connect(lambda _, x=item: self.delete_task(item))
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
+    def refresh(self):
+        """Re-populates the model keeping the expanded state"""
+        self.model.populate()
 
 class TikCategoryLayout(QtWidgets.QVBoxLayout):
     def __init__(self, *args, **kwargs):
@@ -312,7 +315,13 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         else:
             pass
 
-
+    def refresh(self):
+        """Refresh the layout"""
+        if self.task:
+            self.populate_categories(self.task.categories)
+            self.work_tree_view.refresh()
+        else:
+            self.category_tab_widget.clear()
 
 # test the TikCategoryLayout
 if __name__ == "__main__":

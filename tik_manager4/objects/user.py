@@ -307,6 +307,10 @@ class User(object):
         if project_path not in bookmark_list:
             bookmark_list.append(project_path)
             self.bookmarks.apply_settings()
+            return 1
+        else:
+            log.warning("Project %s already exists in bookmarks" % project_path)
+            return -1
 
     def delete_project_bookmark(self, project_path):
         """Delete a project bookmark from the user bookmarks"""
@@ -314,6 +318,10 @@ class User(object):
         if project_path in bookmark_list:
             bookmark_list.remove(project_path)
             self.bookmarks.apply_settings()
+            return 1
+        else:
+            log.warning("Project %s doesn't exist in bookmarks" % project_path)
+            return -1
 
     @property
     def bookmark_names(self):

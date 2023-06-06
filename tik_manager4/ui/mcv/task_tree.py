@@ -260,6 +260,12 @@ class TikTaskView(QtWidgets.QTreeView):
         else:
             return
 
+    def refresh(self):
+        """Re-populates the model keeping the expanded state"""
+        self.model.populate()
+
+
+
 
 class TikTaskLayout(QtWidgets.QVBoxLayout):
     def __init__(self):
@@ -274,3 +280,6 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
         self.filter_le.setClearButtonEnabled(True)
         self.filter_le.setFocus()
         self.filter_le.returnPressed.connect(self.task_view.setFocus)
+
+    def refresh(self):
+        self.task_view.refresh()

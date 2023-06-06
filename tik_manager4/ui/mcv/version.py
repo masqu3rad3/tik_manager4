@@ -103,6 +103,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         else:
             self.thumbnail.setPixmap(self.empty_pixmap)
 
+    def refresh(self):
+        """Refresh the version dropdown."""
+        if self.base:
+            self.populate_versions(self.base._versions)
+        else:
+            self.version_combo.clear()
+            self.notes_editor.clear()
+            self.thumbnail.clear()
 
 class ImageWidget(QtWidgets.QLabel):
     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""

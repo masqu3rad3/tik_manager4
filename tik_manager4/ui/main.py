@@ -9,6 +9,7 @@ from tik_manager4.ui.mcv.category import TikCategoryLayout
 from tik_manager4.ui.mcv.version import TikVersionLayout
 from tik_manager4.ui.dialog.new_project import NewProjectDialog
 from tik_manager4.ui.dialog.login import LoginDialog
+from tik_manager4.ui.dialog.set_project import SetProjectDialog
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui import pick
 import tik_manager4._version as version
@@ -68,32 +69,38 @@ class MainUI(QtWidgets.QMainWindow):
         self.master_layout.addLayout(self.main_layout)
         self.master_layout.addLayout(self.buttons_layout)
 
+        self.project_mcv = None
+        self.subprojects_mcv = None
+        self.tasks_mcv = None
+        self.categories_mcv = None
+        self.versions_mcv = None
+
         self.initialize_mcv()
         self.build_menu_bar()
 
     def initialize_mcv(self):
-        project_mcv = TikProjectLayout(self.tik.project)
-        self.project_layout.addLayout(project_mcv)
+        self.project_mcv = TikProjectLayout(self.tik.project)
+        self.project_layout.addLayout(self.project_mcv)
 
-        subprojects_mcv = TikSubProjectLayout(self.tik.project)
-        subprojects_mcv.sub_view.hide_columns(["id", "path"])
-        self.subproject_tree_layout.addLayout(subprojects_mcv)
+        self.subprojects_mcv = TikSubProjectLayout(self.tik.project)
+        self.subprojects_mcv.sub_view.hide_columns(["id", "path"])
+        self.subproject_tree_layout.addLayout(self.subprojects_mcv)
 
-        tasks_mcv = TikTaskLayout()
-        tasks_mcv.task_view.hide_columns(["id", "path"])
-        self.task_tree_layout.addLayout(tasks_mcv)
+        self.tasks_mcv = TikTaskLayout()
+        self.tasks_mcv.task_view.hide_columns(["id", "path"])
+        self.task_tree_layout.addLayout(self.tasks_mcv)
 
-        categories_mcv = TikCategoryLayout()
-        categories_mcv.work_tree_view.hide_columns(["id", "path"])
-        self.category_layout.addLayout(categories_mcv)
+        self.categories_mcv = TikCategoryLayout()
+        self.categories_mcv.work_tree_view.hide_columns(["id", "path"])
+        self.category_layout.addLayout(self.categories_mcv)
 
-        versions_mcv = TikVersionLayout()
-        self.version_layout.addLayout(versions_mcv)
+        self.versions_mcv = TikVersionLayout()
+        self.version_layout.addLayout(self.versions_mcv)
 
-        subprojects_mcv.sub_view.item_selected.connect(tasks_mcv.task_view.set_tasks)
-        subprojects_mcv.sub_view.add_item.connect(tasks_mcv.task_view.add_task)
-        tasks_mcv.task_view.item_selected.connect(categories_mcv.set_task)
-        categories_mcv.work_tree_view.item_selected.connect(versions_mcv.set_base)
+        self.subprojects_mcv.sub_view.item_selected.connect(self.tasks_mcv.task_view.set_tasks)
+        self.subprojects_mcv.sub_view.add_item.connect(self.tasks_mcv.task_view.add_task)
+        self.tasks_mcv.task_view.item_selected.connect(self.categories_mcv.set_task)
+        self.categories_mcv.work_tree_view.item_selected.connect(self.versions_mcv.set_base)
 
     def build_menu_bar(self):
         """Build the menu bar."""
@@ -129,6 +136,41 @@ class MainUI(QtWidgets.QMainWindow):
         # SIGNALS
         create_project.triggered.connect(self.on_create_new_project)
         user_login.triggered.connect(self.on_login)
+        set_project.triggered.connect(self.on_set_project)
+
+    def refresh_project(self):
+        """Refresh the project ui."""
+        self.project_mcv.refresh()
+        self.refresh_subprojects()
+
+    def refresh_subprojects(self):
+        """Refresh the subprojects ui."""
+        self.subprojects_mcv.refresh()
+        self.refresh_tasks()
+
+    def refresh_tasks(self):
+        """Refresh the tasks ui."""
+        self.tasks_mcv.refresh()
+        self.refresh_categories()
+
+    def refresh_categories(self):
+        """Refresh the categories ui."""
+        self.categories_mcv.refresh()
+        self.refresh_versions()
+
+    def refresh_versions(self):
+        """Refresh the versions ui."""
+        self.versions_mcv.refresh()
+
+    def on_set_project(self):
+        """Launch the set project dialog."""
+        dialog = SetProjectDialog(self.tik, parent=self)
+        dialog.show()
+        if dialog.exec_():
+            self.tik.project = dialog.main_object
+            # refresh main ui
+        self.refresh_project()
+
 
     def on_create_new_project(self):
         """Create a new project."""

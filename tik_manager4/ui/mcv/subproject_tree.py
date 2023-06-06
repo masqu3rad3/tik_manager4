@@ -180,6 +180,7 @@ class TikSubView(QtWidgets.QTreeView):
         self.header().customContextMenuRequested.connect(self.header_right_click_menu)
 
         self.expandAll()
+        self.setItemsExpandable(True)
         self._recursive_task_scan = False
 
     def mousePressEvent(self, event):
@@ -502,3 +503,11 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
             self.sub_view.set_recursive_task_scan(self.recursive_search_cb.isChecked())
             self.recursive_search_cb.stateChanged.connect(self.sub_view.set_recursive_task_scan)
         self.filter_le.returnPressed.connect(self.sub_view.setFocus)
+
+    def refresh(self):
+        """Refresh the layout"""
+        self.sub_view.refresh()
+        # self.filter_le.setFocus()
+        # self.filter_le.clear()
+        # self.filter_le.setFocus()
+

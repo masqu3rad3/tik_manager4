@@ -159,25 +159,24 @@ class TestUser(object):
     def test_adding_new_project_bookmarks(self):
         self.tik.project.__init__()
         self.tik.user.__init__()
-        assert self.tik.user.add_project_bookmark("projectA", "/path/to/projectA") == (1, "projectA added to bookmarks")
-        assert self.tik.user.add_project_bookmark("projectB", "/path/to/projectB") == (1, "projectB added to bookmarks")
-        assert self.tik.user.add_project_bookmark("projectB", "/path/to/projectB") == \
-               (-1, "projectB already exists in user bookmarks")
+        assert self.tik.user.add_project_bookmark("/path/to/projectA") == 1
+        assert self.tik.user.add_project_bookmark("/path/to/projectB") == 1
+        assert self.tik.user.add_project_bookmark("/path/to/projectB") == -1
 
     @clean_user
     def test_delete_project_bookmarks(self):
         self.tik.project.__init__()
         self.tik.user.__init__()
-        self.tik.user.add_project_bookmark("ProjectToRemove", "/path/to/ProjectToRemove")
+        self.tik.user.add_project_bookmark("/path/to/ProjectToRemove")
         assert len(self.tik.user.get_project_bookmarks()) == 1
-        assert self.tik.user.delete_project_bookmark("ProjectToRemove") == (1, "Success")
+        assert self.tik.user.delete_project_bookmark("/path/to/ProjectToRemove") == 1
         assert len(self.tik.user.get_project_bookmarks()) == 0
-        assert self.tik.user.delete_project_bookmark("Ghosts") == (-1, "Ghosts doesn't exist in bookmarks. Aborting")
+        assert self.tik.user.delete_project_bookmark("/non/existing/project") == -1
 
     @clean_user
     def test_get_project_bookmarks(self):
         self.tik.project.__init__()
         self.tik.user.__init__()
         assert self.tik.user.get_project_bookmarks() == []
-        self.tik.user.add_project_bookmark("a_project", "/path/to/a_project")
-        assert self.tik.user.get_project_bookmarks() == [{'name': 'a_project', 'path': '/path/to/a_project'}]
+        self.tik.user.add_project_bookmark("/path/to/a_project")
+        assert self.tik.user.get_project_bookmarks() == ["/path/to/a_project"]
