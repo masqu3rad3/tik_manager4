@@ -97,6 +97,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.versions_mcv = TikVersionLayout()
         self.version_layout.addLayout(self.versions_mcv)
 
+        self.project_mcv.set_project_btn.clicked.connect(self.on_set_project)
+        self.project_mcv.recent_projects_btn.clicked.connect(self.on_recent_projects)
         self.subprojects_mcv.sub_view.item_selected.connect(self.tasks_mcv.task_view.set_tasks)
         self.subprojects_mcv.sub_view.add_item.connect(self.tasks_mcv.task_view.add_task)
         self.tasks_mcv.task_view.item_selected.connect(self.categories_mcv.set_task)
@@ -162,6 +164,11 @@ class MainUI(QtWidgets.QMainWindow):
         """Refresh the versions ui."""
         self.versions_mcv.refresh()
 
+    def on_recent_projects(self):
+        dialog = SetProjectDialog(self.tik, parent=self)
+        if dialog.recents_pop_menu():
+            self.refresh_project()
+
     def on_set_project(self):
         """Launch the set project dialog."""
         dialog = SetProjectDialog(self.tik, parent=self)
@@ -170,7 +177,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.tik.project = dialog.main_object
             # refresh main ui
         self.refresh_project()
-
 
     def on_create_new_project(self):
         """Create a new project."""

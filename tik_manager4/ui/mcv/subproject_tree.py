@@ -483,6 +483,11 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
     def __init__(self, project_obj, recursive_enabled=True, right_click_enabled=True):
         super(TikSubProjectLayout, self).__init__()
         self.project_obj = project_obj
+        # add a label
+        self.label = QtWidgets.QLabel("Sub-Projects")
+        self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
+        self.addWidget(self.label)
+
         # add a checkbox for recursive search
         if recursive_enabled:
             self.recursive_search_cb = QtWidgets.QCheckBox("Get Tasks Recursively")

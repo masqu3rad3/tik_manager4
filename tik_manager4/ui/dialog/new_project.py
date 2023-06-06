@@ -69,12 +69,10 @@ class NewProjectDialog(EditSubprojectDialog):
                 raise ValueError("No default value defined for metadata {}".format(key))
             _check = False
             if structure_template:
-                # print(structure_template)
                 _structure_value = structure_template.get(key, None)
                 if _structure_value is not None:
                     _default_value = _structure_value
                     _check = True
-                    # print(_default_value, _check)
 
             _secondary_ui[key] = {
                 "display_name": "{} :".format(key),
@@ -95,55 +93,14 @@ class NewProjectDialog(EditSubprojectDialog):
             }
         return _secondary_ui, _tertiary_ui
 
-    # def on_structure_template_changed(self, index):
-    #     """Override the function to update the metadata."""
-    #
-    #     # find the structure template in self.structure_dictionary by name
-    #     self.structure_data = self.structure_list[index]
-    #     # from pprint import pprint
-    #     # pprint(self.secondary_data.properties)
-    #     # _temp = self.secondary_data.properties.copy()
-    #     # self.secondary_content.clear(keep_settings=True)
-    #     self.secondary_content.clear()
-    #     self.secondary_ui = {}
-    #     # print(self.structure_data)
-    #     # self.secondary_data.properties.update(self.structure_data)
-    #     self.secondary_ui, _ = self.define_other_ui(self.structure_data)
-    #     # self.secondary_content.__init__(self.secondary_ui, self.secondary_data)
-    #     self.secondary_content.ui_definition = self.secondary_ui
-    #
-    #     # self.secondary_content.settings_data = _temp
-    #
-    #     self.secondary_content.widgets = self.secondary_content.populate()
-    #     self.secondary_content.signal_connections(self.secondary_content.widgets)
-    #
-    #     # self.secondary_data.set_data(_temp)
-    #     # self.secondary_data = self.secondary_content.settings_data
 
     def on_structure_template_changed(self, index):
         """Override the function to update the metadata."""
 
         # find the structure template in self.structure_dictionary by name
         self.structure_data = self.structure_list[index]
-        # from pprint import pprint
-        # pprint(self.secondary_data.properties)
-        # _temp = self.secondary_data.properties.copy()
-        # self.secondary_content.clear(keep_settings=True)
-        # self.secondary_content.clear()
-        # self.secondary_ui = {}
-        # print(self.structure_data)
-        # self.secondary_data.properties.update(self.structure_data)
         self.secondary_ui, _ = self.define_other_ui(self.structure_data)
         self.secondary_content.__init__(self.secondary_ui, self.secondary_data)
-        # self.secondary_content.ui_definition = self.secondary_ui
-
-        # self.secondary_content.settings_data = _temp
-
-        # self.secondary_content.widgets = self.secondary_content.populate()
-
-        # self.secondary_data.set_data(_temp)
-        # self.secondary_data = self.secondary_content.settings_data
-
 
     def build_ui(self):
         """Initialize the UI."""
@@ -153,7 +110,6 @@ class NewProjectDialog(EditSubprojectDialog):
         # get the name ValidatedString widget and connect it to the ok button
         _name_line_edit = self.primary_content.find("project_name")
         _name_line_edit.add_connected_widget(self.button_box.button(QtWidgets.QDialogButtonBox.Ok))
-        # _browse_widget = self.primary_content.find("parent_path")
         template_widget = self.primary_content.find("structure_template")
 
         template_widget.currentIndexChanged.connect(self.on_structure_template_changed)
@@ -173,16 +129,8 @@ class NewProjectDialog(EditSubprojectDialog):
 
         # filtered_data.update_overridden_data(self.secondary_data)
         filtered_data.update_new_data(self.secondary_data)
-        # print("-" * 80)
-        # print("-" * 80)
-        # pprint(filtered_data)
-
-        # from pprint import pprint
-        # pprint(self.primary_data._currentValue)
-        # print("path", path)
 
         self.main_object.create_project(path, **filtered_data)
-        # print(self.main_object.project.absolute_path)
         # close the dialog
         self.close()
 

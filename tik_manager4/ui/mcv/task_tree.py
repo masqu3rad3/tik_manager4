@@ -271,6 +271,10 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
     def __init__(self):
         """Initialize the layout"""
         super(TikTaskLayout, self).__init__()
+        self.label = QtWidgets.QLabel("Tasks")
+        self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
+        self.addWidget(self.label)
+
         self.task_view = TikTaskView()
         self.addWidget(self.task_view)
         self.filter_le = QtWidgets.QLineEdit()

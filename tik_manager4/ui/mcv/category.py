@@ -294,7 +294,6 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.category_tab_widget.blockSignals(True)
         self.category_tab_widget.clear()
         for key, category in categories.items():
-            # print(type(category))
             self.pre_tab = QtWidgets.QWidget()
             self.pre_tab.setObjectName(key)
             self.category_tab_widget.addTab(self.pre_tab, key)
@@ -349,10 +348,6 @@ if __name__ == "__main__":
     # resize the dialog
     test_dialog.resize(800, 600)
     test_dialog.show()
-
-    # sleep(3)
-    # print("setting task to batman")
-    # category_layout.set_task(example_task_b)
 
 
     app.exec_()

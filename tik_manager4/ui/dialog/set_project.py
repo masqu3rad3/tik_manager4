@@ -103,15 +103,19 @@ class SetProjectDialog(QtWidgets.QDialog):
 
     def recents_pop_menu(self):
         """Pop menu for recent projects."""
-        recents_list = self.main_object.user.get_recent_projects()
+        recents_list = reversed(self.main_object.user.get_recent_projects())
 
         zort_menu = QtWidgets.QMenu(self)
         for p in recents_list:
             _temp_action = QtWidgets.QAction(p, self)
             zort_menu.addAction(_temp_action)
-            _temp_action.triggered.connect(lambda _ignore=p, itemp=p: self.set_and_close(p))
+            _temp_action.triggered.connect(lambda _ignore=p, item=p: self.set_and_close(item))
+            # _temp_action.triggered.connect(lambda _ignore=p, itemp=p: self.set_and_close(itemp))
 
-        zort_menu.exec_((QtGui.QCursor.pos()))
+        if zort_menu.exec_((QtGui.QCursor.pos())):
+            return True
+        else:
+            return False
 
     def activate_folders(self):
         """Get the active project from folders tree and clear the bookmarks area selection."""
@@ -132,10 +136,6 @@ class SetProjectDialog(QtWidgets.QDialog):
         if not project_to_set:
             self.feedback.pop_info(title="Cannot set project", text="No project selected.\nPlease select a project from the folders or bookmarks and press 'Set'")
             return
-        print(project_to_set)
-        print(project_to_set)
-        print(project_to_set)
-        print(project_to_set)
         self.main_object.set_project(project_to_set)
         self.close()
 

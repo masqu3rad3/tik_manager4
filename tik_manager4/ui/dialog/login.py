@@ -63,7 +63,6 @@ class LoginDialog(QtWidgets.QDialog):
         _remember = self._remember_cb.isChecked()
         # TODO: _remember NEEDS TO CHECK double-hashes for 'some' security
         state, msg = self.main_object.user.set(_user, _password, save_to_db=_remember, clear_db=not _remember)
-        print("state", state)
         if state != -1:
             self.accept()
         else:
