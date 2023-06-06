@@ -9,6 +9,24 @@ import tik_manager4.ui.layouts.settings_layout
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
+class EditTask(QtWidgets.QDialog):
+    def __init__(self, project_object, parent_sub=None, parent=None, *args, **kwargs):
+        """Dialog for task editing."""
+        super(EditTask, self).__init__(parent=parent, *args, **kwargs)
+        self.tik_project = project_object
+        self._parent_sub = parent_sub or project_object
+        self.parent = parent
+        self._feedback = feedback.Feedback(parent=self)
+        self.setWindowTitle("Edit Task")
+        self.setFixedSize(600, 400)
+        self.setModal(True)
+
+        self.category_type_dictionary = self._categorize_category_definitions()
+
+        self.ui_definition = self.define_ui_dictionary()
+        self._init_ui()
+
+        self._new_task = None
 
 class NewTask(QtWidgets.QDialog):
     def __init__(self, project_object, parent_sub=None, parent=None, *args, **kwargs):
