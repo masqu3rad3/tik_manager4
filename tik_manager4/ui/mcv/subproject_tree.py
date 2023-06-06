@@ -190,7 +190,7 @@ class TikSubView(QtWidgets.QTreeView):
             self.clearSelection()
             # self.deselected.emit(True)
             self.get_tasks(QtCore.QModelIndex())
-        QtWidgets.QTreeView.mousePressEvent(self, event)
+        # QtWidgets.QTreeView.mousePressEvent(self, event)
 
     def currentChanged(self, *args, **kwargs):
         super(TikSubView, self).currentChanged(*args, **kwargs)
