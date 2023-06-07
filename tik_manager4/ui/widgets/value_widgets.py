@@ -5,7 +5,6 @@ from tik_manager4.ui.widgets import signals
 
 
 class Boolean(QtWidgets.QCheckBox):
-
     def __init__(self, name, object_name=None, value=False, disables=None, **kwargs):
         super(Boolean, self).__init__()
         self.com = signals.ValueChangeBool()
@@ -21,7 +20,6 @@ class Boolean(QtWidgets.QCheckBox):
 
 
 class String(QtWidgets.QLineEdit):
-
     def __init__(self, name, object_name=None, value="", placeholder="", disables=None, **kwargs):
         super(String, self).__init__()
         self.com = signals.ValueChangeStr()
@@ -38,7 +36,6 @@ class String(QtWidgets.QLineEdit):
 
 
 class Combo(QtWidgets.QComboBox):
-
     def __init__(self, name, object_name=None, value=None, items=None, disables=None, **kwargs):
         super(Combo, self).__init__()
         self.com = signals.ValueChangeStr()
@@ -55,7 +52,6 @@ class Combo(QtWidgets.QComboBox):
 
 
 class SpinnerInt(QtWidgets.QSpinBox):
-
     def __init__(self, name, object_name=None, value=0, minimum=-99999, maximum=99999, disables=None, **kwargs):
         super(SpinnerInt, self).__init__()
         self.com = signals.ValueChangeInt()
@@ -64,7 +60,6 @@ class SpinnerInt(QtWidgets.QSpinBox):
         self.setMinimum(minimum)
         self.setMaximum(maximum)
         self.setValue(value)
-        # self.valueChanged.connect(self.com.valueChangeEvent)
         self.valueChanged.connect(self.value_change_event)
         self.disables = disables or []
 
@@ -74,14 +69,12 @@ class SpinnerInt(QtWidgets.QSpinBox):
 
 
 class Integer(SpinnerInt):
-
     def __init__(self, *args, **kwargs):
         super(Integer, self).__init__(*args, **kwargs)
         self.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
 
 class SpinnerFloat(QtWidgets.QDoubleSpinBox):
-
     def __init__(self, name, object_name=None, value=0, minimum=-99999.9, maximum=99999.9, disables=None, **kwargs):
         super(SpinnerFloat, self).__init__()
         self.com = signals.ValueChangeFloat()

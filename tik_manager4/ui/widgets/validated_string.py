@@ -3,7 +3,12 @@ from tik_manager4.ui.widgets.value_widgets import String
 
 
 class ValidatedString(String):
-    def __init__(self, *args, connected_widgets=None, allow_spaces=False, allow_directory=False, allow_empty=False, **kwargs):
+    def __init__(self, *args,
+                 connected_widgets=None,
+                 allow_spaces=False,
+                 allow_directory=False,
+                 allow_empty=False,
+                 **kwargs):
         """Custom QLineEdit widget to validate entered values"""
         super(ValidatedString, self).__init__(*args, **kwargs)
         self.allow_spaces = allow_spaces
@@ -12,9 +17,9 @@ class ValidatedString(String):
         self.connected_widgets = connected_widgets or []
         self.default_stylesheet = self.styleSheet()
         if connected_widgets:
-            self.set_connected_widgets(connected_widgets) # validate and toggle connected widgets
+            self.set_connected_widgets(connected_widgets)  # validate and toggle connected widgets
         else:
-            self._validate() # just validate the value
+            self._validate()  # just validate the value
 
     def set_connected_widgets(self, widgets):
         if not isinstance(widgets, (list, tuple)):
@@ -59,6 +64,7 @@ class ValidatedString(String):
         if self.connected_widgets:
             for wid in self.connected_widgets:
                 wid.setEnabled(True)
+
     @staticmethod
     def string_value(input_text, allow_spaces=False, directory=False):
         """Check the text for illegal characters."""

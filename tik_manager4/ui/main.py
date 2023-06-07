@@ -16,7 +16,6 @@ import tik_manager4._version as version
 import tik_manager4
 
 
-
 class MainUI(QtWidgets.QMainWindow):
     def __init__(self, dcc="Standalone"):
         super(MainUI, self).__init__()
@@ -121,8 +120,8 @@ class MainUI(QtWidgets.QMainWindow):
         file_menu.addAction(user_login)
         set_project = QtWidgets.QAction("&Set Project", self)
         file_menu.addAction(set_project)
-        PLACEHOLDER = QtWidgets.QAction("PLACEHOLDER", self)
-        tools_menu.addAction(PLACEHOLDER)
+        placeholder = QtWidgets.QAction("PLACEHOLDER", self)
+        tools_menu.addAction(placeholder)
 
         # Tools Menu
 
@@ -146,22 +145,22 @@ class MainUI(QtWidgets.QMainWindow):
         self.refresh_subprojects()
 
     def refresh_subprojects(self):
-        """Refresh the subprojects ui."""
+        """Refresh the subprojects' ui."""
         self.subprojects_mcv.refresh()
         self.refresh_tasks()
 
     def refresh_tasks(self):
-        """Refresh the tasks ui."""
+        """Refresh the tasks' ui."""
         self.tasks_mcv.refresh()
         self.refresh_categories()
 
     def refresh_categories(self):
-        """Refresh the categories ui."""
+        """Refresh the categories' ui."""
         self.categories_mcv.clear()
         self.refresh_versions()
 
     def refresh_versions(self):
-        """Refresh the versions ui."""
+        """Refresh the versions' ui."""
         self.versions_mcv.refresh()
 
     def on_recent_projects(self):
@@ -181,7 +180,6 @@ class MainUI(QtWidgets.QMainWindow):
     def on_create_new_project(self):
         """Create a new project."""
         # check the user permissions
-        # if self.tik.user.permission_level < 3:
         if self.tik.project._check_permissions(level=3) != -1:
             dialog = NewProjectDialog(self.tik, parent=self)
             dialog.show()
@@ -192,20 +190,12 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(title.capitalize(), message)
             return
 
-            # self.__init__(self.tik.dcc)
-
     def on_login(self):
         """Login."""
         dialog = LoginDialog(self.tik, parent=self)
         dialog.show()
-        # if dialog.exec_():
-        #     self.tik = dialog.tik
-            # self.__init__(self.tik.dcc)
 
 
-
-
-# test the MainUI class
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)

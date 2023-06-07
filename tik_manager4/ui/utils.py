@@ -1,6 +1,7 @@
 """Utility functions for the UI."""
 
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui, Qt
+from tik_manager4.ui.Qt import QtWidgets, Qt
+
 
 def toggle_widget(widget, state, functionality=True, visibility=False):
     """Toggle a widget's functionality and/or visibility.
@@ -16,6 +17,7 @@ def toggle_widget(widget, state, functionality=True, visibility=False):
         widget.setEnabled(state)
     if visibility:
         widget.setVisible(state)
+
 
 def create_row(form, label, widget_type, **kwargs):
     """Add a row to a form layout.
