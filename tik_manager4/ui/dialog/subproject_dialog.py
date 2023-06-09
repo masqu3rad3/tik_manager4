@@ -142,34 +142,6 @@ class EditSubprojectDialog(QtWidgets.QDialog):
             if _default_value is None:
                 raise ValueError("No default value defined for metadata {}".format(key))
 
-            # define what widget to use to display and manipulate the metadata
-            # if there is an enum value, it is always a combo box
-            # if _enum:
-            #     _value_type = "combo"
-            # else:
-                # if isinstance(_default_value, int):
-                #     _value_type = "spinnerInt"
-                # elif isinstance(_default_value, float):
-                #     _value_type = "spinnerFloat"
-                # elif isinstance(_default_value, str):
-                #     _value_type = "string"
-                # elif isinstance(_default_value, list):
-                #     # currently only lists with floats or ints are supported
-                #     # Also the list length is limited with 3 items (vector3)
-                #     if 2 > len(_default_value) > 3:
-                #         raise ValueError("List length is limited to 2 or 3 items")
-                #     for item in _default_value:
-                #         if not isinstance(item, (float, int)):
-                #             raise ValueError("List items must be float or int")
-                #     # if any of the items is float, the value type is float
-                #     if any([isinstance(item, float) for item in _default_value]):
-                #         _value_suffix = "Float"
-                #     else:
-                #         _value_suffix = "Int"
-                #     _value_type = "vector{0}{1}".format(len(_default_value), _value_suffix)
-                # else:
-                #     raise ValueError("Unknown type for metadata {}".format(key))
-
             if key in self._parent_sub.metadata.keys():
                 # if the metadata already defined, create it with override option
                 _secondary_ui["{}_override".format(key)] = {

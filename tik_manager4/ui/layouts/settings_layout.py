@@ -47,7 +47,6 @@ class SettingsLayout(QtWidgets.QFormLayout):
     }
 
     def __init__(self, ui_definition, settings_data=None, *args, **kwargs):
-        # super(SettingsLayout, self).__init__(*args, **kwargs)
         super(SettingsLayout, self).__init__()
         self.ui_definition = ui_definition
         # TODO validate settings data type
@@ -70,11 +69,14 @@ class SettingsLayout(QtWidgets.QFormLayout):
         """Create the widgets."""
         _widgets = []  # flattened list of all widgets
         for name, properties in self.ui_definition.items():
-            _display_name = properties.get("display_name", name)
+            # _display_name = properties.get("display_name", name)
+            _display_name = properties.pop("display_name", name)
             _label = QtWidgets.QLabel(text=_display_name)
-            _tooltip = properties.get("tooltip", "")
+            # _tooltip = properties.get("tooltip", "")
+            _tooltip = properties.pop("tooltip", "")
             _label.setToolTip(_tooltip)
-            _type = properties.get("type", None)
+            # _type = properties.get("type", None)
+            _type = properties.pop("type", None)
             if _type == "multi":
                 multi_properties = properties.get("value", {})
                 _layout = QtWidgets.QHBoxLayout()

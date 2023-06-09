@@ -21,7 +21,7 @@ class Boolean(QtWidgets.QCheckBox):
 
 class String(QtWidgets.QLineEdit):
     def __init__(self, name, object_name=None, value="", placeholder="", disables=None, **kwargs):
-        super(String, self).__init__()
+        super(String, self).__init__(**kwargs)
         self.com = signals.ValueChangeStr()
         self.value = value
         self.setObjectName(object_name or name)
@@ -29,6 +29,7 @@ class String(QtWidgets.QLineEdit):
         self.setPlaceholderText(placeholder)
         self.textEdited.connect(self.value_change_event)
         self.disables = disables or []
+
 
     def value_change_event(self, e):
         self.value = e

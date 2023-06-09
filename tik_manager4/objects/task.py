@@ -29,7 +29,8 @@ class Task(Settings, Entity):
         self._file_name = self.get_property("file_name") or file_name
         self._type = self.get_property("type") or task_type
 
-        self._categories = self.__build_categories(self.get_property("categories") or categories)
+        self._categories = {}
+        self.build_categories(self.get_property("categories") or categories)
 
         self.parent_sub = parent_sub
 
@@ -57,18 +58,19 @@ class Task(Settings, Entity):
     def categories(self):
         return self._categories
 
-    def __build_categories(self, category_list):
+    def build_categories(self, category_list):
         """
         Builds a category objects from a list of category names
 
         Does not create folders or apply settings.
         Args: category_list: (list) List of category names
         """
-        _categories = {}
+        self._categories = {}
         for category in category_list:
             category_definition = self.guard.category_definitions.get_property(category)
-            _categories[category] = (Category(name=category, parent_task=self, definition=category_definition))
-        return _categories
+            self._categories[category] = (Category(name=category, parent_task=self, definition=category_definition))
+
+        return self._categories
 
     def add_category(self, category):
         """Add a category to the task."""
@@ -110,7 +112,7 @@ class Task(Settings, Entity):
             for category in categories:
                 if category not in self.guard.category_definitions.properties.keys():
                     LOG.error("Category '{0}' is not defined in category definitions.".format(category), proceed=False)
-            self._categories = self.__build_categories(categories)
+            self._categories = self.build_categories(categories)
             self.edit_property("categories", list(categories))
         self.apply_settings()
 

@@ -1,7 +1,7 @@
 import sys
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
-import tik_manager4.ui.dialog.new_subproject
-import tik_manager4.ui.dialog.new_task
+import tik_manager4.ui.dialog.subproject_dialog
+import tik_manager4.ui.dialog.task_dialog
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.objects import guard
 import tik_manager4
@@ -377,7 +377,7 @@ class TikSubView(QtWidgets.QTreeView):
     def new_sub_project(self, item):
         # first check for the user permission:
         if self.model.project._check_permissions(level=2) != -1:
-            _dialog = tik_manager4.ui.dialog.new_subproject.NewSubprojectDialog(self.model.project,
+            _dialog = tik_manager4.ui.dialog.subproject_dialog.NewSubprojectDialog(self.model.project,
                                                                                 parent_sub=item.subproject, parent=self)
             state = _dialog.exec_()
             if state:
@@ -407,7 +407,7 @@ class TikSubView(QtWidgets.QTreeView):
         # first check for the user permission:
         if self.model.project._check_permissions(level=2) != -1:
             pass
-            _dialog = tik_manager4.ui.dialog.new_subproject.EditSubprojectDialog(self.model.project,
+            _dialog = tik_manager4.ui.dialog.subproject_dialog.EditSubprojectDialog(self.model.project,
                                                                                  parent_sub=item.subproject, parent=self)
             state = _dialog.exec_()
             if state:
@@ -421,7 +421,7 @@ class TikSubView(QtWidgets.QTreeView):
         # first check for the user permission:
         # if self.model.project._check_permissions(level=2) != -1:
 
-        _dialog = tik_manager4.ui.dialog.new_task.NewTask(self.model.project, parent_sub=item.subproject, parent=self)
+        _dialog = tik_manager4.ui.dialog.task_dialog.NewTask(self.model.project, parent_sub=item.subproject, parent=self)
         state = _dialog.exec_()
         if state:
             # emit clicked signal

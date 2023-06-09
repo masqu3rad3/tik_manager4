@@ -1,6 +1,7 @@
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.core import filelog
 from tik_manager4.ui.dialog.feedback import Feedback
+import tik_manager4.ui.dialog.task_dialog
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -228,22 +229,30 @@ class TikTaskView(QtWidgets.QTreeView):
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
     def edit_task(self, item):
-        LOG.error("Edit Task not implemented yet")
-        pass
+        _dialog = tik_manager4.ui.dialog.task_dialog.EditTask(item.task, parent_sub=item.task.parent_sub,
+                                                           parent=self)
+        state = _dialog.exec_()
+        if state:
+            # emit clicked signal
+            # self.add_item.emit(_dialog.get_created_task())
+            self.item_selected.emit(_dialog.task_object)
+        else:
+            pass
 
     def delete_task(self, item):
         # first check for the user permission:
-        # if self.model.project._check_permissions(level=2) != -1:
+        if item.task._check_permissions(level=2) == -1:
+            msg, _msg_type = LOG.get_last_message()
+            self._feedback.pop_info(title="Error", text=msg, critical=True)
+            return
+
         sure = self._feedback.pop_question("Delete Task", "Are you sure you want to delete this task?", buttons=["ok", "cancel"])
-        if sure:
-            # emit clicked signal
-            # self.delete_item.emit(item)
-            # self.model.remove_task(item)
+        if sure == "ok":
             if not item.task.parent_sub.is_task_empty(item.task):
                 really_sure = self._feedback.pop_question("Non Empty Task",
                                                       "The task is not empty.\n\nALL CATEGORIES WORKS AND PUBLISHES UNDER {} WILL BE REMOVED\nARE YOU SURE?".format(
                                                           item.task.name), buttons=["ok", "cancel"])
-                if not really_sure:
+                if really_sure != "ok":
                     return
 
             state = item.task.parent_sub.delete_task(item.task.name)
