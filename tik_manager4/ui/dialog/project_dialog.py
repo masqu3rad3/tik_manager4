@@ -97,6 +97,7 @@ class SetProjectDialog(QtWidgets.QDialog):
         minus_btn.clicked.connect(self.on_remove_bookmark)
 
         button_box.accepted.connect(self.set_and_close)
+        button_box.rejected.connect(self.close)
         self.bookmarks_droplist.list.doubleClicked.connect(lambda: self.set_and_close()) # lambda is needed to pass the argument
         selection_model.selectionChanged.connect(self.activate_folders)
         self.bookmarks_droplist.list.currentRowChanged.connect(self.activate_bookmarks)

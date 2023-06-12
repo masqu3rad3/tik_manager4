@@ -60,14 +60,8 @@ class Metadata(dict):
     def override(self, data_dictionary):
         """Override the metadata with a new dictionary."""
         # clear metadata
-        # self.clear()
         for key, data in data_dictionary.items():
             self[key] = Metaitem(data, overridden=True)
-            # if key in self:
-            #     self[key].value = data
-            #     self[key].overridden = True
-            # else:
-            #     self[key] = Metaitem(data, overridden=True)
 
 
 class Subproject(Entity):
@@ -102,15 +96,6 @@ class Subproject(Entity):
     def tasks(self):
         """Return the tasks of the subproject."""
         return self._tasks
-
-    # @property
-    # def properties(self):
-    #     """Return the subproject properties as a dictionary"""
-    #     return {
-    #         "id": self.id,
-    #         "name": self.name,
-    #         "path": self.path,
-    #     }
 
     @property
     def metadata(self):
@@ -334,30 +319,13 @@ class Subproject(Entity):
         _task.add_property("name", name)
         _task.add_property("creator", self.guard.user)
         _task.add_property("type", task_type)
-        _task.add_property("task_id", _task.id)
+        _task.add_property("task_id", _task.generate_id())
         _task.add_property("categories", categories)
         _task.add_property("path", self.path)
         _task.add_property("file_name", file_name)
         _task.apply_settings()
         self._tasks[name] = _task
         return _task
-
-    # def edit_task(self, name, new_name=None, categories=None, task_type=None):
-    #     """Edit a task."""
-    #     # find the task
-    #     _task = self._tasks.get(name, None)
-    #     if not _task:
-    #         LOG.warning("Task not found")
-    #         return -1
-    #     # check if the new name is already taken
-    #     if new_name and new_name != name:
-    #         if new_name in self._tasks:
-    #             LOG.warning("Task with the same name already exist")
-    #             return -1
-    #         # rename the task
-    #         _task.(new_name)
-    #         self._tasks[new_name] = _task
-    #         del self._tasks[name]
 
     @staticmethod
     def is_task_empty(task):

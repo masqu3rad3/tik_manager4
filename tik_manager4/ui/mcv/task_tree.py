@@ -62,6 +62,7 @@ class TikTaskModel(QtGui.QStandardItemModel):
     def append_task(self, sub_data):
         """Append a task to the model"""
         _sub_item = TikTaskItem(sub_data)
+        # pid = QtGui.QStandardItem(str(sub_data.reference_id))
         pid = QtGui.QStandardItem(str(sub_data.id))
         path = QtGui.QStandardItem(sub_data.path)
 
@@ -72,6 +73,27 @@ class TikTaskModel(QtGui.QStandardItemModel):
         ]
         )
         return _sub_item
+
+    # def find_item_by_id_column(self, unique_id):
+    #     """Return the index for the given id"""
+    #     for row in range(self.rowCount()):
+    #         index = self.index(row, 1)
+    #         print(row)
+    #         if index.data() == unique_id:
+    #             return index
+    #     return None
+    def find_item_by_id_column(self, unique_id):
+        """Search entire tree and find the matching item."""
+        # print("ANANINAMI")
+        # get EVERY item in this model
+        _all_items = self.findItems("*", QtCore.Qt.MatchWildcard | QtCore.Qt.MatchRecursive)
+        # print(_all_items)
+        for x in _all_items:
+            # print(x)
+            if isinstance(x, TikTaskItem):
+                # if x.task.reference_id == unique_id:
+                if x.task.id == unique_id:
+                    return x
 
 
 class TikTaskView(QtWidgets.QTreeView):
@@ -100,7 +122,6 @@ class TikTaskView(QtWidgets.QTreeView):
 
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.right_click_menu)
-        # self.clicked.connect(self.test)
 
         # create another context menu for columns
         self.header().setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -158,15 +179,42 @@ class TikTaskView(QtWidgets.QTreeView):
         else:
             self.hide_columns(column)
 
+    def select_by_id(self, unique_id):
+        """Select the item with the given id"""
+        # get the index of the item
+        # print(unique_id)
+        match_item = self.model.find_item_by_id_column(unique_id)
+        if match_item:
+            idx = (match_item.index())
+            idx = idx.sibling(idx.row(), 0)
+            index = self.proxy_model.mapFromSource(idx)
+            self.setCurrentIndex(index)
+            return True
+        return False
+        #
+        # if idx:
+        #     # map it to proxy
+        #     idx = self.proxy_model.mapFromSource(idx)
+        #     # select it
+        #     self.setCurrentIndex(idx)
+
     def set_tasks(self, tasks_gen):
         """Set the data for the model"""
         self.model.clear()
         for task in tasks_gen:
             self.model.append_task(task)
-        # tasks = [value for item, value in tasks_dictionary.items()]
-        # self.model.set_tasks(tasks)
-        # self.model.populate()
         self.expandAll()
+
+    def get_selected_item(self):
+        """Return the selected item"""
+        idx = self.currentIndex()
+        if not idx.isValid():
+            return None
+        idx = idx.sibling(idx.row(), 0)
+        # the id needs to mapped from proxy to source
+        index = self.proxy_model.mapToSource(idx)
+        _item = self.model.itemFromIndex(index)
+        return _item
 
     def add_task(self, task):
         """Add a task to the model"""
@@ -215,17 +263,11 @@ class TikTaskView(QtWidgets.QTreeView):
                 level += 1
         else:
             level = 0
-        # right_click_menu = QtWidgets.QMenu()
-        # act_new_task = right_click_menu.addAction(self.tr("New Task"))
-        # act_new_sub.triggered.connect(lambda _, x=item: self.new_sub_project(item))
+
         act_edit_task = right_click_menu.addAction(self.tr("Edit Task"))
         act_edit_task.triggered.connect(lambda _, x=item: self.edit_task(item))
         act_delete_task = right_click_menu.addAction(self.tr("Delete Task"))
         act_delete_task.triggered.connect(lambda _, x=item: self.delete_task(item))
-        # act_new_sub.triggered.connect(partial(self.TreeItem_Add, level, mdlIdx))
-        # act_new_category = right_click_menu.addAction(self.tr("New Category"))
-        # act_new_task = right_click_menu.addAction(self.tr("New Task"))
-        # act_new_task.triggered.connect(lambda _, x=item: self.new_task(item))
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
     def edit_task(self, item):
@@ -234,7 +276,6 @@ class TikTaskView(QtWidgets.QTreeView):
         state = _dialog.exec_()
         if state:
             # emit clicked signal
-            # self.add_item.emit(_dialog.get_created_task())
             self.item_selected.emit(_dialog.task_object)
         else:
             pass
@@ -262,7 +303,6 @@ class TikTaskView(QtWidgets.QTreeView):
                     if self.model.item(i).task == item.task:
                         self.model.removeRow(i)
                         break
-                # self._feedback.pop_info("Task Deleted", "Task {} deleted".format(item.name))
             else:
                 msg = LOG.last_message()
                 self._feedback.pop_info(title="Task Not Deleted", text=msg, critical=True)

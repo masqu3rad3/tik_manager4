@@ -129,3 +129,4 @@ class Main(object):
         self.project._set(absolute_path)
         # add to recent projects
         self.user.add_recent_project(absolute_path)
+        self.user.last_project = absolute_path

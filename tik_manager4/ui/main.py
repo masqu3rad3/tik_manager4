@@ -76,6 +76,34 @@ class MainUI(QtWidgets.QMainWindow):
         self.initialize_mcv()
         self.build_menu_bar()
 
+        self.resume_last_selection()
+
+    def resume_last_selection(self):
+        """Resume the last selection from the user settings."""
+        # project is getting handled by the project object.
+        # subproject
+        subproject_id = self.tik.user.last_subproject
+        if subproject_id:
+            # self.tik.project.find_sub_by_id(subproject_id)
+            state = self.subprojects_mcv.sub_view.select_by_id(subproject_id)
+            if state:
+                # if its successfully set, then select the last task
+                task_id = self.tik.user.last_task
+                if task_id:
+                    state = self.tasks_mcv.task_view.select_by_id(task_id)
+                    if state:
+                    #     # if its successfully set, then select the last category
+                        category_index = self.tik.user.last_category or 0
+                        self.categories_mcv.set_category_by_index(category_index)
+                        work_id = self.tik.user.last_work
+                        if work_id:
+                            state = self.categories_mcv.work_tree_view.select_by_id(work_id)
+                            if state:
+                                # if its successfully set, then select the last version
+                                version_id = self.tik.user.last_version
+                                if version_id:
+                                    self.versions_mcv.set_version(version_id)
+
     def initialize_mcv(self):
         self.project_mcv = TikProjectLayout(self.tik.project)
         self.project_layout.addLayout(self.project_mcv)
@@ -101,6 +129,39 @@ class MainUI(QtWidgets.QMainWindow):
         self.subprojects_mcv.sub_view.add_item.connect(self.tasks_mcv.task_view.add_task)
         self.tasks_mcv.task_view.item_selected.connect(self.categories_mcv.set_task)
         self.categories_mcv.work_tree_view.item_selected.connect(self.versions_mcv.set_base)
+
+    # override the closeEvent to save the window state
+    def closeEvent(self, event):
+        self.tik.user.last_subproject = None
+        self.tik.user.last_task = None
+        self.tik.user.last_category = None
+        self.tik.user.last_work = None
+        self.tik.user.last_version = None
+
+        self.tik.user.last_project = self.tik.project.name
+        # get the currently selected subproject
+        _subproject_item = self.subprojects_mcv.sub_view.get_selected_item()
+        if _subproject_item:
+            self.tik.user.last_subproject = _subproject_item.subproject.id
+            _task_item = self.tasks_mcv.task_view.get_selected_item()
+            if _task_item:
+                # self.tik.user.last_task = _task_item.task.reference_id
+                self.tik.user.last_task = _task_item.task.id
+                # TODO: Should we consider getting the category name instead of the index?
+                # If someone changes the category order, the index will be wrong
+                # Do we care?
+                _category_index = self.categories_mcv.get_category_index()
+                # we can always safely write the category index
+                self.tik.user.last_category = _category_index
+                _work_item = self.categories_mcv.work_tree_view.get_selected_item()
+                if _work_item:
+                    self.tik.user.last_work = _work_item.work.id
+                    _version_nmb = self.versions_mcv.get_selected_version()
+                    # we can always safely write the version number
+                    self.tik.user.last_version = _version_nmb
+
+        self.tik.user.resume.apply_settings()
+        event.accept()
 
     def build_menu_bar(self):
         """Build the menu bar."""

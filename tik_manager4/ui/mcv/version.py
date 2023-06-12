@@ -19,12 +19,12 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.addLayout(version_layout)
         # version_lbl = QtWidgets.QLabel("Version:")
         version_lbl = QtWidgets.QLabel(text="Version: ")
-        # set the font size to 12
+        # set the font size to 10
         version_lbl.setFont(QtGui.QFont("Arial", 10))
         version_lbl.setMinimumSize = QtCore.QSize(60, 30)
         version_lbl.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignRight)
         self.version_combo = QtWidgets.QComboBox()
-        # set its minimum height to 20
+        # set its minimum height to 30
         self.version_combo.setMinimumSize(QtCore.QSize(60, 30))
         version_layout.addWidget(version_lbl)
         version_layout.addWidget(self.version_combo)
@@ -91,8 +91,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.version_combo.setProperty("preVersion", True)
         self.version_combo.setStyleSheet("")
 
-
-
         _version = self.base.get_version(version_number)
         self.notes_editor.clear()
         self.thumbnail.clear()
@@ -102,6 +100,20 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.thumbnail.setPixmap(QtGui.QPixmap(_thumbnail_path))
         else:
             self.thumbnail.setPixmap(self.empty_pixmap)
+
+    def set_version(self, combo_value):
+        """Set the version dropdown to the given version value."""
+        # check if the value exists in the version dropdown
+
+
+        self.version_combo.setCurrentText(str(combo_value))
+
+    def get_selected_version(self):
+        """Return the current version."""
+        version_number = int(self.version_combo.currentText())
+        return version_number
+        # Following returns the dictionary. We probably won't need it.
+        # return self.base.get_version(version_number)
 
     def refresh(self):
         """Refresh the version dropdown."""

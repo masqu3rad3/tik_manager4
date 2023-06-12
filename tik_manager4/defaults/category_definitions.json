@@ -4,6 +4,11 @@
     "validations": [],
     "extracts": ["scene_file"]
   },
+  "Assembly": {
+    "type": "asset",
+    "validations": [],
+    "extracts": ["scene_file"]
+  },
   "LookDev": {
     "type": "asset",
     "validations": [],

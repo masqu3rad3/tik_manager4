@@ -275,7 +275,8 @@ class TestProject:
 
         assert task.name == "Poseidon"
         assert task.creator == "Admin"
-        assert task.reference_id == task._task_id
+        # assert task.reference_id == task._task_id
+        assert task.id == task._task_id
 
         # no permissions
         self.tik.user.set("Generic", password="1234")

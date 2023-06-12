@@ -110,9 +110,32 @@ class TikCategoryView(QtWidgets.QTreeView):
 
         self.expandAll()
 
+    def select_by_id(self, unique_id):
+        """Selects the item with the given id"""
+        for row in range(self.model.rowCount()):
+            idx = self.model.index(row, 1)
+            if idx.data() == str(unique_id):
+                idx = idx.sibling(idx.row(), 0)
+                index = self.proxy_model.mapFromSource(idx)
+                self.setCurrentIndex(index)
+                return True
+        return False
+
     def currentChanged(self, *args, **kwargs):
         super(TikCategoryView, self).currentChanged(*args, **kwargs)
         self.item_clicked(self.currentIndex())
+
+    def get_selected_item(self):
+        """Return the current item"""
+        idx = self.currentIndex()
+        if not idx.isValid():
+            return None
+        idx = idx.sibling(idx.row(), 0)
+
+        # the id needs to mapped from proxy to source
+        index = self.proxy_model.mapToSource(idx)
+        _item = self.model.itemFromIndex(index)
+        return _item
 
     def item_clicked(self, idx):
         """Emit the item_selected signal when an item is clicked"""
@@ -273,6 +296,18 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
                 if category == self._last_category:
                     return idx
         return 0
+
+    def set_category_by_index(self, category_index):
+        """Set the category by index"""
+        self.category_tab_widget.setCurrentIndex(category_index)
+        self.on_category_change(category_index)
+
+    # def get_current_category(self):
+    #     """Get the name of the current category"""
+    #     return self.category_tab_widget.currentWidget().category
+    # def set_category(self, category):
+    #     """Set the current category"""
+    #     self.category_tab_widget.setCurrentIndex(self.category_tab_widget.indexOf(category))
 
     def set_task(self, task):
         """Set the task"""

@@ -21,7 +21,7 @@ class Entity(object):
     @property
     def id(self):
         if not self._id:
-            self._id = uuid.uuid1().time_low
+            self._id = self.generate_id()
         return self._id
 
     @id.setter
@@ -51,6 +51,10 @@ class Entity(object):
     @property
     def is_authenticated(self):
         return self.guard.is_authenticated
+
+    @staticmethod
+    def generate_id():
+        return uuid.uuid1().time_low
 
     def _check_permissions(self, level):
         """Checks the user permissions for project actions."""
