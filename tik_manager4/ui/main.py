@@ -44,6 +44,9 @@ class MainUI(QtWidgets.QMainWindow):
         splitter = QtWidgets.QSplitter(self.central_widget, orientation=QtCore.Qt.Horizontal)
         self.main_layout.addWidget(splitter)
         subproject_tree_widget = QtWidgets.QWidget(splitter)
+
+
+
         self.subproject_tree_layout = QtWidgets.QVBoxLayout(subproject_tree_widget)
         self.subproject_tree_layout.setContentsMargins(0, 0, 0, 0)
 
