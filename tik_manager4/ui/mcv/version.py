@@ -15,6 +15,17 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         self.base = None  # this is work or publish object
 
+        self.label = QtWidgets.QLabel("Versions")
+        self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
+        self.addWidget(self.label)
+        # create a separator label
+        self.separator = QtWidgets.QLabel()
+        self.separator.setFrameShape(QtWidgets.QFrame.HLine)
+        self.separator.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.separator.setStyleSheet("background-color: rgb(255, 180, 60);")
+        self.separator.setFixedHeight(1)
+        self.addWidget(self.separator)
+
         version_layout = QtWidgets.QHBoxLayout()
         self.addLayout(version_layout)
         # version_lbl = QtWidgets.QLabel("Version:")

@@ -237,6 +237,18 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 
         self.setContentsMargins(0, 0, 0, 0)
 
+        self.label = QtWidgets.QLabel("Works")
+        self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
+        self.addWidget(self.label)
+        # create a separator label
+        self.separator = QtWidgets.QLabel()
+        self.separator.setFrameShape(QtWidgets.QFrame.HLine)
+        self.separator.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.separator.setStyleSheet("background-color: rgb(174, 215, 91);")
+        self.separator.setFixedHeight(1)
+        self.addWidget(self.separator)
+
+
         # create two radio buttons one for work and one for publish
         self.work_radio_button = QtWidgets.QRadioButton("Work")
         # make the radio button label larger
@@ -301,13 +313,6 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         """Set the category by index"""
         self.category_tab_widget.setCurrentIndex(category_index)
         self.on_category_change(category_index)
-
-    # def get_current_category(self):
-    #     """Get the name of the current category"""
-    #     return self.category_tab_widget.currentWidget().category
-    # def set_category(self, category):
-    #     """Set the current category"""
-    #     self.category_tab_widget.setCurrentIndex(self.category_tab_widget.indexOf(category))
 
     def set_task(self, task):
         """Set the task"""

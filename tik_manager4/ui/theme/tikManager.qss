@@ -1571,6 +1571,11 @@ QSplitter::separator {
   margin: 0px;
 }
 
+QSplitter::handle {
+  background: #4c4c4c;
+  border: 2px solid #303030;
+}
+
 QSplitter::separator:hover {
   background-color: #787878;
 }

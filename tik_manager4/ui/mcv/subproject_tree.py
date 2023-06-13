@@ -230,27 +230,6 @@ class TikSubView(QtWidgets.QTreeView):
         return False
 
 
-        # import pdb
-        # pdb.set_trace()
-        # anan = self.find_items_in_tree(self.model.root_item, "2136257538")
-        # print(anan)
-
-        # anan = self.model.columns[1]
-        # match_item = (self.model.findItems("2141800799", QtCore.Qt.MatchExactly, column=1))
-        # print(match_item)
-
-        # self.proxy_model.setFilterKeyColumn(1)
-        # anan = self.proxy_model.setFilterFixedString("2141800799")
-        # print(anan)
-        # self.proxy_model.invalidateFilter()
-        # match_item = (self.proxy_model.findItems("2141800799", QtCore.Qt.MatchExactly, column=1))
-
-
-        # idx = (match_item.index())
-        # idx = idx.sibling(idx.row(), 0)
-        # index = self.proxy_model.mapFromSource(idx)
-        # self.setCurrentIndex(index)
-
     # TODO: THIS IS BACKUP
     # def find_and_select_by_id(self, unique_id):
     #     """Look at the id column and select the subproject item that matched the unique id"""
@@ -576,6 +555,14 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
         self.label = QtWidgets.QLabel("Sub-Projects")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
         self.addWidget(self.label)
+        # create a separator label
+        self.separator = QtWidgets.QLabel()
+        self.separator.setFrameShape(QtWidgets.QFrame.HLine)
+        self.separator.setFrameShadow(QtWidgets.QFrame.Sunken)
+        # make it violet
+        self.separator.setStyleSheet("background-color: rgb(221, 160, 221);")
+        self.separator.setFixedHeight(1)
+        self.addWidget(self.separator)
 
         # add a checkbox for recursive search
         if recursive_enabled:

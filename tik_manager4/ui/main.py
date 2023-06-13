@@ -1,6 +1,6 @@
 """Main UI for Tik Manager 4."""
 
-from tik_manager4.ui.Qt import QtWidgets, QtCore
+from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 
 from tik_manager4.ui.mcv.project import TikProjectLayout
 from tik_manager4.ui.mcv.subproject_tree import TikSubProjectLayout
@@ -41,26 +41,36 @@ class MainUI(QtWidgets.QMainWindow):
         self.project_layout = QtWidgets.QHBoxLayout()
 
         self.main_layout = QtWidgets.QVBoxLayout()
-        splitter = QtWidgets.QSplitter(self.central_widget, orientation=QtCore.Qt.Horizontal)
+        # splitter = QtWidgets.QSplitter(self.central_widget, orientation=QtCore.Qt.Horizontal)
+        splitter = CustomSplitter(QtCore.Qt.Horizontal, self.central_widget)
+        # splitter.setHandleWidth(50)
+        # test = pick.pixmap("arrow_left.png")
+        # test_label = QtWidgets.QLabel(splitter)
+        # test_label.setPixmap(test)
+        # splitter = QtWidgets.QSplitter(self.central_widget, orientation=QtCore.Qt.Horizontal, objectName='splitter', frameShape=QtWidgets.QFrame.StyledPanel, frameShadow=QtWidgets.QFrame.Plain)
+
         self.main_layout.addWidget(splitter)
+
         subproject_tree_widget = QtWidgets.QWidget(splitter)
-
-
-
         self.subproject_tree_layout = QtWidgets.QVBoxLayout(subproject_tree_widget)
         self.subproject_tree_layout.setContentsMargins(0, 0, 0, 0)
 
+        # # Create a label for the splitter handle
+        # splitter_label = QtWidgets.QLabel(splitter)
+        # splitter_label.setAlignment(QtCore.Qt.AlignCenter)
+        # splitter_label.setText("<>")
+
         task_tree_widget = QtWidgets.QWidget(splitter)
         self.task_tree_layout = QtWidgets.QVBoxLayout(task_tree_widget)
-        self.task_tree_layout.setContentsMargins(0, 0, 0, 0)
+        self.task_tree_layout.setContentsMargins(2, 2, 2, 2)
 
         category_widget = QtWidgets.QWidget(splitter)
         self.category_layout = QtWidgets.QVBoxLayout(category_widget)
-        self.category_layout.setContentsMargins(0, 0, 0, 0)
+        self.category_layout.setContentsMargins(2, 2, 2, 2)
 
         version_widget = QtWidgets.QWidget(splitter)
         self.version_layout = QtWidgets.QVBoxLayout(version_widget)
-        self.version_layout.setContentsMargins(0, 0, 0, 0)
+        self.version_layout.setContentsMargins(2, 2, 2, 2)
 
         self.buttons_layout = QtWidgets.QHBoxLayout()
 
@@ -257,6 +267,31 @@ class MainUI(QtWidgets.QMainWindow):
         """Login."""
         dialog = LoginDialog(self.tik, parent=self)
         dialog.show()
+
+# class CustomSplitterHandle(QtWidgets.QSplitterHandle):
+#     def __init__(self, orientation, parent=None):
+#         super().__init__(orientation, parent)
+#         self.setFixedHeight(16)  # Set the desired height for the handle
+#
+#     def paintEvent(self, event):
+#         painter = QtGui.QPainter(self)
+#         painter.fillRect(event.rect(), QtCore.Qt.lightGray)
+#
+#         # Load and draw the custom image
+#         # image_path = "path_to_image.png"
+#         pixmap = pick.pixmap("arrow_left_disabled.png")
+#         handle_rect = self.rect()
+#         pixmap_rect = QtCore.QRect(QtCore.QPoint(0, 0), pixmap.size())
+#         pixmap_rect.moveCenter(handle_rect.center())
+#         painter.drawPixmap(pixmap_rect, pixmap)
+#
+#
+# class CustomSplitter(QtWidgets.QSplitter):
+#     def __init__(self, orientation, parent=None):
+#         super().__init__(orientation, parent)
+#
+#         self.handle = CustomSplitterHandle(orientation, self)
+#         self.setHandleWidth(16)  # Set the desired width for the handle
 
 
 if __name__ == "__main__":

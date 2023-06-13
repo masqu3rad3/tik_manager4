@@ -323,6 +323,13 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
         self.label = QtWidgets.QLabel("Tasks")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
         self.addWidget(self.label)
+        # create a separator label
+        self.separator = QtWidgets.QLabel()
+        self.separator.setFrameShape(QtWidgets.QFrame.HLine)
+        self.separator.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.separator.setStyleSheet("background-color: rgb(0, 255, 255);")
+        self.separator.setFixedHeight(1)
+        self.addWidget(self.separator)
 
         self.task_view = TikTaskView()
         self.addWidget(self.task_view)
