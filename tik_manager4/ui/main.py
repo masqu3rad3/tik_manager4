@@ -8,7 +8,7 @@ from tik_manager4.ui.mcv.task_tree import TikTaskLayout
 from tik_manager4.ui.mcv.category import TikCategoryLayout
 from tik_manager4.ui.mcv.version import TikVersionLayout
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog, SetProjectDialog
-from tik_manager4.ui.dialog.login import LoginDialog
+from tik_manager4.ui.dialog.user_dialog import LoginDialog
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui import pick
 import tik_manager4._version as version

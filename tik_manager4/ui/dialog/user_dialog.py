@@ -1,6 +1,63 @@
 """Dialog for setting and authorizing the user"""
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
+from tik_manager4.ui.widgets.validated_string import ValidatedString
+
+class NewUserDialog(QtWidgets.QDialog):
+    """Dialog for setting and authorizing the user"""
+
+    def __init__(self, user_object, *args, **kwargs):
+        self.user_object = user_object
+        super(NewUserDialog, self).__init__(*args, **kwargs)
+
+        self.setWindowTitle("Create New User")
+        self.setMinimumSize(500, 150)
+
+        self.feedback = Feedback(parent=self)
+
+        main_layout = QtWidgets.QVBoxLayout()
+        self.setLayout(main_layout)
+
+        # form layout
+        self.form_layout = QtWidgets.QFormLayout()
+        main_layout.addLayout(self.form_layout)
+
+        _user_name_lbl = QtWidgets.QLabel()
+        _user_name_lbl.setText("User Name:")
+        self._user_name_le = ValidatedString(name="user_name")
+
+        _user_password_lbl = QtWidgets.QLabel()
+        _user_password_lbl.setText("Password :")
+        self._user_password_le = QtWidgets.QLineEdit()
+        self._user_password_le.setEchoMode(QtWidgets.QLineEdit.Password)
+
+        _user_password2_lbl = QtWidgets.QLabel()
+        _user_password2_lbl.setText("Password Again :")
+        self._user_password2_le = QtWidgets.QLineEdit()
+        self._user_password2_le.setEchoMode(QtWidgets.QLineEdit.Password)
+
+        _remember_lbl = QtWidgets.QLabel()
+        _remember_lbl.setToolTip("If checked, remember this user on this machine")
+        _remember_lbl.setText("Remember :")
+        self._remember_cb = QtWidgets.QCheckBox()
+        self._remember_cb.setChecked(True)
+
+        self.form_layout.addRow(_user_name_lbl, self._user_name_le)
+        self.form_layout.addRow(_user_password_lbl, self._user_password_le)
+        self.form_layout.addRow(_user_password2_lbl, self._user_password2_le)
+        self.form_layout.addRow(_remember_lbl, self._remember_cb)
+
+        # button box
+        self.button_box = QtWidgets.QDialogButtonBox()
+        self.button_box.setOrientation(QtCore.Qt.Horizontal)
+        self.button_box.setStandardButtons(
+            QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok
+        )
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        main_layout.addWidget(self.button_box)
+
+        # signals
 
 class LoginDialog(QtWidgets.QDialog):
     """Dialog for setting and authorizing the user"""
@@ -75,15 +132,27 @@ class LoginDialog(QtWidgets.QDialog):
     def _on_user_password_changed(self, text):
         """Set the user"""
         pass
+#
+# # Test the dialog
+# if __name__ == "__main__":
+#     import sys
+#     import tik_manager4
+#     from tik_manager4.ui import pick
+#     app = QtWidgets.QApplication(sys.argv)
+#     tik = tik_manager4.initialize("Standalone")
+#     dialog = LoginDialog(tik)
+#     _style_file = pick.style_file()
+#     dialog.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
+#     dialog.show()
+#     sys.exit(app.exec_())
 
-# Test the dialog
 if __name__ == "__main__":
     import sys
     import tik_manager4
     from tik_manager4.ui import pick
     app = QtWidgets.QApplication(sys.argv)
     tik = tik_manager4.initialize("Standalone")
-    dialog = LoginDialog(tik)
+    dialog = NewUserDialog(tik.user)
     _style_file = pick.style_file()
     dialog.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
     dialog.show()
