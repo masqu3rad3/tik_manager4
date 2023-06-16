@@ -8,7 +8,7 @@ from tik_manager4.ui.mcv.task_tree import TikTaskLayout
 from tik_manager4.ui.mcv.category import TikCategoryLayout
 from tik_manager4.ui.mcv.version import TikVersionLayout
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog, SetProjectDialog
-from tik_manager4.ui.dialog.user_dialog import LoginDialog
+from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui import pick
 import tik_manager4._version as version
@@ -177,6 +177,8 @@ class MainUI(QtWidgets.QMainWindow):
         # File Menu
         create_project = QtWidgets.QAction("&Create New Project", self)
         file_menu.addAction(create_project)
+        new_user = QtWidgets.QAction("&Add New User", self)
+        file_menu.addAction(new_user)
         file_menu.addSeparator()
         user_login = QtWidgets.QAction("&User Login", self)
         file_menu.addAction(user_login)
@@ -198,6 +200,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # SIGNALS
         create_project.triggered.connect(self.on_create_new_project)
+        new_user.triggered.connect(self.on_add_new_user)
         user_login.triggered.connect(self.on_login)
         set_project.triggered.connect(self.on_set_project)
 
@@ -242,19 +245,24 @@ class MainUI(QtWidgets.QMainWindow):
     def on_create_new_project(self):
         """Create a new project."""
         # check the user permissions
-        if self.tik.project._check_permissions(level=3) != -1:
-            dialog = NewProjectDialog(self.tik, parent=self)
-            dialog.show()
-            if dialog.exec_():
-                self.tik.project = dialog.main_object
-        else:
-            message, title = self.tik.project.log.get_last_message()
-            self.feedback.pop_info(title.capitalize(), message)
-            return
+        dialog = NewProjectDialog(self.tik, parent=self)
+        dialog.show()
+        # if self.tik.project._check_permissions(level=3) != -1:
+        #
+        #     if dialog.exec_():
+        #         self.tik.project = dialog.main_object
+        # else:
+        #     message, title = self.tik.project.log.get_last_message()
+        #     self.feedback.pop_info(title.capitalize(), message)
+        #     return
+
+    def on_add_new_user(self):
+        dialog = NewUserDialog(self.tik.user, parent=self)
+        dialog.show()
 
     def on_login(self):
         """Login."""
-        dialog = LoginDialog(self.tik, parent=self)
+        dialog = LoginDialog(self.tik.user, parent=self)
         dialog.show()
 
 

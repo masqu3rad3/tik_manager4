@@ -55,10 +55,10 @@ class SetProjectDialog(QtWidgets.QDialog):
 
         # projects side
         self.folders_tree = QtWidgets.QTreeView(splitter, minimumSize=QtCore.QSize(0, 0), dragEnabled=True,
-                                                    dragDropMode=QtWidgets.QAbstractItemView.DragOnly,
-                                                    selectionMode=QtWidgets.QAbstractItemView.SingleSelection,
-                                                    itemsExpandable=False, rootIsDecorated=False,
-                                                    sortingEnabled=True, frameShape=QtWidgets.QFrame.NoFrame)
+                                                dragDropMode=QtWidgets.QAbstractItemView.DragOnly,
+                                                selectionMode=QtWidgets.QAbstractItemView.SingleSelection,
+                                                itemsExpandable=False, rootIsDecorated=False,
+                                                sortingEnabled=True, frameShape=QtWidgets.QFrame.NoFrame)
         folders_tree_layout.addWidget(self.folders_tree)
         directory_filter = QtWidgets.QLineEdit()
         directory_filter.setPlaceholderText("Filter")
@@ -76,7 +76,6 @@ class SetProjectDialog(QtWidgets.QDialog):
         self.folders_tree.setColumnWidth(2, 0)
         selection_model = self.folders_tree.selectionModel()
 
-
         self.bookmarks_droplist = DropList(name="Bookmarks", buttons_position="down", buttons=["+", "-"])
         plus_btn = self.bookmarks_droplist.buttons[0]
         minus_btn = self.bookmarks_droplist.buttons[1]
@@ -90,7 +89,6 @@ class SetProjectDialog(QtWidgets.QDialog):
         button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         buttons_layout.addWidget(button_box)
 
-
         # SIGNALS
         self.bookmarks_droplist.dropped.connect(self.on_drag_and_drop)
         plus_btn.clicked.connect(self.on_add_bookmark)
@@ -98,7 +96,8 @@ class SetProjectDialog(QtWidgets.QDialog):
 
         button_box.accepted.connect(self.set_and_close)
         button_box.rejected.connect(self.close)
-        self.bookmarks_droplist.list.doubleClicked.connect(lambda: self.set_and_close()) # lambda is needed to pass the argument
+        self.bookmarks_droplist.list.doubleClicked.connect(
+            lambda: self.set_and_close())  # lambda is needed to pass the argument
         selection_model.selectionChanged.connect(self.activate_folders)
         self.bookmarks_droplist.list.currentRowChanged.connect(self.activate_bookmarks)
         recent_pb.clicked.connect(self.recents_pop_menu)
@@ -136,7 +135,8 @@ class SetProjectDialog(QtWidgets.QDialog):
         """Set the active project and close the dialog."""
         project_to_set = project_path or self.active_project
         if not project_to_set:
-            self.feedback.pop_info(title="Cannot set project", text="No project selected.\nPlease select a project from the folders or bookmarks and press 'Set'")
+            self.feedback.pop_info(title="Cannot set project",
+                                   text="No project selected.\nPlease select a project from the folders or bookmarks and press 'Set'")
             return
         self.main_object.set_project(project_to_set)
         self.close()
@@ -166,6 +166,7 @@ class SetProjectDialog(QtWidgets.QDialog):
     def populate_bookmarks(self):
         self.bookmarks_droplist.list.clear()
         self.bookmarks_droplist.list.addItems(self.main_object.user.bookmark_names)
+
 
 class NewProjectDialog(EditSubprojectDialog):
     """Dialog for creating a new project"""
@@ -200,18 +201,18 @@ class NewProjectDialog(EditSubprojectDialog):
                     "tooltip": "Root for the projects",
                 },
             "project_name": {
-                   "display_name": "Project Name :",
-                   "type": "validatedString",
-                   "value": "",
-                   "tooltip": "Name of the Project",
-                },
+                "display_name": "Project Name :",
+                "type": "validatedString",
+                "value": "",
+                "tooltip": "Name of the Project",
+            },
             "structure_template": {
                 "display_name": "Template :",
                 "type": "combo",
                 "items": _structure_names,
                 "value": "Empty Project",
                 "tooltip": "Pick a template to start with"
-                }
+            }
         }
         return _primary_ui
 
@@ -252,7 +253,6 @@ class NewProjectDialog(EditSubprojectDialog):
             }
         return _secondary_ui, _tertiary_ui
 
-
     def on_structure_template_changed(self, index):
         """Override the function to update the metadata."""
 
@@ -278,7 +278,8 @@ class NewProjectDialog(EditSubprojectDialog):
 
     def _execute(self):
         # build a new kwargs dictionary by filtering the settings_data
-        path = os.path.join(self.primary_data.get_property("project_root"), self.primary_data.get_property("project_name"))
+        path = os.path.join(self.primary_data.get_property("project_root"),
+                            self.primary_data.get_property("project_name"))
 
         # get the primary data
         filtered_data = FilteredData(
@@ -292,6 +293,7 @@ class NewProjectDialog(EditSubprojectDialog):
         self.main_object.create_project(path, **filtered_data)
         # close the dialog
         self.close()
+
 
 # Test the set project dialog
 # if __name__ == "__main__":
@@ -311,6 +313,7 @@ if __name__ == "__main__":
     import sys
     import tik_manager4
     from tik_manager4.ui import pick
+
     app = QtWidgets.QApplication(sys.argv)
     tik = tik_manager4.initialize("Standalone")
     tik.user.set("Admin", "1234")
@@ -320,4 +323,3 @@ if __name__ == "__main__":
     dialog.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
     dialog.show()
     sys.exit(app.exec_())
-
