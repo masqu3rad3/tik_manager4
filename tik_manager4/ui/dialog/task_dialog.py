@@ -14,9 +14,10 @@ class EditTask(QtWidgets.QDialog):
         """Dialog for task editing."""
         super(EditTask, self).__init__(parent=parent, *args, **kwargs)
         self.task_object = task_object
+        self.feedback = feedback.Feedback(parent=self)
+
         self._parent_sub = parent_sub or task_object.parent_sub
         self.parent = parent
-        self._feedback = feedback.Feedback(parent=self)
         self.setWindowTitle("Edit Task")
         self.setFixedSize(600, 400)
         self.setModal(True)
@@ -134,9 +135,10 @@ class NewTask(QtWidgets.QDialog):
         """
         super(NewTask, self).__init__(parent=parent, *args, **kwargs)
         self.tik_project = project_object
+        self.feedback = feedback.Feedback()
+
         self._parent_sub = parent_sub or project_object
         self.parent = parent
-        self._feedback = feedback.Feedback(parent=self)
         self.setWindowTitle("New Task")
         # self.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.setFixedSize(600, 400)
@@ -148,6 +150,7 @@ class NewTask(QtWidgets.QDialog):
         self._init_ui()
 
         self._new_task = None
+
 
     def _categorize_category_definitions(self):
         """Categorize category definitions."""
@@ -247,8 +250,8 @@ class NewTask(QtWidgets.QDialog):
             parent_uid=self._parent_sub.id,
         )
         if self._new_task == -1:
-            self._feedback.pop_info(title="Failed to create task.", text=self.tik_project.log.last_message,
-                                    critical=True)
+            self.feedback.pop_info(title="Failed to create task.", text=self.tik_project.log.last_message,
+                                   critical=True)
             return
         self.accept()
 

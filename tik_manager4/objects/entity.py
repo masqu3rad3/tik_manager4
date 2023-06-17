@@ -56,7 +56,7 @@ class Entity(object):
     def generate_id():
         return uuid.uuid1().time_low
 
-    def _check_permissions(self, level):
+    def check_permissions(self, level):
         """Checks the user permissions for project actions."""
         if self.permission_level < level:
             log.warning("This user does not have permissions for this action")

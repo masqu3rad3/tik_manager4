@@ -119,7 +119,7 @@ class Project(Subproject):
 
     def edit_sub_project(self, uid=None, path=None, name=None, **properties):
         """Edits a subproject and stores it in persistent database"""
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
         sub = self.__validate_and_get_sub(uid, path)

@@ -9,10 +9,6 @@ class NewUserDialog(QtWidgets.QDialog):
         super(NewUserDialog, self).__init__(*args, **kwargs)
         self.feedback = Feedback(parent=self)
         self.user_object = user_object
-        if self.user_object.permission_level < 3:
-            self.feedback.pop_info(title="No Permission", text="User %s has no permission to create new users" % self.user_object._active_user, critical=True)
-            self.reject()
-            self.deleteLater()
 
         self.setWindowTitle("Create New User")
         self.setMinimumSize(500, 150)
@@ -39,6 +35,7 @@ class NewUserDialog(QtWidgets.QDialog):
         self._permission_level_combo = QtWidgets.QComboBox()
         self._permission_level_combo.addItems(["0", "1", "2", "3"])
         self._permission_level_combo.setCurrentText("2")
+        self.form_layout.addRow(_permission_level_lbl, self._permission_level_combo)
 
         _user_password_lbl = QtWidgets.QLabel()
         _user_password_lbl.setText("Password :")
@@ -126,7 +123,8 @@ class LoginDialog(QtWidgets.QDialog):
         self._users_combo.addItems(self.user_object.commons.users.keys)
 
         # get the activeUser
-        _active_user = self.user_object.bookmarks.get_property("activeUser")
+        # _active_user = self.user_object.bookmarks.get_property("activeUser")
+        _active_user = self.user_object.get()
         # if the active user is in the list, select it
         if _active_user and _active_user in self.user_object.commons.users.keys:
             self._users_combo.setCurrentText(_active_user)
@@ -194,7 +192,7 @@ if __name__ == "__main__":
     from tik_manager4.ui import pick
     app = QtWidgets.QApplication(sys.argv)
     tik = tik_manager4.initialize("Standalone")
-    tik.user.set("Admin", "1234")
+    # tik.user.set("Admin", "1234")
     # tik.user.set("Generic", "1234")
     dialog = NewUserDialog(tik.user)
     _style_file = pick.style_file()

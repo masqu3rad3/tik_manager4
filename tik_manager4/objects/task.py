@@ -81,7 +81,7 @@ class Task(Settings, Entity):
 
     def add_category(self, category):
         """Add a category to the task."""
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
         if category not in self.guard.category_definitions.properties.keys():
@@ -98,7 +98,7 @@ class Task(Settings, Entity):
 
     def edit(self, name=None, task_type=None, categories=None):
         """Edit the task"""
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
         if name and name != self.name:
@@ -140,7 +140,7 @@ class Task(Settings, Entity):
         _is_empty = self._categories[category].is_empty()
         permission_level = 2 if _is_empty else 3
 
-        state = self._check_permissions(level=permission_level)
+        state = self.check_permissions(level=permission_level)
         if state != 1:
             return -1
 
@@ -167,7 +167,7 @@ class Task(Settings, Entity):
         Returns:
 
         """
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
         if len(new_order) != len(self._categories):

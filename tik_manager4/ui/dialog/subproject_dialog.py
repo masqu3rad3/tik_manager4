@@ -1,7 +1,7 @@
 """Dialog for new subproject creation."""
 from tik_manager4.core.settings import Settings
 from tik_manager4.ui.Qt import QtWidgets
-from tik_manager4.ui.dialog import feedback
+from tik_manager4.ui.dialog.feedback import Feedback
 # from tik_manager4.ui.layouts.settings_layout import SettingsLayout
 import tik_manager4.ui.layouts.settings_layout
 from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
@@ -11,10 +11,11 @@ from tik_manager4.objects import guard
 class EditSubprojectDialog(QtWidgets.QDialog):
     def __init__(self, project_object, parent_sub=None, parent=None, *args, **kwargs):
         super(EditSubprojectDialog, self).__init__(parent=parent, *args, **kwargs)
+        self.feedback = Feedback(parent=self)
         self.tik_project = project_object
         self._parent_sub = parent_sub or project_object
         self.parent = parent
-        self._feedback = feedback.Feedback(parent=self)
+
         self.setWindowTitle("Edit Subproject")
         self.setModal(True)
 
@@ -37,6 +38,7 @@ class EditSubprojectDialog(QtWidgets.QDialog):
 
         self._new_subproject = None
         self.button_box = None
+        self.button_box_layout = None # an empty layout to hold the button box
 
         self.build_ui()
 
@@ -81,8 +83,10 @@ class EditSubprojectDialog(QtWidgets.QDialog):
         self.tertiary_layout.contents_layout.addLayout(self.tertiary_content)
 
         # create a button box
+        self.button_box_layout = QtWidgets.QHBoxLayout()
         self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
-        main_layout.addWidget(self.button_box)
+        main_layout.addLayout(self.button_box_layout)
+        self.button_box_layout.addWidget(self.button_box)
         # SIGNALS
         self.button_box.accepted.connect(self._execute)
         self.button_box.rejected.connect(self.reject)
@@ -201,7 +205,8 @@ class EditSubprojectDialog(QtWidgets.QDialog):
             self.accept()
         else:
             msg, title = self.tik_project.log.get_last_message()
-            self._feedback.pop_info(title, msg, critical=True)
+            self.feedback.pop_info(title, msg, critical=True)
+
 
 class NewSubprojectDialog(EditSubprojectDialog):
     def __init__(self, *args, **kwargs):
@@ -292,7 +297,7 @@ class NewSubprojectDialog(EditSubprojectDialog):
             self.accept()
         else:
             msg, title = self.tik_project.log.get_last_message()
-            self._feedback.pop_info(title, msg, critical=True)
+            self.feedback.pop_info(title, msg, critical=True)
 
     def get_created_subproject(self):
         return self._new_subproject

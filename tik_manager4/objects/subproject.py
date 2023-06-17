@@ -249,7 +249,7 @@ class Subproject(Entity):
             Subproject: The newly created subproject object.
         """
 
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
 
@@ -304,7 +304,7 @@ class Subproject(Entity):
         """
         # inherit the task type from the parent subproject 'mode' if not specified
         task_type = task_type or self.metadata.get_value("mode", None)
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
         file_name = "{0}.ttask".format(name)
@@ -346,7 +346,7 @@ class Subproject(Entity):
         # check all categories are empty
         _is_empty = self.is_task_empty(task)
         permission_level = 2 if _is_empty else 3
-        state = self._check_permissions(level=permission_level)
+        state = self.check_permissions(level=permission_level)
         if state != 1:
             return -1
 
@@ -431,7 +431,7 @@ class Subproject(Entity):
             return -1
 
         # Minimum required permission level is 2
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
 
@@ -446,7 +446,7 @@ class Subproject(Entity):
 
         # if the subproject is not empty, we need to have level 3
         if not self.is_subproject_empty(kill_sub):
-            state = self._check_permissions(level=3)
+            state = self.check_permissions(level=3)
             if state != 1:
                 return -1
 

@@ -21,6 +21,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.setWindowTitle("Tik Manager {}".format(version.__version__))
         self.tik = tik_manager4.initialize(dcc)
+        print(self.tik.user.get())
+        print(self.tik.user.is_authenticated)
+
         self.feedback = Feedback(self)
         # set window size
         self.resize(1200, 800)
@@ -76,9 +79,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.versions_mcv = None
 
         self.initialize_mcv()
-        self.build_menu_bar()
+        self.build_bars()
 
         self.resume_last_selection()
+
+        self.status_bar.showMessage("Status | Ready")
 
     def resume_last_selection(self):
         """Resume the last selection from the user settings."""
@@ -165,11 +170,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.tik.user.resume.apply_settings()
         event.accept()
 
-    def build_menu_bar(self):
+    def build_bars(self):
         """Build the menu bar."""
         menu_bar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 1680, 18))
         self.setMenuBar(menu_bar)
-        # menu_bar = self.menuBar()
         file_menu = menu_bar.addMenu("File")
         tools_menu = menu_bar.addMenu("Tools")
         help_menu = menu_bar.addMenu("Help")
@@ -177,13 +181,17 @@ class MainUI(QtWidgets.QMainWindow):
         # File Menu
         create_project = QtWidgets.QAction("&Create New Project", self)
         file_menu.addAction(create_project)
+        set_project = QtWidgets.QAction("&Set Project", self)
+        file_menu.addAction(set_project)
+        file_menu.addSeparator()
         new_user = QtWidgets.QAction("&Add New User", self)
         file_menu.addAction(new_user)
+        users_manager = QtWidgets.QAction("&Users Manager", self)
+        file_menu.addAction(users_manager)
         file_menu.addSeparator()
         user_login = QtWidgets.QAction("&User Login", self)
         file_menu.addAction(user_login)
-        set_project = QtWidgets.QAction("&Set Project", self)
-        file_menu.addAction(set_project)
+
         placeholder = QtWidgets.QAction("PLACEHOLDER", self)
         tools_menu.addAction(placeholder)
 
@@ -197,6 +205,10 @@ class MainUI(QtWidgets.QMainWindow):
         help_menu.addSeparator()
         check_for_updates = QtWidgets.QAction("&Check for Updates", self)
         help_menu.addAction(check_for_updates)
+
+        # STATUS BAR
+        self.status_bar = QtWidgets.QStatusBar(self)
+        self.setStatusBar(self.status_bar)
 
         # SIGNALS
         create_project.triggered.connect(self.on_create_new_project)
@@ -239,36 +251,45 @@ class MainUI(QtWidgets.QMainWindow):
         dialog.show()
         if dialog.exec_():
             self.tik.project = dialog.main_object
-            # refresh main ui
+            self.status_bar.showMessage("Set project successfully")
         self.refresh_project()
 
     def on_create_new_project(self):
         """Create a new project."""
-        # check the user permissions
+        if not self._pre_check(level=3):
+            return
         dialog = NewProjectDialog(self.tik, parent=self)
-        dialog.show()
-        # if self.tik.project._check_permissions(level=3) != -1:
-        #
-        #     if dialog.exec_():
-        #         self.tik.project = dialog.main_object
-        # else:
-        #     message, title = self.tik.project.log.get_last_message()
-        #     self.feedback.pop_info(title.capitalize(), message)
-        #     return
+        state = dialog.exec_()
+        if state:
+            self.refresh_project()
+            self.status_bar.showMessage("Project created successfully")
 
     def on_add_new_user(self):
+        if not self._pre_check(level=3):
+            return
         dialog = NewUserDialog(self.tik.user, parent=self)
-        dialog.show()
+        state = dialog.exec_()
+        if state:
+            self.status_bar.showMessage("User created successfully")
 
     def on_login(self):
         """Login."""
         dialog = LoginDialog(self.tik.user, parent=self)
         dialog.show()
 
+    def _pre_check(self, level):
+        """Check for permissions before drawing the dialog."""
+        # new projects can be created by users with level 3
+        if self.tik.project.check_permissions(level=level) == -1:
+            msg, _type = self.tik.log.get_last_message()
+            self.feedback.pop_info(title="Permissions", text=msg)
+            return False
+        return True
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     main = MainUI()
     main.show()
+    # main.on_create_new_project()
     sys.exit(app.exec_())

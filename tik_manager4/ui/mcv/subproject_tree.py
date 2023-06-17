@@ -445,63 +445,72 @@ class TikSubView(QtWidgets.QTreeView):
 
     def new_sub_project(self, item):
         # first check for the user permission:
-        if self.model.project._check_permissions(level=2) != -1:
-            _dialog = tik_manager4.ui.dialog.subproject_dialog.NewSubprojectDialog(self.model.project,
-                                                                                parent_sub=item.subproject, parent=self)
-            state = _dialog.exec_()
-            if state:
-                # TODO: is this overcomplicated?
-                _new_sub = _dialog.get_created_subproject()
-                # Find the parent item _new_sub id
-                _items = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)
-                if _items:
-                    _item_at_id_column = _items[0]
-                    # _item_at_id_column = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)[0]
-                    # find the index of the item
-                    _index = self.model.indexFromItem(_item_at_id_column)
-                    # make sure the index is pointing to the first column
-                    first_column_index = _index.sibling(_index.row(), 0)
-                    # get the item from index
-                    _item = self.model.itemFromIndex(first_column_index)
-                    # The reason we are doing this is that we may change the parent of the item on new subproject UI
-                else:
-                    _item = self.model
-                self.model.append_sub(_new_sub, _item)
-                # self.model.append_sub(_new_sub, self.model)
-        else:
+        if self.model.project.check_permissions(level=2) == -1:
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
+            return
+        _dialog = tik_manager4.ui.dialog.subproject_dialog.NewSubprojectDialog(self.model.project,
+                                                                            parent_sub=item.subproject, parent=self)
+        state = _dialog.exec_()
+        if state:
+            # TODO: is this overcomplicated?
+            _new_sub = _dialog.get_created_subproject()
+            # Find the parent item _new_sub id
+            _items = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)
+            if _items:
+                _item_at_id_column = _items[0]
+                # _item_at_id_column = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)[0]
+                # find the index of the item
+                _index = self.model.indexFromItem(_item_at_id_column)
+                # make sure the index is pointing to the first column
+                first_column_index = _index.sibling(_index.row(), 0)
+                # get the item from index
+                _item = self.model.itemFromIndex(first_column_index)
+                # The reason we are doing this is that we may change the parent of the item on new subproject UI
+            else:
+                _item = self.model
+            self.model.append_sub(_new_sub, _item)
+            # self.model.append_sub(_new_sub, self.model)
+        # else:
+        #     message, title = self.model.project.log.get_last_message()
+        #     self._feedback.pop_info(title.capitalize(), message)
 
     def edit_sub_project(self, item):
         # first check for the user permission:
-        if self.model.project._check_permissions(level=2) != -1:
-            pass
-            _dialog = tik_manager4.ui.dialog.subproject_dialog.EditSubprojectDialog(self.model.project,
-                                                                                 parent_sub=item.subproject, parent=self)
-            state = _dialog.exec_()
-            if state:
-                # re-populate the model
-                self.refresh()
-        else:
+        if self.model.project.check_permissions(level=2) == -1:
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
+            return
+        _dialog = tik_manager4.ui.dialog.subproject_dialog.EditSubprojectDialog(self.model.project,
+                                                                             parent_sub=item.subproject, parent=self)
+        state = _dialog.exec_()
+        if state:
+            # re-populate the model
+            self.refresh()
+
 
     def new_task(self, item):
         # first check for the user permission:
-        # if self.model.project._check_permissions(level=2) != -1:
+        if self.model.project.check_permissions(level=2) == -1:
+            message, title = self.model.project.log.get_last_message()
+            self._feedback.pop_info(title.capitalize(), message)
+            return
 
         _dialog = tik_manager4.ui.dialog.task_dialog.NewTask(self.model.project, parent_sub=item.subproject, parent=self)
         state = _dialog.exec_()
         if state:
             # emit clicked signal
             self.add_item.emit(_dialog.get_created_task())
-        else:
-            pass
-            # message, title = self.model.project.log.get_last_message()
-            # self._feedback.pop_info(title.capitalize(), message)
+
+
 
     def delete_sub_project(self, item):
         # Prompt the user to confirm the deletion
+        if self.model.project.check_permissions(level=3) == -1:
+            message, title = self.model.project.log.get_last_message()
+            self._feedback.pop_info(title.capitalize(), message)
+            return
+
         message = "Are you sure you want to delete the sub-project: {}?".format(item.subproject.name)
         title = "Delete Sub-Project"
         sure = self._feedback.pop_question(title, message, buttons=["ok", "cancel"])

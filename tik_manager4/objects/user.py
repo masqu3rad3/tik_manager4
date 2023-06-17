@@ -190,7 +190,6 @@ class User(object):
 
     def set(self, user_name, password=None, save_to_db=True, clear_db=False):
         """Sets the active user to the session"""
-
         # check if the user exists in common database
         if user_name in self.commons.get_users():
             if password is not None:  # try to authenticate the active user
@@ -198,7 +197,8 @@ class User(object):
                     self.__set_authentication_status(True)
                 else:
                     return -1, log.warning("Wrong password provided for user %s" % user_name)
-            elif self.bookmarks.get_property("activeUser_dhash") == self.__hash_pass("{0}{1}".format(user_name, self.commons.users.get_property(user_name).get("pass"))):
+            elif self.resume.get_property("user_dhash") == self.__hash_pass("{0}{1}".format(user_name, self.commons.users.get_property(user_name).get("pass"))):
+
                 self.__set_authentication_status(True)
             else:
                 self.__set_authentication_status(False)  # make sure it is not authenticated if no password

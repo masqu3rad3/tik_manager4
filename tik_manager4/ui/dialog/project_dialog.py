@@ -170,8 +170,9 @@ class SetProjectDialog(QtWidgets.QDialog):
 
 class NewProjectDialog(EditSubprojectDialog):
     """Dialog for creating a new project"""
-
+    feedback = Feedback()
     def __init__(self, main_object, *args, **kwargs):
+
         self.main_object = main_object
         self.structure_list = list(self.main_object.user.commons.structures.properties.values())
         super(NewProjectDialog, self).__init__(main_object.project, *args, **kwargs)
@@ -276,6 +277,11 @@ class NewProjectDialog(EditSubprojectDialog):
         # run it once to update the secondary ui
         self.on_structure_template_changed(template_widget.currentIndex())
 
+        # create a checkbox to switch to the new project after creation
+        self.set_after_create_cb = QtWidgets.QCheckBox("Set After Creation")
+        self.set_after_create_cb.setChecked(True)
+        self.button_box_layout.addWidget(self.set_after_create_cb)
+
     def _execute(self):
         # build a new kwargs dictionary by filtering the settings_data
         path = os.path.join(self.primary_data.get_property("project_root"),
@@ -284,7 +290,7 @@ class NewProjectDialog(EditSubprojectDialog):
         # get the primary data
         filtered_data = FilteredData(
             structure_data=self.structure_data,
-            set_after_creation=True
+            set_after_creation=self.set_after_create_cb.isChecked()
         )
 
         # filtered_data.update_overridden_data(self.secondary_data)
@@ -292,7 +298,7 @@ class NewProjectDialog(EditSubprojectDialog):
 
         self.main_object.create_project(path, **filtered_data)
         # close the dialog
-        self.close()
+        self.accept()
 
 
 # Test the set project dialog

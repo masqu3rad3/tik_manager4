@@ -67,7 +67,7 @@ class Category(Entity):
         """Creates a task under the category"""
 
         # valid file_format keyword can be collected from main.dcc.formats
-        state = self._check_permissions(level=1)
+        state = self.check_permissions(level=1)
         if state != 1:
             return -1
 
@@ -99,7 +99,7 @@ class Category(Entity):
             return -1
 
         # if not, check if the user is the owner of the work
-        if self.guard.user != _work.creator or self._check_permissions(level=3):
+        if self.guard.user != _work.creator or self.check_permissions(level=3):
             log.warning("You do not have the permission to delete this work")
             return -1
 
