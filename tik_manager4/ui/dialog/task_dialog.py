@@ -3,6 +3,7 @@ import sys
 from tik_manager4.core.settings import Settings
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog import feedback
+from tik_manager4.ui.widgets.common import TikButtonBox
 # from tik_manager4.ui.layouts.settings_layout import SettingsLayout
 import tik_manager4.ui.layouts.settings_layout
 
@@ -112,7 +113,7 @@ class EditTask(QtWidgets.QDialog):
         self.settings_layout = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.ui_definition, self.settings_data, parent=self)
         self.main_layout.addLayout(self.settings_layout)
         # create a button box
-        self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.button_box = TikButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         # get the name ValidatedString widget and connect it to the ok button
         _name_line_edit = self.settings_layout.find("name")
         _name_line_edit.add_connected_widget(self.button_box.button(QtWidgets.QDialogButtonBox.Ok))
@@ -233,7 +234,7 @@ class NewTask(QtWidgets.QDialog):
         self.settings_layout = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.ui_definition, self.settings_data, parent=self)
         self.main_layout.addLayout(self.settings_layout)
         # create a button box
-        self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.button_box = TikButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         # get the name ValidatedString widget and connect it to the ok button
         _name_line_edit = self.settings_layout.find("name")
         _name_line_edit.add_connected_widget(self.button_box.button(QtWidgets.QDialogButtonBox.Ok))

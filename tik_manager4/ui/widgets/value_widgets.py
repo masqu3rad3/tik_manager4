@@ -1,7 +1,10 @@
 """Collection of simple value widgets."""
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore
+from tik_manager4.ui.widgets.common import TikButton
+
 from tik_manager4.ui.widgets import signals
+
 
 
 class Boolean(QtWidgets.QCheckBox):
@@ -220,7 +223,7 @@ class List(QtWidgets.QWidget):
 
     def _create_buttons(self):
         for button in self.button_names:
-            _button = QtWidgets.QPushButton(button)
+            _button = TikButton(button)
             _button.setObjectName(button)
             self.button_layout.addWidget(_button)
             self.buttons.append(_button)

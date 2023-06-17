@@ -1,4 +1,6 @@
 from tik_manager4.ui.widgets.validated_string import ValidatedString
+from tik_manager4.ui.widgets.common import TikButton
+
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 
 
@@ -19,7 +21,7 @@ class PathBrowser(QtWidgets.QWidget):
         self.com = self.widget.com
         self.layout.addWidget(self.widget)
         self.layout.setContentsMargins(0, 0, 0, 0)
-        self.button = QtWidgets.QPushButton("Browse")
+        self.button = TikButton("Browse")
         self.button.clicked.connect(self.browse)
         self.layout.addWidget(self.button)
 

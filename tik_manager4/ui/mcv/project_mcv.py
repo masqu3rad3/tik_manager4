@@ -1,6 +1,7 @@
 """Custom widgets for setting / displaying projects"""
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+from tik_manager4.ui.widgets.common import TikButton
 
 
 class TikProjectLayout(QtWidgets.QHBoxLayout):
@@ -23,12 +24,12 @@ class TikProjectLayout(QtWidgets.QHBoxLayout):
         self._project_path_le.setReadOnly(True)
         self.addWidget(self._project_path_le)
 
-        self.set_project_btn = QtWidgets.QPushButton()
+        self.set_project_btn = TikButton()
         self.set_project_btn.setText("SET")
         self.set_project_btn.setToolTip("Opens up Set Project Dialog")
         self.addWidget(self.set_project_btn)
 
-        self.recent_projects_btn = QtWidgets.QPushButton()
+        self.recent_projects_btn = TikButton()
         self.recent_projects_btn.setText("R")
         self.recent_projects_btn.setToolTip("Set recent project")
         self.recent_projects_btn.setMaximumWidth(30)

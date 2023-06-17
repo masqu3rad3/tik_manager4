@@ -1,6 +1,7 @@
 """Dialog for setting and authorizing the user"""
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
+from tik_manager4.ui.widgets.common import TikButtonBox
 from tik_manager4.ui.widgets.validated_string import ValidatedString
 
 class NewUserDialog(QtWidgets.QDialog):
@@ -57,7 +58,7 @@ class NewUserDialog(QtWidgets.QDialog):
         # self.form_layout.addRow(_remember_lbl, self._remember_cb)
 
         # button box
-        self.button_box = QtWidgets.QDialogButtonBox()
+        self.button_box = TikButtonBox()
         self.button_box.setOrientation(QtCore.Qt.Horizontal)
         self.button_box.setStandardButtons(
             QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok
@@ -145,7 +146,7 @@ class LoginDialog(QtWidgets.QDialog):
         self.form_layout.addRow(_remember_lbl, self._remember_cb)
 
         # button box
-        self.button_box = QtWidgets.QDialogButtonBox()
+        self.button_box = TikButtonBox()
         self.button_box.setStandardButtons(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
 
         main_layout.addWidget(self.button_box)

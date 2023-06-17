@@ -8,10 +8,10 @@ from tik_manager4.ui.dialog.feedback import Feedback
 
 
 class TikWorkItem(QtGui.QStandardItem):
-    color_dict = {
+    state_color_dict = {
         "working": (255, 255, 0),
-        "has_publish": (0, 255, 0),
-        "omit": (255, 0, 0)
+        "published": (0, 255, 0),
+        "omitted": (255, 0, 0)
     }
 
     def __init__(self, work_obj):
@@ -26,11 +26,32 @@ class TikWorkItem(QtGui.QStandardItem):
         self.setFont(fnt)
         self.setText(work_obj.name)
         self.state = None
-        self.set_state("working")
+        self.set_state(self.work.state)
 
     def set_state(self, state):
         self.state = state
-        self.setForeground(QtGui.QColor(*self.color_dict[state]))
+        self.setForeground(QtGui.QColor(*self.state_color_dict[state]))
+
+class TikPublishItem(QtGui.QStandardItem):
+    color_dict = {
+        # cyan for scene
+        "scene": (0, 255, 255),
+        # magenta for elements
+        "elements": (255, 0, 255),
+    }
+    def __init__(self, publish_obj):
+        super(TikPublishItem, self).__init__()
+
+        self.publish = publish_obj
+
+        fnt = QtGui.QFont('Open Sans', 10)
+        fnt.setBold(False)
+        self.setEditable(False)
+
+        self.setFont(fnt)
+        self.setText(publish_obj.name)
+        self.state = None
+
 
 
 class TikCategoryModel(QtGui.QStandardItemModel):
@@ -231,7 +252,9 @@ class TikCategoryView(QtWidgets.QTreeView):
         """Re-populates the model keeping the expanded state"""
         self.model.populate()
 
+
 class TikCategoryLayout(QtWidgets.QVBoxLayout):
+    mode_changed = QtCore.Signal(int)
     def __init__(self, *args, **kwargs):
         super(TikCategoryLayout, self).__init__(*args, **kwargs)
 
@@ -247,7 +270,6 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.separator.setStyleSheet("background-color: rgb(174, 215, 91);")
         self.separator.setFixedHeight(1)
         self.addWidget(self.separator)
-
 
         # create two radio buttons one for work and one for publish
         self.work_radio_button = QtWidgets.QRadioButton("Work")
@@ -271,7 +293,6 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         # add the radio button layout to the main layout
         self.addLayout(self.radio_button_layout)
 
-
         self.category_tab_widget = QtWidgets.QTabWidget()
         self.category_tab_widget.setMaximumSize(QtCore.QSize(16777215, 23))
         self.category_tab_widget.setTabPosition(QtWidgets.QTabWidget.North)
@@ -291,15 +312,19 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.filter_le.setFocus()
         self.filter_le.returnPressed.connect(self.work_tree_view.setFocus)
 
-
         self.task = None
 
         # SIGNALS
 
         self.category_tab_widget.currentChanged.connect(self.on_category_change)
+        self.work_radio_button.clicked.connect(self.on_mode_change)
+        self.publish_radio_button.clicked.connect(self.on_mode_change)
+        # self.work_radio_button.toggled.connect(self.on_mode_change)
+        # self.publish_radio_button.toggled.connect(self.on_mode_change)
 
         # TODO: get this from the last state of the user
         self._last_category = None
+        self.mode = 0  # 0 = work, 1 = publish
 
     def get_category_index(self):
         """Get the index of the category."""
@@ -340,15 +365,28 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
             # self.append_category(category)
         self.category_tab_widget.blockSignals(False)
 
+    def on_mode_change(self, _event):
+        """Change the mode"""
+        if self.work_radio_button.isChecked():
+            self.mode = 0
+            self.mode_changed.emit(0)
+        else:
+            self.mode = 1
+            self.mode_changed.emit(1)
+        self.category_tab_widget.currentChanged.emit(self.category_tab_widget.currentIndex())
+
 
     def on_category_change(self, index):
         """When the category tab changes"""
         # get the current tab name
         self._last_category = self.category_tab_widget.tabText(index)
-        if self.work_radio_button.isChecked():
+        if self.mode == 0:
             works = self.task.categories[self._last_category].works
             self.work_tree_view.model.set_works(works.values())
         else:
+            # clear the model view
+            self.work_tree_view.model.clear()
+            # self.mode_changed.emit("publish")
             pass
 
     def clear(self):
@@ -357,6 +395,7 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.category_tab_widget.clear()
         self.work_tree_view.model.clear()
         self.category_tab_widget.blockSignals(False)
+
 
 # test the TikCategoryLayout
 if __name__ == "__main__":
@@ -388,7 +427,6 @@ if __name__ == "__main__":
     # resize the dialog
     test_dialog.resize(800, 600)
     test_dialog.show()
-
 
     app.exec_()
 

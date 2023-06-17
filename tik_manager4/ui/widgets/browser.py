@@ -1,7 +1,8 @@
 from tik_manager4.ui.widgets.signals import ValueChangeStr
 from tik_manager4.ui.widgets import path_browser
+from tik_manager4.ui.widgets.common import TikButtonBox
 from tik_manager4.ui.Qt import QtWidgets, QtCore
-import tik_manager4.ui.mcv.subproject_tree
+import tik_manager4.ui.mcv.subproject_mcv
 
 
 class SubprojectBrowser(path_browser.PathBrowser):
@@ -39,7 +40,7 @@ class SubprojectBrowser(path_browser.PathBrowser):
         layout.addLayout(sub_projects)
 
         # create a button box
-        button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        button_box = TikButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         layout.addWidget(button_box)
         button_box.accepted.connect(self.dialog.accept)
         button_box.rejected.connect(self.dialog.reject)

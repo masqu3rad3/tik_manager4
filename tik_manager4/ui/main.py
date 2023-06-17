@@ -2,14 +2,15 @@
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 
-from tik_manager4.ui.mcv.project import TikProjectLayout
-from tik_manager4.ui.mcv.subproject_tree import TikSubProjectLayout
-from tik_manager4.ui.mcv.task_tree import TikTaskLayout
-from tik_manager4.ui.mcv.category import TikCategoryLayout
-from tik_manager4.ui.mcv.version import TikVersionLayout
+from tik_manager4.ui.mcv.project_mcv import TikProjectLayout
+from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
+from tik_manager4.ui.mcv.task_mcv import TikTaskLayout
+from tik_manager4.ui.mcv.category_mcv import TikCategoryLayout
+from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog, SetProjectDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
 from tik_manager4.ui.dialog.feedback import Feedback
+from tik_manager4.ui.widgets.common import TikButton
 from tik_manager4.ui import pick
 import tik_manager4._version as version
 import tik_manager4
@@ -64,13 +65,33 @@ class MainUI(QtWidgets.QMainWindow):
         self.version_layout = QtWidgets.QVBoxLayout(version_widget)
         self.version_layout.setContentsMargins(2, 2, 2, 2)
 
-        self.buttons_layout = QtWidgets.QHBoxLayout()
+        #####################
+
+        self.work_buttons_frame = QtWidgets.QFrame()
+        self.work_buttons_frame.setMaximumHeight(50)
+
+        self.work_buttons_layout = QtWidgets.QHBoxLayout()
+        self.work_buttons_layout.addStretch()
+        self.work_buttons_layout.setContentsMargins(0, 0, 0, 0)
+        self.work_buttons_frame.setLayout(self.work_buttons_layout)
+
+        self.publish_buttons_frame = QtWidgets.QFrame()
+        self.publish_buttons_frame.setMaximumHeight(50)
+
+        self.publish_buttons_layout = QtWidgets.QHBoxLayout()
+        self.publish_buttons_layout.setContentsMargins(0, 0, 0, 0)
+        self.publish_buttons_frame.setLayout(self.publish_buttons_layout)
+        self.publish_buttons_frame.hide()
 
         self.master_layout.addLayout(self.title_layout)
         self.master_layout.addLayout(self.user_layout)
         self.master_layout.addLayout(self.project_layout)
         self.master_layout.addLayout(self.main_layout)
-        self.master_layout.addLayout(self.buttons_layout)
+
+        self.master_layout.addWidget(self.work_buttons_frame)
+        self.master_layout.addWidget(self.publish_buttons_frame)
+
+        #####################
 
         self.project_mcv = None
         self.subprojects_mcv = None
@@ -80,6 +101,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.initialize_mcv()
         self.build_bars()
+        self.build_buttons()
 
         self.resume_last_selection()
 
@@ -136,6 +158,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.subprojects_mcv.sub_view.add_item.connect(self.tasks_mcv.task_view.add_task)
         self.tasks_mcv.task_view.item_selected.connect(self.categories_mcv.set_task)
         self.categories_mcv.work_tree_view.item_selected.connect(self.versions_mcv.set_base)
+        self.categories_mcv.mode_changed.connect(self.set_buttons_visibility)
 
     # override the closeEvent to save the window state
     def closeEvent(self, event):
@@ -170,6 +193,45 @@ class MainUI(QtWidgets.QMainWindow):
         self.tik.user.resume.apply_settings()
         event.accept()
 
+    def set_buttons_visibility(self, mode):
+        """Set the visibility of the buttons layout based on the mode."""
+
+        if mode == 0:
+            self.work_buttons_frame.show()
+            self.publish_buttons_frame.hide()
+        else:
+            self.work_buttons_frame.hide()
+            self.publish_buttons_frame.show()
+
+    def build_buttons(self):
+        "Build the buttons"
+
+        save_new_work_btn = TikButton("Save New Work")
+        save_new_work_btn.setMinimumSize(150, 40)
+        save_version_btn = TikButton("Save Version")
+        save_version_btn.setMinimumSize(150, 40)
+        ingest_version_btn = TikButton("Ingest Version")
+        ingest_version_btn.setMinimumSize(150, 40)
+        load_btn = TikButton("Load")
+        load_btn.setMinimumSize(150, 40)
+
+
+
+        self.work_buttons_layout.addWidget(save_new_work_btn)
+        self.work_buttons_layout.addWidget(save_version_btn)
+        self.work_buttons_layout.addWidget(ingest_version_btn)
+        self.work_buttons_layout.addStretch(1)
+        self.work_buttons_layout.addWidget(load_btn)
+        # align first three buttons to the left, rest to the right
+
+
+        # self.buttons_layout.addWidget(new_work_btn)
+        # self.buttons_layout.addWidget(new_version_btn)
+
+        # extract_btn = ExtractButton()
+        # self.categories_mcv.mode_changed.connect(extract_btn.set_mode)
+        # self.work_buttons_layout.addWidget(extract_btn)
+
     def build_bars(self):
         """Build the menu bar."""
         menu_bar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 1680, 18))
@@ -191,6 +253,8 @@ class MainUI(QtWidgets.QMainWindow):
         file_menu.addSeparator()
         user_login = QtWidgets.QAction("&User Login", self)
         file_menu.addAction(user_login)
+        exit_action = QtWidgets.QAction("&Exit", self)
+        file_menu.addAction(exit_action)
 
         placeholder = QtWidgets.QAction("PLACEHOLDER", self)
         tools_menu.addAction(placeholder)
@@ -215,6 +279,7 @@ class MainUI(QtWidgets.QMainWindow):
         new_user.triggered.connect(self.on_add_new_user)
         user_login.triggered.connect(self.on_login)
         set_project.triggered.connect(self.on_set_project)
+        exit_action.triggered.connect(self.close)
 
     def refresh_project(self):
         """Refresh the project ui."""
@@ -285,6 +350,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(title="Permissions", text=msg)
             return False
         return True
+
 
 if __name__ == "__main__":
     import sys

@@ -2,6 +2,9 @@
 from tik_manager4.core.settings import Settings
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog.feedback import Feedback
+from tik_manager4.ui.widgets.common import TikButtonBox
+
+
 # from tik_manager4.ui.layouts.settings_layout import SettingsLayout
 import tik_manager4.ui.layouts.settings_layout
 from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
@@ -84,7 +87,8 @@ class EditSubprojectDialog(QtWidgets.QDialog):
 
         # create a button box
         self.button_box_layout = QtWidgets.QHBoxLayout()
-        self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        # self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.button_box = TikButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         main_layout.addLayout(self.button_box_layout)
         self.button_box_layout.addWidget(self.button_box)
         # SIGNALS

@@ -25,9 +25,15 @@ class Work(Settings, Entity):
         self._work_id = self.get_property("work_id") or self._id
         self._relative_path = self.get_property("path") or path
         self._software_version = self.get_property("softwareVersion") or None
+        # there are 3 states: working, published, omitted
+        self._state = self.get_property("state") or "working"
         self.modified_time = None  # to compare and update if necessary
 
         self._publishes = {}
+
+    @property
+    def state(self):
+        return self._state
 
     @property
     def dcc(self):
@@ -49,6 +55,18 @@ class Work(Settings, Entity):
     def version_count(self):
         """Return the number of versions."""
         return len(self._versions)
+
+    def omit_work(self):
+        """Omit the work."""
+        self._state = "omitted"
+        self.edit_property("state", self._state)
+        self.apply_settings()
+
+    def revive_work(self):
+        """Revive the work."""
+        self._state = "working" if not self.publishes else "published"
+        self.edit_property("state", self._state)
+        self.apply_settings()
 
     def get_last_version(self):
         """Return the last version of the work."""
@@ -105,6 +123,6 @@ class Work(Settings, Entity):
         self._versions.append(_version)
         self.edit_property("versions", self._versions)
         self.apply_settings(force=True)
-    def make_publish(self):
+    def make_publish(self, notes, elements=None):
         """Create a publish from the currently loaded version on DCC."""
         pass

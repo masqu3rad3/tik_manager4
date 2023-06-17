@@ -3,6 +3,7 @@ import os
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.widgets import path_browser
+from tik_manager4.ui.widgets.common import TikButton, TikButtonBox
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.value_widgets import DropList
 from tik_manager4.ui.dialog.subproject_dialog import EditSubprojectDialog, FilteredData
@@ -49,7 +50,7 @@ class SetProjectDialog(QtWidgets.QDialog):
         header_layout.addWidget(look_in_lbl)
         header_layout.addWidget(browser_wgt)
 
-        recent_pb = QtWidgets.QPushButton(text="Recent")
+        recent_pb = TikButton(text="Recent")
         recent_pb.setToolTip("Recent projects")
         header_layout.addWidget(recent_pb)
 
@@ -86,7 +87,7 @@ class SetProjectDialog(QtWidgets.QDialog):
 
         # buttons
         # create a button box as "set" and "cancel"
-        button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        button_box = TikButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         buttons_layout.addWidget(button_box)
 
         # SIGNALS
@@ -180,7 +181,8 @@ class NewProjectDialog(EditSubprojectDialog):
         self.structure_data = None
 
         self.setWindowTitle("Create New Project")
-        self.setMinimumSize(800, 150)
+        self.setMinimumSize(300, 200)
+        self.resize(400, 650)
         self.primary_layout.set_hidden(False)
         self.tertiary_layout.set_hidden(True)
 
@@ -302,30 +304,30 @@ class NewProjectDialog(EditSubprojectDialog):
 
 
 # Test the set project dialog
-# if __name__ == "__main__":
-#     import sys
-#     import tik_manager4
-#     from tik_manager4.ui import pick
-#     app = QtWidgets.QApplication(sys.argv)
-#     tik = tik_manager4.initialize("Standalone")
-#     dialog = SetProjectDialog(tik)
-#     _style_file = pick.style_file()
-#     dialog.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
-#     dialog.show()
-#     sys.exit(app.exec_())
-
-# Test the new project dialog
 if __name__ == "__main__":
     import sys
     import tik_manager4
     from tik_manager4.ui import pick
-
     app = QtWidgets.QApplication(sys.argv)
     tik = tik_manager4.initialize("Standalone")
-    tik.user.set("Admin", "1234")
-
-    dialog = NewProjectDialog(tik)
+    dialog = SetProjectDialog(tik)
     _style_file = pick.style_file()
     dialog.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
     dialog.show()
     sys.exit(app.exec_())
+
+# # Test the new project dialog
+# if __name__ == "__main__":
+#     import sys
+#     import tik_manager4
+#     from tik_manager4.ui import pick
+#
+#     app = QtWidgets.QApplication(sys.argv)
+#     tik = tik_manager4.initialize("Standalone")
+#     tik.user.set("Admin", "1234")
+#
+#     dialog = NewProjectDialog(tik)
+#     _style_file = pick.style_file()
+#     dialog.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
+#     dialog.show()
+#     sys.exit(app.exec_())

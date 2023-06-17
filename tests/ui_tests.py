@@ -4,10 +4,10 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore
 
 # from PyQt5 import QtCore, QtGui, QtWidgets
 
-from tik_manager4.ui.mcv.subproject_tree import TikSubProjectLayout
-from tik_manager4.ui.mcv.task_tree import TikTaskLayout
-from tik_manager4.ui.mcv.category import TikCategoryLayout
-from tik_manager4.ui.mcv.version import TikVersionLayout
+from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
+from tik_manager4.ui.mcv.task_mcv import TikTaskLayout
+from tik_manager4.ui.mcv.category_mcv import TikCategoryLayout
+from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
 
 from tik_manager4.ui import pick
 
