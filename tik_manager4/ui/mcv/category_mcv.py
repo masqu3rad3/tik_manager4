@@ -242,15 +242,34 @@ class TikCategoryView(QtWidgets.QTreeView):
                 level += 1
         else:
             level = 0
-        act_edit_sub = right_click_menu.addAction(self.tr("Edit Task"))
-        act_edit_sub.triggered.connect(lambda _, x=item: self.edit_sub_project(item))
-        act_delete_sub = right_click_menu.addAction(self.tr("Delete Task"))
-        act_delete_sub.triggered.connect(lambda _, x=item: self.delete_task(item))
+        open_database_folder_act = right_click_menu.addAction(self.tr("Open Database Folder"))
+        open_database_folder_act.triggered.connect(lambda _, x=item: self.open_database_folder(item))
+        open_scene_folder_act = right_click_menu.addAction(self.tr("Open Scene Folder"))
+        open_scene_folder_act.triggered.connect(lambda _, x=item: self.open_scene_folder(item))
+        # separator
+        right_click_menu.addSeparator()
+        delete_item_act = right_click_menu.addAction(self.tr("Delete Task"))
+        delete_item_act.triggered.connect(lambda _, x=item: self.delete_item(item))
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
     def refresh(self):
         """Re-populates the model keeping the expanded state"""
         self.model.populate()
+
+    def open_database_folder(self, item):
+        """Opens the database folder for the given item"""
+        print("Method not implemented")
+        # TODO
+
+    def open_scene_folder(self, item):
+        """Opens the scene folder for the given item"""
+        print("Method not implemented")
+        # TODO
+
+    def delete_item(self, item):
+        """Deletes the given item"""
+        print("Method not implemented")
+        # TODO
 
 
 class TikCategoryLayout(QtWidgets.QVBoxLayout):

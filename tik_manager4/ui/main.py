@@ -206,6 +206,7 @@ class MainUI(QtWidgets.QMainWindow):
     def build_buttons(self):
         "Build the buttons"
 
+        # Work buttons
         save_new_work_btn = TikButton("Save New Work")
         save_new_work_btn.setMinimumSize(150, 40)
         save_version_btn = TikButton("Save Version")
@@ -215,22 +216,18 @@ class MainUI(QtWidgets.QMainWindow):
         load_btn = TikButton("Load")
         load_btn.setMinimumSize(150, 40)
 
-
-
         self.work_buttons_layout.addWidget(save_new_work_btn)
         self.work_buttons_layout.addWidget(save_version_btn)
         self.work_buttons_layout.addWidget(ingest_version_btn)
         self.work_buttons_layout.addStretch(1)
         self.work_buttons_layout.addWidget(load_btn)
-        # align first three buttons to the left, rest to the right
 
+        # Publish buttons
+        reference_btn = TikButton("Reference")
+        reference_btn.setMinimumSize(150, 40)
 
-        # self.buttons_layout.addWidget(new_work_btn)
-        # self.buttons_layout.addWidget(new_version_btn)
-
-        # extract_btn = ExtractButton()
-        # self.categories_mcv.mode_changed.connect(extract_btn.set_mode)
-        # self.work_buttons_layout.addWidget(extract_btn)
+        self.publish_buttons_layout.addStretch(1)
+        self.publish_buttons_layout.addWidget(reference_btn)
 
     def build_bars(self):
         """Build the menu bar."""
