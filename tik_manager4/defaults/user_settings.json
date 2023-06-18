@@ -1,11 +1,7 @@
 {
   "bookmarks": {
     "bookmarkedProjects": [],
-    "recentProjects": [],
-    "activeUser": "Generic",
-    "activeProject": null,
-    "activeSubprojectId": null,
-    "activeCategory": null
+    "recentProjects": []
   },
   "userPreferences": {
     "globalFavorites": true,
@@ -18,5 +14,14 @@
       "Photoshop": "rgb(60, 60, 250, 255)",
       "": "rgb(0, 0, 0, 0)"
     }
+  },
+  "resume": {
+    "user": "Generic",
+    "project": null,
+    "subproject": null,
+    "task": null,
+    "category": null,
+    "work": null,
+    "version": null
   }
 }

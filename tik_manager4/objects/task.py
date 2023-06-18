@@ -18,18 +18,20 @@ class Task(Settings, Entity):
                  task_type=None,
                  parent_sub=None,
                  ):
+        # self._task_id = None
         super(Task, self).__init__()
         self.settings_file = absolute_path
         self._name = self.get_property("name") or name
         self._creator = self.get_property("creator") or self.guard.user
         self._works = {}
         self._publishes = {}
-        self._task_id = self.get_property("task_id") or self.id
+        self._task_id = self.get_property("task_id") or self._id
         self._relative_path = self.get_property("path") or path
         self._file_name = self.get_property("file_name") or file_name
         self._type = self.get_property("type") or task_type
 
-        self._categories = self.__build_categories(self.get_property("categories") or categories)
+        self._categories = {}
+        self.build_categories(self.get_property("categories") or categories)
 
         self.parent_sub = parent_sub
 
@@ -42,6 +44,12 @@ class Task(Settings, Entity):
         return self._name
 
     @property
+    def id(self):
+        # if not self._id:
+        #     self._id = self.generate_id()
+        return self._task_id
+
+    @property
     def type(self):
         return self._type
 
@@ -49,30 +57,31 @@ class Task(Settings, Entity):
     def creator(self):
         return self._creator
 
-    @property
-    def reference_id(self):
-        return self._task_id
+    # @property
+    # def reference_id(self):
+    #     return self._task_id
 
     @property
     def categories(self):
         return self._categories
 
-    def __build_categories(self, category_list):
+    def build_categories(self, category_list):
         """
         Builds a category objects from a list of category names
 
         Does not create folders or apply settings.
         Args: category_list: (list) List of category names
         """
-        _categories = {}
+        self._categories = {}
         for category in category_list:
             category_definition = self.guard.category_definitions.get_property(category)
-            _categories[category] = (Category(name=category, parent_task=self, definition=category_definition))
-        return _categories
+            self._categories[category] = (Category(name=category, parent_task=self, definition=category_definition))
+
+        return self._categories
 
     def add_category(self, category):
         """Add a category to the task."""
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
         if category not in self.guard.category_definitions.properties.keys():
@@ -89,7 +98,7 @@ class Task(Settings, Entity):
 
     def edit(self, name=None, task_type=None, categories=None):
         """Edit the task"""
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
         if name and name != self.name:
@@ -110,7 +119,7 @@ class Task(Settings, Entity):
             for category in categories:
                 if category not in self.guard.category_definitions.properties.keys():
                     LOG.error("Category '{0}' is not defined in category definitions.".format(category), proceed=False)
-            self._categories = self.__build_categories(categories)
+            self._categories = self.build_categories(categories)
             self.edit_property("categories", list(categories))
         self.apply_settings()
 
@@ -131,7 +140,7 @@ class Task(Settings, Entity):
         _is_empty = self._categories[category].is_empty()
         permission_level = 2 if _is_empty else 3
 
-        state = self._check_permissions(level=permission_level)
+        state = self.check_permissions(level=permission_level)
         if state != 1:
             return -1
 
@@ -158,7 +167,7 @@ class Task(Settings, Entity):
         Returns:
 
         """
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
         if len(new_order) != len(self._categories):

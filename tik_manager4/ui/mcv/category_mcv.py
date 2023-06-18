@@ -8,10 +8,10 @@ from tik_manager4.ui.dialog.feedback import Feedback
 
 
 class TikWorkItem(QtGui.QStandardItem):
-    color_dict = {
+    state_color_dict = {
         "working": (255, 255, 0),
-        "has_publish": (0, 255, 0),
-        "omit": (255, 0, 0)
+        "published": (0, 255, 0),
+        "omitted": (255, 0, 0)
     }
 
     def __init__(self, work_obj):
@@ -26,11 +26,32 @@ class TikWorkItem(QtGui.QStandardItem):
         self.setFont(fnt)
         self.setText(work_obj.name)
         self.state = None
-        self.set_state("working")
+        self.set_state(self.work.state)
 
     def set_state(self, state):
         self.state = state
-        self.setForeground(QtGui.QColor(*self.color_dict[state]))
+        self.setForeground(QtGui.QColor(*self.state_color_dict[state]))
+
+class TikPublishItem(QtGui.QStandardItem):
+    color_dict = {
+        # cyan for scene
+        "scene": (0, 255, 255),
+        # magenta for elements
+        "elements": (255, 0, 255),
+    }
+    def __init__(self, publish_obj):
+        super(TikPublishItem, self).__init__()
+
+        self.publish = publish_obj
+
+        fnt = QtGui.QFont('Open Sans', 10)
+        fnt.setBold(False)
+        self.setEditable(False)
+
+        self.setFont(fnt)
+        self.setText(publish_obj.name)
+        self.state = None
+
 
 
 class TikCategoryModel(QtGui.QStandardItemModel):
@@ -110,9 +131,32 @@ class TikCategoryView(QtWidgets.QTreeView):
 
         self.expandAll()
 
+    def select_by_id(self, unique_id):
+        """Selects the item with the given id"""
+        for row in range(self.model.rowCount()):
+            idx = self.model.index(row, 1)
+            if idx.data() == str(unique_id):
+                idx = idx.sibling(idx.row(), 0)
+                index = self.proxy_model.mapFromSource(idx)
+                self.setCurrentIndex(index)
+                return True
+        return False
+
     def currentChanged(self, *args, **kwargs):
         super(TikCategoryView, self).currentChanged(*args, **kwargs)
         self.item_clicked(self.currentIndex())
+
+    def get_selected_item(self):
+        """Return the current item"""
+        idx = self.currentIndex()
+        if not idx.isValid():
+            return None
+        idx = idx.sibling(idx.row(), 0)
+
+        # the id needs to mapped from proxy to source
+        index = self.proxy_model.mapToSource(idx)
+        _item = self.model.itemFromIndex(index)
+        return _item
 
     def item_clicked(self, idx):
         """Emit the item_selected signal when an item is clicked"""
@@ -198,22 +242,60 @@ class TikCategoryView(QtWidgets.QTreeView):
                 level += 1
         else:
             level = 0
-        act_edit_sub = right_click_menu.addAction(self.tr("Edit Task"))
-        act_edit_sub.triggered.connect(lambda _, x=item: self.edit_sub_project(item))
-        act_delete_sub = right_click_menu.addAction(self.tr("Delete Task"))
-        act_delete_sub.triggered.connect(lambda _, x=item: self.delete_task(item))
+        open_database_folder_act = right_click_menu.addAction(self.tr("Open Database Folder"))
+        open_database_folder_act.triggered.connect(lambda _, x=item: self.open_database_folder(item))
+        open_scene_folder_act = right_click_menu.addAction(self.tr("Open Scene Folder"))
+        open_scene_folder_act.triggered.connect(lambda _, x=item: self.open_scene_folder(item))
+        # separator
+        right_click_menu.addSeparator()
+        delete_item_act = right_click_menu.addAction(self.tr("Delete Task"))
+        delete_item_act.triggered.connect(lambda _, x=item: self.delete_item(item))
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
+
+    def refresh(self):
+        """Re-populates the model keeping the expanded state"""
+        self.model.populate()
+
+    def open_database_folder(self, item):
+        """Opens the database folder for the given item"""
+        print("Method not implemented")
+        # TODO
+
+    def open_scene_folder(self, item):
+        """Opens the scene folder for the given item"""
+        print("Method not implemented")
+        # TODO
+
+    def delete_item(self, item):
+        """Deletes the given item"""
+        print("Method not implemented")
+        # TODO
 
 
 class TikCategoryLayout(QtWidgets.QVBoxLayout):
+    mode_changed = QtCore.Signal(int)
     def __init__(self, *args, **kwargs):
         super(TikCategoryLayout, self).__init__(*args, **kwargs)
 
         self.setContentsMargins(0, 0, 0, 0)
 
+        self.label = QtWidgets.QLabel("Works")
+        self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
+        self.addWidget(self.label)
+        # create a separator label
+        self.separator = QtWidgets.QLabel()
+        self.separator.setFrameShape(QtWidgets.QFrame.HLine)
+        self.separator.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.separator.setStyleSheet("background-color: rgb(174, 215, 91);")
+        self.separator.setFixedHeight(1)
+        self.addWidget(self.separator)
+
         # create two radio buttons one for work and one for publish
         self.work_radio_button = QtWidgets.QRadioButton("Work")
+        # make the radio button label larger
+        self.work_radio_button.setFont(QtGui.QFont("Arial", 10))
         self.publish_radio_button = QtWidgets.QRadioButton("Publish")
+        self.publish_radio_button.setFont(QtGui.QFont("Arial", 10))
 
         # TODO: this needs to come from the last state of the user
         self.work_radio_button.setChecked(True)
@@ -229,7 +311,6 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 
         # add the radio button layout to the main layout
         self.addLayout(self.radio_button_layout)
-
 
         self.category_tab_widget = QtWidgets.QTabWidget()
         self.category_tab_widget.setMaximumSize(QtCore.QSize(16777215, 23))
@@ -250,15 +331,19 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.filter_le.setFocus()
         self.filter_le.returnPressed.connect(self.work_tree_view.setFocus)
 
-
         self.task = None
 
         # SIGNALS
 
         self.category_tab_widget.currentChanged.connect(self.on_category_change)
+        self.work_radio_button.clicked.connect(self.on_mode_change)
+        self.publish_radio_button.clicked.connect(self.on_mode_change)
+        # self.work_radio_button.toggled.connect(self.on_mode_change)
+        # self.publish_radio_button.toggled.connect(self.on_mode_change)
 
         # TODO: get this from the last state of the user
         self._last_category = None
+        self.mode = 0  # 0 = work, 1 = publish
 
     def get_category_index(self):
         """Get the index of the category."""
@@ -268,13 +353,15 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
                     return idx
         return 0
 
+    def set_category_by_index(self, category_index):
+        """Set the category by index"""
+        self.category_tab_widget.setCurrentIndex(category_index)
+        self.on_category_change(category_index)
+
     def set_task(self, task):
         """Set the task"""
         if not task:
-            self.category_tab_widget.blockSignals(True)
-            self.work_tree_view.model.clear()
-            self.category_tab_widget.clear()
-            self.category_tab_widget.blockSignals(False)
+            self.clear()
             return
         self.task = task
         self.populate_categories(self.task.categories)
@@ -291,24 +378,42 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.category_tab_widget.blockSignals(True)
         self.category_tab_widget.clear()
         for key, category in categories.items():
-            # print(type(category))
             self.pre_tab = QtWidgets.QWidget()
             self.pre_tab.setObjectName(key)
             self.category_tab_widget.addTab(self.pre_tab, key)
             # self.append_category(category)
         self.category_tab_widget.blockSignals(False)
 
+    def on_mode_change(self, _event):
+        """Change the mode"""
+        if self.work_radio_button.isChecked():
+            self.mode = 0
+            self.mode_changed.emit(0)
+        else:
+            self.mode = 1
+            self.mode_changed.emit(1)
+        self.category_tab_widget.currentChanged.emit(self.category_tab_widget.currentIndex())
+
 
     def on_category_change(self, index):
         """When the category tab changes"""
         # get the current tab name
         self._last_category = self.category_tab_widget.tabText(index)
-        if self.work_radio_button.isChecked():
+        if self.mode == 0:
             works = self.task.categories[self._last_category].works
             self.work_tree_view.model.set_works(works.values())
         else:
+            # clear the model view
+            self.work_tree_view.model.clear()
+            # self.mode_changed.emit("publish")
             pass
 
+    def clear(self):
+        """Refresh the layout"""
+        self.category_tab_widget.blockSignals(True)
+        self.category_tab_widget.clear()
+        self.work_tree_view.model.clear()
+        self.category_tab_widget.blockSignals(False)
 
 
 # test the TikCategoryLayout
@@ -341,11 +446,6 @@ if __name__ == "__main__":
     # resize the dialog
     test_dialog.resize(800, 600)
     test_dialog.show()
-
-    # sleep(3)
-    # print("setting task to batman")
-    # category_layout.set_task(example_task_b)
-
 
     app.exec_()
 

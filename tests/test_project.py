@@ -34,42 +34,21 @@ class TestProject:
         assert self.tik.project.guard.project_root == os.path.join(utils.get_home_dir(), "TM4_default")
         assert self.tik.project.guard.database_root == os.path.join(utils.get_home_dir(), "TM4_default", "tikDatabase")
 
-    # @clean_user
-    # def test_resolution_and_fps(self):
-    #     """Tests setting and getting resolution of fps values"""
-    #     test_resolution = [1000, 1000]
-    #     test_fps = 30
-    #     assert self.tik.project.set_resolution(test_resolution) == -1
-    #     assert self.tik.project.set_fps(test_fps) == -1
-    #     self.tik.user.set("Admin")
-    #     assert self.tik.project.set_resolution(test_resolution) == -1
-    #     assert self.tik.project.set_fps(test_fps) == -1
-    #     self.tik.user.authenticate("1234")
-    #     assert self.tik.project.set_resolution(test_resolution) == 1
-    #     assert self.tik.project.set_fps(test_fps) == 1
-    #
-    #     # fails
-    #     with pytest.raises(Exception) as e_info:
-    #         self.tik.project.set_resolution("NOT VALID RESOLUTION")
-    #     with pytest.raises(Exception) as e_info:
-    #         self.tik.project.set_fps("NOT VALID FPS")
-    #
-    #     self.tik.project.save_structure()
-    #
-    #     # # re-init the project and read back the values
-    #     self.tik.project.set(os.path.join(utils.get_home_dir(), "TM4_default"))
-    #     assert self.tik.project.resolution == test_resolution
-    #     assert self.tik.project.fps == test_fps
-
     @clean_user
     def test_create_new_project(self):
         # no user permission
         test_project_path = os.path.join(utils.get_home_dir(), "t4_test_project_DO_NOT_USE")
         if os.path.exists(test_project_path):
             shutil.rmtree(test_project_path)
+        self.tik.user.set("Generic", "1234", save_to_db=False, clear_db=True)
+
+        # no permission test
         assert self.tik.create_project(test_project_path, structure_template="asset_shot") == -1
+
+        # not authenticated test
         self.tik.user.set("Admin")
         assert self.tik.create_project(test_project_path, structure_template="asset_shot") == -1
+
         self.tik.user.authenticate("1234")
         assert self.tik.create_project(test_project_path, structure_template="hedehot") == 1
         assert self.tik.create_project(test_project_path, structure_template="empty") == -1
@@ -259,13 +238,6 @@ class TestProject:
         assert self.tik.project.get_uid_by_path("Burhan/Altintop") == -1
         assert self.tik.project.get_path_by_uid(123123123123123123123) == -1
 
-    # @clean_user
-    # def test_query_category(self):
-    #     test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
-    #     self.tik.project.set(test_project_path)
-    #     soldier_sub = self.tik.project.find_sub_by_path("Assets/Characters/Soldier")
-    #     print(soldier_sub.categories[0].path)
-
     @clean_user
     def test_creating_and_adding_new_tasks(self):
         test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
@@ -303,7 +275,8 @@ class TestProject:
 
         assert task.name == "Poseidon"
         assert task.creator == "Admin"
-        assert task.reference_id == task._task_id
+        # assert task.reference_id == task._task_id
+        assert task.id == task._task_id
 
         # no permissions
         self.tik.user.set("Generic", password="1234")
@@ -331,8 +304,6 @@ class TestProject:
         assert task.name == "Aquaman"
         assert task.type == "Shot"
 
-
-
     @clean_user
     def test_adding_categories(self):
         self.test_creating_and_adding_new_tasks()
@@ -356,7 +327,6 @@ class TestProject:
             self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].add_category("Burhan")
         # check the log message
         assert self.tik.log.get_last_message() == ("Category 'Burhan' is not defined in category definitions.", 'error')
-
 
     @clean_user
     def test_order_categories(self):
@@ -382,7 +352,6 @@ class TestProject:
             self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["superman"].order_categories(["Model", "LookDev", "Temp"])
         # check the log message
         assert self.tik.log.get_last_message() == ("New order list contains a category that is not in the current categories list.", 'error')
-
 
     @clean_user
     def test_scanning_tasks(self):
@@ -439,8 +408,6 @@ class TestProject:
         this_should_have_2_versions = ultraman_task.categories["Rig"].create_work("varC", notes="this is a complete new version of varC")
         assert this_should_have_2_versions.version_count == 2
 
-
-
     @clean_user
     def test_scanning_works(self):
         self.test_creating_works()
@@ -459,6 +426,7 @@ class TestProject:
         self.tik.project.guard._dcc = "Maya"
         assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works(all_dcc=False) == {}
 
+    @clean_user
     def test_deleting_empty_task(self):
         self.test_creating_and_adding_new_tasks()
 

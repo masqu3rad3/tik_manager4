@@ -2,9 +2,6 @@
   "empty": {
     "name": "Empty Project",
     "path": "",
-    "resolution": [1920, 1080],
-    "fps": 25,
-    "mode": "",
     "subs": []
   },
   "simple": {
@@ -97,11 +94,12 @@
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
-    "mode": "asset",
+    "mode": "root",
     "subs": [
       {
         "name": "Assets",
         "path": "Assets",
+        "mode": "asset",
         "subs": [
           {
             "name": "Characters",

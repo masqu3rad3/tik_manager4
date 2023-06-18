@@ -33,10 +33,16 @@ class Main(object):
         if not os.path.exists(os.path.join(default_project, "tikDatabase", "project_structure.json")):
             self._create_default_project()
 
+        _project = default_project
         if self.user.get_recent_projects():
-            _project = self.user.get_recent_projects()[-1]
-        else:
-            _project = default_project
+            recent_projects = self.user.get_recent_projects()
+            # try to find the last project that exists
+            for _project in reversed(recent_projects):
+                if os.path.exists(os.path.join(_project, "tikDatabase", "project_structure.json")):
+                    break
+            # _project = self.user.get_recent_projects()[-1]
+        # else:
+        #     _project = default_project
 
         self.project._set(_project)
         self.user.add_recent_project(_project)
@@ -67,63 +73,52 @@ class Main(object):
         structure.set_data(structure_data)
         structure.apply_settings()
 
-    def create_project(self, path, structure_template="empty", set_after_creation=True, **kwargs):
+    def create_project(self, path, structure_template="empty", structure_data=None, set_after_creation=True, **kwargs):
         """Create a new project."""
-
         if self.user.permission_level < 3:
             log.warning("This user does not have rights to perform this action")
             return -1
         if not self.user.is_authenticated:
             log.warning("User is not authenticated")
             return -1
-
         database_path = os.path.join(path, "tikDatabase")
         if not os.path.exists(database_path):
             os.makedirs(database_path)
-
         structure_file = os.path.join(database_path, "project_structure.json")
         if os.path.exists(structure_file):
             log.warning("Project already exists. Aborting")
             return -1
-
         project_name = os.path.basename(path)
-        structure_data = self.user.commons.structures.get_property(structure_template)
-
+        if structure_data:
+            structure_data = structure_data
+        else:
+            structure_data = self.user.commons.structures.get_property(structure_template)
         if not structure_data:
             log.warning("Structure template %s is not defined. Creating empty project")
             structure_data = {
                               "name": project_name,
                               "path": "",
-                              "resolution": [1920, 1080],
-                              "fps": 25,
                               "mode": "root",
                               "subs": []
                             }
-
-        print("")
-        print("structure_data before", structure_data)
         # override defined keys
         structure_data["name"] = project_name
         structure_data.update(kwargs)
 
-        print("structure_data after", structure_data)
-
         # create structure database file
         structure = settings.Settings(file_path=structure_file)
         structure.set_data(structure_data)
-        print("structure_file", structure.get_data())
         structure.apply_settings()
-
         # define a project object to validate data and create folders
-        if set_after_creation:
-            project_obj = self.project  # our main project
-        else:
-            project_obj = project.Project()  # this will be temporary
+
+        project_obj = project.Project()  # this will be temporary
         project_obj._set(path)
-        print(self.project.absolute_path)
         project_obj.create_folders(project_obj.absolute_path)
         project_obj.create_folders(project_obj.database_path)
         project_obj.save_structure()  # This makes sure IDs are getting saved to the database file
+
+        if set_after_creation:
+            self.set_project(path)
         return 1
 
     def set_project(self, absolute_path):
@@ -134,3 +129,4 @@ class Main(object):
         self.project._set(absolute_path)
         # add to recent projects
         self.user.add_recent_project(absolute_path)
+        self.user.last_project = absolute_path

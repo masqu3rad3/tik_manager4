@@ -1,11 +1,10 @@
 import sys
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
-import tik_manager4.ui.dialog.new_subproject
-import tik_manager4.ui.dialog.new_task
+from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui, Qt
+import tik_manager4.ui.dialog.subproject_dialog
+import tik_manager4.ui.dialog.task_dialog
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.objects import guard
 import tik_manager4
-
 
 class TikSubItem(QtGui.QStandardItem):
     color_dict = {
@@ -55,7 +54,7 @@ class TikColumnItem(QtGui.QStandardItem):
 
 class TikSubModel(QtGui.QStandardItemModel):
 
-    def __init__(self, structure_object):
+    def __init__(self, structure_object, search_id=None):
         super(TikSubModel, self).__init__()
         self.columns = ["name", "id", "path"] + list(guard.Guard.commons.metadata.properties.keys())
 
@@ -64,6 +63,9 @@ class TikSubModel(QtGui.QStandardItemModel):
         self.project = None
         self.root_item = None
         self.set_data(structure_object)
+        # self._search_id = search_id
+        # self._search_id = 2141800799
+        # self.previous_selection = None
 
     def set_data(self, structure_object):
         self.project = structure_object
@@ -87,6 +89,7 @@ class TikSubModel(QtGui.QStandardItemModel):
         # first element is the dictionary point and second is the subproject object
         parent_row = self
         self.root_item = TikSubItem(self.project)
+        # parent_row.appendRow(self.root_item)
         queue.append([all_data, self.project, parent_row])
         # queue.append([all_data, self.project, self.root_item])
 
@@ -107,6 +110,8 @@ class TikSubModel(QtGui.QStandardItemModel):
                     }
                     parent["subs"].append(sub_data)
                     _item = self.append_sub(neighbour, parent_row)
+                    # if neighbour.id == self._search_id:
+                    #     self.previous_selection = _item
 
                     # add tasks
                     visited.append(neighbour)
@@ -118,6 +123,9 @@ class TikSubModel(QtGui.QStandardItemModel):
         _sub_item = TikSubItem(sub_obj)
         # generate the column texts
         # name, id and path are mandatory, start with them
+        # if sub_obj.id == self._search_id:
+        #     self.previous_selection = _sub_item
+        #     print("found")
         _row = [_sub_item, TikColumnItem(str(sub_obj.id)), TikColumnItem(sub_obj.path)]
         for column in self.columns[3:]:  # skip the first 3 columns which are mandatory
             # get the override status
@@ -151,6 +159,17 @@ class TikSubModel(QtGui.QStandardItemModel):
                 _column_item.set_overridden(_overridden)
                 _column_item.set_value(str(_column_value))
 
+    def find_item_by_id_column(self, unique_id):
+        """Search entire tree and find the matching item."""
+
+        # get EVERY item in this model
+        _all_items = self.findItems("*", QtCore.Qt.MatchWildcard | QtCore.Qt.MatchRecursive)
+        for x in _all_items:
+            # print(x)
+            if isinstance(x, TikSubItem):
+                if x.subproject.id == unique_id:
+                    return x
+
 
 class TikSubView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
@@ -180,7 +199,50 @@ class TikSubView(QtWidgets.QTreeView):
         self.header().customContextMenuRequested.connect(self.header_right_click_menu)
 
         self.expandAll()
+        self.setItemsExpandable(True)
         self._recursive_task_scan = False
+
+
+    def find_items_in_tree(self, root_item, text):
+        matched_items = []
+
+        # Search for items in the root item
+        matched_items += root_item.findItems(text, QtCore.Qt.MatchExactly, column=1)
+
+        # Recursively search for items in each child item
+        for child_item in root_item.childItems():
+            matched_items += self.find_items_in_tree(child_item, text)
+
+        return matched_items
+
+    def select_by_id(self, unique_id):
+        """Look at the id column and select
+         the subproject item that matched the unique id"""
+
+        match_item = self.model.find_item_by_id_column(unique_id)
+        if match_item:
+            idx = (match_item.index())
+            idx = idx.sibling(idx.row(), 0)
+            index = self.proxy_model.mapFromSource(idx)
+            self.setCurrentIndex(index)
+            return True
+
+        return False
+
+
+    # TODO: THIS IS BACKUP
+    # def find_and_select_by_id(self, unique_id):
+    #     """Look at the id column and select the subproject item that matched the unique id"""
+    #     # get all the items in the id column
+    #     _previously_selected_item = self.model.previous_selection
+    #     # select the item
+    #     idx = (_previously_selected_item.index())
+    #     idx = idx.sibling(idx.row(), 0)
+    #     index = self.proxy_model.mapFromSource(idx)
+    #     print(index)
+    #
+    #     self.setCurrentIndex(index)
+
 
     def mousePressEvent(self, event):
         super(TikSubView, self).mousePressEvent(event)
@@ -189,13 +251,14 @@ class TikSubView(QtWidgets.QTreeView):
             self.clearSelection()
             # self.deselected.emit(True)
             self.get_tasks(QtCore.QModelIndex())
-        QtWidgets.QTreeView.mousePressEvent(self, event)
+        # QtWidgets.QTreeView.mousePressEvent(self, event)
 
     def currentChanged(self, *args, **kwargs):
         super(TikSubView, self).currentChanged(*args, **kwargs)
         self.get_tasks(self.currentIndex())
 
     def get_selected_item(self):
+        """Return the current item"""
         idx = self.currentIndex()
         if not idx.isValid():
             return None
@@ -275,6 +338,11 @@ class TikSubView(QtWidgets.QTreeView):
         _item = self.model.itemFromIndex(index) or self.model.root_item
         if _item:
             _tasks = self.collect_tasks(_item.subproject, recursive=self._recursive_task_scan)
+
+            # print([x for x in _tasks.items()])
+            # print(_tasks)
+            # print(_tasks)
+            # print(_tasks)
             self.item_selected.emit(_tasks)
 
     def hide_columns(self, columns):
@@ -317,6 +385,8 @@ class TikSubView(QtWidgets.QTreeView):
     def filter(self, text):
         # pass
         self.proxy_model.setFilterRegExp(QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))
+        # self.proxy_model.setFilterWildcard(QtCore.QString(text))
+        # self.proxy_model.setFilterRegularExpression(text)
 
     def header_right_click_menu(self, position):
         menu = QtWidgets.QMenu(self)
@@ -375,64 +445,72 @@ class TikSubView(QtWidgets.QTreeView):
 
     def new_sub_project(self, item):
         # first check for the user permission:
-        if self.model.project._check_permissions(level=2) != -1:
-            _dialog = tik_manager4.ui.dialog.new_subproject.NewSubproject(self.model.project,
-                                                                          parent_sub=item.subproject, parent=self)
-            state = _dialog.exec_()
-            if state:
-                # TODO: is this overcomplicated?
-                _new_sub = _dialog.get_created_subproject()
-                # Find the parent item _new_sub id
-                _items = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)
-                if _items:
-                    _item_at_id_column = _items[0]
-                    # _item_at_id_column = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)[0]
-                    # find the index of the item
-                    _index = self.model.indexFromItem(_item_at_id_column)
-                    # make sure the index is pointing to the first column
-                    first_column_index = _index.sibling(_index.row(), 0)
-                    # get the item from index
-                    _item = self.model.itemFromIndex(first_column_index)
-                    # The reason we are doing this is that we may change the parent of the item on new subproject UI
-                else:
-                    _item = self.model
-                self.model.append_sub(_new_sub, _item)
-                # self.model.append_sub(_new_sub, self.model)
-        else:
+        if self.model.project.check_permissions(level=2) == -1:
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
+            return
+        _dialog = tik_manager4.ui.dialog.subproject_dialog.NewSubprojectDialog(self.model.project,
+                                                                            parent_sub=item.subproject, parent=self)
+        state = _dialog.exec_()
+        if state:
+            # TODO: is this overcomplicated?
+            _new_sub = _dialog.get_created_subproject()
+            # Find the parent item _new_sub id
+            _items = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)
+            if _items:
+                _item_at_id_column = _items[0]
+                # _item_at_id_column = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)[0]
+                # find the index of the item
+                _index = self.model.indexFromItem(_item_at_id_column)
+                # make sure the index is pointing to the first column
+                first_column_index = _index.sibling(_index.row(), 0)
+                # get the item from index
+                _item = self.model.itemFromIndex(first_column_index)
+                # The reason we are doing this is that we may change the parent of the item on new subproject UI
+            else:
+                _item = self.model
+            self.model.append_sub(_new_sub, _item)
+            # self.model.append_sub(_new_sub, self.model)
+        # else:
+        #     message, title = self.model.project.log.get_last_message()
+        #     self._feedback.pop_info(title.capitalize(), message)
 
     def edit_sub_project(self, item):
         # first check for the user permission:
-        if self.model.project._check_permissions(level=2) != -1:
-            pass
-            _dialog = tik_manager4.ui.dialog.new_subproject.EditSubproject(self.model.project,
-                                                                           parent_sub=item.subproject, parent=self)
-            state = _dialog.exec_()
-            if state:
-                # re-populate the model
-                self.refresh()
-        else:
+        if self.model.project.check_permissions(level=2) == -1:
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
+            return
+        _dialog = tik_manager4.ui.dialog.subproject_dialog.EditSubprojectDialog(self.model.project,
+                                                                             parent_sub=item.subproject, parent=self)
+        state = _dialog.exec_()
+        if state:
+            # re-populate the model
+            self.refresh()
+
 
     def new_task(self, item):
         # first check for the user permission:
-        # if self.model.project._check_permissions(level=2) != -1:
+        if self.model.project.check_permissions(level=2) == -1:
+            message, title = self.model.project.log.get_last_message()
+            self._feedback.pop_info(title.capitalize(), message)
+            return
 
-        _dialog = tik_manager4.ui.dialog.new_task.NewTask(self.model.project, parent_sub=item.subproject, parent=self)
+        _dialog = tik_manager4.ui.dialog.task_dialog.NewTask(self.model.project, parent_sub=item.subproject, parent=self)
         state = _dialog.exec_()
         if state:
             # emit clicked signal
             self.add_item.emit(_dialog.get_created_task())
-        else:
-            pass
-            # message, title = self.model.project.log.get_last_message()
-            # self._feedback.pop_info(title.capitalize(), message)
+
 
 
     def delete_sub_project(self, item):
         # Prompt the user to confirm the deletion
+        if self.model.project.check_permissions(level=3) == -1:
+            message, title = self.model.project.log.get_last_message()
+            self._feedback.pop_info(title.capitalize(), message)
+            return
+
         message = "Are you sure you want to delete the sub-project: {}?".format(item.subproject.name)
         title = "Delete Sub-Project"
         sure = self._feedback.pop_question(title, message, buttons=["ok", "cancel"])
@@ -478,10 +556,23 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
         return super(ProxyModel, self).filterAcceptsRow(source_row, source_parent)
 
 
-class TikProjectLayout(QtWidgets.QVBoxLayout):
+class TikSubProjectLayout(QtWidgets.QVBoxLayout):
     def __init__(self, project_obj, recursive_enabled=True, right_click_enabled=True):
-        super(TikProjectLayout, self).__init__()
+        super(TikSubProjectLayout, self).__init__()
         self.project_obj = project_obj
+        # add a label
+        self.label = QtWidgets.QLabel("Sub-Projects")
+        self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
+        self.addWidget(self.label)
+        # create a separator label
+        self.separator = QtWidgets.QLabel()
+        self.separator.setFrameShape(QtWidgets.QFrame.HLine)
+        self.separator.setFrameShadow(QtWidgets.QFrame.Sunken)
+        # make it violet
+        self.separator.setStyleSheet("background-color: rgb(221, 160, 221);")
+        self.separator.setFixedHeight(1)
+        self.addWidget(self.separator)
+
         # add a checkbox for recursive search
         if recursive_enabled:
             self.recursive_search_cb = QtWidgets.QCheckBox("Get Tasks Recursively")
@@ -502,3 +593,11 @@ class TikProjectLayout(QtWidgets.QVBoxLayout):
             self.sub_view.set_recursive_task_scan(self.recursive_search_cb.isChecked())
             self.recursive_search_cb.stateChanged.connect(self.sub_view.set_recursive_task_scan)
         self.filter_le.returnPressed.connect(self.sub_view.setFocus)
+
+    def refresh(self):
+        """Refresh the layout"""
+        self.sub_view.refresh()
+        # self.filter_le.setFocus()
+        # self.filter_le.clear()
+        # self.filter_le.setFocus()
+

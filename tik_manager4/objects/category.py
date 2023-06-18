@@ -18,6 +18,7 @@ class Category(Entity):
         definition = definition or {}
         # self._name = name
         self._works = {}
+        self._publishes = {}
         # self._publishes = {}
         self.type = definition.get("type", None)
         self.display_name = definition.get("display_name", None)
@@ -30,6 +31,14 @@ class Category(Entity):
     def works(self):
         self.scan_works()
         return self._works
+
+    @property
+    def publishes(self):
+        self.scan_publishes()
+        return self._publishes
+
+    def scan_publishes(self):
+        pass
 
     def scan_works(self, all_dcc=False):
         if self.guard.dcc == "Standalone":
@@ -67,7 +76,7 @@ class Category(Entity):
         """Creates a task under the category"""
 
         # valid file_format keyword can be collected from main.dcc.formats
-        state = self._check_permissions(level=1)
+        state = self.check_permissions(level=1)
         if state != 1:
             return -1
 
@@ -85,8 +94,9 @@ class Category(Entity):
         _work.add_property("category", self.name)
         _work.add_property("dcc", self.guard.dcc)
         _work.add_property("versions", [])
-        _work.add_property("work_id", _work.id)
+        _work.add_property("work_id", _work.generate_id())
         _work.add_property("path", relative_path)
+        _work.add_property("state", "working")
         _work.new_version(file_format=file_format, notes=notes)
         return _work
 
@@ -99,7 +109,7 @@ class Category(Entity):
             return -1
 
         # if not, check if the user is the owner of the work
-        if self.guard.user != _work.creator or self._check_permissions(level=3):
+        if self.guard.user != _work.creator or self.check_permissions(level=3):
             log.warning("You do not have the permission to delete this work")
             return -1
 

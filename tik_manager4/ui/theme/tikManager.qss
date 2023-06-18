@@ -208,6 +208,14 @@ QGroupBox::indicator:checked:disabled {
 https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qradiobutton
 
 --------------------------------------------------------------------------- */
+QPushButton
+{
+    color: #b1b1b1;
+    background-color: #404040;
+    border-width: 1px;
+    border-color: #1e1e1e;
+}
+
 QRadioButton {
   background-color: #303030;
   color: #F0F0F0;
@@ -1561,6 +1569,11 @@ QSplitter::separator {
   spacing: 0px;
   padding: 1px;
   margin: 0px;
+}
+
+QSplitter::handle {
+  background: #4c4c4c;
+  border: 2px solid #303030;
 }
 
 QSplitter::separator:hover {

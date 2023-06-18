@@ -23,17 +23,19 @@ class Project(Subproject):
 
         # This makes sure the project folder is tik_manager4 ready
         if path:
-            # self.set(path)
             self._set(path)
 
         # Absolute path do not go into the project_structure.json
         self._absolute_path = ""
-        # self._mode = "root"
-
 
     @property
     def absolute_path(self):
         return self._absolute_path
+
+    @property
+    def root(self):
+        """Return the root of the project, where all projects lives happily"""
+        return os.path.abspath(os.path.join(self._absolute_path, os.pardir))
 
     @property
     def path(self):
@@ -117,7 +119,7 @@ class Project(Subproject):
 
     def edit_sub_project(self, uid=None, path=None, name=None, **properties):
         """Edits a subproject and stores it in persistent database"""
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
         sub = self.__validate_and_get_sub(uid, path)
@@ -126,13 +128,6 @@ class Project(Subproject):
         if name:
             sub.name = name
 
-        # properties.update(
-        #     {
-        #         "name": name,
-        #         "uid": sub.id,
-        #         "path": sub.path
-        #     }
-        # )
         # get the subproject tree
         kill_list = []
         sub_tree = sub.get_sub_tree()

@@ -4,16 +4,18 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore
 
 # from PyQt5 import QtCore, QtGui, QtWidgets
 
-from tik_manager4.ui.mcv.subproject_tree import TikProjectLayout
-from tik_manager4.ui.mcv.task_tree import TikTaskLayout
-from tik_manager4.ui.mcv.category import TikCategoryLayout
-from tik_manager4.ui.mcv.version import TikVersionLayout
+from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
+from tik_manager4.ui.mcv.task_mcv import TikTaskLayout
+from tik_manager4.ui.mcv.category_mcv import TikCategoryLayout
+from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
+
+from tik_manager4.ui import pick
 
 import tik_manager4
 
 if __name__ == '__main__':
-    # test_project_path = os.path.join(os.path.expanduser("~"), "t4_stress_test_DO_NOT_USE")
-    test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
+    test_project_path = os.path.join(os.path.expanduser("~"), "t4_stress_test_DO_NOT_USE")
+    # test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
     # test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_project_DO_NOT_USE")
 
     if not os.path.exists(test_project_path):
@@ -29,14 +31,15 @@ if __name__ == '__main__':
     #
     master_lay = QtWidgets.QVBoxLayout(test_dialog)
     #
-    dirname = os.path.dirname(os.path.abspath(__file__))
-    tik_manager_dir = os.path.abspath(os.path.join(dirname, os.pardir, "tik_manager4", "ui"))
-    QtCore.QDir.addSearchPath("css", os.path.join(tik_manager_dir, "theme"))
-    QtCore.QDir.addSearchPath("rc", os.path.join(tik_manager_dir, "theme/rc"))
-    #
-    style_file = QtCore.QFile("css:tikManager.qss")
-    style_file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
-    test_dialog.setStyleSheet(str(style_file.readAll(), 'utf-8'))
+    # dirname = os.path.dirname(os.path.abspath(__file__))
+    # tik_manager_dir = os.path.abspath(os.path.join(dirname, os.pardir, "tik_manager4", "ui"))
+    # QtCore.QDir.addSearchPath("css", os.path.join(tik_manager_dir, "theme"))
+    # QtCore.QDir.addSearchPath("rc", os.path.join(tik_manager_dir, "theme/rc"))
+    # #
+    # style_file = QtCore.QFile("css:tikManager.qss")
+    # style_file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
+    _style_file = pick.style_file()
+    test_dialog.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
     #
     splitter = QtWidgets.QSplitter(test_dialog, orientation=QtCore.Qt.Horizontal)
     master_lay.addWidget(splitter)
@@ -60,7 +63,7 @@ if __name__ == '__main__':
     # view = TikSubView()
     # view.set_project(tik.project)
     # view.hide_columns(["id", "path", "resolution", "fps"])
-    sub_projects = TikProjectLayout(tik.project)
+    sub_projects = TikSubProjectLayout(tik.project)
     # sub_projects.sub_view.hide_columns(["id", "path", "resolution", "fps"])
     # sub_projects.sub_view.hide_columns(["path", "resolution", "fps"])
     sub_projects.sub_view.hide_columns(["id", "path"])

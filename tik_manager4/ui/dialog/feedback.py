@@ -5,6 +5,7 @@ from tik_manager4.core import compatibility as compat
 # from tik_manager4.core import filelog
 
 from tik_manager4.ui.Qt import QtWidgets
+from tik_manager4.ui.widgets.common import TikMessageBox
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
@@ -14,7 +15,7 @@ class Feedback():
         self.parent=parent
 
     def pop_info(self, title="Info", text="", details="", critical=False, button_label=None, modal=True):
-        msg = QtWidgets.QMessageBox(parent=self.parent)
+        msg = TikMessageBox(parent=self.parent)
         if critical:
             msg.setIcon(QtWidgets.QMessageBox.Critical)
         else:
@@ -51,7 +52,7 @@ class Feedback():
                 raise RuntimeError("Non-valid button defined. Valid buttons are: %s" % button_dict.keys())
             widgets.append(widget)
 
-        q = QtWidgets.QMessageBox(parent=self.parent)
+        q = TikMessageBox(parent=self.parent)
         q.setIcon(QtWidgets.QMessageBox.Question)
         q.setWindowTitle(title)
         q.setModal(modal)
