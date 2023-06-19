@@ -242,6 +242,8 @@ class TikCategoryView(QtWidgets.QTreeView):
                 level += 1
         else:
             level = 0
+        ingest_act = right_click_menu.addAction(self.tr("Ingest Here"))
+        ingest_act.triggered.connect(lambda _, x=item: self.ingest_here(item))
         open_database_folder_act = right_click_menu.addAction(self.tr("Open Database Folder"))
         open_database_folder_act.triggered.connect(lambda _, x=item: self.open_database_folder(item))
         open_scene_folder_act = right_click_menu.addAction(self.tr("Open Scene Folder"))
@@ -256,19 +258,28 @@ class TikCategoryView(QtWidgets.QTreeView):
         """Re-populates the model keeping the expanded state"""
         self.model.populate()
 
+    def ingest_here(self, item):
+        """Ingests the given item"""
+        print("Method not implemented")
+        print(item)
+        # TODO
+
     def open_database_folder(self, item):
         """Opens the database folder for the given item"""
         print("Method not implemented")
+        print(item)
         # TODO
 
     def open_scene_folder(self, item):
         """Opens the scene folder for the given item"""
         print("Method not implemented")
+        print(item)
         # TODO
 
     def delete_item(self, item):
         """Deletes the given item"""
         print("Method not implemented")
+        print(item)
         # TODO
 
 

@@ -116,7 +116,6 @@ class Category(Entity):
         del self._works[name]
         _work.delete()
 
-
     def construct_name(self, name):
         """Construct the name for the work file. Useful to preview in UI."""
         return "{0}_{1}_{2}".format(self.parent_task.name, self.name, name)

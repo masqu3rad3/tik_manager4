@@ -16,7 +16,7 @@ class Dcc(DccTemplate):
         Returns: None
 
         """
-        cmds.file(new=True, f=force)
+        cmds.file(newFile=True, force=force)
         if fps:
             fps_dict = {15: "game",
                        24: "film",
@@ -64,7 +64,7 @@ class Dcc(DccTemplate):
         Returns: None
 
         """
-        cmds.file(file_path, o=True, force=force)
+        cmds.file(file_path, open=True, force=force)
 
     @staticmethod
     def reference(file_path, namespace):
@@ -77,7 +77,7 @@ class Dcc(DccTemplate):
         Returns: (List) Referenced nodes
 
         """
-        cmds.file(Dcc._normalize_file_path(file_path), reference=True, gl=True, mergeNamespacesOnClash=False,
+        cmds.file(Dcc._normalize_file_path(file_path), reference=True, groupLocator=True, mergeNamespacesOnClash=False,
                   namespace=namespace)
         # TODO return referenced nodes
 
@@ -101,10 +101,10 @@ class Dcc(DccTemplate):
         Gets the viewport ranges
         Returns: (list) [<absolute range start>, <user range start>, <user range end>, <absolute range end>
         """
-        r_ast = cmds.playbackOptions(q=True, ast=True)
-        r_min = cmds.playbackOptions(q=True, min=True)
-        r_max = cmds.playbackOptions(q=True, max=True)
-        r_aet = cmds.playbackOptions(q=True, aet=True)
+        r_ast = cmds.playbackOptions(query=True, animationStartTime=True)
+        r_min = cmds.playbackOptions(query=True, minTime=True)
+        r_max = cmds.playbackOptions(query=True, maxTime=True)
+        r_aet = cmds.playbackOptions(query=True, animationEndTime=True)
         return [r_ast, r_min, r_max, r_aet]
 
     @staticmethod
@@ -118,9 +118,9 @@ class Dcc(DccTemplate):
         Returns: None
 
         """
-        cmds.playbackOptions(ast=range_list[0], min=range_list[1], max=range_list[2], aet=range_list[3])
+        cmds.playbackOptions(animationStartTime=range_list[0], minTime=range_list[1], maxTime=range_list[2], animationEndTime=range_list[3])
 
     @staticmethod
     def is_modified():
         """Returns True if the scene has unsaved changes"""
-        return cmds.file(q=True, modified=True)
+        return cmds.file(query=True, modified=True)

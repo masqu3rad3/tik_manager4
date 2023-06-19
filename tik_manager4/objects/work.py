@@ -92,13 +92,15 @@ class Work(Settings, Entity):
             raise ValueError("File format is not valid.")
 
         # get filepath of current version
-        _version_number = self.get_last_version() + 1
-        _version_name = "{0}_{1}_v{2}{3}".format(self._name, self._creator,
-                                                 str(_version_number).zfill(3),
-                                                 file_format)
+        _version_number, _version_name, _thumbnail_name = self.construct_names(file_format)
+
+        # _version_number = self.get_last_version() + 1
+        # _version_name = "{0}_{1}_v{2}{3}".format(self._name, self._creator,
+        #                                          str(_version_number).zfill(3),
+        #                                          file_format)
         _abs_version_path = self.get_abs_project_path(_version_name)
-        _thumbnail_name = "{0}_{1}_v{2}_thumbnail.jpg".format(self._name, self._creator,
-                                                              str(_version_number).zfill(3))
+        # _thumbnail_name = "{0}_{1}_v{2}_thumbnail.jpg".format(self._name, self._creator,
+        #                                                       str(_version_number).zfill(3))
         _thumbnail_path = self.get_abs_database_path("thumbnails", _thumbnail_name)
         self._io.folder_check(_abs_version_path)
 
@@ -123,6 +125,28 @@ class Work(Settings, Entity):
         self._versions.append(_version)
         self.edit_property("versions", self._versions)
         self.apply_settings(force=True)
+        return _version
+
     def make_publish(self, notes, elements=None):
         """Create a publish from the currently loaded version on DCC."""
-        pass
+
+        # valid file_format keyword can be collected from main.dcc.formats
+        state = self.check_permissions(level=1)
+        if state != 1:
+            return -1
+
+    def construct_names(self, file_format):
+        """Construct a name for the work version.
+
+        Args:
+            extension (str): The extension of the file.
+            file_format (str): The file format of the file.
+
+        """
+        version_number = self.get_last_version() + 1
+        version_name = "{0}_{1}_v{2}{3}".format(self._name, self._creator,
+                                                 str(version_number).zfill(3),
+                                                 file_format)
+        thumbnail_name = "{0}_{1}_v{2}_thumbnail.jpg".format(self._name, self._creator,
+                                                              str(version_number).zfill(3))
+        return version_number, version_name, thumbnail_name
