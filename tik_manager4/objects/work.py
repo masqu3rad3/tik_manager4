@@ -23,6 +23,8 @@ class Work(Settings, Entity):
         self._dcc = self.get_property("dcc") or self.guard.dcc
         self._versions = self.get_property("versions") or []
         self._work_id = self.get_property("work_id") or self._id
+        self._task_name = self.get_property("task_name") or None
+        self._task_id = self.get_property("task_id") or None
         self._relative_path = self.get_property("path") or path
         self._software_version = self.get_property("softwareVersion") or None
         # there are 3 states: working, published, omitted
@@ -52,9 +54,19 @@ class Work(Settings, Entity):
         return self._publishes
 
     @property
+    def versions(self):
+        return self._versions
+
+    @property
     def version_count(self):
         """Return the number of versions."""
         return len(self._versions)
+
+    def reload(self):
+        """Reload from file"""
+        self.__init__(self.settings_file)
+        # print(self._io.read())
+        # self.initialize(self._io.read())
 
     def omit_work(self):
         """Omit the work."""
@@ -81,7 +93,6 @@ class Work(Settings, Entity):
         for version in self._versions:
             if version.get("version_number") == version_number:
                 return version
-
 
     def new_version(self, file_format=None, notes=""):
         """Create a new version of the work."""

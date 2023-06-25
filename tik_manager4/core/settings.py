@@ -37,6 +37,10 @@ class Settings(object):
             self._time_stamp = self._io.get_modified_time()
             self.initialize(self._io.read())
 
+    def reload(self):
+        """Reloads the settings from file"""
+        self.settings_file = self._filePath
+
     @property
     def keys(self):
         """Returns all keys in the current data"""
@@ -55,10 +59,6 @@ class Settings(object):
     def is_modified(self):
         """Checks if the file has been modified since initialization"""
         return not bool(self._io.get_modified_time() == self._time_stamp)
-
-    def reload(self):
-        """Reloads the settings from file"""
-        self.settings_file = self._filePath
 
     def initialize(self, data):
         """Initializes the settings data"""

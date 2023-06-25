@@ -515,12 +515,14 @@ QTextEdit:focus
 https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qframe
 
 --------------------------------------------------------------------------- */
+
+/*
 QLabel {
   border: 0px solid #4c4c4c;
   margin: 0px;
   color: #F0F0F0;
 }
-
+*/
 QLabel::disabled {
   background-color: #303030;
   border: 1px solid #404040;
@@ -540,22 +542,10 @@ QLabel[seperator=true] {
   background-color: gray;
 }
 
-QLabel[baseScene=true] {
-  color: cyan;
-}
-
-QLabel[baseScene=false] {
-  color: yellow;
-}
-
 QLabel[infoHeader=true] {
   border: 18px solid black;
   background-color: black;
   font-size: 14px;
-}
-
-QLabel[success=false] {
-  color: red
 }
 
 /* QTextBrowser -----------------------------------------------------------
@@ -709,8 +699,8 @@ QPushButton[menuButton=true] {
   min-width: 120;
   min-height: 45;
 }
-
 */
+
 
 /* QToolButton ------------------------------------------------------------
 

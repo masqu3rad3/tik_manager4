@@ -5,6 +5,11 @@ import os.path
 class DccTemplate(object):
 
     @staticmethod
+    def get_main_window():
+        """Returns the main window of the DCC"""
+        pass
+
+    @staticmethod
     def new_scene(force=True, fps=None):
         """
         Opens a new scene

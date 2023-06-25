@@ -2,6 +2,7 @@
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 
+from tik_manager4.ui.mcv.user_mcv import TikUserLayout
 from tik_manager4.ui.mcv.project_mcv import TikProjectLayout
 from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
 from tik_manager4.ui.mcv.task_mcv import TikTaskLayout
@@ -9,6 +10,7 @@ from tik_manager4.ui.mcv.category_mcv import TikCategoryLayout
 from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog, SetProjectDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
+from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.common import TikButton
 from tik_manager4.ui import pick
@@ -18,12 +20,12 @@ import tik_manager4
 
 class MainUI(QtWidgets.QMainWindow):
     def __init__(self, dcc="Standalone"):
-        super(MainUI, self).__init__()
+        self.tik = tik_manager4.initialize(dcc)
+
+        self.parent = self.tik.dcc.get_main_window()
+        super(MainUI, self).__init__(parent=self.parent)
 
         self.setWindowTitle("Tik Manager {}".format(version.__version__))
-        self.tik = tik_manager4.initialize(dcc)
-        print(self.tik.user.get())
-        print(self.tik.user.is_authenticated)
 
         self.feedback = Feedback(self)
         # set window size
@@ -40,9 +42,26 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.title_layout = QtWidgets.QHBoxLayout()
 
-        self.user_layout = QtWidgets.QHBoxLayout()
+        project_user_layout = QtWidgets.QHBoxLayout()
 
         self.project_layout = QtWidgets.QHBoxLayout()
+
+        self.user_layout = QtWidgets.QHBoxLayout()
+
+        project_user_layout.addLayout(self.project_layout)
+        # add a horizontal separator line
+        line = QtWidgets.QLabel()
+        pixmap = QtGui.QPixmap(2, 100)
+        pixmap.fill(QtGui.QColor(100, 100, 100))
+        line.setPixmap(pixmap)
+        line.setFixedHeight(25)
+        line.setFixedWidth(20)
+        # align to the center
+        line.setAlignment(QtCore.Qt.AlignCenter)
+        project_user_layout.addWidget(line)
+
+
+        project_user_layout.addLayout(self.user_layout)
 
         self.main_layout = QtWidgets.QVBoxLayout()
         splitter = QtWidgets.QSplitter(self.central_widget, orientation=QtCore.Qt.Horizontal)
@@ -84,8 +103,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.publish_buttons_frame.hide()
 
         self.master_layout.addLayout(self.title_layout)
-        self.master_layout.addLayout(self.user_layout)
-        self.master_layout.addLayout(self.project_layout)
+        self.master_layout.addLayout(project_user_layout)
+        # self.master_layout.addLayout(self.user_layout)
+        # self.master_layout.addLayout(self.project_layout)
         self.master_layout.addLayout(self.main_layout)
 
         self.master_layout.addWidget(self.work_buttons_frame)
@@ -137,6 +157,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.project_mcv = TikProjectLayout(self.tik.project)
         self.project_layout.addLayout(self.project_mcv)
 
+        self.user_mcv = TikUserLayout(self.tik.user)
+        self.user_layout.addLayout(self.user_mcv)
+
         self.subprojects_mcv = TikSubProjectLayout(self.tik.project)
         self.subprojects_mcv.sub_view.hide_columns(["id", "path"])
         self.subproject_tree_layout.addLayout(self.subprojects_mcv)
@@ -160,14 +183,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.item_selected.connect(self.versions_mcv.set_base)
         self.categories_mcv.mode_changed.connect(self.set_buttons_visibility)
 
-    # override the closeEvent to save the window state
-    def closeEvent(self, event):
-        self.tik.user.last_subproject = None
-        self.tik.user.last_task = None
-        self.tik.user.last_category = None
-        self.tik.user.last_work = None
-        self.tik.user.last_version = None
-
+    def set_last_selection(self):
+        """Set the last selections for the user"""
         self.tik.user.last_project = self.tik.project.name
         # get the currently selected subproject
         _subproject_item = self.subprojects_mcv.sub_view.get_selected_item()
@@ -177,8 +194,6 @@ class MainUI(QtWidgets.QMainWindow):
             if _task_item:
                 # self.tik.user.last_task = _task_item.task.reference_id
                 self.tik.user.last_task = _task_item.task.id
-                # TODO: Should we consider getting the category name instead of the index?
-                # If someone changes the category order, the index will be wrong
                 # Do we care?
                 _category_index = self.categories_mcv.get_category_index()
                 # we can always safely write the category index
@@ -189,6 +204,38 @@ class MainUI(QtWidgets.QMainWindow):
                     _version_nmb = self.versions_mcv.get_selected_version()
                     # we can always safely write the version number
                     self.tik.user.last_version = _version_nmb
+
+
+    # override the closeEvent to save the window state
+    def closeEvent(self, event):
+        self.tik.user.last_subproject = None
+        self.tik.user.last_task = None
+        self.tik.user.last_category = None
+        self.tik.user.last_work = None
+        self.tik.user.last_version = None
+
+        self.set_last_selection()
+        # self.tik.user.last_project = self.tik.project.name
+        # # get the currently selected subproject
+        # _subproject_item = self.subprojects_mcv.sub_view.get_selected_item()
+        # if _subproject_item:
+        #     self.tik.user.last_subproject = _subproject_item.subproject.id
+        #     _task_item = self.tasks_mcv.task_view.get_selected_item()
+        #     if _task_item:
+        #         # self.tik.user.last_task = _task_item.task.reference_id
+        #         self.tik.user.last_task = _task_item.task.id
+        #         # TODO: Should we consider getting the category name instead of the index?
+        #         # If someone changes the category order, the index will be wrong
+        #         # Do we care?
+        #         _category_index = self.categories_mcv.get_category_index()
+        #         # we can always safely write the category index
+        #         self.tik.user.last_category = _category_index
+        #         _work_item = self.categories_mcv.work_tree_view.get_selected_item()
+        #         if _work_item:
+        #             self.tik.user.last_work = _work_item.work.id
+        #             _version_nmb = self.versions_mcv.get_selected_version()
+        #             # we can always safely write the version number
+        #             self.tik.user.last_version = _version_nmb
 
         self.tik.user.resume.apply_settings()
         event.accept()
@@ -228,6 +275,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.publish_buttons_layout.addStretch(1)
         self.publish_buttons_layout.addWidget(reference_btn)
+
+        # SIGNALS
+        load_btn.clicked.connect(self.test)
+        save_version_btn.clicked.connect(self.on_new_version)
+        ingest_version_btn.clicked.connect(self.on_ingest_version)
 
     def build_bars(self):
         """Build the menu bar."""
@@ -278,6 +330,66 @@ class MainUI(QtWidgets.QMainWindow):
         set_project.triggered.connect(self.on_set_project)
         exit_action.triggered.connect(self.close)
 
+    def test(self):
+        """Test function."""
+
+        test_file_path = self.tik.dcc.get_scene_file()
+        test = self.tik.project.find_work_by_absolute_path(test_file_path)
+        print(test)
+        print(test.id)
+        print(test.dcc)
+        print(test.creator)
+        print(test.state)
+        print(test.name)
+        # import os
+        # print("test")
+        # project_path = self.tik.project.absolute_path
+        # test_file_path = self.tik.dcc.get_scene_file()
+        # # get relative path from project
+        # print(test_file_path)
+        # test_path = os.path.dirname(test_file_path)
+        # relative_path = os.path.relpath(test_path, project_path)
+        # print(relative_path)
+        # database_path = self.tik.project.get_abs_database_path(relative_path)
+        # print(database_path)
+
+    def on_ingest_version(self):
+        """Iterate a version over the selected work in the ui."""
+
+        # get the selected work. If no work is selected, return
+        selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
+        if not selected_work_item:
+            self.feedback.pop_info(title="No work selected.", text="Please select a work to ingest a version into.", critical=True)
+            return
+        print(selected_work_item.work)
+        dialog = NewVersionDialog(work_object=selected_work_item.work, parent=self, ingest=True)
+        state = dialog.exec_()
+        if state:
+            # self.set_last_selection()
+            self.refresh_versions()
+            self.status_bar.showMessage("New version created successfully.", 5000)
+            # self.resume_last_selection()
+
+    def on_new_version(self):
+        """Create a new version."""
+        scene_file_path = self.tik.dcc.get_scene_file()
+        if not scene_file_path:
+            self.feedback.pop_info(title="Scene file cannot be found.", text="Scene file cannot be found. Please either save your scene by creating a new work or ingest it into an existing one.", critical=True)
+            return
+        _work = self.tik.project.find_work_by_absolute_path(scene_file_path)
+
+        if not _work:
+            self.feedback.pop_info(title="Work object cannot be found.", text="Work cannot be found. Versions can only saved on work objects.\nIf there is no work associated with current scene either create a work or use the ingest method to save it into an existing work", critical=True)
+            return
+
+        dialog = NewVersionDialog(work_object=_work, parent=self)
+        state = dialog.exec_()
+        if state:
+            self.set_last_selection()
+            self.refresh_versions()
+            self.status_bar.showMessage("New version created successfully.", 5000)
+            self.resume_last_selection()
+
     def refresh_project(self):
         """Refresh the project ui."""
         self.project_mcv.refresh()
@@ -310,7 +422,7 @@ class MainUI(QtWidgets.QMainWindow):
     def on_set_project(self):
         """Launch the set project dialog."""
         dialog = SetProjectDialog(self.tik, parent=self)
-        dialog.show()
+        # dialog.show()
         if dialog.exec_():
             self.tik.project = dialog.main_object
             self.status_bar.showMessage("Set project successfully")
@@ -354,5 +466,6 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     main = MainUI()
     main.show()
+    # main.test()
     # main.on_create_new_project()
     sys.exit(app.exec_())

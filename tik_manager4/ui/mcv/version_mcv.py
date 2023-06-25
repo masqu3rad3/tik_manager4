@@ -129,6 +129,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
     def refresh(self):
         """Refresh the version dropdown."""
         if self.base:
+            self.base.reload()
             self.populate_versions(self.base._versions)
         else:
             self.version_combo.clear()

@@ -38,5 +38,10 @@ class Dcc(DccTemplate):
         # take a screenshot and save it as a thumbnail
         return None
 
+    def get_scene_file(self):
+        """Gets the current loaded scene file"""
+        test_path = "C:\\Users\kutlu\\t4_test_manual_DO_NOT_USE\\Assets\\Characters\\Soldier\\bizarro\\Model\\Maya\\bizarro_Model_default_Admin_v001.txt"
+        return self._normalize_file_path(test_path)
+
 
 

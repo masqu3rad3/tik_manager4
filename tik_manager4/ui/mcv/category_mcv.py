@@ -88,6 +88,9 @@ class TikCategoryModel(QtGui.QStandardItemModel):
         date = QtGui.QStandardItem(datetime.fromtimestamp(work.date_modified).strftime('%Y/%m/%d %H:%M:%S'))
         version_count = QtGui.QStandardItem(str(work.version_count))
 
+        # _test = TikWorkItem(work)
+        # _item.appendRow([_test])
+
         self.appendRow([_item, pid, path, creator, dcc, date, version_count])
 
         return _item
@@ -109,6 +112,11 @@ class TikCategoryView(QtWidgets.QTreeView):
 
         # do not show branches
         self.setRootIsDecorated(False)
+        # self.setRootIsDecorated(True)
+
+        # make it expandable
+        self.setExpandsOnDoubleClick(True)
+
 
         self.model = TikCategoryModel()
         self.proxy_model = QtCore.QSortFilterProxyModel()
@@ -243,15 +251,15 @@ class TikCategoryView(QtWidgets.QTreeView):
         else:
             level = 0
         ingest_act = right_click_menu.addAction(self.tr("Ingest Here"))
-        ingest_act.triggered.connect(lambda _, x=item: self.ingest_here(item))
+        ingest_act.triggered.connect(lambda _=None, x=item: self.ingest_here(item))
         open_database_folder_act = right_click_menu.addAction(self.tr("Open Database Folder"))
-        open_database_folder_act.triggered.connect(lambda _, x=item: self.open_database_folder(item))
+        open_database_folder_act.triggered.connect(lambda _=None, x=item: self.open_database_folder(item))
         open_scene_folder_act = right_click_menu.addAction(self.tr("Open Scene Folder"))
-        open_scene_folder_act.triggered.connect(lambda _, x=item: self.open_scene_folder(item))
+        open_scene_folder_act.triggered.connect(lambda _=None, x=item: self.open_scene_folder(item))
         # separator
         right_click_menu.addSeparator()
         delete_item_act = right_click_menu.addAction(self.tr("Delete Task"))
-        delete_item_act.triggered.connect(lambda _, x=item: self.delete_item(item))
+        delete_item_act.triggered.connect(lambda _=None, x=item: self.delete_item(item))
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
     def refresh(self):
@@ -389,6 +397,7 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.category_tab_widget.blockSignals(True)
         self.category_tab_widget.clear()
         for key, category in categories.items():
+            category.scan_works()
             self.pre_tab = QtWidgets.QWidget()
             self.pre_tab.setObjectName(key)
             self.category_tab_widget.addTab(self.pre_tab, key)

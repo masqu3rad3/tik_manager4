@@ -313,13 +313,14 @@ class Subproject(Entity):
         if os.path.exists(abs_path):
             LOG.warning("There is a task under this sub-project with the same name => %s" % name)
             return -1
-
+        _task_id = self.generate_id()
         _task = Task(abs_path, name=name, categories=categories, path=self.path, file_name=file_name,
-                     task_type=task_type, parent_sub=self)
+                     task_type=task_type, parent_sub=self, task_id=_task_id)
         _task.add_property("name", name)
         _task.add_property("creator", self.guard.user)
         _task.add_property("type", task_type)
-        _task.add_property("task_id", _task.generate_id())
+        _task.add_property("task_id", _task_id)
+        _task.add_property("subproject_id", self.id)
         _task.add_property("categories", categories)
         _task.add_property("path", self.path)
         _task.add_property("file_name", file_name)

@@ -84,7 +84,6 @@ class TikTaskModel(QtGui.QStandardItemModel):
     #     return None
     def find_item_by_id_column(self, unique_id):
         """Search entire tree and find the matching item."""
-        # print("ANANINAMI")
         # get EVERY item in this model
         _all_items = self.findItems("*", QtCore.Qt.MatchWildcard | QtCore.Qt.MatchRecursive)
         # print(_all_items)
@@ -265,9 +264,9 @@ class TikTaskView(QtWidgets.QTreeView):
             level = 0
 
         act_edit_task = right_click_menu.addAction(self.tr("Edit Task"))
-        act_edit_task.triggered.connect(lambda _, x=item: self.edit_task(item))
+        act_edit_task.triggered.connect(lambda _=None, x=item: self.edit_task(item))
         act_delete_task = right_click_menu.addAction(self.tr("Delete Task"))
-        act_delete_task.triggered.connect(lambda _, x=item: self.delete_task(item))
+        act_delete_task.triggered.connect(lambda _=None, x=item: self.delete_task(item))
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
     def edit_task(self, item):

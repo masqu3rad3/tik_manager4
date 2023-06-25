@@ -95,6 +95,8 @@ class Category(Entity):
         _work.add_property("dcc", self.guard.dcc)
         _work.add_property("versions", [])
         _work.add_property("work_id", _work.generate_id())
+        _work.add_property("task_name", self.parent_task.name)
+        _work.add_property("task_id", self.parent_task.id)
         _work.add_property("path", relative_path)
         _work.add_property("state", "working")
         _work.new_version(file_format=file_format, notes=notes)

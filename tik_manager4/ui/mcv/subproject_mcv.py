@@ -423,23 +423,23 @@ class TikSubView(QtWidgets.QTreeView):
             level = 0
         right_click_menu = QtWidgets.QMenu(self)
         act_new_sub = right_click_menu.addAction(self.tr("New Sub-Project"))
-        act_new_sub.triggered.connect(lambda _, x=item: self.new_sub_project(item))
+        act_new_sub.triggered.connect(lambda _=None, x=item: self.new_sub_project(item))
         act_edit_sub = right_click_menu.addAction(self.tr("Edit Sub-Project"))
-        act_edit_sub.triggered.connect(lambda _, x=item: self.edit_sub_project(item))
+        act_edit_sub.triggered.connect(lambda _=None, x=item: self.edit_sub_project(item))
         act_delete_sub = right_click_menu.addAction(self.tr("Delete Sub-Project"))
-        act_delete_sub.triggered.connect(lambda _, x=item: self.delete_sub_project(item))
+        act_delete_sub.triggered.connect(lambda _=None, x=item: self.delete_sub_project(item))
 
         right_click_menu.addSeparator()
 
         act_new_task = right_click_menu.addAction(self.tr("New Task"))
-        act_new_task.triggered.connect(lambda _, x=item: self.new_task(item))
+        act_new_task.triggered.connect(lambda _=None, x=item: self.new_task(item))
 
         right_click_menu.addSeparator()
 
         act_open_project_folder = right_click_menu.addAction(self.tr("Open Project Folder In Explorer"))
         act_open_database_folder = right_click_menu.addAction(self.tr("Open Database Folder In Explorer"))
-        act_open_project_folder.triggered.connect(lambda _, x=item: item.subproject.show_project_folder())
-        act_open_database_folder.triggered.connect(lambda _, x=item: item.subproject.show_database_folder())
+        act_open_project_folder.triggered.connect(lambda _=None, x=item: item.subproject.show_project_folder())
+        act_open_database_folder.triggered.connect(lambda _=None, x=item: item.subproject.show_database_folder())
 
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 

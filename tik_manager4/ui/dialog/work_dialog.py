@@ -1,13 +1,19 @@
 """Dialogs for creating work files and versions of them."""
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
-from tik_manager4.ui.widgets.common import TikButtonBox, HeaderLabel
+from tik_manager4.ui.widgets.common import TikButtonBox, HeaderLabel, ResolvedText
 from tik_manager4.ui.dialog.feedback import Feedback
 
 class NewWorkDialog(QtWidgets.QDialog):
-    def __init__(self):
-        super(NewWorkDialog, self).__init__()
-        self.setWindowTitle("New Work File")
+    def __init__(self, category_object, *args, **kwargs):
+        super(NewWorkDialog, self).__init__(*args, **kwargs)
+
+        self.feedback = Feedback(parent=self)
+        category_object = category_object
+
+        self.setWindowTitle("Create New Work File")
+
+
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.create_widgets()
         self.create_layout()
@@ -15,12 +21,17 @@ class NewWorkDialog(QtWidgets.QDialog):
 
 
 class NewVersionDialog(QtWidgets.QDialog):
-    def __init__(self, work_object):
-        super(NewVersionDialog, self).__init__()
+    def __init__(self, work_object, ingest=False, *args, **kwargs):
+        super(NewVersionDialog, self).__init__(*args, **kwargs)
+
+        self.feedback = Feedback(parent=self)
         self.work_object = work_object
-        self.feedback = Feedback()
-        self.setWindowTitle("New Version")
-        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+
+        self.ingest = ingest
+        _title = "New Version" if not self.ingest else "Ingest Version"
+        self.setWindowTitle(_title)
+        # self.setMinimumSize(500, 150)
+        # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
         self.master_layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.master_layout)
@@ -29,17 +40,21 @@ class NewVersionDialog(QtWidgets.QDialog):
         # resize the dialog slightly bigger than actually is
         size_hint = self.sizeHint()
         self.resize(QtCore.QSize(size_hint.width() + 10, 300))
-        # self.resizeWidth(self.widthHint() + 10)
-        # self.resizeHeight(200)
-        # self.resize(self.sizeHint() + QtCore.QSize(10, 0))
 
     def build_ui(self):
+
+        header = HeaderLabel(self.windowTitle())
+        _color = "orange" if not self.ingest else "pink"
+        header.set_color(_color)
+        # header.set_color("rgb(255, 255, 255)")
+        self.master_layout.addWidget(header)
+
         path = self.work_object.path
         _version_number, version_name, _thumbnail_name = self.work_object.construct_names(self.work_object._dcc_handler.formats[0])
 
-        path_label = HeaderLabel(path)
-        path_label.set_color("rgb(0, 120, 200)")
-        self.name_label = HeaderLabel(version_name)
+        path_label = ResolvedText(path)
+        path_label.set_color("gray")
+        self.name_label = ResolvedText(version_name)
         self.name_label.set_color("rgb(0, 150, 200)")
 
         self.master_layout.addWidget(path_label)

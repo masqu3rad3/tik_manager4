@@ -1,7 +1,9 @@
 import os
+from glob import glob
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.subproject import Subproject
+from tik_manager4.objects.work import Work
 # from tik_manager4.objects.commons import Commons
 
 # log = filelog.Filelog(logname=__name__, filename="tik_manager4")
@@ -186,3 +188,20 @@ class Project(Subproject):
             self.log.error("Parent subproject does not exist")
         #     raise Exception("Parent cannot identified")
         return parent
+
+    def find_work_by_absolute_path(self, file_path):
+        """Using the absolute path of the scene file return work object"""
+
+        parent_path = os.path.dirname(file_path)
+        # get the base name without extension
+        base_name = os.path.basename(file_path)
+        relative_path = os.path.relpath(parent_path, self.absolute_path)
+        database_path = self.get_abs_database_path(relative_path)
+        # get all the work files under the database path
+        work_files = glob(os.path.join(database_path, "*.twork"), recursive=False)
+        for work_file in work_files:
+            _work = Work(work_file)
+            for version in _work.versions:
+                if version.get("scene_path") == base_name:
+                    return _work
+

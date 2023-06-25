@@ -1,10 +1,29 @@
-import os
+import os, sys
 from maya import cmds, mel
+import maya.OpenMaya as om
+from tik_manager4.ui.Qt import QtWidgets, QtCompat
+from maya import OpenMayaUI as omui
 
 from tik_manager4.dcc.template import DccTemplate
 
 
 class Dcc(DccTemplate):
+    formats = [".ma", ".mb"]
+
+    @staticmethod
+    def get_main_window():
+        """
+        Gets the memory adress of the main window to connect Qt dialog to it.
+        Returns:
+            (long or int) Memory Adress
+        """
+        win = omui.MQtUtil_mainWindow()
+        if sys.version_info.major == 3:
+            ptr = QtCompat.wrapInstance(int(win), QtWidgets.QMainWindow)
+        else:
+            ptr = QtCompat.wrapInstance(long(win), QtWidgets.QMainWindow)
+        return ptr
+
     def new_scene(self, force=True, fps=None):
         """
         Opens a new scene
@@ -124,3 +143,26 @@ class Dcc(DccTemplate):
     def is_modified():
         """Returns True if the scene has unsaved changes"""
         return cmds.file(query=True, modified=True)
+
+    @staticmethod
+    def get_scene_file():
+        """
+        Returns the path to the current scene.
+        :return: str
+        """
+        # This logic is borrowed from the pymel implementation of sceneName().
+
+        # Get the name for untitled files in Maya.
+        untitled_file_name = mel.eval("untitledFileName()")
+        path = om.MFileIO.currentFile()
+
+        file_name = os.path.basename(path)
+        # Don't just use cmds.file(q=1, sceneName=1)
+        # because it was sometimes returning an empty string,
+        # even when there was a valid file
+        # Check both the OpenMaya.MFileIO.currentFile() and the cmds.file(q=1, sceneName=1)
+        # so as to be sure that no file is open. This should mean that if someone does have
+        # a file open and it's named after the untitledFileName we should still be able to return the path.
+        if file_name.startswith(untitled_file_name) and cmds.file(q=1, sceneName=1) == "":
+            return ""
+        return path

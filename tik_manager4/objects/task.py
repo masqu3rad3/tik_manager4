@@ -17,6 +17,7 @@ class Task(Settings, Entity):
                  file_name=None,
                  task_type=None,
                  parent_sub=None,
+                 task_id=None
                  ):
         # self._task_id = None
         super(Task, self).__init__()
@@ -25,7 +26,9 @@ class Task(Settings, Entity):
         self._creator = self.get_property("creator") or self.guard.user
         self._works = {}
         self._publishes = {}
-        self._task_id = self.get_property("task_id") or self._id
+        # self._task_id = self.get_property("task_id") or self._id
+        self._task_id = self.get_property("task_id") or task_id
+        # self._task_id = self.get_property("task_id") or self.generate_id()
         self._relative_path = self.get_property("path") or path
         self._file_name = self.get_property("file_name") or file_name
         self._type = self.get_property("type") or task_type
@@ -56,6 +59,7 @@ class Task(Settings, Entity):
     @property
     def creator(self):
         return self._creator
+
 
     # @property
     # def reference_id(self):
