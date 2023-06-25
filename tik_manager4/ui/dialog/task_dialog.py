@@ -124,7 +124,9 @@ class EditTask(QtWidgets.QDialog):
 
     def on_edit_task(self):
         """Create task."""
-        self.task_object.build_categories(self.settings_data.get_property("categories"))
+        # self.task_object.build_categories(self.settings_data.get_property("categories"))
+        _name = self.settings_data.get_property("name")
+        self.task_object.edit(name=_name, categories=self.settings_data.get_property("categories"))
         self.accept()
 
 

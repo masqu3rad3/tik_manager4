@@ -238,7 +238,7 @@ class NewSubprojectDialog(EditSubprojectDialog):
                    "type": "subprojectBrowser",
                    "project_object": self.tik_project,
                    "value": self._parent_sub.path,
-                   "tooltip": "Path of the subproject",
+                   "tooltip": "Path of the sub-project",
                }
         }
         return _primary_ui

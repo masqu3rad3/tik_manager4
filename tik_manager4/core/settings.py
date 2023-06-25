@@ -99,6 +99,8 @@ class Settings(object):
             val = val[key]
 
         # Assign a new value to the final key
+        print(val)
+        print(new_val)
         val[sub_keys[-1]] = new_val
 
     def add_property(self, key, val, force=True):

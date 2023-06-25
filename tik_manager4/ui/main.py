@@ -65,12 +65,14 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.main_layout = QtWidgets.QVBoxLayout()
         splitter = QtWidgets.QSplitter(self.central_widget, orientation=QtCore.Qt.Horizontal)
+        splitter.setHandleWidth(5)
+
 
         self.main_layout.addWidget(splitter)
 
         subproject_tree_widget = QtWidgets.QWidget(splitter)
         self.subproject_tree_layout = QtWidgets.QVBoxLayout(subproject_tree_widget)
-        self.subproject_tree_layout.setContentsMargins(0, 0, 0, 0)
+        self.subproject_tree_layout.setContentsMargins(2, 2, 2, 2)
 
         task_tree_widget = QtWidgets.QWidget(splitter)
         self.task_tree_layout = QtWidgets.QVBoxLayout(task_tree_widget)

@@ -30,7 +30,7 @@ class SubprojectBrowser(path_browser.PathBrowser):
         self.dialog.setLayout(layout)
 
         # create a subproject tree layout
-        sub_projects = tik_manager4.ui.mcv.subproject_tree.TikSubProjectLayout(self.project_object,
+        sub_projects = tik_manager4.ui.mcv.subproject_mcv.TikSubProjectLayout(self.project_object,
                                                                                recursive_enabled=False,
                                                                                right_click_enabled=False)
 

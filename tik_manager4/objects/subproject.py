@@ -418,6 +418,14 @@ class Subproject(Entity):
         sub = self.find_sub_by_id(uid)
         return sub.path if sub != -1 else sub
 
+    def find_task_by_id(self, uid):
+        """Get the task by id. Search through only the tasks under this subproject."""
+        self.scan_tasks()
+        for _task_name, task_object in self.tasks.items():
+            if task_object.id == uid:
+                return task_object
+        return -1
+
     @staticmethod
     def is_subproject_empty(sub):
         """Check if the subproject has other subprojects or tasks."""
