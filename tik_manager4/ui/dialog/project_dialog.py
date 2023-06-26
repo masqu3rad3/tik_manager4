@@ -262,7 +262,7 @@ class NewProjectDialog(EditSubprojectDialog):
         # find the structure template in self.structure_dictionary by name
         self.structure_data = self.structure_list[index]
         self.secondary_ui, _ = self.define_other_ui(self.structure_data)
-        self.secondary_content.__init__(self.secondary_ui, self.secondary_data)
+        self.secondary_content.initialize(self.secondary_ui, self.secondary_data)
 
     def build_ui(self):
         """Initialize the UI."""

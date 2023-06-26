@@ -48,11 +48,22 @@ class SettingsLayout(QtWidgets.QFormLayout):
 
     def __init__(self, ui_definition, settings_data=None, *args, **kwargs):
         super(SettingsLayout, self).__init__()
-        self.ui_definition = ui_definition
-        # TODO validate settings data type
-        self.settings_data = settings_data or Settings()
-        self.validate_settings_data()
+        self.ui_definition = None
+        self.settings_data = None
+        self.widgets = None
+        self.initialize(ui_definition, settings_data)
+        # self.ui_definition = ui_definition
+        # # TODO validate settings data type
+        # self.settings_data = settings_data or Settings()
+        # self.validate_settings_data()
+        #
+        # self.widgets = self.populate()
+        # self.signal_connections(self.widgets)
 
+    def initialize(self, ui_definition, data):
+        self.ui_definition = ui_definition
+        self.settings_data = data or Settings()
+        self.validate_settings_data()
         self.widgets = self.populate()
         self.signal_connections(self.widgets)
 
