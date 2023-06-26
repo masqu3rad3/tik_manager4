@@ -8,28 +8,20 @@ import tik_manager4.ui.layouts.settings_layout
 from tik_manager4.ui.widgets.common import TikButtonBox
 
 class NewWorkDialog(QtWidgets.QDialog):
-    def __init__(self, main_object, subproject_id=None, task_id=None, category_index=None, *args, **kwargs):
+    def __init__(self, main_object, subproject=None, task=None, category=None, subproject_id=None, task_id=None, category_index=None, *args, **kwargs):
         super(NewWorkDialog, self).__init__(*args, **kwargs)
 
         self.feedback = Feedback(parent=self)
         self.tik = main_object
 
-        self.subproject = None
-        self.task = None
-        self.category = None
+        self.subproject = subproject
+        self.task = task
+        self.category = category
 
-        self.resolve_objects(subproject_id, task_id, category_index)
-        # subproject_id = subproject_id or self.tik.user.last_subproject
-        # if subproject_id:
-        #     self.subproject = self.tik.project.find_sub_by_id(subproject_id)
-        #     if self.subproject != 1:
-        #         task_id = task_id or self.tik.user.last_task
-        #         if task_id:
-        #             self.task = self.subproject.find_task_by_id(task_id)
-        #             if self.task != -1:
-        #                 category_index = category_index or self.tik.user.last_category
-        #                 if category_index:
-        #                     self.category = self.task.categories[category_index]
+        # if no objects are given, try to resolve them from the given data
+        if not any([subproject, task, category]):
+            self.resolve_objects(subproject_id, task_id, category_index)
+
 
         self.category_index = category_index or self.tik.user.last_category
 
@@ -78,12 +70,9 @@ class NewWorkDialog(QtWidgets.QDialog):
                     _task = self.subproject.find_task_by_id(task_id)
                     if _task != -1:
                         self.task = _task
-                        category_index = category_index or self.tik.user.last_category
-                        print(category_index)
-                        if category_index:
-                            print(self.task.categories)
-                            _category_name = self.task.get_property("categories")[category_index]
-                            self.category = self.task.categories[_category_name]
+                        category_index = category_index or self.tik.user.last_category or 0
+                        _category_name = self.task.get_property("categories")[category_index]
+                        self.category = self.task.categories[_category_name]
 
     def define_primary_ui(self):
         """Define the primary UI elements with settings layout"""
@@ -113,6 +102,19 @@ class NewWorkDialog(QtWidgets.QDialog):
                 "items": categories,
                 "value": category_name,
                 "tooltip": "Category of the work file"
+            },
+            "name": {
+                "display_name": "Name",
+                "type": "validatedString",
+                "value": "",
+                "tooltip": "Name of the work file"
+                },
+            "file_format": {
+                "display_name": "File Format",
+                "type": "combo",
+                "items": self.tik.dcc.formats,
+                "value": self.tik.dcc.formats[0],
+                "tooltip": "File format of the work file"
             }
         }
 
@@ -127,18 +129,19 @@ class NewWorkDialog(QtWidgets.QDialog):
         if tasks:
             self.refresh_tasks(tasks)
 
+
     def refresh_tasks(self, tasks):
         """Refresh the task and below."""
         task_names = list(tasks.keys())
         task_names.sort()
         self.task = tasks[task_names[0]]
         categories = self.task.categories
+
         # block the signals
         self.tasks_combo.blockSignals(True)
         self.tasks_combo.clear()
         self.tasks_combo.addItems(task_names)
         self.tasks_combo.setCurrentIndex(0)
-
         self.tasks_combo.blockSignals(False)
 
         if categories:
@@ -147,8 +150,7 @@ class NewWorkDialog(QtWidgets.QDialog):
     def refresh_categories(self, categories):
         """Refresh the categories."""
 
-        category_names = task.get_property("categories")
-        print(categories)
+        category_names = self.task.get_property("categories")
         self.category = categories[category_names[0]]
         # block the signals
         self.categories_combo.blockSignals(True)
@@ -156,47 +158,6 @@ class NewWorkDialog(QtWidgets.QDialog):
         self.categories_combo.addItems(category_names)
         self.categories_combo.setCurrentIndex(0)
         self.categories_combo.blockSignals(False)
-
-
-    # def populate_tasks(self, subproject):
-    #     """Populate the tasks combo box."""
-    #     self.subproject = subproject
-    #     # block the signals
-    #     self.tasks_combo.blockSignals(True)
-    #     # scan the tasks
-    #     all_tasks = subproject.scan_tasks()
-    #     print(all_tasks)
-    #     self.tasks_combo.clear()
-    #     self.task = None
-    #     if all_tasks:
-    #         # convert the dictionary keys into a sorted list
-    #         task_names = list(all_tasks.keys())
-    #         task_names.sort()
-    #
-    #         self.tasks_combo.addItems(task_names)
-    #         self.tasks_combo.setCurrentIndex(0)
-    #
-    #         self.task = all_tasks[task_names[0]]
-    #         self.populate_categories(self.task)
-    #
-    #     self.tasks_combo.blockSignals(False)
-    #
-    # def populate_categories(self, task):
-    #     """Populate the categories combo box."""
-    #     self.categories_combo.blockSignals(True)
-    #     category_names = task.get_property("categories")
-    #     self.categories_combo.clear()
-    #     self.category = None
-    #     if category_names:
-    #         # convert the dictionary keys into a sorted list
-    #
-    #         self.categories_combo.addItems(category_names)
-    #         self.categories_combo.setCurrentIndex(0)
-    #         self.categories_combo.blockSignals(False)
-    #         self.category = task.categories[category_names[0]]
-    #
-    #     self.categories_combo.blockSignals(False)
-
 
     def set_task(self, task_name):
         """Set the task from the index."""
@@ -207,12 +168,22 @@ class NewWorkDialog(QtWidgets.QDialog):
         """Set the category from the index."""
         self.category = self.task.categories[category_name]
 
+    def on_create_work(self):
+        """Create the work file."""
+        name = self.primary_data.get_property("name")
+        file_format = self.primary_data.get_property("file_format")
+        notes = self.notes_te.toPlainText()
+        # print(name, file_format, notes)
+        self.category.create_work(name, file_format=file_format, notes=notes)
+        self.accept()
 
     def build_ui(self):
         """Build the UI elements"""
 
         self.primary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.primary_definition, self.primary_data, parent=self)
         self.left_layout.addLayout(self.primary_content)
+
+        _name_line_edit = self.primary_content.find("name")
 
         _browse_subproject_widget = self.primary_content.find("subproject")
         _browse_subproject_widget.sub.connect(self.refresh_subproject)
@@ -224,47 +195,22 @@ class NewWorkDialog(QtWidgets.QDialog):
         self.categories_combo = self.primary_content.find("category")
         self.categories_combo.currentTextChanged.connect(self.set_category)
 
-        # # create a form layout for the left side
-        # form_layout = QtWidgets.QFormLayout()
-        # form_layout.setContentsMargins(0, 0, 0, 0)
-        # self.left_layout.addLayout(form_layout)
-        #
-        # path_lbl = QtWidgets.QLabel(text="Sub-project:")
-        # path_le = QtWidgets.QLineEdit()
-        # path_le.setReadOnly(True)
-        # form_layout.addRow(path_lbl, path_le)
-        #
-        # task_lbl = QtWidgets.QLabel(text="Task:")
-        # task_le = QtWidgets.QLineEdit()
-        # task_le.setReadOnly(True)
-        # form_layout.addRow(task_lbl, task_le)
-        #
-        # category_lbl = QtWidgets.QLabel(text="Category:")
-        # category_le = QtWidgets.QLineEdit()
-        # category_le.setReadOnly(True)
-        # form_layout.addRow(category_lbl, category_le)
-        #
-        # name_lbl = QtWidgets.QLabel(text="Name:")
-        # name_le = QtWidgets.QLineEdit()
-        # # placeholder text
-        # name_le.setPlaceholderText("Enter name Must be unique within the category")
-        # form_layout.addRow(name_lbl, name_le)
-        #
-        # format_lbl = QtWidgets.QLabel(text="Format:")
-        # format_le = QtWidgets.QComboBox()
-
-
         # create a notes widget for the right side
         notes_lbl = QtWidgets.QLabel(text="Notes:")
-        notes_te = QtWidgets.QPlainTextEdit()
+        self.notes_te = QtWidgets.QPlainTextEdit()
         self.right_layout.addWidget(notes_lbl)
-        self.right_layout.addWidget(notes_te)
+        self.right_layout.addWidget(self.notes_te)
 
         # create a the TikButtonBox
         button_box = TikButtonBox(parent=self)
-        button_box.addButton("Create Work", QtWidgets.QDialogButtonBox.AcceptRole)
-        button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
+        create_work_btn = button_box.addButton("Create Work", QtWidgets.QDialogButtonBox.AcceptRole)
+        cancel_btn = button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
         self.master_layout.addWidget(button_box)
+
+        _name_line_edit.add_connected_widget(create_work_btn)
+
+        button_box.accepted.connect(self.on_create_work)
+        button_box.rejected.connect(self.reject)
 
 
 

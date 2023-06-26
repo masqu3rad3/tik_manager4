@@ -125,9 +125,13 @@ class MainUI(QtWidgets.QMainWindow):
         self.build_bars()
         self.build_buttons()
 
+
+
         self.resume_last_selection()
 
         self.status_bar.showMessage("Status | Ready")
+
+
 
     def resume_last_selection(self):
         """Resume the last selection from the user settings."""
@@ -154,6 +158,12 @@ class MainUI(QtWidgets.QMainWindow):
                                 version_id = self.tik.user.last_version
                                 if version_id:
                                     self.versions_mcv.set_version(version_id)
+        else:
+            # if there is no subproject, then select the first one
+            self.subprojects_mcv.sub_view.select_first_item()
+
+        self.subprojects_mcv.sub_view.set_expanded_state(self.tik.user.expanded_subprojects)
+
 
     def initialize_mcv(self):
         self.project_mcv = TikProjectLayout(self.tik.project)
@@ -184,6 +194,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.tasks_mcv.task_view.item_selected.connect(self.categories_mcv.set_task)
         self.categories_mcv.work_tree_view.item_selected.connect(self.versions_mcv.set_base)
         self.categories_mcv.mode_changed.connect(self.set_buttons_visibility)
+
 
     def set_last_selection(self):
         """Set the last selections for the user"""
@@ -217,6 +228,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.tik.user.last_version = None
 
         self.set_last_selection()
+
+        # set the expanded state of the subproject tree
+        self.tik.user.expanded_subprojects = self.subprojects_mcv.sub_view.get_expanded_state()
         # self.tik.user.last_project = self.tik.project.name
         # # get the currently selected subproject
         # _subproject_item = self.subprojects_mcv.sub_view.get_selected_item()
@@ -282,6 +296,7 @@ class MainUI(QtWidgets.QMainWindow):
         load_btn.clicked.connect(self.test)
         save_version_btn.clicked.connect(self.on_new_version)
         ingest_version_btn.clicked.connect(self.on_ingest_version)
+        save_new_work_btn.clicked.connect(self.on_new_work)
 
     def build_bars(self):
         """Build the menu bar."""
@@ -334,15 +349,9 @@ class MainUI(QtWidgets.QMainWindow):
 
     def test(self):
         """Test function."""
+        print("testing")
+        self.subprojects_mcv.sub_view.select_first_item()
 
-        test_file_path = self.tik.dcc.get_scene_file()
-        test = self.tik.project.find_work_by_absolute_path(test_file_path)
-        print(test)
-        print(test.id)
-        print(test.dcc)
-        print(test.creator)
-        print(test.state)
-        print(test.name)
         # import os
         # print("test")
         # project_path = self.tik.project.absolute_path
@@ -357,13 +366,13 @@ class MainUI(QtWidgets.QMainWindow):
 
     def on_ingest_version(self):
         """Iterate a version over the selected work in the ui."""
-
+        if not self._pre_check(level=1):
+            return
         # get the selected work. If no work is selected, return
         selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
         if not selected_work_item:
             self.feedback.pop_info(title="No work selected.", text="Please select a work to ingest a version into.", critical=True)
             return
-        print(selected_work_item.work)
         dialog = NewVersionDialog(work_object=selected_work_item.work, parent=self, ingest=True)
         state = dialog.exec_()
         if state:
@@ -372,8 +381,44 @@ class MainUI(QtWidgets.QMainWindow):
             self.status_bar.showMessage("New version created successfully.", 5000)
             # self.resume_last_selection()
 
+    def on_new_work(self):
+        """Create a new work."""
+        if not self._pre_check(level=1):
+            return
+
+        # first try to get the active category, and reach the task and subproject
+        category = self.categories_mcv.get_active_category()
+        if category:
+            task = category.parent_task
+            subproject = task.parent_sub
+        else:
+            task = None
+            subproject = self.subprojects_mcv.get_active_subproject()
+            existing_tasks = subproject.scan_tasks()
+            if not existing_tasks:
+                self.feedback.pop_info(title="No tasks found.", text="Selected Sub-object does not have any tasks under it.\nPlease create a task before creating a work.", critical=True)
+                return
+        print(category, task, subproject)
+        # print(category.name, task.path, subproject.path)
+        # print(selected_category_object, selected_task_item, selected_subproject_item)
+
+        # if selected_subproject_item:
+        #     subproject = selected_subproject_item.subproject
+        #     if selected_task_item:
+        #         task = selected_task_item.task
+
+        dialog = NewWorkDialog(self.tik, parent=self, subproject=subproject, task=task, category=category)
+        state = dialog.exec_()
+        if state:
+            self.set_last_selection()
+            self.refresh_versions()
+            self.status_bar.showMessage("New work created successfully.", 5000)
+            self.resume_last_selection()
+
     def on_new_version(self):
         """Create a new version."""
+        if not self._pre_check(level=1):
+            return
         scene_file_path = self.tik.dcc.get_scene_file()
         if not scene_file_path:
             self.feedback.pop_info(title="Scene file cannot be found.", text="Scene file cannot be found. Please either save your scene by creating a new work or ingest it into an existing one.", critical=True)
@@ -388,7 +433,7 @@ class MainUI(QtWidgets.QMainWindow):
         state = dialog.exec_()
         if state:
             self.set_last_selection()
-            self.refresh_versions()
+            self.refresh_tasks()
             self.status_bar.showMessage("New version created successfully.", 5000)
             self.resume_last_selection()
 
@@ -396,6 +441,7 @@ class MainUI(QtWidgets.QMainWindow):
         """Refresh the project ui."""
         self.project_mcv.refresh()
         self.refresh_subprojects()
+        # self.subprojects_mcv.sub_view.select_first_item()
 
     def refresh_subprojects(self):
         """Refresh the subprojects' ui."""
@@ -429,6 +475,9 @@ class MainUI(QtWidgets.QMainWindow):
             self.tik.project = dialog.main_object
             self.status_bar.showMessage("Set project successfully")
         self.refresh_project()
+
+
+
 
     def on_create_new_project(self):
         """Create a new project."""

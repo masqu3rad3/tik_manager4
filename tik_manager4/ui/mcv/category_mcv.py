@@ -364,6 +364,13 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self._last_category = None
         self.mode = 0  # 0 = work, 1 = publish
 
+    def get_active_category(self):
+        """Get the active category object and return it."""
+        if self.task and self.category_tab_widget.currentWidget():
+            print("PASSED")
+            return self.task.categories[self.category_tab_widget.currentWidget().objectName()]
+        return None
+
     def get_category_index(self):
         """Get the index of the category."""
         if self._last_category:

@@ -89,9 +89,13 @@ class TikSubModel(QtGui.QStandardItemModel):
         # first element is the dictionary point and second is the subproject object
         parent_row = self
         self.root_item = TikSubItem(self.project)
-        # parent_row.appendRow(self.root_item)
-        queue.append([all_data, self.project, parent_row])
-        # queue.append([all_data, self.project, self.root_item])
+        # make the self.root_item invisible
+        self.root_item.setForeground(QtGui.QColor(0, 0, 0, 0))
+        self.root_item.setText("root")
+        parent_row.appendRow(self.root_item)
+        # queue.append([all_data, self.project, parent_row])
+        queue.append([all_data, self.project, self.root_item])
+
 
         while queue:
             current = queue.pop(0)
@@ -198,10 +202,23 @@ class TikSubView(QtWidgets.QTreeView):
         self.header().setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.header().customContextMenuRequested.connect(self.header_right_click_menu)
 
-        self.expandAll()
+        # self.expandAll()
         self.setItemsExpandable(True)
         self._recursive_task_scan = False
 
+        # show the root
+        self.setRootIsDecorated(False)
+
+        # self.clearSelection()
+        # # self.deselected.emit(True)
+        # self.get_tasks(QtCore.QModelIndex())
+
+        # hide the first row
+
+    def select_first_item(self):
+        """Select the first item in the tree"""
+        index = self.proxy_model.mapFromSource(self.model.index(0, 0))
+        self.setCurrentIndex(index)
 
     def find_items_in_tree(self, root_item, text):
         matched_items = []
@@ -244,14 +261,14 @@ class TikSubView(QtWidgets.QTreeView):
     #     self.setCurrentIndex(index)
 
 
-    def mousePressEvent(self, event):
-        super(TikSubView, self).mousePressEvent(event)
-        index = self.indexAt(event.pos())  # returns  -1 if click is outside
-        if index.row() == -1:
-            self.clearSelection()
-            # self.deselected.emit(True)
-            self.get_tasks(QtCore.QModelIndex())
-        # QtWidgets.QTreeView.mousePressEvent(self, event)
+    # def mousePressEvent(self, event):
+    #     super(TikSubView, self).mousePressEvent(event)
+    #     index = self.indexAt(event.pos())  # returns  -1 if click is outside
+    #     if index.row() == -1:
+    #         self.clearSelection()
+    #         # self.deselected.emit(True)
+    #         self.get_tasks(QtCore.QModelIndex())
+    #     # QtWidgets.QTreeView.mousePressEvent(self, event)
 
     def currentChanged(self, *args, **kwargs):
         super(TikSubView, self).currentChanged(*args, **kwargs)
@@ -296,14 +313,27 @@ class TikSubView(QtWidgets.QTreeView):
             child_index = self.model.index(row, 0, index)
             self._restore_expanded_state(child_index, expanded_state)
 
+    def get_expanded_state(self):
+        """Returns the subproject ids of the expanded items"""
+        expanded_state = []
+        self._save_expanded_state(QtCore.QModelIndex(), expanded_state)
+        return expanded_state
+
+    def set_expanded_state(self, expanded_state):
+        """Sets the expanded state of the items by matching the subproject ids"""
+        self._restore_expanded_state(QtCore.QModelIndex(), expanded_state)
+
     def refresh(self):
         """Re-populates the model keeping the expanded state"""
         # store the expanded items
-        expanded_state = []
-        self._save_expanded_state(QtCore.QModelIndex(), expanded_state)
+        expanded_state = self.get_expanded_state()
         self.model.populate()
         # restore the expanded state
-        self._restore_expanded_state(QtCore.QModelIndex(), expanded_state)
+        # self._restore_expanded_state(QtCore.QModelIndex(), expanded_state)
+        self.set_expanded_state(expanded_state)
+        self.clearSelection()
+        self.select_first_item()
+        self.get_tasks(QtCore.QModelIndex())
 
     def expandAll(self):
         super(TikSubView, self).expandAll()
@@ -468,7 +498,8 @@ class TikSubView(QtWidgets.QTreeView):
                 _item = self.model.itemFromIndex(first_column_index)
                 # The reason we are doing this is that we may change the parent of the item on new subproject UI
             else:
-                _item = self.model
+                print("hede")
+                _item = self.model.root_item
             self.model.append_sub(_new_sub, _item)
             # self.model.append_sub(_new_sub, self.model)
         # else:
@@ -601,3 +632,9 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
         # self.filter_le.clear()
         # self.filter_le.setFocus()
 
+    def get_active_subproject(self):
+        """Get the selected item and return the subproject object"""
+        selected_item = self.sub_view.get_selected_item()
+        if selected_item:
+            return selected_item.subproject
+        return None

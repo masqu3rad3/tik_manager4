@@ -99,8 +99,6 @@ class Settings(object):
             val = val[key]
 
         # Assign a new value to the final key
-        print(val)
-        print(new_val)
         val[sub_keys[-1]] = new_val
 
     def add_property(self, key, val, force=True):
@@ -114,9 +112,9 @@ class Settings(object):
         """Deletes the given property key"""
         self._currentValue.pop(key)
 
-    def get_property(self, key):
+    def get_property(self, key, default=None):
         """Returns the value of the property key"""
-        return self._currentValue.get(key, None)
+        return self._currentValue.get(key, default)
 
     # def get_sub_property(self, key, sub_key):
     #     """Return the value of the sub property key."""

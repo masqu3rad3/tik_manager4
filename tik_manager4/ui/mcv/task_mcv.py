@@ -346,3 +346,10 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
 
     def refresh(self):
         self.task_view.refresh()
+
+    def get_active_task(self):
+        """Get the selected item and return the task object."""
+        selected_item = self.task_view.get_selected_item()
+        if selected_item:
+            return selected_item.task
+        return None

@@ -104,6 +104,16 @@ class User(object):
         """Sets the last version"""
         self.resume.edit_property("version", value)
 
+    @property
+    def expanded_subprojects(self):
+        """Return the expanded states of subprojects."""
+        return self.resume.get_property("expanded_subprojects", [])
+
+    @expanded_subprojects.setter
+    def expanded_subprojects(self, value):
+        """Sets the expanded states of subprojects."""
+        self.resume.edit_property("expanded_subprojects", value)
+
     @classmethod
     def __set_authentication_status(cls, state):
         # cls._authenticated = state
