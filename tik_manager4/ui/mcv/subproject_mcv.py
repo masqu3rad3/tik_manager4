@@ -498,7 +498,6 @@ class TikSubView(QtWidgets.QTreeView):
                 _item = self.model.itemFromIndex(first_column_index)
                 # The reason we are doing this is that we may change the parent of the item on new subproject UI
             else:
-                print("hede")
                 _item = self.model.root_item
             self.model.append_sub(_new_sub, _item)
             # self.model.append_sub(_new_sub, self.model)
@@ -616,7 +615,7 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
         self.filter_le = QtWidgets.QLineEdit()
         self.addWidget(self.filter_le)
         self.filter_le.textChanged.connect(self.sub_view.filter)
-        self.filter_le.setPlaceholderText("🔍")
+        self.filter_le.setPlaceholderText("Filter")
         self.filter_le.setClearButtonEnabled(True)
         self.filter_le.setFocus()
 

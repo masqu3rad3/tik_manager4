@@ -1,3 +1,4 @@
+import sys
 import hashlib
 import os
 from tik_manager4.core import filelog
@@ -144,7 +145,6 @@ class User(object):
     def _validate_user_data(self):
         """Finds or creates user directories and files"""
 
-        # _user_root = os.path.expanduser('~')
         _user_root = utils.get_home_dir()
         self.user_directory = os.path.normpath(os.path.join(_user_root, "TikManager4"))
         if not os.path.isdir(os.path.normpath(self.user_directory)):
@@ -183,7 +183,6 @@ class User(object):
                 self.resume.add_property(key=key, val=val)
 
         # set the active user
-        # active_user = self.bookmarks.get_property("activeUser")
         active_user = self.resume.get_property("user")
         state, msg = self.set(active_user, save_to_db=False)
         if state == -1:

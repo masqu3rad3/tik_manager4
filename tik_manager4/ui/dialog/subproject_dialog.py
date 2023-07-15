@@ -4,12 +4,11 @@ from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.common import TikButtonBox
 
-
-# from tik_manager4.ui.layouts.settings_layout import SettingsLayout
 import tik_manager4.ui.layouts.settings_layout
 from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
 
 from tik_manager4.objects import guard
+
 
 class EditSubprojectDialog(QtWidgets.QDialog):
     def __init__(self, project_object, parent_sub=None, parent=None, *args, **kwargs):

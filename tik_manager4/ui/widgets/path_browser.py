@@ -13,7 +13,7 @@ class PathBrowser(QtWidgets.QWidget):
         self.disables = disables or []
         self.setObjectName(object_name or name)
         self.layout = QtWidgets.QHBoxLayout(self)
-        self.widget = ValidatedString(name, object_name,
+        self.widget = ValidatedString(name, object_name=object_name,
                                       value=self.value,
                                       allow_spaces=False,
                                       allow_directory=True,

@@ -1,5 +1,6 @@
 """Main UI for Tik Manager 4."""
-
+import six
+import logging
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 
 from tik_manager4.ui.mcv.user_mcv import TikUserLayout
@@ -17,6 +18,22 @@ from tik_manager4.ui import pick
 import tik_manager4._version as version
 import tik_manager4
 
+LOG = logging.getLogger(__name__)
+WINDOW_NAME = "Tik Manager {}".format(version.__version__)
+def launch(force=False, dcc="Standalone"):
+    for entry in QtWidgets.QApplication.allWidgets():
+        try:
+            if entry.objectName() == WINDOW_NAME:
+                if force:
+                    entry.close()
+                    entry.deleteLater()
+                else:
+                    LOG.warning("Only one session of Tik Manager can be launched per DCC.")
+                    return
+        except (AttributeError, TypeError):
+            pass
+    m = MainUI(dcc=dcc)
+    m.show()
 
 class MainUI(QtWidgets.QMainWindow):
     def __init__(self, dcc="Standalone"):
@@ -35,7 +52,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         # set style
         _style_file = pick.style_file()
-        self.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
+        # self.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
+        # self.setStyleSheet(str(_style_file.readAll()))
+
+        self.setStyleSheet(six.text_type(_style_file.readAll(), 'utf-8'))
+
 
         # define layouts
         self.master_layout = QtWidgets.QVBoxLayout(self.central_widget)
@@ -515,6 +536,7 @@ class MainUI(QtWidgets.QMainWindow):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
+    # launch()
     main = MainUI()
     main.show()
     # main.test()
