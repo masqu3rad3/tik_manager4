@@ -7,17 +7,25 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore
 class PathBrowser(QtWidgets.QWidget):
     """Customize QLineEdit widget purposed for browsing paths."""
 
+
     def __init__(self, name, object_name=None, value=None, disables=None, **kwargs):
         super(PathBrowser, self).__init__()
         self.value = value or ""
         self.disables = disables or []
         self.setObjectName(object_name or name)
         self.layout = QtWidgets.QHBoxLayout(self)
-        self.widget = ValidatedString(name, object_name=object_name,
+        self.widget = ValidatedString(name, object_name,
                                       value=self.value,
                                       allow_spaces=False,
                                       allow_directory=True,
                                       allow_empty=True)
+        # self.widget = ValidatedString(name, object_name=object_name,
+        #                       value=self.value,
+        #                       allow_spaces=False,
+        #                       allow_directory=True,
+        #                       allow_empty=True)
+
+
         self.com = self.widget.com
         self.layout.addWidget(self.widget)
         self.layout.setContentsMargins(0, 0, 0, 0)

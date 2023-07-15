@@ -4,18 +4,26 @@ from tik_manager4.ui.widgets.value_widgets import String
 
 class ValidatedString(String):
     def __init__(self,
-                 name,
-                 object_name=None,
+                 *args,
                  connected_widgets=None,
                  allow_spaces=False,
                  allow_directory=False,
                  allow_empty=False,
                  allow_special_characters=False,
-                 *args,
                  **kwargs):
+    # def __init__(self,
+    #              name,
+    #              object_name=None,
+    #              connected_widgets=None,
+    #              allow_spaces=False,
+    #              allow_directory=False,
+    #              allow_empty=False,
+    #              allow_special_characters=False,
+    #              *args,
+    #              **kwargs):
         """Custom QLineEdit widget to validate entered values"""
-        super(ValidatedString, self).__init__(name, *args, **kwargs)
-        # super(ValidatedString, self).__init__(**kwargs)
+        # super(ValidatedString, self).__init__(name, *args, **kwargs)
+        super(ValidatedString, self).__init__(*args, **kwargs)
         self.allow_spaces = allow_spaces
         self.allow_directory = allow_directory
         self.allow_empty = allow_empty

@@ -97,6 +97,10 @@ class Work(Settings, Entity):
     def new_version(self, file_format=None, notes=""):
         """Create a new version of the work."""
 
+        state = self.check_permissions(level=1)
+        if state != 1:
+            return -1
+
         # validate file format
         file_format = file_format or self._dcc_handler.formats[0]
         if file_format not in self._dcc_handler.formats:

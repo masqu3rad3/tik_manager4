@@ -5,7 +5,7 @@ from datetime import datetime
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
-
+from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog
 
 class TikWorkItem(QtGui.QStandardItem):
     state_color_dict = {
@@ -103,10 +103,11 @@ class TikCategoryModel(QtGui.QStandardItemModel):
 
 class TikCategoryView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
+    version_created = QtCore.Signal()
 
     def __init__(self, parent=None):
         super(TikCategoryView, self).__init__(parent)
-        self._feedback = Feedback(parent=self)
+        self.feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
@@ -262,27 +263,36 @@ class TikCategoryView(QtWidgets.QTreeView):
         delete_item_act.triggered.connect(lambda _=None, x=item: self.delete_item(item))
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
+    # def _pre_check(self, level):
+    #     """Check for permissions before drawing the dialog."""
+    #     # new projects can be created by users with level 3
+    #     if self.tik.project.check_permissions(level=level) == -1:
+    #         msg, _type = self.tik.log.get_last_message()
+    #         self.feedback.pop_info(title="Permissions", text=msg)
+    #         return False
+    #     return True
+
     def refresh(self):
         """Re-populates the model keeping the expanded state"""
         self.model.populate()
 
     def ingest_here(self, item):
         """Ingests the given item"""
-        print("Method not implemented")
-        print(item)
-        # TODO
+
+        dialog = NewVersionDialog(work_object=item.work, parent=self, ingest=True)
+        state = dialog.exec_()
+        if state:
+            # emit a version_created signal to update the main window
+            self.version_created.emit()
+
 
     def open_database_folder(self, item):
         """Opens the database folder for the given item"""
-        print("Method not implemented")
-        print(item)
-        # TODO
+        item.work.show_database_folder()
 
     def open_scene_folder(self, item):
         """Opens the scene folder for the given item"""
-        print("Method not implemented")
-        print(item)
-        # TODO
+        item.work.show_project_folder()
 
     def delete_item(self, item):
         """Deletes the given item"""

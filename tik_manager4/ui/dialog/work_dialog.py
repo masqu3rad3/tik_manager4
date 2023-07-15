@@ -299,7 +299,7 @@ class NewVersionDialog(QtWidgets.QDialog):
 
     def on_create_version(self):
         _version = self.work_object.new_version(self.format_combo.currentText(), self.notes_text.toPlainText())
-        if _version:
+        if _version != -1:
             self.accept()
         else:
             self.feedback.pop_info(title="Error", text="Could not create version. Check the script editor for details.", critical=True)

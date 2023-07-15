@@ -35,23 +35,23 @@ class TikProjectLayout(QtWidgets.QHBoxLayout):
         self.recent_projects_btn.setMaximumWidth(30)
         self.addWidget(self.recent_projects_btn)
 
-        # SIGNALS
-        self.set_project_btn.clicked.connect(self.on_set_project)
-        self.recent_projects_btn.clicked.connect(self.on_recent_projects)
+        # # SIGNALS
+        # self.set_project_btn.clicked.connect(self.on_set_project)
+        # self.recent_projects_btn.clicked.connect(self.on_recent_projects)
 
     def refresh(self):
         """Refresh the project path"""
         self._project_path_le.setText(self.project_obj.absolute_path)
 
-
-    def on_set_project(self, project):
-        """Set the project to display"""
-        # TODO pop-up set project dialog
-        pass
-        # self._project_path_le.setText(project.name)
-        # self._project_path.setText(project.path)
-
-    def on_recent_projects(self):
-        """Display recent projects"""
-        # TODO pop-up recent projects floating dialog
-        pass
+    #
+    # def on_set_project(self, project):
+    #     """Set the project to display"""
+    #     # TODO pop-up set project dialog
+    #     pass
+    #     # self._project_path_le.setText(project.name)
+    #     # self._project_path.setText(project.path)
+    #
+    # def on_recent_projects(self):
+    #     """Display recent projects"""
+    #     # TODO pop-up recent projects floating dialog
+    #     pass

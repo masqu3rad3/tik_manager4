@@ -215,7 +215,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.tasks_mcv.task_view.item_selected.connect(self.categories_mcv.set_task)
         self.categories_mcv.work_tree_view.item_selected.connect(self.versions_mcv.set_base)
         self.categories_mcv.mode_changed.connect(self.set_buttons_visibility)
-
+        self.categories_mcv.work_tree_view.version_created.connect(self._ingest_success)
 
     def set_last_selection(self):
         """Set the last selections for the user"""
@@ -385,6 +385,11 @@ class MainUI(QtWidgets.QMainWindow):
         # database_path = self.tik.project.get_abs_database_path(relative_path)
         # print(database_path)
 
+    def _ingest_success(self):
+        """Callback function for the ingest success event."""
+        self.refresh_versions()
+        self.status_bar.showMessage("New version ingested successfully.", 5000)
+
     def on_ingest_version(self):
         """Iterate a version over the selected work in the ui."""
         if not self._pre_check(level=1):
@@ -397,10 +402,8 @@ class MainUI(QtWidgets.QMainWindow):
         dialog = NewVersionDialog(work_object=selected_work_item.work, parent=self, ingest=True)
         state = dialog.exec_()
         if state:
-            # self.set_last_selection()
-            self.refresh_versions()
-            self.status_bar.showMessage("New version created successfully.", 5000)
-            # self.resume_last_selection()
+            self._ingest_success()
+
 
     def on_new_work(self):
         """Create a new work."""
@@ -496,9 +499,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.tik.project = dialog.main_object
             self.status_bar.showMessage("Set project successfully")
         self.refresh_project()
-
-
-
 
     def on_create_new_project(self):
         """Create a new project."""
