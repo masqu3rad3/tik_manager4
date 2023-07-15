@@ -65,13 +65,14 @@ class SetProjectDialog(QtWidgets.QDialog):
         directory_filter.setPlaceholderText("Filter")
         folders_tree_layout.addWidget(directory_filter)
 
-        source_model = QtWidgets.QFileSystemModel()
-        source_model.setNameFilterDisables(False)
-        source_model.setNameFilters(["*"])
-        source_model.setRootPath(self.main_object.project.root)
-        source_model.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
-        self.folders_tree.setModel(source_model)
-        self.folders_tree.setRootIndex(source_model.index(self.main_object.project.root))
+        self.source_model = QtWidgets.QFileSystemModel()
+        self.source_model.setNameFilterDisables(False)
+        self.source_model.setNameFilters(["*"])
+        self.source_model.setRootPath(self.main_object.project.root)
+        self.source_model.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
+        self.folders_tree.setModel(self.source_model)
+        self.set_tree_root(self.main_object.project.root)
+        # self.folders_tree.setRootIndex(self.source_model.index(self.main_object.project.root))
         self.folders_tree.setColumnWidth(0, 400)
         self.folders_tree.setColumnWidth(1, 0)
         self.folders_tree.setColumnWidth(2, 0)
@@ -102,6 +103,14 @@ class SetProjectDialog(QtWidgets.QDialog):
         selection_model.selectionChanged.connect(self.activate_folders)
         self.bookmarks_droplist.list.currentRowChanged.connect(self.activate_bookmarks)
         recent_pb.clicked.connect(self.recents_pop_menu)
+        # browser_wgt.com.valueChanged.connect(source_model.setRootPath)
+        browser_wgt.com.valueChanged.connect(self.set_tree_root)
+
+    def set_tree_root(self, root_path):
+        """Set the root of the tree to the given path."""
+        # set the root of the model to e
+        self.folders_tree.setRootIndex(self.source_model.index(root_path))
+
 
     def recents_pop_menu(self):
         """Pop menu for recent projects."""
@@ -121,6 +130,7 @@ class SetProjectDialog(QtWidgets.QDialog):
 
     def activate_folders(self):
         """Get the active project from folders tree and clear the bookmarks area selection."""
+        print("activate_folders")
         index = self.folders_tree.currentIndex()
         self.active_project = os.path.normpath(self.folders_tree.model().filePath(index))
         self.bookmarks_droplist.list.clearSelection()

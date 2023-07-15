@@ -327,7 +327,6 @@ class TikSubView(QtWidgets.QTreeView):
         """Re-populates the model keeping the expanded state"""
         # store the expanded items
         expanded_state = self.get_expanded_state()
-        print("HEERERERERE")
         self.model.populate()
         # restore the expanded state
         # self._restore_expanded_state(QtCore.QModelIndex(), expanded_state)

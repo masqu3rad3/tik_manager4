@@ -7,7 +7,6 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore
 class PathBrowser(QtWidgets.QWidget):
     """Customize QLineEdit widget purposed for browsing paths."""
 
-
     def __init__(self, name, object_name=None, value=None, disables=None, **kwargs):
         super(PathBrowser, self).__init__()
         self.value = value or ""
