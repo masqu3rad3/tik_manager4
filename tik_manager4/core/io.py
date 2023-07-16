@@ -4,6 +4,7 @@
 """
 import os
 import json
+from json.decoder import JSONDecodeError
 from tik_manager4.core import filelog
 from tik_manager4.external import filelock as fl
 # from tik_manager4.external.filelock import FileLock, Timeout
@@ -60,9 +61,9 @@ class IO(dict):
                 with open(file_path, 'r') as f:
                     data = json.load(f)
                     return data
-            except ValueError:
+            except (ValueError, JSONDecodeError):
                 log.error("Corrupted file => %s" % file_path)
-                raise
+                raise Exception("Corrupted file => %s" % file_path)
         else:
             msg = "File does not exist => %s" % file_path
             log.error(msg)

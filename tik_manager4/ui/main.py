@@ -218,6 +218,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.item_selected.connect(self.versions_mcv.set_base)
         self.categories_mcv.mode_changed.connect(self.set_buttons_visibility)
         self.categories_mcv.work_tree_view.version_created.connect(self._ingest_success)
+        self.categories_mcv.work_tree_view.doubleClicked.connect(self.load_work)
+        self.categories_mcv.work_tree_view.load_event.connect(self.load_work)
+        self.categories_mcv.work_tree_view.import_event.connect(self.load_work)
+
+
+    def on_double_click(self, event):
+        """Double click event for the work tree view"""
+        print(event)
 
     def set_last_selection(self):
         """Set the last selections for the user"""
@@ -254,27 +262,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         # set the expanded state of the subproject tree
         self.tik.user.expanded_subprojects = self.subprojects_mcv.sub_view.get_expanded_state()
-        # self.tik.user.last_project = self.tik.project.name
-        # # get the currently selected subproject
-        # _subproject_item = self.subprojects_mcv.sub_view.get_selected_item()
-        # if _subproject_item:
-        #     self.tik.user.last_subproject = _subproject_item.subproject.id
-        #     _task_item = self.tasks_mcv.task_view.get_selected_item()
-        #     if _task_item:
-        #         # self.tik.user.last_task = _task_item.task.reference_id
-        #         self.tik.user.last_task = _task_item.task.id
-        #         # TODO: Should we consider getting the category name instead of the index?
-        #         # If someone changes the category order, the index will be wrong
-        #         # Do we care?
-        #         _category_index = self.categories_mcv.get_category_index()
-        #         # we can always safely write the category index
-        #         self.tik.user.last_category = _category_index
-        #         _work_item = self.categories_mcv.work_tree_view.get_selected_item()
-        #         if _work_item:
-        #             self.tik.user.last_work = _work_item.work.id
-        #             _version_nmb = self.versions_mcv.get_selected_version()
-        #             # we can always safely write the version number
-        #             self.tik.user.last_version = _version_nmb
 
         self.tik.user.resume.apply_settings()
         event.accept()
@@ -316,7 +303,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.publish_buttons_layout.addWidget(reference_btn)
 
         # SIGNALS
-        load_btn.clicked.connect(self.test)
+        load_btn.clicked.connect(self.load_work)
         save_version_btn.clicked.connect(self.on_new_version)
         ingest_version_btn.clicked.connect(self.on_ingest_version)
         save_new_work_btn.clicked.connect(self.on_new_work)
@@ -386,6 +373,36 @@ class MainUI(QtWidgets.QMainWindow):
         # print(relative_path)
         # database_path = self.tik.project.get_abs_database_path(relative_path)
         # print(database_path)
+
+    def load_work(self, event=None):
+        """Load the selected work or publish version."""
+        print(event)
+        # get the work item
+        selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
+        if not selected_work_item:
+            self.feedback.pop_info(title="No work selected.", text="Please select a work to load.", critical=True)
+            return
+        # get the version
+        selected_version = self.versions_mcv.get_selected_version()
+
+        print(selected_work_item)
+        print(selected_version)
+        print("Not implemented yet.")
+        # TODO: implement load work
+
+    def import_work(self):
+        """Import a work into the project."""
+        selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
+        if not selected_work_item:
+            self.feedback.pop_info(title="No work selected.", text="Please select a work to import.", critical=True)
+            return
+        # get the version
+        selected_version = self.versions_mcv.get_selected_version()
+
+        print(selected_work_item)
+        print(selected_version)
+        print("Not implemented yet.")
+        # TODO: implement import work
 
     def _ingest_success(self):
         """Callback function for the ingest success event."""

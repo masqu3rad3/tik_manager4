@@ -107,6 +107,8 @@ class TikCategoryModel(QtGui.QStandardItemModel):
 class TikCategoryView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
     version_created = QtCore.Signal()
+    load_event = QtCore.Signal() # the signal for main UI importing the selected version of the selected work
+    import_event = QtCore.Signal() # the signal for main UI importing the selected version of the selected work
 
     def __init__(self, parent=None):
         super(TikCategoryView, self).__init__(parent)
@@ -256,6 +258,12 @@ class TikCategoryView(QtWidgets.QTreeView):
             level = 0
         ingest_act = right_click_menu.addAction(self.tr("Ingest Here"))
         ingest_act.triggered.connect(lambda _=None, x=item: self.ingest_here(item))
+        right_click_menu.addSeparator()
+        load_act = right_click_menu.addAction(self.tr("Load"))
+        load_act.triggered.connect(self.load_event.emit)
+        import_act = right_click_menu.addAction(self.tr("Import To the Scene"))
+        import_act.triggered.connect(self.import_event.emit)
+        right_click_menu.addSeparator()
         open_database_folder_act = right_click_menu.addAction(self.tr("Open Database Folder"))
         open_database_folder_act.triggered.connect(lambda _=None, x=item: self.open_database_folder(item))
         open_scene_folder_act = right_click_menu.addAction(self.tr("Open Scene Folder"))

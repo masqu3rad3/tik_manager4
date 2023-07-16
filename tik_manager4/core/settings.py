@@ -15,6 +15,7 @@ class Settings(object):
         self._originalValue = {}
         self._currentValue = {}
         self._time_stamp = None
+        self._fallback = None
         if file_path:
             self.settings_file = file_path
 
@@ -134,3 +135,15 @@ class Settings(object):
     def get_data(self):
         """Returns the whole current data"""
         return self._currentValue
+
+    def set_fallback(self, file_path):
+        """Use this file in case the file_path is not found."""
+        self._fallback = file_path
+        if not self._io.file_exists(self._filePath):
+            self.use_fallback()
+
+    def use_fallback(self):
+        """Use the fallback file."""
+        if self._fallback:
+            self.initialize(self._io.read(self._fallback))
+            self.apply_settings(force=True)

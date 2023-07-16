@@ -65,18 +65,9 @@ class Project(Subproject):
         self.guard.set_database_root(self._database_path)
         # get project settings
         self.settings.settings_file = os.path.join(self._database_path, "project_settings.json")
+        self.settings.set_fallback(self.guard.commons.project_settings.settings_file)
 
     def delete_sub_project(self, uid=None, path=None):
-        # TODO This requires tests
-        # TODO Consider deleting the work folders ??!!?? OR
-        # TODO maybe check for publishes? if there is any abort immediately?
-        # if user_object.permission_level < 3:
-        #     return -1, log.warning("User %s does not have delete permissions" % user_object.get())
-        # if not user_object.is_authenticated:
-        #     return -1, log.warning("User is not authenticated")
-        # state = self._check_permissions(level=2)
-        # if state != 1:
-        #     return -1
         if uid:
             _remove_path = self.get_path_by_uid(uid)
         else:
@@ -111,12 +102,9 @@ class Project(Subproject):
             return -1
 
         new_sub = parent_sub.add_sub_project(name, parent_sub=parent_sub, uid=None, **kwargs)
-        # new_sub = parent_sub.add_sub_project(name, parent_sub=parent_sub, **kwargs, uid=None)
-        # new_sub = parent_sub.add_sub_project(name, parent_sub=parent_sub.get_sub_tree(), **kwargs, uid=None)
         if new_sub == -1:
             return -1
         self.save_structure()
-        # self.apply_settings()
         self.create_folders(self._database_path)
         return new_sub
 
