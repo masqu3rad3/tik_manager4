@@ -1,35 +1,5 @@
 import os
 
-
-# def get_dcc():
-#     try:
-#         from maya import OpenMayaUI as omui
-#         return "Maya"
-#     except ImportError:
-#         pass
-#     try:
-#         from pymxs import runtime as rt
-#         return "Max"
-#     except ImportError:
-#         pass
-#     try:
-#         import hou
-#         return "Houdini"
-#     except ImportError:
-#         pass
-#     try:
-#         import nuke
-#         return "Nuke"
-#     except ImportError:
-#         pass
-#
-#     if bool(os.getenv("PS_APP")):  # if the request is coming from the SmPhotoshop
-#         return "Photoshop"
-#     else:
-#         return "Standalone"
-
-# NAME = get_dcc()
-
 NAME = os.getenv("TIK_DCC")
 
 if NAME == "Maya":

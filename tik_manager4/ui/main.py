@@ -1,5 +1,4 @@
 """Main UI for Tik Manager 4."""
-import six
 import logging
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 
@@ -52,10 +51,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         # set style
         _style_file = pick.style_file()
-        # self.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
+        self.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
         # self.setStyleSheet(str(_style_file.readAll()))
 
-        self.setStyleSheet(six.text_type(_style_file.readAll(), 'utf-8'))
+        # self.setStyleSheet(six.text_type(_style_file.readAll(), 'utf-8'))
 
 
         # define layouts
@@ -184,6 +183,9 @@ class MainUI(QtWidgets.QMainWindow):
             self.subprojects_mcv.sub_view.select_first_item()
 
         self.subprojects_mcv.sub_view.set_expanded_state(self.tik.user.expanded_subprojects)
+
+        # regardless from the state, always try to expand the first row
+        self.subprojects_mcv.sub_view.expand_first_item()
 
 
     def initialize_mcv(self):

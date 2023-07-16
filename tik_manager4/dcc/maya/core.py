@@ -4,7 +4,7 @@ import maya.OpenMaya as om
 from tik_manager4.ui.Qt import QtWidgets, QtCompat
 from maya import OpenMayaUI as omui
 
-from tik_manager4.dcc.template import DccTemplate
+from tik_manager4.dcc.core_template import DccTemplate
 
 
 class Dcc(DccTemplate):

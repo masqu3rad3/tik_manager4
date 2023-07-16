@@ -5,7 +5,7 @@ from datetime import datetime
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
-from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog
+from tik_manager4.ui.dialog.work_dialog import NewVersionDialog
 
 class TikWorkItem(QtGui.QStandardItem):
     state_color_dict = {
@@ -26,6 +26,9 @@ class TikWorkItem(QtGui.QStandardItem):
         self.setFont(fnt)
         self.setText(work_obj.name)
         self.state = None
+        self.refresh()
+
+    def refresh(self):
         self.set_state(self.work.state)
 
     def set_state(self, state):
@@ -259,18 +262,14 @@ class TikCategoryView(QtWidgets.QTreeView):
         open_scene_folder_act.triggered.connect(lambda _=None, x=item: self.open_scene_folder(item))
         # separator
         right_click_menu.addSeparator()
-        delete_item_act = right_click_menu.addAction(self.tr("Delete Task"))
+        delete_item_act = right_click_menu.addAction(self.tr("Delete Work"))
         delete_item_act.triggered.connect(lambda _=None, x=item: self.delete_item(item))
-        right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
+        delete_item_act = right_click_menu.addAction(self.tr("Omit Work"))
+        delete_item_act.triggered.connect(lambda _=None, x=item: self.omit_item(item))
+        delete_item_act = right_click_menu.addAction(self.tr("Revive Work"))
+        delete_item_act.triggered.connect(lambda _=None, x=item: self.revive_item(item))
 
-    # def _pre_check(self, level):
-    #     """Check for permissions before drawing the dialog."""
-    #     # new projects can be created by users with level 3
-    #     if self.tik.project.check_permissions(level=level) == -1:
-    #         msg, _type = self.tik.log.get_last_message()
-    #         self.feedback.pop_info(title="Permissions", text=msg)
-    #         return False
-    #     return True
+        right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
     def refresh(self):
         """Re-populates the model keeping the expanded state"""
@@ -294,8 +293,23 @@ class TikCategoryView(QtWidgets.QTreeView):
         """Opens the scene folder for the given item"""
         item.work.show_project_folder()
 
+    def omit_item(self, item):
+        """Omits the given item"""
+        item.work.omit_work()
+        item.refresh()
+
+    def revive_item(self, item):
+        """Revives the given item"""
+        item.work.revive_work()
+        item.refresh()
     def delete_item(self, item):
         """Deletes the given item"""
+        print("Method not implemented")
+        print(item)
+        # TODO
+
+    def load_item(self, item):
+        """Loads the given item"""
         print("Method not implemented")
         print(item)
         # TODO

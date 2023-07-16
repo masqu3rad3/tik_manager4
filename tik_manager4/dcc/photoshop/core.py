@@ -1,6 +1,6 @@
 from win32com.client import Dispatch
 
-from tik_manager4.dcc.template import DccTemplate
+from tik_manager4.dcc.core_template import DccTemplate
 
 
 

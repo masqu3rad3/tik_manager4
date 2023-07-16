@@ -214,6 +214,13 @@ class TikSubView(QtWidgets.QTreeView):
         # self.get_tasks(QtCore.QModelIndex())
 
         # hide the first row
+        #
+        #
+    def expand_first_item(self):
+        """Try to expand the first item in the tree"""
+        index = self.proxy_model.mapFromSource(self.model.index(0, 0))
+        self.expand(index)
+
 
     def select_first_item(self):
         """Select the first item in the tree"""

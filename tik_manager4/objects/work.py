@@ -165,3 +165,8 @@ class Work(Settings, Entity):
         thumbnail_name = "{0}_{1}_v{2}_thumbnail.jpg".format(self._name, self._creator,
                                                               str(version_number).zfill(3))
         return version_number, version_name, thumbnail_name
+
+    def delete_work(self):
+        """Delete the work."""
+        # TODO: implement this. This should move the work to the purgatory.
+        pass
