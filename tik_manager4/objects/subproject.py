@@ -273,12 +273,9 @@ class Subproject(Entity):
 
         # # TODO Currently the overriden uid is not getting checked if it is really unique or not
 
-    def scan_tasks(self, force=False):
+    def scan_tasks(self):
         """Scan the subproject for tasks."""
 
-
-        if force:
-            self._tasks = {}
         _tasks_search_dir = self.get_abs_database_path()
         _task_paths = glob(os.path.join(_tasks_search_dir, '*.ttask'))
 
