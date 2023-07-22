@@ -181,6 +181,15 @@ class TikTaskView(QtWidgets.QTreeView):
         else:
             self.hide_columns(column)
 
+    def select_first_item(self):
+        """Select the first item in the view."""
+        idx = self.proxy_model.index(0, 0)
+        self.setCurrentIndex(idx)
+
+    def get_items_count(self):
+        """Return the number of items in the view."""
+        return self.proxy_model.rowCount()
+
     def select_by_id(self, unique_id):
         """Select the item with the given id"""
         # get the index of the item

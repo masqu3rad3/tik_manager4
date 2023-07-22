@@ -145,8 +145,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.build_bars()
         self.build_buttons()
 
-
-
         self.resume_last_selection()
 
         self.status_bar.showMessage("Status | Ready")
@@ -180,7 +178,8 @@ class MainUI(QtWidgets.QMainWindow):
                                 if version_id:
                                     self.versions_mcv.set_version(version_id)
         else:
-            # if there is no subproject, then select the first one
+            # if there are no subprojects, then select the first one
+            # if self.subprojects_mcv.sub_view.row_count() == 1:
             self.subprojects_mcv.sub_view.select_first_item()
             print("No subproject found, selecting the first one.")
 
@@ -312,8 +311,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.publish_buttons_layout.addWidget(reference_btn)
 
         # SIGNALS
-        # load_btn.clicked.connect(self.load_work)
-        load_btn.clicked.connect(self.test)
+        load_btn.clicked.connect(self.load_work)
+        # load_btn.clicked.connect(self.test)
         save_version_btn.clicked.connect(self.on_new_version)
         ingest_version_btn.clicked.connect(self.on_ingest_version)
         save_new_work_btn.clicked.connect(self.on_new_work)
@@ -369,15 +368,21 @@ class MainUI(QtWidgets.QMainWindow):
 
     def test(self):
         """Test function."""
-        print("testing")
-        # _item = self.tasks_mcv.task_view.get_selected_item()
-        # print(_item)
-        # self.subprojects_mcv.sub_view.get_tasks(_index)
-        from time import time
-        start = time()
-        self.subprojects_mcv.sub_view.get_tasks()
-        end = time()
-        print("Scanning tasks took {0} seconds".format(end - start))
+        # print("testing")
+        # # _item = self.tasks_mcv.task_view.get_selected_item()
+        # # print(_item)
+        # # self.subprojects_mcv.sub_view.get_tasks(_index)
+        # from time import time
+        # start = time()
+        # self.subprojects_mcv.sub_view.get_tasks()
+        # end = time()
+        # print("Scanning tasks took {0} seconds".format(end - start))
+
+        print("Subprojects:")
+        print(self.subprojects_mcv.sub_view.get_items_count())
+        print("Tasks:")
+        print(self.tasks_mcv.task_view.get_items_count())
+        self.tasks_mcv.task_view.select_first_item()
         # print(_index)
         # self.refresh_subprojects()
 
@@ -406,7 +411,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         print(selected_work_item)
         print(selected_version)
-        print("Not implemented yet.")
+        selected_work_item.work.load_version(selected_version)
+
         # TODO: implement load work
 
     def import_work(self):

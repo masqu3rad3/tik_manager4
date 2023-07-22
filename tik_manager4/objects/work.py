@@ -123,6 +123,8 @@ class Work(Settings, Entity):
         self._dcc_handler.save_as(_abs_version_path)
 
         # generate thumbnail
+        # create the thumbnail folder if it doesn't exist
+        self._io.folder_check(_thumbnail_path)
         self._dcc_handler.generate_thumbnail(_thumbnail_path, 100, 100)
 
         # add it to the versions
@@ -165,6 +167,15 @@ class Work(Settings, Entity):
         thumbnail_name = "{0}_{1}_v{2}_thumbnail.jpg".format(self._name, self._creator,
                                                               str(version_number).zfill(3))
         return version_number, version_name, thumbnail_name
+
+    def load_version(self, version_number):
+        """Load the given version of the work."""
+        version_obj = self.get_version(version_number)
+        if version_obj:
+            relative_path = version_obj.get("scene_path")
+            abs_path = self.get_abs_project_path(relative_path)
+            self._dcc_handler.open(abs_path)
+
 
     def delete_work(self):
         """Delete the work."""

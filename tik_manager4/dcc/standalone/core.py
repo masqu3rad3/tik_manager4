@@ -1,6 +1,6 @@
 import os
 from tik_manager4.dcc.core_template import DccTemplate
-
+import subprocess
 
 class Dcc(DccTemplate):
     formats = [".txt", ".log"]
@@ -22,6 +22,21 @@ class Dcc(DccTemplate):
         return file_path
 
     # TODO mix-match from Tik Manager 3
+
+    @staticmethod
+    def open(file_path, force=True, **extra_arguments):
+        """
+        Opens the given file path
+        Args:
+            file_path: (String) File path to open
+            force: (Bool) if true any unsaved changes on current scene will be lost
+            **extra_arguments: Compatibility arguments for other DCCs
+
+        Returns: None
+
+        """
+        subprocess.Popen([file_path], shell=True)
+        pass
 
     @staticmethod
     def generate_thumbnail(file_path, width, height):

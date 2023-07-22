@@ -166,3 +166,28 @@ class Dcc(DccTemplate):
         if file_name.startswith(untitled_file_name) and cmds.file(q=1, sceneName=1) == "":
             return ""
         return path
+
+    @staticmethod
+    def get_current_frame():
+        """Returns current frame in timeline. If dcc does not have a timeline, returns None"""
+        return cmds.currentTime(query=True)
+
+    def generate_thumbnail(self, file_path, width, height):
+        """
+        Grabs a thumbnail from the current scene
+        Args:
+            file_path: (String) File path to save the thumbnail
+            width: (Int) Width of the thumbnail
+            height: (Int) Height of the thumbnail
+
+        Returns: None
+
+        """
+
+        # create a thumbnail using playblast
+        frame = self.get_current_frame()
+        store = cmds.getAttr("defaultRenderGlobals.imageFormat")
+        cmds.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
+        cmds.playblast(completeFilename=file_path, forceOverwrite=True, format='image', width=221, height=124,
+                       showOrnaments=False, frame=[frame], viewer=False, percent=100)
+        cmds.setAttr("defaultRenderGlobals.imageFormat", store)  # take it back

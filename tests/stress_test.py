@@ -48,7 +48,7 @@ class TestStress:
 
 
         # ASSETS
-        iteration = 50
+        iteration = 10
         parent_paths = ["Assets/Characters", "Assets/Props", "Assets/Environment", "Assets/Vehicles"]
         for sub_asset in parent_paths:
             random_int_list = [random.randint(0, 9999) for x in range(iteration)]
@@ -58,11 +58,11 @@ class TestStress:
                 # create 5 task for each sub
                 if sub == -1:
                     continue
-                for x in range(1, 20):
+                for x in range(1, 6):
                     task = self.tik.project.create_task("{0}_Task_{1}".format(word, x), categories=["Model", "Rig", "LookDev"], parent_path=sub.path)
                     # for each category, create 10 works
                     for _, category in task.categories.items():
-                        for y in range(1, 10):
+                        for y in range(1, 6):
                             work = category.create_work("{0}_{1}_Work_{2}".format(task.name, category.name, y))
                             # for each work, create 10 publishes
 

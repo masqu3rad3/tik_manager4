@@ -238,6 +238,15 @@ class TikSubView(QtWidgets.QTreeView):
 
         return matched_items
 
+    def get_items_count(self):
+        """Return the number of items in the tree under selected one"""
+
+        # count all items
+        _all_items = self.model.findItems("*", QtCore.Qt.MatchWildcard | QtCore.Qt.MatchRecursive)
+        return len(_all_items)
+
+
+
     def select_by_id(self, unique_id):
         """Look at the id column and select
          the subproject item that matched the unique id"""
