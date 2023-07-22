@@ -281,7 +281,7 @@ class TikSubView(QtWidgets.QTreeView):
         self.get_tasks(self.currentIndex())
 
     def get_selected_item(self):
-        """Return the current item"""
+        """Return the current item."""
         idx = self.currentIndex()
         if not idx.isValid():
             return None
@@ -291,6 +291,17 @@ class TikSubView(QtWidgets.QTreeView):
         index = self.proxy_model.mapToSource(idx)
         _item = self.model.itemFromIndex(index)
         return _item
+
+    # def get_selected_index(self):
+    #     """Return the selected index."""
+    #     idx = self.currentIndex()
+    #     if not idx.isValid():
+    #         return None
+    #     idx = idx.sibling(idx.row(), 0)
+    #
+    #     # the id needs to mapped from proxy to source
+    #     index = self.proxy_model.mapToSource(idx)
+    #     return index
 
     def set_recursive_task_scan(self, value):
         self._recursive_task_scan = value
@@ -365,20 +376,15 @@ class TikSubView(QtWidgets.QTreeView):
                     yield value
                 queue.extend(list(sub.subs.values()))
 
-    def get_tasks(self, idx):
+    def get_tasks(self, idx=None):
+        idx = idx or self.currentIndex()
         # make sure the idx is pointing to the first column
-        idx = idx.sibling(idx.row(), 0)
-
+        first_idx = idx.sibling(idx.row(), 0)
         # the id needs to mapped from proxy to source
-        index = self.proxy_model.mapToSource(idx)
+        index = self.proxy_model.mapToSource(first_idx)
         _item = self.model.itemFromIndex(index) or self.model.root_item
         if _item:
             _tasks = self.collect_tasks(_item.subproject, recursive=self._recursive_task_scan)
-
-            # print([x for x in _tasks.items()])
-            # print(_tasks)
-            # print(_tasks)
-            # print(_tasks)
             self.item_selected.emit(_tasks)
 
     def hide_columns(self, columns):

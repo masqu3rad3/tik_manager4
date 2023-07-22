@@ -273,8 +273,12 @@ class Subproject(Entity):
 
         # # TODO Currently the overriden uid is not getting checked if it is really unique or not
 
-    def scan_tasks(self):
+    def scan_tasks(self, force=False):
         """Scan the subproject for tasks."""
+
+
+        if force:
+            self._tasks = {}
         _tasks_search_dir = self.get_abs_database_path()
         _task_paths = glob(os.path.join(_tasks_search_dir, '*.ttask'))
 
@@ -288,6 +292,18 @@ class Subproject(Entity):
             else:
                 if existing_task.is_modified():
                     existing_task.reload()
+
+        # if the lengths are not matching that means some tasks are deleted
+        if len(_task_paths) != len(self._tasks):
+            # get the task names
+            _task_names = [os.path.basename(_task_path).split(".")[0] for _task_path in _task_paths]
+            # get the task names that are not in the _task_names
+            _deleted_task_names = [task_name for task_name in self._tasks.keys() if task_name not in _task_names]
+            # delete the tasks
+            for _deleted_task_name in _deleted_task_names:
+                del self._tasks[_deleted_task_name]
+
+
         return self._tasks
 
     def add_task(self, name, categories, task_type=None):

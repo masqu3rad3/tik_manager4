@@ -46,21 +46,24 @@ class TikTaskModel(QtGui.QStandardItemModel):
         """Clear the model"""
         self.setRowCount(0)
 
-    def set_tasks(self, tasks_list):
-        """Set the data for the model"""
-        # TODO : validate
-        # self._tasks.clear()
-        self._tasks = tasks_list
+    # def set_tasks(self, tasks_list):
+    #     """Set the data for the model"""
+    #     # TODO : validate
+    #     # self._tasks.clear()
+    #     self._tasks = tasks_list
 
-    def populate(self):
-        """Populate the model"""
-        self.clear()
-
-        for task in self._tasks:
-            self.append_task(task)
+    # def populate(self):
+    #     """Populate the model"""
+    #     pass
+    #     # print("Populating model")
+    #     self.clear()
+    #     # print(self._tasks)
+    #     for task in self._tasks:
+    #         self.append_task(task)
 
     def append_task(self, sub_data):
         """Append a task to the model"""
+        # self._tasks.append(sub_data)
         _sub_item = TikTaskItem(sub_data)
         # pid = QtGui.QStandardItem(str(sub_data.reference_id))
         pid = QtGui.QStandardItem(str(sub_data.id))
@@ -314,7 +317,22 @@ class TikTaskView(QtWidgets.QTreeView):
 
     def refresh(self):
         """Re-populates the model keeping the expanded state"""
-        self.model.populate()
+        # print("refreshing")
+        pass
+        # save the expanded state
+        # expanded = []
+        # for i in range(self.model.rowCount()):
+        #     item = self.model.item(i)
+        #     if item.isExpanded():
+        #         expanded.append(item.task.name)
+
+        # clear the model
+        # self.model.clear()
+        # populate the model
+        # self.model.populate()
+
+
+        # self.model.populate()
 
 
 

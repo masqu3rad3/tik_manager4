@@ -35,7 +35,7 @@ class Project(Subproject):
         return self._absolute_path
 
     @property
-    def root(self):
+    def folder(self):
         """Return the root of the project, where all projects lives happily"""
         return os.path.abspath(os.path.join(self._absolute_path, os.pardir))
 
@@ -193,4 +193,11 @@ class Project(Subproject):
             for version in _work.versions:
                 if version.get("scene_path") == base_name:
                     return _work
+
+    # def scan_tasks(self):
+    #     self._tasks = {}
+    #     super(Project, self).scan_tasks()
+    #     return self._tasks
+
+
 

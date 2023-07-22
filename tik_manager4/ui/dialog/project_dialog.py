@@ -46,7 +46,7 @@ class SetProjectDialog(QtWidgets.QDialog):
 
         look_in_lbl = QtWidgets.QLabel(text="Look in:")
         browser_wgt = path_browser.PathBrowser("lookIn")
-        browser_wgt.widget.setText(self.main_object.project.root)
+        browser_wgt.widget.setText(self.main_object.project.folder)
         header_layout.addWidget(look_in_lbl)
         header_layout.addWidget(browser_wgt)
 
@@ -68,10 +68,10 @@ class SetProjectDialog(QtWidgets.QDialog):
         self.source_model = QtWidgets.QFileSystemModel()
         self.source_model.setNameFilterDisables(False)
         self.source_model.setNameFilters(["*"])
-        self.source_model.setRootPath(self.main_object.project.root)
+        self.source_model.setRootPath(self.main_object.project.folder)
         self.source_model.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
         self.folders_tree.setModel(self.source_model)
-        self.set_tree_root(self.main_object.project.root)
+        self.set_tree_root(self.main_object.project.folder)
         # self.folders_tree.setRootIndex(self.source_model.index(self.main_object.project.root))
         self.folders_tree.setColumnWidth(0, 400)
         self.folders_tree.setColumnWidth(1, 0)

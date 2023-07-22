@@ -157,6 +157,7 @@ class MainUI(QtWidgets.QMainWindow):
         """Resume the last selection from the user settings."""
         # project is getting handled by the project object.
         # subproject
+
         subproject_id = self.tik.user.last_subproject
         if subproject_id:
             # self.tik.project.find_sub_by_id(subproject_id)
@@ -181,12 +182,20 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             # if there is no subproject, then select the first one
             self.subprojects_mcv.sub_view.select_first_item()
+            print("No subproject found, selecting the first one.")
 
         self.subprojects_mcv.sub_view.set_expanded_state(self.tik.user.expanded_subprojects)
 
         # regardless from the state, always try to expand the first row
         self.subprojects_mcv.sub_view.expand_first_item()
 
+        # # if there is only a single subproject, then select the first one
+        # if self.subprojects_mcv.sub_view.row_count() == 1:
+        #     self.subprojects_mcv.sub_view.select_first_item()
+
+        # self.tasks_mcv.refresh()
+        # self.subprojects_mcv.sub_view.select_first_item()
+        # self.refresh_project()
 
     def initialize_mcv(self):
         self.project_mcv = TikProjectLayout(self.tik.project)
@@ -303,7 +312,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.publish_buttons_layout.addWidget(reference_btn)
 
         # SIGNALS
-        load_btn.clicked.connect(self.load_work)
+        # load_btn.clicked.connect(self.load_work)
+        load_btn.clicked.connect(self.test)
         save_version_btn.clicked.connect(self.on_new_version)
         ingest_version_btn.clicked.connect(self.on_ingest_version)
         save_new_work_btn.clicked.connect(self.on_new_work)
@@ -360,7 +370,16 @@ class MainUI(QtWidgets.QMainWindow):
     def test(self):
         """Test function."""
         print("testing")
-        self.subprojects_mcv.sub_view.select_first_item()
+        # _item = self.tasks_mcv.task_view.get_selected_item()
+        # print(_item)
+        # self.subprojects_mcv.sub_view.get_tasks(_index)
+        from time import time
+        start = time()
+        self.subprojects_mcv.sub_view.get_tasks()
+        end = time()
+        print("Scanning tasks took {0} seconds".format(end - start))
+        # print(_index)
+        # self.refresh_subprojects()
 
         # import os
         # print("test")
@@ -422,7 +441,6 @@ class MainUI(QtWidgets.QMainWindow):
         state = dialog.exec_()
         if state:
             self._ingest_success()
-
 
     def on_new_work(self):
         """Create a new work."""
@@ -493,7 +511,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def refresh_tasks(self):
         """Refresh the tasks' ui."""
-        self.tasks_mcv.refresh()
+        # self.tasks_mcv.refresh()
         self.refresh_categories()
 
     def refresh_categories(self):

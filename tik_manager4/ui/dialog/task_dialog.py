@@ -197,7 +197,7 @@ class NewTask(QtWidgets.QDialog):
 
         _mode = self._parent_sub.metadata.get_value("mode", "")
         all_categories = self._parent_sub.guard.category_definitions.get_data()
-        if _mode == "":
+        if _mode == "" or _mode == "root":
             _default_categories = all_categories
         else:
             _default_categories = self.filter_category_definitions(
