@@ -40,12 +40,8 @@ class Main(object):
             for _project in reversed(recent_projects):
                 if os.path.exists(os.path.join(_project, "tikDatabase", "project_structure.json")):
                     break
-            # _project = self.user.get_recent_projects()[-1]
-        # else:
-        #     _project = default_project
 
-        self.project._set(_project)
-        self.user.add_recent_project(_project)
+        self.set_project(_project)
 
     def _create_default_project(self):
         """Create a default project. Protected method."""
@@ -130,3 +126,4 @@ class Main(object):
         # add to recent projects
         self.user.add_recent_project(absolute_path)
         self.user.last_project = absolute_path
+        self.dcc.set_project(absolute_path)

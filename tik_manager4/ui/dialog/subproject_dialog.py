@@ -7,7 +7,7 @@ from tik_manager4.ui.widgets.common import TikButtonBox
 import tik_manager4.ui.layouts.settings_layout
 from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
 
-from tik_manager4.objects import guard
+# from tik_manager4.objects import guard
 
 
 class EditSubprojectDialog(QtWidgets.QDialog):
@@ -21,7 +21,8 @@ class EditSubprojectDialog(QtWidgets.QDialog):
         self.setWindowTitle("Edit Subproject")
         self.setModal(True)
 
-        self.metadata_definitions = guard.Guard.commons.metadata
+        # self.metadata_definitions = guard.Guard.commons.metadata
+        self.metadata_definitions = self.tik_project.metadata_definitions
 
         self.primary_definition = self.define_primary_ui()
         self.secondary_definition, self.tertiary_definition = self.define_other_ui()

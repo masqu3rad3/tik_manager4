@@ -19,29 +19,32 @@ import tik_manager4
 
 LOG = logging.getLogger(__name__)
 WINDOW_NAME = "Tik Manager {}".format(version.__version__)
-def launch(force=False, dcc="Standalone"):
-    for entry in QtWidgets.QApplication.allWidgets():
+
+def launch(dcc="Standalone"):
+    all_widgets = QtWidgets.QApplication.allWidgets()
+    tik = tik_manager4.initialize(dcc)
+    parent = tik.dcc.get_main_window()
+    for entry in all_widgets:
         try:
             if entry.objectName() == WINDOW_NAME:
-                if force:
-                    entry.close()
-                    entry.deleteLater()
-                else:
-                    LOG.warning("Only one session of Tik Manager can be launched per DCC.")
-                    return
+                entry.close()
+                entry.deleteLater()
         except (AttributeError, TypeError):
             pass
-    m = MainUI(dcc=dcc)
+    m = MainUI(tik, parent=parent)
     m.show()
 
 class MainUI(QtWidgets.QMainWindow):
-    def __init__(self, dcc="Standalone"):
-        self.tik = tik_manager4.initialize(dcc)
+    def __init__(self, main_object, **kwargs):
+        # print("MainUI init")
+        # self.tik = tik_manager4.initialize(dcc)
 
-        self.parent = self.tik.dcc.get_main_window()
-        super(MainUI, self).__init__(parent=self.parent)
+        # self.parent = self.tik.dcc.get_main_window()
+        super(MainUI, self).__init__(**kwargs)
+        self.tik = main_object
 
         self.setWindowTitle("Tik Manager {}".format(version.__version__))
+        self.setObjectName(WINDOW_NAME)
 
         self.feedback = Feedback(self)
         # set window size
@@ -144,9 +147,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.initialize_mcv()
         self.build_bars()
         self.build_buttons()
-
+        #
         self.resume_last_selection()
-
+        #
         self.status_bar.showMessage("Status | Ready")
 
 
@@ -272,6 +275,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.tik.user.expanded_subprojects = self.subprojects_mcv.sub_view.get_expanded_state()
 
         self.tik.user.resume.apply_settings()
+        a = QtWidgets.QApplication.allWidgets()
         event.accept()
 
     def set_buttons_visibility(self, mode):
@@ -400,7 +404,6 @@ class MainUI(QtWidgets.QMainWindow):
 
     def load_work(self, event=None):
         """Load the selected work or publish version."""
-        print(event)
         # get the work item
         selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
         if not selected_work_item:
@@ -409,8 +412,6 @@ class MainUI(QtWidgets.QMainWindow):
         # get the version
         selected_version = self.versions_mcv.get_selected_version()
 
-        print(selected_work_item)
-        print(selected_version)
         selected_work_item.work.load_version(selected_version)
 
         # TODO: implement load work
@@ -580,8 +581,13 @@ if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     # launch()
-    main = MainUI()
-    main.show()
+    # main = MainUI()
+    # main.show()
+    from time import time
+    start = time()
+    launch()
+    end = time()
+    print("Took {0} seconds".format(end - start))
     # main.test()
     # main.on_create_new_project()
     sys.exit(app.exec_())

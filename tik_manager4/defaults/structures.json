@@ -1,7 +1,7 @@
 {
   "empty": {
     "name": "Empty Project",
-    "path": "",
+    "path": "global",
     "subs": []
   },
   "simple": {
@@ -9,7 +9,7 @@
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
-    "mode": "",
+    "mode": "global",
     "subs": []
   },
   "asset_only": {
@@ -53,7 +53,7 @@
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
-    "mode": "root",
+    "mode": "global",
     "subs": [
       {
         "name": "Assets",
@@ -94,7 +94,7 @@
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
-    "mode": "root",
+    "mode": "global",
     "subs": [
       {
         "name": "Assets",

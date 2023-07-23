@@ -16,6 +16,7 @@ class Project(Subproject):
         super(Project, self).__init__()
         self.structure = Settings()
         self.settings = Settings()
+        self.metadata_definitions = Settings()
         self._path = path
         self._database_path = None
         self._name = name
@@ -66,6 +67,8 @@ class Project(Subproject):
         # get project settings
         self.settings.settings_file = os.path.join(self._database_path, "project_settings.json")
         self.settings.set_fallback(self.guard.commons.project_settings.settings_file)
+        self.metadata_definitions.settings_file = os.path.join(self._database_path, "project_metadata.json")
+        self.metadata_definitions.set_fallback(self.guard.commons.metadata.settings_file)
 
     def delete_sub_project(self, uid=None, path=None):
         if uid:
@@ -79,7 +82,6 @@ class Project(Subproject):
         self.save_structure()
         return 1
 
-    # def create_sub_project(self, name, parent_uid=None, parent_path=None, resolution=None, fps=None, mode=None):
     def create_sub_project(self, name, parent_uid=None, parent_path=None, **kwargs):
         """
              Similar to add_sub_project method but creates it under specified parent sub and writes data to
@@ -90,9 +92,6 @@ class Project(Subproject):
             parent_uid: (Int) Parent Subproject Unique ID or project itself.
                                 Either this or parent_path needs to be defined
             parent_path: (String) Parent Sub-Project Relative path. If uid defined this will be skipped
-            resolution: (Tuple) If not defined, parent resolution will be inherited
-            fps: (int) If not defined parent fps will be inherited
-            mode: (String) If not defined parent mode will be inherited
 
         Returns:
             <class Subproject>

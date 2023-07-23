@@ -182,6 +182,18 @@ class DccTemplate(object):
         pass
 
     @staticmethod
+    def set_project(file_path):
+        """
+        Sets the project path
+        Args:
+            file_path: (String) File path to set as project
+
+        Returns: None
+
+        """
+        pass
+
+    @staticmethod
     def is_modified():
         """Returns True if the scene has unsaved changes"""
         pass

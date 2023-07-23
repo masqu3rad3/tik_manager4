@@ -140,6 +140,18 @@ class Dcc(DccTemplate):
         cmds.playbackOptions(animationStartTime=range_list[0], minTime=range_list[1], maxTime=range_list[2], animationEndTime=range_list[3])
 
     @staticmethod
+    def set_project(file_path):
+        """
+        Sets the project to the given path
+        Args:
+            file_path: (String) Path to the project folder
+
+        Returns: None
+
+        """
+        cmds.workspace(file_path, openWorkspace=True)
+
+    @staticmethod
     def is_modified():
         """Returns True if the scene has unsaved changes"""
         return cmds.file(query=True, modified=True)

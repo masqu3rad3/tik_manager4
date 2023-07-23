@@ -3,12 +3,17 @@ from tik_manager4.core import filelog
 from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4.ui.dialog.task_dialog
 
+from tik_manager4.ui import pick
+
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class TikTaskItem(QtGui.QStandardItem):
     color_dict = {
-        "subproject": (255, 255, 255)
+        "asset": (0, 187, 184),
+        "shot": (0, 115, 255),
+        "global": (255, 141, 28),
+        "other": (255, 255, 255),
     }
 
     def __init__(self, task_obj):
@@ -19,13 +24,20 @@ class TikTaskItem(QtGui.QStandardItem):
         """
         super(TikTaskItem, self).__init__()
 
+        # # test
+        _icon = pick.icon("{}.png".format(task_obj.type))
+        self.setIcon(_icon)
+
         self.task = task_obj
         #
         fnt = QtGui.QFont('Open Sans', 12)
         fnt.setBold(True)
         self.setEditable(False)
 
-        self.setForeground(QtGui.QColor(0, 255, 255))
+        # self.setForeground(QtGui.QColor(0, 255, 255))
+        _color = self.color_dict.get(task_obj.type, (255, 255, 255))
+        self.setForeground(QtGui.QColor(*_color))
+
         self.setFont(fnt)
         self.setText(task_obj.name)
 

@@ -5,15 +5,29 @@ import tik_manager4.ui.dialog.task_dialog
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.objects import guard
 import tik_manager4
+from tik_manager4.ui import pick
+
+
 
 class TikSubItem(QtGui.QStandardItem):
-    color_dict = {
-        "subproject": (255, 255, 255)
+
+    icon_dict = {
+        "root": "root.png",
+        "asset": "asset.png",
+        "shot": "shot.png",
+        "global": "global.png",
     }
 
     def __init__(self, sub_obj):
         super(TikSubItem, self).__init__()
+
         self.subproject = sub_obj
+
+        # test
+        icon_name = self.subproject.metadata.get_value("mode", fallback_value="global")
+        # icon = pick.icon(self.icon_dict.get(icon_name, ""))
+        icon = pick.icon("{}.png".format(icon_name))
+        self.setIcon(icon)
         #
         fnt = QtGui.QFont('Open Sans', 12)
         fnt.setBold(False)
@@ -23,9 +37,15 @@ class TikSubItem(QtGui.QStandardItem):
         self.setText(sub_obj.name)
 
 
+
+
 class TikColumnItem(QtGui.QStandardItem):
     def __init__(self, name, overridden=False):
         super(TikColumnItem, self).__init__()
+        # test
+        # _icon = pick.icon("cube.png")
+        # self.setIcon(_icon)
+
         self.setEditable(False)
         self.setText(name)
         self.set_overridden(overridden)
@@ -91,7 +111,7 @@ class TikSubModel(QtGui.QStandardItemModel):
         self.root_item = TikSubItem(self.project)
         # make the self.root_item invisible
         self.root_item.setForeground(QtGui.QColor(0, 0, 0, 0))
-        self.root_item.setText("root")
+        self.root_item.setText("Project Root")
         parent_row.appendRow(self.root_item)
         # queue.append([all_data, self.project, parent_row])
         queue.append([all_data, self.project, self.root_item])
@@ -627,7 +647,7 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
         # add a checkbox for recursive search
         if recursive_enabled:
             self.recursive_search_cb = QtWidgets.QCheckBox("Get Tasks Recursively")
-            self.recursive_search_cb.setChecked(True)
+            self.recursive_search_cb.setChecked(False)
             self.addWidget(self.recursive_search_cb)
         # add a search bar
 
