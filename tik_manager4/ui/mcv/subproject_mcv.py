@@ -216,7 +216,6 @@ class TikSubView(QtWidgets.QTreeView):
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         if right_click_enabled:
             self.customContextMenuRequested.connect(self.right_click_menu)
-        # self.clicked.connect(self.get_tasks)
 
         # create another context menu for columns
         self.header().setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -228,10 +227,6 @@ class TikSubView(QtWidgets.QTreeView):
 
         # show the root
         self.setRootIsDecorated(False)
-
-        # self.clearSelection()
-        # # self.deselected.emit(True)
-        # self.get_tasks(QtCore.QModelIndex())
 
         # hide the first row
         #
@@ -265,8 +260,6 @@ class TikSubView(QtWidgets.QTreeView):
         _all_items = self.model.findItems("*", QtCore.Qt.MatchWildcard | QtCore.Qt.MatchRecursive)
         return len(_all_items)
 
-
-
     def select_by_id(self, unique_id):
         """Look at the id column and select
          the subproject item that matched the unique id"""
@@ -280,30 +273,6 @@ class TikSubView(QtWidgets.QTreeView):
             return True
 
         return False
-
-
-    # TODO: THIS IS BACKUP
-    # def find_and_select_by_id(self, unique_id):
-    #     """Look at the id column and select the subproject item that matched the unique id"""
-    #     # get all the items in the id column
-    #     _previously_selected_item = self.model.previous_selection
-    #     # select the item
-    #     idx = (_previously_selected_item.index())
-    #     idx = idx.sibling(idx.row(), 0)
-    #     index = self.proxy_model.mapFromSource(idx)
-    #     print(index)
-    #
-    #     self.setCurrentIndex(index)
-
-
-    # def mousePressEvent(self, event):
-    #     super(TikSubView, self).mousePressEvent(event)
-    #     index = self.indexAt(event.pos())  # returns  -1 if click is outside
-    #     if index.row() == -1:
-    #         self.clearSelection()
-    #         # self.deselected.emit(True)
-    #         self.get_tasks(QtCore.QModelIndex())
-    #     # QtWidgets.QTreeView.mousePressEvent(self, event)
 
     def currentChanged(self, *args, **kwargs):
         super(TikSubView, self).currentChanged(*args, **kwargs)
@@ -321,19 +290,10 @@ class TikSubView(QtWidgets.QTreeView):
         _item = self.model.itemFromIndex(index)
         return _item
 
-    # def get_selected_index(self):
-    #     """Return the selected index."""
-    #     idx = self.currentIndex()
-    #     if not idx.isValid():
-    #         return None
-    #     idx = idx.sibling(idx.row(), 0)
-    #
-    #     # the id needs to mapped from proxy to source
-    #     index = self.proxy_model.mapToSource(idx)
-    #     return index
-
     def set_recursive_task_scan(self, value):
         self._recursive_task_scan = value
+        # refresh the view
+        self.get_tasks()
 
     def _save_expanded_state(self, index, expanded_state):
         """Stores the subproject ids of the expanded items"""
@@ -379,7 +339,6 @@ class TikSubView(QtWidgets.QTreeView):
         self.set_expanded_state(expanded_state)
         self.clearSelection()
         self.select_first_item()
-        self.get_tasks(QtCore.QModelIndex())
 
     def expandAll(self):
         super(TikSubView, self).expandAll()

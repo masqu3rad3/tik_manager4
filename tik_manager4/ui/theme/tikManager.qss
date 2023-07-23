@@ -1231,7 +1231,7 @@ QTreeView:branch:open:has-children:!has-siblings:hover, QTreeView:branch:open:ha
 
 
 
-
+/*
 QTreeView::indicator:checked,
 QListView::indicator:checked {
   image: url("rc:checkbox_checked.png");
@@ -1267,9 +1267,7 @@ QListView::indicator:indeterminate:focus,
 QListView::indicator:indeterminate:pressed {
   image: url("rc:checkbox_indeterminate_focus.png");
 }
-
-
-
+*/
 QTreeView,
 QListView,
 QTableView,
