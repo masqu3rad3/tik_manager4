@@ -8,7 +8,6 @@ import tik_manager4
 from tik_manager4.ui import pick
 
 
-
 class TikSubItem(QtGui.QStandardItem):
 
     icon_dict = {
@@ -25,7 +24,6 @@ class TikSubItem(QtGui.QStandardItem):
 
         # test
         icon_name = self.subproject.metadata.get_value("mode", fallback_value="global")
-        # icon = pick.icon(self.icon_dict.get(icon_name, ""))
         icon = pick.icon("{}.png".format(icon_name))
         self.setIcon(icon)
         #
@@ -37,14 +35,9 @@ class TikSubItem(QtGui.QStandardItem):
         self.setText(sub_obj.name)
 
 
-
-
 class TikColumnItem(QtGui.QStandardItem):
     def __init__(self, name, overridden=False):
         super(TikColumnItem, self).__init__()
-        # test
-        # _icon = pick.icon("cube.png")
-        # self.setIcon(_icon)
 
         self.setEditable(False)
         self.setText(name)
@@ -83,9 +76,6 @@ class TikSubModel(QtGui.QStandardItemModel):
         self.project = None
         self.root_item = None
         self.set_data(structure_object)
-        # self._search_id = search_id
-        # self._search_id = 2141800799
-        # self.previous_selection = None
 
     def set_data(self, structure_object):
         self.project = structure_object
@@ -134,8 +124,6 @@ class TikSubModel(QtGui.QStandardItemModel):
                     }
                     parent["subs"].append(sub_data)
                     _item = self.append_sub(neighbour, parent_row)
-                    # if neighbour.id == self._search_id:
-                    #     self.previous_selection = _item
 
                     # add tasks
                     visited.append(neighbour)
@@ -147,9 +135,6 @@ class TikSubModel(QtGui.QStandardItemModel):
         _sub_item = TikSubItem(sub_obj)
         # generate the column texts
         # name, id and path are mandatory, start with them
-        # if sub_obj.id == self._search_id:
-        #     self.previous_selection = _sub_item
-        #     print("found")
         _row = [_sub_item, TikColumnItem(str(sub_obj.id)), TikColumnItem(sub_obj.path)]
         for column in self.columns[3:]:  # skip the first 3 columns which are mandatory
             # get the override status
@@ -394,11 +379,25 @@ class TikSubView(QtWidgets.QTreeView):
                 self.setColumnHidden(self.model.columns.index(column), False)
 
     def toggle_column(self, column, state):
-        """ If the given column exists in the model, unhides it"""
+        """Hide/unhide the given column."""
         if state:
             self.unhide_columns(column)
         else:
             self.hide_columns(column)
+
+    def hide_all_columns(self):
+        """Hides all columns."""
+        for column in self.model.columns:
+            self.hide_columns(column)
+
+    def show_columns(self, list_of_columns):
+        """Shows the given columns."""
+        for column in list_of_columns:
+            self.unhide_columns(column)
+
+    def get_visible_columns(self):
+        """Returns the visible columns."""
+        return [self.model.columns[x] for x in range(self.model.columnCount()) if not self.isColumnHidden(x)]
 
     def set_project(self, project_obj):
         self.model = TikSubModel(project_obj)
@@ -429,6 +428,16 @@ class TikSubView(QtWidgets.QTreeView):
             # connect the action to the column's visibility
             action.toggled.connect(lambda state, c=column: self.toggle_column(c, state))
             menu.addAction(action)
+        # add a separator
+        menu.addSeparator()
+        # add a ALL item to select all columns
+        all_action = QtWidgets.QAction("All", self)
+        menu.addAction(all_action)
+        all_action.triggered.connect(lambda: self.show_columns(self.model.columns))
+        # add a NONE item to select no columns
+        none_action = QtWidgets.QAction("None", self)
+        menu.addAction(none_action)
+        none_action.triggered.connect(lambda: self.hide_all_columns())
         menu.exec_(self.mapToGlobal(position))
 
     def right_click_menu(self, position):
@@ -489,7 +498,6 @@ class TikSubView(QtWidgets.QTreeView):
             _items = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)
             if _items:
                 _item_at_id_column = _items[0]
-                # _item_at_id_column = self.model.findItems(str(_new_sub.parent.id), QtCore.Qt.MatchRecursive, 1)[0]
                 # find the index of the item
                 _index = self.model.indexFromItem(_item_at_id_column)
                 # make sure the index is pointing to the first column
@@ -623,6 +631,11 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
             self.sub_view.set_recursive_task_scan(self.recursive_search_cb.isChecked())
             self.recursive_search_cb.stateChanged.connect(self.sub_view.set_recursive_task_scan)
         self.filter_le.returnPressed.connect(self.sub_view.setFocus)
+
+        # Hide all columns except the first one
+        for idx in range(1, self.sub_view.header().count()):
+            self.sub_view.hideColumn(idx)
+
 
     def refresh(self):
         """Refresh the layout"""

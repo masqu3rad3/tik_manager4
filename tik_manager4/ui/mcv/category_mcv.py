@@ -219,6 +219,15 @@ class TikCategoryView(QtWidgets.QTreeView):
         else:
             self.hide_columns(column)
 
+    def show_columns(self, list_of_columns):
+        """Shows the given columns."""
+        for column in list_of_columns:
+            self.unhide_columns(column)
+
+    def get_visible_columns(self):
+        """Returns the visible columns."""
+        return [self.model.columns[x] for x in range(self.model.columnCount()) if not self.isColumnHidden(x)]
+
     def filter(self, text):
         """Filter the model"""
         self.proxy_model.setFilterRegExp(QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))
@@ -395,6 +404,9 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         # TODO: get this from the last state of the user
         self._last_category = None
         self.mode = 0  # 0 = work, 1 = publish
+
+        for idx in range(1, self.work_tree_view.header().count()):
+            self.work_tree_view.hideColumn(idx)
 
     def get_active_category(self):
         """Get the active category object and return it."""

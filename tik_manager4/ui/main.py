@@ -144,11 +144,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.build_bars()
         self.build_buttons()
         #
-        self.resume_last_selection()
+        self.resume_last_state()
         #
         self.status_bar.showMessage("Status | Ready")
 
-    def resume_last_selection(self):
+    def resume_last_state(self):
         """Resume the last selection from the user settings."""
         # project is getting handled by the project object.
         # subproject
@@ -188,6 +188,14 @@ class MainUI(QtWidgets.QMainWindow):
         _sizes = self.tik.user.split_sizes or [291, 180, 290, 291]
         self.splitter.setSizes(_sizes)
 
+
+        # self.subprojects_mcv.sub_view.hide_all_columns()
+        self.subprojects_mcv.sub_view.show_columns(self.tik.user.visible_columns.get("subprojects", []))
+        self.tasks_mcv.task_view.show_columns(self.tik.user.visible_columns.get("tasks", []))
+        self.categories_mcv.work_tree_view.show_columns(self.tik.user.visible_columns.get("categories", []))
+
+        # Adjust column visibilities
+
         # # if there is only a single subproject, then select the first one
         # if self.subprojects_mcv.sub_view.row_count() == 1:
         #     self.subprojects_mcv.sub_view.select_first_item()
@@ -204,7 +212,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.user_layout.addLayout(self.user_mcv)
 
         self.subprojects_mcv = TikSubProjectLayout(self.tik.project)
-        self.subprojects_mcv.sub_view.hide_columns(["id", "path"])
+        # self.subprojects_mcv.sub_view.hide_columns(["id", "path"])
         self.subproject_tree_layout.addLayout(self.subprojects_mcv)
 
         self.tasks_mcv = TikTaskLayout()
@@ -235,7 +243,7 @@ class MainUI(QtWidgets.QMainWindow):
         """Double click event for the work tree view"""
         print(event)
 
-    def set_last_selection(self):
+    def set_last_state(self):
         """Set the last selections for the user"""
         self.tik.user.last_project = self.tik.project.name
         # get the currently selected subproject
@@ -259,6 +267,34 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.tik.user.split_sizes = self.splitter.sizes()
 
+        # get the visibilities of columns for mcvs
+        columns_states = {
+            "subprojects": self.subprojects_mcv.sub_view.get_visible_columns(),
+            "tasks": self.tasks_mcv.task_view.get_visible_columns(),
+            "categories": self.categories_mcv.work_tree_view.get_visible_columns(),
+        }
+        self.tik.user.visible_columns = columns_states
+        # _subproject_columns = self.subprojects_mcv.sub_view.get_visible_columns()
+        # self.tik.user.visible_columns = {"subprojects": _subproject_columns}
+        # _task_columns = self.tasks_mcv.task_view.get_visible_columns()
+        # self.tik.user.visible_columns["tasks"] = _task_columns
+        # _category_columns = self.categories_mcv.work_tree_view.get_visible_columns()
+        # print(_category_columns)
+        # print(_category_columns)
+        # print(_category_columns)
+        # print(_category_columns)
+        # print(_category_columns)
+        # print(_category_columns)
+        # print(_category_columns)
+        # # self.tik.user.visible_columns["categories"] = _category_columns
+        # self.tik.user.visible_columns.update({"categories": _category_columns})
+        # print("Aaa")
+        # print(self.tik.user.visible_columns["categories"])
+        # print(self.tik.user.visible_columns["categories"])
+        # print(self.tik.user.visible_columns["categories"])
+        # print(self.tik.user.visible_columns["categories"])
+        # self.tik.user.resume.apply_settings()
+
     # override the closeEvent to save the window state
     def closeEvent(self, event):
         self.tik.user.last_subproject = None
@@ -267,7 +303,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.tik.user.last_work = None
         self.tik.user.last_version = None
 
-        self.set_last_selection()
+        self.set_last_state()
 
         # set the expanded state of the subproject tree
         self.tik.user.expanded_subprojects = self.subprojects_mcv.sub_view.get_expanded_state()
@@ -476,10 +512,10 @@ class MainUI(QtWidgets.QMainWindow):
         dialog = NewWorkDialog(self.tik, parent=self, subproject=subproject, task=task, category=category)
         state = dialog.exec_()
         if state:
-            self.set_last_selection()
+            self.set_last_state()
             self.refresh_versions()
             self.status_bar.showMessage("New work created successfully.", 5000)
-            self.resume_last_selection()
+            self.resume_last_state()
 
     def on_new_version(self):
         """Create a new version."""
@@ -498,10 +534,10 @@ class MainUI(QtWidgets.QMainWindow):
         dialog = NewVersionDialog(work_object=_work, parent=self)
         state = dialog.exec_()
         if state:
-            self.set_last_selection()
+            self.set_last_state()
             self.refresh_tasks()
             self.status_bar.showMessage("New version created successfully.", 5000)
-            self.resume_last_selection()
+            self.resume_last_state()
 
     def refresh_project(self):
         """Refresh the project ui."""

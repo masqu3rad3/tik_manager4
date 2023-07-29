@@ -193,6 +193,16 @@ class TikTaskView(QtWidgets.QTreeView):
         else:
             self.hide_columns(column)
 
+    def show_columns(self, list_of_columns):
+        """Shows the given columns."""
+        for column in list_of_columns:
+            self.unhide_columns(column)
+
+    def get_visible_columns(self):
+        """Returns the visible columns."""
+        return [self.model.columns[x] for x in range(self.model.columnCount()) if not self.isColumnHidden(x)]
+
+
     def select_first_item(self):
         """Select the first item in the view."""
         idx = self.proxy_model.index(0, 0)
@@ -382,6 +392,10 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
         self.filter_le.setClearButtonEnabled(True)
         self.filter_le.setFocus()
         self.filter_le.returnPressed.connect(self.task_view.setFocus)
+
+        # Hide all columns except the first one
+        for idx in range(1, self.task_view.header().count()):
+            self.task_view.hideColumn(idx)
 
     def refresh(self):
         self.task_view.refresh()
