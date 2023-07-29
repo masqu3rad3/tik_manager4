@@ -83,29 +83,27 @@ class MainUI(QtWidgets.QMainWindow):
         line.setAlignment(QtCore.Qt.AlignCenter)
         project_user_layout.addWidget(line)
 
-
         project_user_layout.addLayout(self.user_layout)
 
         self.main_layout = QtWidgets.QVBoxLayout()
-        splitter = QtWidgets.QSplitter(self.central_widget, orientation=QtCore.Qt.Horizontal)
-        splitter.setHandleWidth(5)
+        self.splitter = QtWidgets.QSplitter(self.central_widget, orientation=QtCore.Qt.Horizontal)
+        self.splitter.setHandleWidth(5)
 
+        self.main_layout.addWidget(self.splitter)
 
-        self.main_layout.addWidget(splitter)
-
-        subproject_tree_widget = QtWidgets.QWidget(splitter)
+        subproject_tree_widget = QtWidgets.QWidget(self.splitter)
         self.subproject_tree_layout = QtWidgets.QVBoxLayout(subproject_tree_widget)
         self.subproject_tree_layout.setContentsMargins(2, 2, 2, 2)
 
-        task_tree_widget = QtWidgets.QWidget(splitter)
+        task_tree_widget = QtWidgets.QWidget(self.splitter)
         self.task_tree_layout = QtWidgets.QVBoxLayout(task_tree_widget)
         self.task_tree_layout.setContentsMargins(2, 2, 2, 2)
 
-        category_widget = QtWidgets.QWidget(splitter)
+        category_widget = QtWidgets.QWidget(self.splitter)
         self.category_layout = QtWidgets.QVBoxLayout(category_widget)
         self.category_layout.setContentsMargins(2, 2, 2, 2)
 
-        version_widget = QtWidgets.QWidget(splitter)
+        version_widget = QtWidgets.QWidget(self.splitter)
         self.version_layout = QtWidgets.QVBoxLayout(version_widget)
         self.version_layout.setContentsMargins(2, 2, 2, 2)
 
@@ -129,8 +127,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.master_layout.addLayout(self.title_layout)
         self.master_layout.addLayout(project_user_layout)
-        # self.master_layout.addLayout(self.user_layout)
-        # self.master_layout.addLayout(self.project_layout)
         self.master_layout.addLayout(self.main_layout)
 
         self.master_layout.addWidget(self.work_buttons_frame)
@@ -152,8 +148,6 @@ class MainUI(QtWidgets.QMainWindow):
         #
         self.status_bar.showMessage("Status | Ready")
 
-
-
     def resume_last_selection(self):
         """Resume the last selection from the user settings."""
         # project is getting handled by the project object.
@@ -169,7 +163,7 @@ class MainUI(QtWidgets.QMainWindow):
                 if task_id:
                     state = self.tasks_mcv.task_view.select_by_id(task_id)
                     if state:
-                    #     # if its successfully set, then select the last category
+                        # if its successfully set, then select the last category
                         category_index = self.tik.user.last_category or 0
                         self.categories_mcv.set_category_by_index(category_index)
                         work_id = self.tik.user.last_work
@@ -182,14 +176,17 @@ class MainUI(QtWidgets.QMainWindow):
                                     self.versions_mcv.set_version(version_id)
         else:
             # if there are no subprojects, then select the first one
-            # if self.subprojects_mcv.sub_view.row_count() == 1:
             self.subprojects_mcv.sub_view.select_first_item()
-            print("No subproject found, selecting the first one.")
+            LOG.info("No subproject found, selecting the first one.")
 
         self.subprojects_mcv.sub_view.set_expanded_state(self.tik.user.expanded_subprojects)
 
         # regardless from the state, always try to expand the first row
         self.subprojects_mcv.sub_view.expand_first_item()
+
+        # set the split sizes from the user
+        _sizes = self.tik.user.split_sizes or [291, 180, 290, 291]
+        self.splitter.setSizes(_sizes)
 
         # # if there is only a single subproject, then select the first one
         # if self.subprojects_mcv.sub_view.row_count() == 1:
@@ -260,6 +257,7 @@ class MainUI(QtWidgets.QMainWindow):
                     # we can always safely write the version number
                     self.tik.user.last_version = _version_nmb
 
+        self.tik.user.split_sizes = self.splitter.sizes()
 
     # override the closeEvent to save the window state
     def closeEvent(self, event):

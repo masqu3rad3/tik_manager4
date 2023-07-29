@@ -112,8 +112,18 @@ class User(object):
 
     @expanded_subprojects.setter
     def expanded_subprojects(self, value):
-        """Sets the expanded states of subprojects."""
+        """Set the expanded states of subprojects."""
         self.resume.edit_property("expanded_subprojects", value)
+
+    @property
+    def split_sizes(self):
+        """Get the split sizes to apply to the main UI"""
+        return self.resume.get_property("split_sizes", [])
+
+    @split_sizes.setter
+    def split_sizes(self, value):
+        """Set the split size values."""
+        self.resume.edit_property("split_sizes", value)
 
     @classmethod
     def __set_authentication_status(cls, state):
