@@ -1,5 +1,5 @@
 import os
-from tik_manager4.dcc.core_template import DccTemplate
+from tik_manager4.dcc.main_core import DccTemplate
 import subprocess
 
 class Dcc(DccTemplate):

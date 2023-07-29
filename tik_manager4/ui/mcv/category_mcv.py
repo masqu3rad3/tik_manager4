@@ -456,7 +456,7 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.category_tab_widget.blockSignals(False)
 
     def on_mode_change(self, _event):
-        """Change the mode"""
+        """Change the mode."""
         if self.work_radio_button.isChecked():
             self.mode = 0
             self.mode_changed.emit(0)
@@ -467,10 +467,10 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 
 
     def on_category_change(self, index):
-        """When the category tab changes"""
+        """Do this when the category tab changes."""
         # get the current tab name
         self._last_category = self.category_tab_widget.tabText(index)
-        if self.mode == 0:
+        if self.mode == 0 and self._last_category:
             works = self.task.categories[self._last_category].works
             self.work_tree_view.model.set_works(works.values())
         else:
