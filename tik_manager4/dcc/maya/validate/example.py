@@ -3,24 +3,27 @@
 import maya.cmds as cmds
 from tik_manager4.dcc.validate_core import ValidateCore
 
-class ForbiddenNodes(ValidateCore):
+class Example(ValidateCore):
     """Validate class for Maya"""
 
-    name = "Forbidden Nodes"
-    forbiddenNodeTypes = ["polyBlindData", "unknown", "blindDataTemplate"]
-
+    name = "Example"
     def __init__(self):
-        super(ForbiddenNodes, self).__init__()
+        super(Example, self).__init__()
         self.autofixable = True
-        self.ignorable = True
+
+
+
     def validate(self):
         """Validate unique names in Maya scene."""
-        forbidden_nodes = cmds.ls(type=self.forbiddenNodeTypes)
-        if forbidden_nodes:
-            self.passed = False
+        passed = True
+        if not passed:
+            self.error = True
     def fix(self):
         """Deletes all forbidden nodes"""
-        self.delete_object(cmds.ls(type=self.forbiddenNodeTypes))
+        fixed = True
+        # if fixed:
+        #     self.
+        # if not fixed:
 
     @staticmethod
     def delete_object(keyword, force=True):

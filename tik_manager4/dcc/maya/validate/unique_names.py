@@ -5,10 +5,13 @@ from tik_manager4.dcc.validate_core import ValidateCore
 
 class UniqueNames(ValidateCore):
     """Validate class for Maya"""
+
+    name = "Unique Names"
     def __init__(self):
         super(UniqueNames, self).__init__()
 
         self.autofixable = True
+        self.ignorable = True
     def validate(self):
         """Validate unique names in Maya scene."""
         collection = []
