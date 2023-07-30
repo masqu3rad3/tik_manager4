@@ -14,7 +14,7 @@ for mod in modules:
     if file_name not in exceptions and not file_name.startswith("_"):
         module_name = file_name[:-3]
         module_path = os.path.join(os.path.dirname(__file__), module_name)
-        module = importlib.import_module("tik_manager4.dcc.maya.validate.%s" % module_name)
+        module = importlib.import_module(f"{__name__}.{module_name}")
 
         for name, obj in inspect.getmembers(module):
             if inspect.isclass(obj) and issubclass(obj, ValidateCore) and obj != ValidateCore:
