@@ -4,7 +4,7 @@ import importlib
 import inspect
 from tik_manager4.dcc.validate_core import ValidateCore
 
-subclasses = []
+validators = []
 modules = glob.glob(os.path.join(os.path.dirname(__file__), "*.py"))
 
 exceptions = ["__init__.py"]
@@ -18,5 +18,5 @@ for mod in modules:
 
         for name, obj in inspect.getmembers(module):
             if inspect.isclass(obj) and issubclass(obj, ValidateCore) and obj != ValidateCore:
-                subclasses.append(obj)
+                validators.append(obj())
 

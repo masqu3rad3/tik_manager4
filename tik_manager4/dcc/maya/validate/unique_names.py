@@ -3,15 +3,19 @@
 import maya.cmds as cmds
 from tik_manager4.dcc.validate_core import ValidateCore
 
+
 class UniqueNames(ValidateCore):
     """Validate class for Maya"""
 
     name = "Unique Names"
+
     def __init__(self):
         super(UniqueNames, self).__init__()
 
         self.autofixable = True
         self.ignorable = True
+        self.selectable = True
+
     def validate(self):
         """Validate unique names in Maya scene."""
         collection = []
@@ -21,11 +25,18 @@ class UniqueNames(ValidateCore):
                 self.unique_name(pathway[-1])
                 collection.append(obj)
         if collection:
-            self.error = True
+            self.failed()
+        else:
+            self.passed()
 
     def fix(self):
         """Auto fix the validation."""
         self.make_names_unique()
+
+    def select(self):
+        """Selects the objects with non-unique names"""
+        # TODO
+        pass
 
     @staticmethod
     def unique_name(name, return_counter=False, suffix=None):
@@ -58,7 +69,7 @@ class UniqueNames(ValidateCore):
                 result_name = name
             return result_name
 
-    def make_names_unique(self, ):
+    def make_names_unique(self):
         """
         Makes sure that everything is named uniquely. Returns list of renamed nodes and list of new names
 

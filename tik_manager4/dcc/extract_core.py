@@ -1,31 +1,31 @@
 """Template module for publishing"""
+import os
 
-
-class ExtractTemplate(object):
+class ExtractCore(object):
     def __init__(self):
-        pass
+        self.name: str = ""
+        self._output_path: str = ""
+        self._category: str = ""
 
-    def alembic(self, file_path, category=None):
-        pass
+    @property
+    def output_path(self):
+        return self._output_path
 
-    def fbx(self, file_path, category=None):
-        pass
+    @output_path.setter
+    def output_path(self, file_path):
+        if os.path.isfile(file_path):
+            self._output_path = file_path
+        else:
+            raise ValueError(f"Path is not a file. Given path: {file_path}")
 
-    def obj(self, file_path, category=None):
-        pass
+    @property
+    def category(self):
+        return self._category
 
-    def usd(self, file_path, category=None):
-        pass
+    @category.setter
+    def category(self, category):
+        # TODO some validation here
+        self._category = category
 
-    def jpg(self, file_path, category=None):
+    def extract(self):
         pass
-
-    def tga(self, file_path, category=None):
-        pass
-
-    def exr(self, file_path, category=None):
-        pass
-
-    def png(self, file_path, category=None):
-        pass
-

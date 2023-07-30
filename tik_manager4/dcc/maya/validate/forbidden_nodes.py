@@ -13,14 +13,23 @@ class ForbiddenNodes(ValidateCore):
         super(ForbiddenNodes, self).__init__()
         self.autofixable = True
         self.ignorable = True
+        self.selectable = True
+
     def validate(self):
         """Validate unique names in Maya scene."""
         forbidden_nodes = cmds.ls(type=self.forbiddenNodeTypes)
         if forbidden_nodes:
-            self.passed = False
+            self.failed(msg="Forbidden nodes found: {}".format(forbidden_nodes))
+        else:
+            self.passed()
     def fix(self):
         """Deletes all forbidden nodes"""
         self.delete_object(cmds.ls(type=self.forbiddenNodeTypes))
+        self.validate()
+
+    def select(self):
+        """Selects all forbidden nodes"""
+        cmds.select(cmds.ls(type=self.forbiddenNodeTypes))
 
     @staticmethod
     def delete_object(keyword, force=True):
