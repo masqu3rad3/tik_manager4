@@ -1,4 +1,6 @@
 from tik_manager4.ui.Qt import QtWidgets, QtGui, QtCore
+from tik_manager4.ui.widgets.common import TikButton
+
 
 
 class CollapsibleLayout(QtWidgets.QVBoxLayout):
@@ -10,11 +12,9 @@ class CollapsibleLayout(QtWidgets.QVBoxLayout):
 
         # create a button to expand and collapse the layout
         self._title = title
-        self._button = QtWidgets.QPushButton()
+        self._button = TikButton()
         self.addWidget(self._button)
         self._button.setText("+ {}".format(self._title))
-        # set button color to slightly lighter, size to 15pt, and text alignment to left
-        # self._button.setStyleSheet("QPushButton {color: #d9d9d9; font-size: 13pt; text-align: left;}")
         # increase the button height to 30px
         self._button.setMinimumHeight(25)
         # set the button to flat with borders

@@ -1,7 +1,7 @@
 {
   "mode": {
     "default": "",
-    "enum": ["", "asset", "shot"]
+    "enum": ["global", "asset", "shot"]
   },
   "colorspace": {
     "default": "linear"

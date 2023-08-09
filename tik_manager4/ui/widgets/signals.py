@@ -1,3 +1,4 @@
+# pylint: disable=
 """Signal definitions for the TikManager4 UI."""
 from tik_manager4.ui.Qt import QtCore
 

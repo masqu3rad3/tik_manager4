@@ -1,3 +1,4 @@
+import sys
 import hashlib
 import os
 from tik_manager4.core import filelog
@@ -21,18 +22,13 @@ class User(object):
         super(User, self).__init__()
         self.settings = Settings()
         self.bookmarks = Settings()
-        # self.states = Settings()  # is this necessary anymore??
+        self.resume = Settings()
         self.user_directory = None
         self.common_directory = common_directory  # this is only for programmatically set the commons
         self.commons = None
 
         self._active_user = None
-        # self._password_authenticated = False
         self._validate_user_data()
-
-    # @property
-    # def directory(self):
-    #     return self.user_directory
 
     @property
     def is_authenticated(self):
@@ -43,6 +39,101 @@ class User(object):
     def permission_level(self):
         # return self._permission_level
         return self._guard.permission_level
+
+    @property
+    def bookmark_names(self):
+        """Return the bookmark names"""
+        return [os.path.basename(x) for x in self.get_project_bookmarks()]
+
+    @property
+    def last_project(self):
+        """Returns the last project"""
+        return self.resume.get_property("project")
+
+    @last_project.setter
+    def last_project(self, value):
+        """Sets the last project"""
+        self.resume.edit_property("project", value)
+
+    @property
+    def last_subproject(self):
+        """Returns the last subproject"""
+        return self.resume.get_property("subproject")
+
+    @last_subproject.setter
+    def last_subproject(self, value):
+        """Sets the last subproject"""
+        self.resume.edit_property("subproject", value)
+
+    @property
+    def last_task(self):
+        """Returns the last task"""
+        return self.resume.get_property("task")
+
+    @last_task.setter
+    def last_task(self, value):
+        """Sets the last task"""
+        self.resume.edit_property("task", value)
+
+    @property
+    def last_category(self):
+        """Returns the last category"""
+        return self.resume.get_property("category")
+
+    @last_category.setter
+    def last_category(self, value):
+        """Sets the last category"""
+        self.resume.edit_property("category", value)
+
+    @property
+    def last_work(self):
+        """Returns the last category"""
+        return self.resume.get_property("work")
+
+    @last_work.setter
+    def last_work(self, value):
+        """Sets the last category"""
+        self.resume.edit_property("work", value)
+
+    @property
+    def last_version(self):
+        """Returns the last version"""
+        return self.resume.get_property("version")
+
+    @last_version.setter
+    def last_version(self, value):
+        """Sets the last version"""
+        self.resume.edit_property("version", value)
+
+    @property
+    def expanded_subprojects(self):
+        """Return the expanded states of subprojects."""
+        return self.resume.get_property("expanded_subprojects", [])
+
+    @expanded_subprojects.setter
+    def expanded_subprojects(self, value):
+        """Set the expanded states of subprojects."""
+        self.resume.edit_property("expanded_subprojects", value)
+
+    @property
+    def split_sizes(self):
+        """Get the split sizes to apply to the main UI"""
+        return self.resume.get_property("split_sizes", [])
+
+    @split_sizes.setter
+    def split_sizes(self, value):
+        """Set the split size values."""
+        self.resume.edit_property("split_sizes", value)
+
+    @property
+    def visible_columns(self):
+        """Get the column visibilities."""
+        return self.resume.get_property("visible_columns", {})
+
+    @visible_columns.setter
+    def visible_columns(self, value):
+        """Set the column visibilities."""
+        self.resume.edit_property("visible_columns", value)
 
     @classmethod
     def __set_authentication_status(cls, state):
@@ -74,13 +165,13 @@ class User(object):
     def _validate_user_data(self):
         """Finds or creates user directories and files"""
 
-        # _user_root = os.path.expanduser('~')
         _user_root = utils.get_home_dir()
         self.user_directory = os.path.normpath(os.path.join(_user_root, "TikManager4"))
         if not os.path.isdir(os.path.normpath(self.user_directory)):
             os.makedirs(os.path.normpath(self.user_directory))
         self.settings.settings_file = os.path.join(self.user_directory, "userSettings.json")
         self.bookmarks.settings_file = os.path.join(self.user_directory, "bookmarks.json")
+        self.resume.settings_file = os.path.join(self.user_directory, "resume.json")
 
         # Check if the common folder defined in the user settings
         self.common_directory = self.common_directory or self.settings.get_property("commonFolder")
@@ -97,41 +188,37 @@ class User(object):
 
         self.commons = Commons(self.common_directory)
         self.__set_category_definitions(self.commons.category_definitions)
-        # self.__set_asset_categories(self.commons.structures.get_property("asset_categories"))
-        # self.__set_shot_categories(self.commons.structures.get_property("shot_categories"))
-        # self.__set_null_categories(self.commons.structures.get_property("null_categories"))
 
         # set the default keys for missing ones
-        # for key, val in self.commons.manager.get_property("defaultUserSettings").items():
         for key, val in self.commons.user_settings.get_property("userPreferences").items():
             if not self.settings.get_property(key=key):
                 self.settings.add_property(key=key, val=val)
 
-        # for key, val in self.commons.manager.get_property("defaultBookmarks").items():
         for key, val in self.commons.user_settings.get_property("bookmarks").items():
             if not self.bookmarks.get_property(key=key):
                 self.bookmarks.add_property(key=key, val=val)
 
+        for key, val in self.commons.user_settings.get_property("resume").items():
+            if not self.resume.get_property(key=key):
+                self.resume.add_property(key=key, val=val)
+
         # set the active user
-        active_user = self.bookmarks.get_property("activeUser")
+        active_user = self.resume.get_property("user")
         state, msg = self.set(active_user, save_to_db=False)
         if state == -1:
             self.set("Generic", save_to_db=False)
-        # if active_user not in self.commons.get_users():
-        #     active_user = "Generic"
-        # self.set_active_user(active_user, save_to_db=False)
 
         self.settings.apply_settings()
         self.bookmarks.apply_settings()
+        self.resume.apply_settings()
         return 1
 
     def get(self):
         """Returns the currently active user"""
         return self._active_user
 
-    def set(self, user_name, password=None, save_to_db=True):
+    def set(self, user_name, password=None, save_to_db=True, clear_db=False):
         """Sets the active user to the session"""
-
         # check if the user exists in common database
         if user_name in self.commons.get_users():
             if password is not None:  # try to authenticate the active user
@@ -139,12 +226,29 @@ class User(object):
                     self.__set_authentication_status(True)
                 else:
                     return -1, log.warning("Wrong password provided for user %s" % user_name)
+            elif self.resume.get_property("user_dhash") == self.__hash_pass("{0}{1}".format(user_name, self.commons.users.get_property(user_name).get("pass"))):
+
+                self.__set_authentication_status(True)
             else:
                 self.__set_authentication_status(False)  # make sure it is not authenticated if no password
             self._active_user = user_name
             self._guard.set_user(self._active_user)
             if save_to_db:
-                self.bookmarks.edit_property("activeUser", self._active_user)
+                # self.bookmarks.edit_property("activeUser", self._active_user)
+                self.resume.edit_property("user", self._active_user)
+                # self.bookmarks.edit_property("activeUser_dhash", self.__hash_pass("TESTING"))
+                _d_hash = self.__hash_pass("{0}{1}".format(self._active_user, self.commons.users.get_property(self._active_user).get("pass")))
+                # self.bookmarks.edit_property("activeUser_dhash", _d_hash)
+                self.resume.edit_property("user_dhash", _d_hash)
+                # self.bookmarks.apply_settings()
+                self.resume.apply_settings()
+            if clear_db:
+                # self.bookmarks.edit_property("activeUser", None)
+                self.resume.edit_property("user", None)
+                # self.bookmarks.edit_property("activeUser_dhash", None)
+                self.resume.edit_property("user_dhash", None)
+                # self.bookmarks.apply_settings()
+                self.resume.apply_settings()
             self.__set_permission_level(self.commons.check_user_permission_level(user_name))
             return user_name, "Success"
         else:
@@ -256,32 +360,6 @@ class User(object):
         else:
             return False
 
-    def add_project_bookmark(self, project_name, path):
-        """Adds the given project to the user bookmark database"""
-
-        bookmark_list = self.bookmarks.get_property("bookmarkedProjects")
-
-        all_bookmark_names = [x.get("name") for x in bookmark_list]
-        if project_name in all_bookmark_names:
-            return -1, log.warning("%s already exists in user bookmarks" % project_name)
-
-        bookmark_list.append({"name": project_name, "path": path})
-        self.bookmarks.apply_settings()
-        return 1, "%s added to bookmarks" % project_name
-
-    def delete_project_bookmark(self, project_name):
-        """Removes the project from user bookmarks"""
-
-        bookmark_list = self.bookmarks.get_property("bookmarkedProjects")
-
-        for nmb, bookmark in enumerate(bookmark_list):
-            if bookmark.get("name") == project_name:
-                bookmark_list.pop(nmb)
-                # self.bookmarks.edit_property("bookmarkedProjects", bookmark_list)
-                self.bookmarks.apply_settings()
-                return 1, "Success"
-        return -1, log.warning("%s doesn't exist in bookmarks. Aborting" % project_name)
-
     @staticmethod
     def __hash_pass(password):
         """Hashes the password"""
@@ -291,6 +369,28 @@ class User(object):
         """Returns the user bookmarked projects as list of dictionaries"""
         return self.bookmarks.get_property("bookmarkedProjects")
 
+    def add_project_bookmark(self, project_path):
+        """Add a new project bookmark to the user bookmarks"""
+        bookmark_list = self.bookmarks.get_property("bookmarkedProjects")
+        if project_path not in bookmark_list:
+            bookmark_list.append(project_path)
+            self.bookmarks.apply_settings()
+            return 1
+        else:
+            log.warning("Project %s already exists in bookmarks" % project_path)
+            return -1
+
+    def delete_project_bookmark(self, project_path):
+        """Delete a project bookmark from the user bookmarks"""
+        bookmark_list = self.bookmarks.get_property("bookmarkedProjects")
+        if project_path in bookmark_list:
+            bookmark_list.remove(project_path)
+            self.bookmarks.apply_settings()
+            return 1
+        else:
+            log.warning("Project %s doesn't exist in bookmarks" % project_path)
+            return -1
+
     def add_recent_project(self, path):
         recents_list = self.bookmarks.get_property("recentProjects")
         if path in recents_list:
@@ -298,9 +398,19 @@ class User(object):
         recents_list.append(path)
         if len(recents_list) > 10:
             recents_list.pop(0)
-        self.bookmarks.apply_settings()
+        self.bookmarks.apply_settings(force=True)
+
 
     def get_recent_projects(self):
         return self.bookmarks.get_property("recentProjects")
+
+    # def remember(self):
+    #     """Remember the active user and authentication.
+    #
+    #     Checks the activeUser ana activeUser_dhash. If both of them exists and d_hash is correct, then set the
+    #     active user and authenticate it."""
+    #     """
+
+
 
     # TODO Project Repositories

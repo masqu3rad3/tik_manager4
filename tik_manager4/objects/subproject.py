@@ -60,14 +60,8 @@ class Metadata(dict):
     def override(self, data_dictionary):
         """Override the metadata with a new dictionary."""
         # clear metadata
-        # self.clear()
         for key, data in data_dictionary.items():
             self[key] = Metaitem(data, overridden=True)
-            # if key in self:
-            #     self[key].value = data
-            #     self[key].overridden = True
-            # else:
-            #     self[key] = Metaitem(data, overridden=True)
 
 
 class Subproject(Entity):
@@ -102,15 +96,6 @@ class Subproject(Entity):
     def tasks(self):
         """Return the tasks of the subproject."""
         return self._tasks
-
-    # @property
-    # def properties(self):
-    #     """Return the subproject properties as a dictionary"""
-    #     return {
-    #         "id": self.id,
-    #         "name": self.name,
-    #         "path": self.path,
-    #     }
 
     @property
     def metadata(self):
@@ -166,6 +151,8 @@ class Subproject(Entity):
         """Create the subproject from the data dictionary.
         This is for building back the hierarchy from json data
         """
+        # first clear the subprojects
+        self._sub_projects = {}
         persistent_keys = ["id", "name", "path", "subs"]
         visited = []
         queue = []
@@ -262,7 +249,7 @@ class Subproject(Entity):
             Subproject: The newly created subproject object.
         """
 
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
 
@@ -288,6 +275,7 @@ class Subproject(Entity):
 
     def scan_tasks(self):
         """Scan the subproject for tasks."""
+
         _tasks_search_dir = self.get_abs_database_path()
         _task_paths = glob(os.path.join(_tasks_search_dir, '*.ttask'))
 
@@ -301,6 +289,18 @@ class Subproject(Entity):
             else:
                 if existing_task.is_modified():
                     existing_task.reload()
+
+        # if the lengths are not matching that means some tasks are deleted
+        if len(_task_paths) != len(self._tasks):
+            # get the task names
+            _task_names = [os.path.basename(_task_path).split(".")[0] for _task_path in _task_paths]
+            # get the task names that are not in the _task_names
+            _deleted_task_names = [task_name for task_name in self._tasks.keys() if task_name not in _task_names]
+            # delete the tasks
+            for _deleted_task_name in _deleted_task_names:
+                del self._tasks[_deleted_task_name]
+
+
         return self._tasks
 
     def add_task(self, name, categories, task_type=None):
@@ -317,7 +317,7 @@ class Subproject(Entity):
         """
         # inherit the task type from the parent subproject 'mode' if not specified
         task_type = task_type or self.metadata.get_value("mode", None)
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
         file_name = "{0}.ttask".format(name)
@@ -326,36 +326,20 @@ class Subproject(Entity):
         if os.path.exists(abs_path):
             LOG.warning("There is a task under this sub-project with the same name => %s" % name)
             return -1
-
+        _task_id = self.generate_id()
         _task = Task(abs_path, name=name, categories=categories, path=self.path, file_name=file_name,
-                     task_type=task_type, parent_sub=self)
+                     task_type=task_type, parent_sub=self, task_id=_task_id)
         _task.add_property("name", name)
         _task.add_property("creator", self.guard.user)
         _task.add_property("type", task_type)
-        _task.add_property("task_id", _task.id)
+        _task.add_property("task_id", _task_id)
+        _task.add_property("subproject_id", self.id)
         _task.add_property("categories", categories)
         _task.add_property("path", self.path)
         _task.add_property("file_name", file_name)
         _task.apply_settings()
         self._tasks[name] = _task
         return _task
-
-    # def edit_task(self, name, new_name=None, categories=None, task_type=None):
-    #     """Edit a task."""
-    #     # find the task
-    #     _task = self._tasks.get(name, None)
-    #     if not _task:
-    #         LOG.warning("Task not found")
-    #         return -1
-    #     # check if the new name is already taken
-    #     if new_name and new_name != name:
-    #         if new_name in self._tasks:
-    #             LOG.warning("Task with the same name already exist")
-    #             return -1
-    #         # rename the task
-    #         _task.(new_name)
-    #         self._tasks[new_name] = _task
-    #         del self._tasks[name]
 
     @staticmethod
     def is_task_empty(task):
@@ -376,7 +360,7 @@ class Subproject(Entity):
         # check all categories are empty
         _is_empty = self.is_task_empty(task)
         permission_level = 2 if _is_empty else 3
-        state = self._check_permissions(level=permission_level)
+        state = self.check_permissions(level=permission_level)
         if state != 1:
             return -1
 
@@ -398,6 +382,8 @@ class Subproject(Entity):
 
     def find_sub_by_id(self, uid):
         """Find the subproject by id."""
+        if self.id == uid:
+            return self
         queue = list(self.subs.values())
         while queue:
             current = queue.pop(0)
@@ -445,6 +431,14 @@ class Subproject(Entity):
         sub = self.find_sub_by_id(uid)
         return sub.path if sub != -1 else sub
 
+    def find_task_by_id(self, uid):
+        """Get the task by id. Search through only the tasks under this subproject."""
+        self.scan_tasks()
+        for _task_name, task_object in self.tasks.items():
+            if task_object.id == uid:
+                return task_object
+        return -1
+
     @staticmethod
     def is_subproject_empty(sub):
         """Check if the subproject has other subprojects or tasks."""
@@ -459,7 +453,7 @@ class Subproject(Entity):
             return -1
 
         # Minimum required permission level is 2
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
 
@@ -474,7 +468,7 @@ class Subproject(Entity):
 
         # if the subproject is not empty, we need to have level 3
         if not self.is_subproject_empty(kill_sub):
-            state = self._check_permissions(level=3)
+            state = self.check_permissions(level=3)
             if state != 1:
                 return -1
 
@@ -488,7 +482,8 @@ class Subproject(Entity):
         """Delete the folders of the subproject."""
         sub = sub or self
         folder = os.path.normpath(os.path.join(root, sub.path))
-        shutil.rmtree(folder)
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
 
     def create_folders(self, root, sub=None):
         """Create folders for subprojects and categories below this starting from 'root' path"""

@@ -208,6 +208,14 @@ QGroupBox::indicator:checked:disabled {
 https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qradiobutton
 
 --------------------------------------------------------------------------- */
+QPushButton
+{
+    color: #b1b1b1;
+    background-color: #404040;
+    border-width: 1px;
+    border-color: #1e1e1e;
+}
+
 QRadioButton {
   background-color: #303030;
   color: #F0F0F0;
@@ -507,12 +515,14 @@ QTextEdit:focus
 https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qframe
 
 --------------------------------------------------------------------------- */
+
+/*
 QLabel {
   border: 0px solid #4c4c4c;
   margin: 0px;
   color: #F0F0F0;
 }
-
+*/
 QLabel::disabled {
   background-color: #303030;
   border: 1px solid #404040;
@@ -532,22 +542,10 @@ QLabel[seperator=true] {
   background-color: gray;
 }
 
-QLabel[baseScene=true] {
-  color: cyan;
-}
-
-QLabel[baseScene=false] {
-  color: yellow;
-}
-
 QLabel[infoHeader=true] {
   border: 18px solid black;
   background-color: black;
   font-size: 14px;
-}
-
-QLabel[success=false] {
-  color: red
 }
 
 /* QTextBrowser -----------------------------------------------------------
@@ -701,8 +699,8 @@ QPushButton[menuButton=true] {
   min-width: 120;
   min-height: 45;
 }
-
 */
+
 
 /* QToolButton ------------------------------------------------------------
 
@@ -1548,6 +1546,7 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qframe
 https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qsplitter
 
 --------------------------------------------------------------------------- */
+
 QSplitter {
   background-color: #303030;
   spacing: 0px;
@@ -1559,8 +1558,15 @@ QSplitter::separator {
   background-color: #303030;
   border: 0px solid #4c4c4c;
   spacing: 0px;
-  padding: 1px;
+  padding: 0x;
   margin: 0px;
+}
+
+QSplitter::handle {
+  image: url("rc:splitter_vertical.png");
+  spacing: 0px;
+  margin: 0px;
+  padding: 0px;
 }
 
 QSplitter::separator:hover {
@@ -1568,12 +1574,12 @@ QSplitter::separator:hover {
 }
 
 QSplitter::separator:horizontal {
-  width: 5px;
+  width: 2px;
   image: url("rc:line_vertical.png");
 }
 
 QSplitter::separator:vertical {
-  height: 5px;
+  height: 2px;
   image: url("rc:line_horizontal.png");
 }
 

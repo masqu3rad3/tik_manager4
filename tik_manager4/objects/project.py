@@ -1,7 +1,9 @@
 import os
+from glob import glob
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.subproject import Subproject
+from tik_manager4.objects.work import Work
 # from tik_manager4.objects.commons import Commons
 
 # log = filelog.Filelog(logname=__name__, filename="tik_manager4")
@@ -14,6 +16,7 @@ class Project(Subproject):
         super(Project, self).__init__()
         self.structure = Settings()
         self.settings = Settings()
+        self.metadata_definitions = Settings()
         self._path = path
         self._database_path = None
         self._name = name
@@ -23,17 +26,19 @@ class Project(Subproject):
 
         # This makes sure the project folder is tik_manager4 ready
         if path:
-            # self.set(path)
             self._set(path)
 
         # Absolute path do not go into the project_structure.json
         self._absolute_path = ""
-        # self._mode = "root"
-
 
     @property
     def absolute_path(self):
         return self._absolute_path
+
+    @property
+    def folder(self):
+        """Return the root of the project, where all projects lives happily"""
+        return os.path.abspath(os.path.join(self._absolute_path, os.pardir))
 
     @property
     def path(self):
@@ -61,18 +66,11 @@ class Project(Subproject):
         self.guard.set_database_root(self._database_path)
         # get project settings
         self.settings.settings_file = os.path.join(self._database_path, "project_settings.json")
+        self.settings.set_fallback(self.guard.commons.project_settings.settings_file)
+        self.metadata_definitions.settings_file = os.path.join(self._database_path, "project_metadata.json")
+        self.metadata_definitions.set_fallback(self.guard.commons.metadata.settings_file)
 
     def delete_sub_project(self, uid=None, path=None):
-        # TODO This requires tests
-        # TODO Consider deleting the work folders ??!!?? OR
-        # TODO maybe check for publishes? if there is any abort immediately?
-        # if user_object.permission_level < 3:
-        #     return -1, log.warning("User %s does not have delete permissions" % user_object.get())
-        # if not user_object.is_authenticated:
-        #     return -1, log.warning("User is not authenticated")
-        # state = self._check_permissions(level=2)
-        # if state != 1:
-        #     return -1
         if uid:
             _remove_path = self.get_path_by_uid(uid)
         else:
@@ -80,11 +78,10 @@ class Project(Subproject):
 
         if self._remove_sub_project(uid, path) == -1:
             return -1
-        self.save_structure()
         self._delete_folders(os.path.join(self._database_path, _remove_path))
+        self.save_structure()
         return 1
 
-    # def create_sub_project(self, name, parent_uid=None, parent_path=None, resolution=None, fps=None, mode=None):
     def create_sub_project(self, name, parent_uid=None, parent_path=None, **kwargs):
         """
              Similar to add_sub_project method but creates it under specified parent sub and writes data to
@@ -95,9 +92,6 @@ class Project(Subproject):
             parent_uid: (Int) Parent Subproject Unique ID or project itself.
                                 Either this or parent_path needs to be defined
             parent_path: (String) Parent Sub-Project Relative path. If uid defined this will be skipped
-            resolution: (Tuple) If not defined, parent resolution will be inherited
-            fps: (int) If not defined parent fps will be inherited
-            mode: (String) If not defined parent mode will be inherited
 
         Returns:
             <class Subproject>
@@ -106,18 +100,16 @@ class Project(Subproject):
         if parent_sub == -1:
             return -1
 
-        new_sub = parent_sub.add_sub_project(name, parent_sub=parent_sub, **kwargs, uid=None)
-        # new_sub = parent_sub.add_sub_project(name, parent_sub=parent_sub.get_sub_tree(), **kwargs, uid=None)
+        new_sub = parent_sub.add_sub_project(name, parent_sub=parent_sub, uid=None, **kwargs)
         if new_sub == -1:
             return -1
         self.save_structure()
-        # self.apply_settings()
         self.create_folders(self._database_path)
         return new_sub
 
     def edit_sub_project(self, uid=None, path=None, name=None, **properties):
         """Edits a subproject and stores it in persistent database"""
-        state = self._check_permissions(level=2)
+        state = self.check_permissions(level=2)
         if state != 1:
             return -1
         sub = self.__validate_and_get_sub(uid, path)
@@ -126,13 +118,6 @@ class Project(Subproject):
         if name:
             sub.name = name
 
-        # properties.update(
-        #     {
-        #         "name": name,
-        #         "uid": sub.id,
-        #         "path": sub.path
-        #     }
-        # )
         # get the subproject tree
         kill_list = []
         sub_tree = sub.get_sub_tree()
@@ -152,7 +137,6 @@ class Project(Subproject):
 
     def create_task(self, name, categories=None, parent_uid=None, parent_path=None):
         """Creates a task and stores it in persistent database"""
-
         if not parent_uid and not parent_path:
             self.log.error("Requires at least a parent uid or parent path ")
             return -1
@@ -192,3 +176,27 @@ class Project(Subproject):
             self.log.error("Parent subproject does not exist")
         #     raise Exception("Parent cannot identified")
         return parent
+
+    def find_work_by_absolute_path(self, file_path):
+        """Using the absolute path of the scene file return work object"""
+
+        parent_path = os.path.dirname(file_path)
+        # get the base name without extension
+        base_name = os.path.basename(file_path)
+        relative_path = os.path.relpath(parent_path, self.absolute_path)
+        database_path = self.get_abs_database_path(relative_path)
+        # get all the work files under the database path
+        work_files = glob(os.path.join(database_path, "*.twork"), recursive=False)
+        for work_file in work_files:
+            _work = Work(work_file)
+            for version in _work.versions:
+                if version.get("scene_path") == base_name:
+                    return _work
+
+    # def scan_tasks(self):
+    #     self._tasks = {}
+    #     super(Project, self).scan_tasks()
+    #     return self._tasks
+
+
+

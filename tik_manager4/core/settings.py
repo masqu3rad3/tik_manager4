@@ -15,8 +15,16 @@ class Settings(object):
         self._originalValue = {}
         self._currentValue = {}
         self._time_stamp = None
+        self._fallback = None
         if file_path:
             self.settings_file = file_path
+
+    @property
+    def date_modified(self):
+        # convert the _time_stamp to a readable date
+
+
+        return self._time_stamp
 
     @property
     def settings_file(self):
@@ -29,6 +37,10 @@ class Settings(object):
         if self._io.file_exists(file_path):
             self._time_stamp = self._io.get_modified_time()
             self.initialize(self._io.read())
+
+    def reload(self):
+        """Reloads the settings from file"""
+        self.settings_file = self._filePath
 
     @property
     def keys(self):
@@ -48,10 +60,6 @@ class Settings(object):
     def is_modified(self):
         """Checks if the file has been modified since initialization"""
         return not bool(self._io.get_modified_time() == self._time_stamp)
-
-    def reload(self):
-        """Reloads the settings from file"""
-        self.settings_file = self._filePath
 
     def initialize(self, data):
         """Initializes the settings data"""
@@ -105,9 +113,9 @@ class Settings(object):
         """Deletes the given property key"""
         self._currentValue.pop(key)
 
-    def get_property(self, key):
+    def get_property(self, key, default=None):
         """Returns the value of the property key"""
-        return self._currentValue.get(key, None)
+        return self._currentValue.get(key, default)
 
     # def get_sub_property(self, key, sub_key):
     #     """Return the value of the sub property key."""
@@ -127,3 +135,15 @@ class Settings(object):
     def get_data(self):
         """Returns the whole current data"""
         return self._currentValue
+
+    def set_fallback(self, file_path):
+        """Use this file in case the file_path is not found."""
+        self._fallback = file_path
+        if not self._io.file_exists(self._filePath):
+            self.use_fallback()
+
+    def use_fallback(self):
+        """Use the fallback file."""
+        if self._fallback:
+            self.initialize(self._io.read(self._fallback))
+            self.apply_settings(force=True)

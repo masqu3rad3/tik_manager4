@@ -18,18 +18,27 @@ class Category(Entity):
         definition = definition or {}
         # self._name = name
         self._works = {}
+        self._publishes = {}
         # self._publishes = {}
         self.type = definition.get("type", None)
         self.display_name = definition.get("display_name", None)
-        self.validations = definition.get("validations", [])
+        self.validations = definition.get("validate", [])
         self.extracts = definition.get("extracts", [])
         self.parent_task = parent_task
-        self._relative_path = os.path.join(self.parent_task._relative_path, self.name)
+        self._relative_path = os.path.join(self.parent_task._relative_path, self.parent_task.name, self.name)
 
     @property
     def works(self):
         self.scan_works()
         return self._works
+
+    @property
+    def publishes(self):
+        self.scan_publishes()
+        return self._publishes
+
+    def scan_publishes(self):
+        pass
 
     def scan_works(self, all_dcc=False):
         if self.guard.dcc == "Standalone":
@@ -44,7 +53,6 @@ class Category(Entity):
         else:
             _search_dir = self.get_abs_database_path()
             _work_paths = glob(os.path.join(_search_dir, "**", "*.twork"), recursive=True)
-        #     _work_paths = [y for x in os.walk(_search_dir) for y in glob(os.path.join(x[0], '*.twork'))]
 
         # add the file if it is new. if it is not new, check the modified time and update if necessary
         for _w_path, _w_data in dict(self._works).items():
@@ -60,32 +68,25 @@ class Category(Entity):
                     existing_work.reload()
         return self._works
 
-    # def get_modified_time(self, file_path):
-    #     """Get the modified time of the file"""
-    #     return os.path.getmtime(file_path)
-
     def is_empty(self):
         """Check if the category is empty"""
         return not bool(self.works)
 
-    def create_work(self, name, file_format=None):
+    def create_work(self, name, file_format=None, notes=""):
         """Creates a task under the category"""
 
         # valid file_format keyword can be collected from main.dcc.formats
-        state = self._check_permissions(level=1)
+        state = self.check_permissions(level=1)
         if state != 1:
             return -1
 
-        # relative_path = os.path.join(self.path, "%s.twork" % name)
-        # abs_path = os.path.join(self._guard.database_root, relative_path)
         contructed_name = self.construct_name(name)
         relative_path = os.path.join(self.path, self.guard.dcc).replace("\\", "/")
         abs_path = self.get_abs_database_path(self.guard.dcc, "%s.twork" % contructed_name)
         if os.path.exists(abs_path):
             # in that case instantiate the work and iterate the version.
             _work = Work(absolute_path=abs_path)
-            _work.new_version(file_format=file_format)
-            # log.warning("There is a work under this category with the same name => %s" % contructed_name)
+            _work.new_version(file_format=file_format, notes=notes)
             return _work
         _work = Work(abs_path, name=contructed_name, path=relative_path)
         _work.add_property("name", contructed_name)
@@ -93,9 +94,12 @@ class Category(Entity):
         _work.add_property("category", self.name)
         _work.add_property("dcc", self.guard.dcc)
         _work.add_property("versions", [])
-        _work.add_property("task_id", _work.id)
+        _work.add_property("work_id", _work.generate_id())
+        _work.add_property("task_name", self.parent_task.name)
+        _work.add_property("task_id", self.parent_task.id)
         _work.add_property("path", relative_path)
-        _work.new_version()
+        _work.add_property("state", "working")
+        _work.new_version(file_format=file_format, notes=notes)
         return _work
 
     def delete_work(self, name):
@@ -107,13 +111,12 @@ class Category(Entity):
             return -1
 
         # if not, check if the user is the owner of the work
-        if self.guard.user != _work.creator or self._check_permissions(level=3):
+        if self.guard.user != _work.creator or self.check_permissions(level=3):
             log.warning("You do not have the permission to delete this work")
             return -1
 
         del self._works[name]
         _work.delete()
-
 
     def construct_name(self, name):
         """Construct the name for the work file. Useful to preview in UI."""

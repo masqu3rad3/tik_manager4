@@ -898,7 +898,7 @@ def _loadUi(uifile, baseinstance=None):
                 etree.parse(uifile)
                 self._loadCustomWidgets(etree)
 
-                widget = Qt._QtUiTools.QUiLoader.load(
+                widget = Qt._QtUiTools.QUiLoader.load_work(
                     self, uifile, *args, **kwargs)
 
                 # Workaround for PySide 1.0.9, see issue #208

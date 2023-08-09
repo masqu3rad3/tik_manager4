@@ -5,6 +5,11 @@ import os.path
 class DccTemplate(object):
 
     @staticmethod
+    def get_main_window():
+        """Returns the main window of the DCC"""
+        pass
+
+    @staticmethod
     def new_scene(force=True, fps=None):
         """
         Opens a new scene
@@ -170,6 +175,18 @@ class DccTemplate(object):
 
         Args:
             range_list: list of ranges as [<animation start>, <user min>, <user max>, <animation end>]
+
+        Returns: None
+
+        """
+        pass
+
+    @staticmethod
+    def set_project(file_path):
+        """
+        Sets the project path
+        Args:
+            file_path: (String) File path to set as project
 
         Returns: None
 

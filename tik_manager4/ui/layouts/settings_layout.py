@@ -17,7 +17,9 @@ from tik_manager4.core.settings import Settings
 import re
 from tik_manager4.ui.widgets import value_widgets
 from tik_manager4.ui.widgets.category_list import CategoryList
-from tik_manager4.ui.widgets import browser
+# from tik_manager4.ui.widgets import browser
+import tik_manager4.ui.widgets.browser
+import tik_manager4.ui.widgets.path_browser
 from tik_manager4.ui.widgets.validated_string import ValidatedString
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 
@@ -33,24 +35,35 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "spinnerInt": value_widgets.SpinnerInt,
         "spinnerFloat": value_widgets.SpinnerFloat,
         "list": value_widgets.List,
+        "dropList": value_widgets.DropList,
         "categoryList": CategoryList,
         "validatedString": ValidatedString,
         "vector2Int": value_widgets.Vector2Int,
         "vector2Float": value_widgets.Vector2Float,
         "vector3Int": value_widgets.Vector3Int,
         "vector3Float": value_widgets.Vector3Float,
-        "pathBrowser": browser.PathBrowser,
-        "subprojectBrowser": browser.SubprojectBrowser
+        "pathBrowser": tik_manager4.ui.widgets.path_browser.PathBrowser,
+        "subprojectBrowser": tik_manager4.ui.widgets.browser.SubprojectBrowser
     }
 
     def __init__(self, ui_definition, settings_data=None, *args, **kwargs):
-        # super(SettingsLayout, self).__init__(*args, **kwargs)
         super(SettingsLayout, self).__init__()
-        self.ui_definition = ui_definition
-        # TODO validate settings data type
-        self.settings_data = settings_data or Settings()
-        self.validate_settings_data()
+        self.ui_definition = None
+        self.settings_data = None
+        self.widgets = None
+        self.initialize(ui_definition, settings_data)
+        # self.ui_definition = ui_definition
+        # # TODO validate settings data type
+        # self.settings_data = settings_data or Settings()
+        # self.validate_settings_data()
+        #
+        # self.widgets = self.populate()
+        # self.signal_connections(self.widgets)
 
+    def initialize(self, ui_definition, data):
+        self.ui_definition = ui_definition
+        self.settings_data = data or Settings()
+        self.validate_settings_data()
         self.widgets = self.populate()
         self.signal_connections(self.widgets)
 
@@ -67,11 +80,14 @@ class SettingsLayout(QtWidgets.QFormLayout):
         """Create the widgets."""
         _widgets = []  # flattened list of all widgets
         for name, properties in self.ui_definition.items():
-            _display_name = properties.get("display_name", name)
+            # _display_name = properties.get("display_name", name)
+            _display_name = properties.pop("display_name", name)
             _label = QtWidgets.QLabel(text=_display_name)
-            _tooltip = properties.get("tooltip", "")
+            # _tooltip = properties.get("tooltip", "")
+            _tooltip = properties.pop("tooltip", "")
             _label.setToolTip(_tooltip)
-            _type = properties.get("type", None)
+            # _type = properties.get("type", None)
+            _type = properties.pop("type", None)
             if _type == "multi":
                 multi_properties = properties.get("value", {})
                 _layout = QtWidgets.QHBoxLayout()
@@ -151,10 +167,11 @@ class SettingsLayout(QtWidgets.QFormLayout):
         """Find the widget by given object name inside the widget list"""
         return self.__find_widget(object_name, self.widgets)
 
-    def clear(self):
+    def clear(self, keep_settings=False):
         """Clear the layout"""
         self._clear_layout(self)
-        self.settings_data.reset_settings()
+        if not keep_settings:
+            self.settings_data.reset_settings()
 
     def _clear_layout(self, layout):
         while layout.count():
@@ -163,42 +180,3 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 child.widget().deleteLater()
             elif child.layout():
                 self._clear_layout(child.layout())
-
-
-def main():
-    app = QtWidgets.QApplication(sys.argv)
-    test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uiSettings_testA.json")
-
-    test_settings = Settings(test_file)
-    # test_settings = Settings()
-    # test_check = {
-    #     "type": "boolean",
-    #     "value": True,
-    #     "disables": []
-    # }
-    # test_settings.add_property("testCheck", test_check)
-
-    dialog = QtWidgets.QDialog()
-    setting_lay = SettingsLayout(test_settings.get_data())
-    # setting_lay.addRow(QtWidgets.QLabel("test"), QtWidgets.QLabel("ASDFASDF"))
-
-    dialog.setLayout(setting_lay)
-    dialog.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == '__main__':
-    main()
-    # app = QtWidgets.QApplication(sys.argv)
-    # test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uiSettings_test.json")
-    #
-    # test_settings = Settings(test_file)
-    #
-    # dialog = QtWidgets.QDialog()
-    # setting_lay = SettingsLayout(test_settings)
-    # # setting_lay.addRow(QtWidgets.QLabel("test"), QtWidgets.QLabel("ASDFASDF"))
-    #
-    # dialog.setLayout(setting_lay)
-    # dialog.show()
-    # sys.exit(app.exec_())
-

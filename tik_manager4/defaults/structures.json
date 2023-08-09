@@ -1,10 +1,7 @@
 {
   "empty": {
     "name": "Empty Project",
-    "path": "",
-    "resolution": [1920, 1080],
-    "fps": 25,
-    "mode": "",
+    "path": "global",
     "subs": []
   },
   "simple": {
@@ -12,7 +9,7 @@
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
-    "mode": "",
+    "mode": "global",
     "subs": []
   },
   "asset_only": {
@@ -56,7 +53,7 @@
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
-    "mode": "root",
+    "mode": "global",
     "subs": [
       {
         "name": "Assets",
@@ -97,11 +94,12 @@
     "path": "",
     "resolution": [1920, 1080],
     "fps": 25,
-    "mode": "asset",
+    "mode": "global",
     "subs": [
       {
         "name": "Assets",
         "path": "Assets",
+        "mode": "asset",
         "subs": [
           {
             "name": "Characters",
@@ -126,8 +124,8 @@
         ]
       },
       {
-        "name": "Sequence",
-        "path": "Sequence",
+        "name": "Sequences",
+        "path": "Sequences",
         "mode": "shot",
         "subs": []
       }

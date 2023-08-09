@@ -1,6 +1,6 @@
 import hou
 
-from tik_manager4.dcc.template import DccTemplate
+from tik_manager4.dcc.main_core import DccTemplate
 
 NAME = "Houdini"
 
