@@ -295,12 +295,19 @@ class TikCategoryView(QtWidgets.QTreeView):
         )
         # separator
         right_click_menu.addSeparator()
-        delete_item_act = right_click_menu.addAction(self.tr("Delete Work"))
-        delete_item_act.triggered.connect(lambda _=None, x=item: self.delete_item(item))
-        delete_item_act = right_click_menu.addAction(self.tr("Omit Work"))
-        delete_item_act.triggered.connect(lambda _=None, x=item: self.omit_item(item))
+        copy_scene_path_act = right_click_menu.addAction(self.tr("Copy Scene Directory to Clipboard"))
+        copy_scene_path_act.triggered.connect(
+            lambda _=None, x=item: self.copy_scene_path(item)
+        )
+
+        right_click_menu.addSeparator()
+
         delete_item_act = right_click_menu.addAction(self.tr("Revive Work"))
         delete_item_act.triggered.connect(lambda _=None, x=item: self.revive_item(item))
+        delete_item_act = right_click_menu.addAction(self.tr("Omit Work"))
+        delete_item_act.triggered.connect(lambda _=None, x=item: self.omit_item(item))
+        delete_item_act = right_click_menu.addAction(self.tr("Delete Work"))
+        delete_item_act.triggered.connect(lambda _=None, x=item: self.delete_item(item))
 
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
@@ -309,7 +316,7 @@ class TikCategoryView(QtWidgets.QTreeView):
         self.model.populate()
 
     def ingest_here(self, item):
-        """Ingests the given item"""
+        """Send the ingest signal with the given item"""
 
         dialog = NewVersionDialog(work_object=item.work, parent=self, ingest=True)
         state = dialog.exec_()
@@ -324,6 +331,10 @@ class TikCategoryView(QtWidgets.QTreeView):
     def open_scene_folder(self, item):
         """Opens the scene folder for the given item"""
         item.work.show_project_folder()
+
+    def copy_scene_path(self, item):
+        """Copy the absolute path of the scene file to the clipboard"""
+        item.work.copy_path_to_clipboard(item.work.get_abs_project_path())
 
     def omit_item(self, item):
         """Omits the given item"""

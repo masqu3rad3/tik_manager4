@@ -2,6 +2,8 @@ import uuid
 import os
 import subprocess
 import platform
+import tkinter as tk
+
 from tik_manager4.objects.guard import Guard
 from tik_manager4.core import filelog
 
@@ -97,6 +99,19 @@ class Entity(object):
             subprocess.Popen(["xdg-open", target])
         else:
             subprocess.Popen(["open", target])
+
+
+    def copy_path_to_clipboard(self, file_or_folder_path):
+        """Copy the path to the clipboard."""
+        root = tk.Tk()
+        root.withdraw()  # Hide the main window
+
+        # Update the clipboard with the new text
+        root.clipboard_clear()
+        root.clipboard_append(file_or_folder_path)
+        root.update()  # This step is necessary to ensure the clipboard is updated
+
+        root.destroy()  # Close the hidden window
 
     def show_project_folder(self):
         """Open the path in Windows Explorer(Windows) or Nautilus(Linux)"""
