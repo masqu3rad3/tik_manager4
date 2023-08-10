@@ -7,11 +7,12 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.work_dialog import NewVersionDialog
 
+
 class TikWorkItem(QtGui.QStandardItem):
     state_color_dict = {
         "working": (255, 255, 0),
         "published": (0, 255, 0),
-        "omitted": (255, 0, 0)
+        "omitted": (255, 0, 0),
     }
 
     def __init__(self, work_obj):
@@ -19,7 +20,7 @@ class TikWorkItem(QtGui.QStandardItem):
 
         self.work = work_obj
         #
-        fnt = QtGui.QFont('Open Sans', 10)
+        fnt = QtGui.QFont("Open Sans", 10)
         fnt.setBold(False)
         self.setEditable(False)
 
@@ -35,6 +36,7 @@ class TikWorkItem(QtGui.QStandardItem):
         self.state = state
         self.setForeground(QtGui.QColor(*self.state_color_dict[state]))
 
+
 class TikPublishItem(QtGui.QStandardItem):
     color_dict = {
         # cyan for scene
@@ -42,19 +44,19 @@ class TikPublishItem(QtGui.QStandardItem):
         # magenta for elements
         "elements": (255, 0, 255),
     }
+
     def __init__(self, publish_obj):
         super(TikPublishItem, self).__init__()
 
         self.publish = publish_obj
 
-        fnt = QtGui.QFont('Open Sans', 10)
+        fnt = QtGui.QFont("Open Sans", 10)
         fnt.setBold(False)
         self.setEditable(False)
 
         self.setFont(fnt)
         self.setText(publish_obj.name)
         self.state = None
-
 
 
 class TikCategoryModel(QtGui.QStandardItemModel):
@@ -88,11 +90,10 @@ class TikCategoryModel(QtGui.QStandardItemModel):
         path = QtGui.QStandardItem(work.path)
         creator = QtGui.QStandardItem(work.creator)
         dcc = QtGui.QStandardItem(work.dcc)
-        date = QtGui.QStandardItem(datetime.fromtimestamp(work.date_modified).strftime('%Y/%m/%d %H:%M:%S'))
+        date = QtGui.QStandardItem(
+            datetime.fromtimestamp(work.date_modified).strftime("%Y/%m/%d %H:%M:%S")
+        )
         version_count = QtGui.QStandardItem(str(work.version_count))
-
-        # _test = TikWorkItem(work)
-        # _item.appendRow([_test])
 
         self.appendRow([_item, pid, path, creator, dcc, date, version_count])
 
@@ -107,8 +108,12 @@ class TikCategoryModel(QtGui.QStandardItemModel):
 class TikCategoryView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
     version_created = QtCore.Signal()
-    load_event = QtCore.Signal() # the signal for main UI importing the selected version of the selected work
-    import_event = QtCore.Signal() # the signal for main UI importing the selected version of the selected work
+    load_event = (
+        QtCore.Signal()
+    )  # the signal for main UI importing the selected version of the selected work
+    import_event = (
+        QtCore.Signal()
+    )  # the signal for main UI importing the selected version of the selected work
 
     def __init__(self, parent=None):
         super(TikCategoryView, self).__init__(parent)
@@ -122,7 +127,6 @@ class TikCategoryView(QtWidgets.QTreeView):
 
         # make it expandable
         self.setExpandsOnDoubleClick(True)
-
 
         self.model = TikCategoryModel()
         self.proxy_model = QtCore.QSortFilterProxyModel()
@@ -195,7 +199,7 @@ class TikCategoryView(QtWidgets.QTreeView):
         self.resizeColumnToContents(0)
 
     def hide_columns(self, columns):
-        """ If the given column exists in the model, hides it"""
+        """If the given column exists in the model, hides it"""
         if not isinstance(columns, list):
             columns = [columns]
 
@@ -204,7 +208,7 @@ class TikCategoryView(QtWidgets.QTreeView):
                 self.setColumnHidden(self.model.columns.index(column), True)
 
     def unhide_columns(self, columns):
-        """ If the given column exists in the model, unhides it"""
+        """If the given column exists in the model, unhides it"""
         if not isinstance(columns, list):
             columns = [columns]
 
@@ -213,7 +217,7 @@ class TikCategoryView(QtWidgets.QTreeView):
                 self.setColumnHidden(self.model.columns.index(column), False)
 
     def toggle_column(self, column, state):
-        """ If the given column exists in the model, unhides it"""
+        """If the given column exists in the model, unhides it"""
         if state:
             self.unhide_columns(column)
         else:
@@ -226,11 +230,17 @@ class TikCategoryView(QtWidgets.QTreeView):
 
     def get_visible_columns(self):
         """Returns the visible columns."""
-        return [self.model.columns[x] for x in range(self.model.columnCount()) if not self.isColumnHidden(x)]
+        return [
+            self.model.columns[x]
+            for x in range(self.model.columnCount())
+            if not self.isColumnHidden(x)
+        ]
 
     def filter(self, text):
         """Filter the model"""
-        self.proxy_model.setFilterRegExp(QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))
+        self.proxy_model.setFilterRegExp(
+            QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp)
+        )
 
     def header_right_click_menu(self, position):
         menu = QtWidgets.QMenu(self)
@@ -273,10 +283,16 @@ class TikCategoryView(QtWidgets.QTreeView):
         import_act = right_click_menu.addAction(self.tr("Import To the Scene"))
         import_act.triggered.connect(self.import_event.emit)
         right_click_menu.addSeparator()
-        open_database_folder_act = right_click_menu.addAction(self.tr("Open Database Folder"))
-        open_database_folder_act.triggered.connect(lambda _=None, x=item: self.open_database_folder(item))
+        open_database_folder_act = right_click_menu.addAction(
+            self.tr("Open Database Folder")
+        )
+        open_database_folder_act.triggered.connect(
+            lambda _=None, x=item: self.open_database_folder(item)
+        )
         open_scene_folder_act = right_click_menu.addAction(self.tr("Open Scene Folder"))
-        open_scene_folder_act.triggered.connect(lambda _=None, x=item: self.open_scene_folder(item))
+        open_scene_folder_act.triggered.connect(
+            lambda _=None, x=item: self.open_scene_folder(item)
+        )
         # separator
         right_click_menu.addSeparator()
         delete_item_act = right_click_menu.addAction(self.tr("Delete Work"))
@@ -301,7 +317,6 @@ class TikCategoryView(QtWidgets.QTreeView):
             # emit a version_created signal to update the main window
             self.version_created.emit()
 
-
     def open_database_folder(self, item):
         """Opens the database folder for the given item"""
         item.work.show_database_folder()
@@ -319,6 +334,7 @@ class TikCategoryView(QtWidgets.QTreeView):
         """Revives the given item"""
         item.work.revive_work()
         item.refresh()
+
     def delete_item(self, item):
         """Deletes the given item"""
         print("Method not implemented")
@@ -334,6 +350,7 @@ class TikCategoryView(QtWidgets.QTreeView):
 
 class TikCategoryLayout(QtWidgets.QVBoxLayout):
     mode_changed = QtCore.Signal(int)
+
     def __init__(self, *args, **kwargs):
         super(TikCategoryLayout, self).__init__(*args, **kwargs)
 
@@ -412,7 +429,9 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         """Get the active category object and return it."""
         if self.task and self.category_tab_widget.currentWidget():
             print("PASSED")
-            return self.task.categories[self.category_tab_widget.currentWidget().objectName()]
+            return self.task.categories[
+                self.category_tab_widget.currentWidget().objectName()
+            ]
         return None
 
     def get_category_index(self):
@@ -463,8 +482,9 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         else:
             self.mode = 1
             self.mode_changed.emit(1)
-        self.category_tab_widget.currentChanged.emit(self.category_tab_widget.currentIndex())
-
+        self.category_tab_widget.currentChanged.emit(
+            self.category_tab_widget.currentIndex()
+        )
 
     def on_category_change(self, index):
         """Do this when the category tab changes."""
@@ -490,22 +510,26 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 # test the TikCategoryLayout
 if __name__ == "__main__":
     import sys
-    from time import sleep
     import os
     import tik_manager4
 
     app = QtWidgets.QApplication(sys.argv)
 
-    test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
+    test_project_path = os.path.join(
+        os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE"
+    )
     tik = tik_manager4.initialize("Standalone")
     tik.user.set("Admin", "1234")
     tik.set_project(test_project_path)
 
     # get an example task
-    # tasks = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks
     tasks = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].scan_tasks()
-    example_task_a = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["superman"]
-    example_task_b = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"]
+    example_task_a = (
+        tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["superman"]
+    )
+    example_task_b = (
+        tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"]
+    )
 
     # create a test dialog and add the layout
     test_dialog = QtWidgets.QDialog()

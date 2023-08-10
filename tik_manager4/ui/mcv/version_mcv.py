@@ -4,7 +4,6 @@ import os.path
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.core import filelog
 from tik_manager4.ui import pick
-from tik_manager4.ui.dialog.feedback import Feedback
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -82,7 +81,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.version_combo.blockSignals(True)
         self.version_combo.clear()
         for version in versions:
-            # add the version number to the dropdown. Version number is integer, convert it to string
+            # add the version number to the dropdown.
+            # Version number is integer, convert it to string
             self.version_combo.addItem(str(version.get("version_number")))
         # alyways select the last version
         self.version_combo.setCurrentIndex(self.version_combo.count() - 1)
@@ -116,7 +116,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         """Set the version dropdown to the given version value."""
         # check if the value exists in the version dropdown
 
-
         self.version_combo.setCurrentText(str(combo_value))
 
     def get_selected_version(self):
@@ -136,13 +135,16 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.notes_editor.clear()
             self.thumbnail.clear()
 
+
 class ImageWidget(QtWidgets.QLabel):
     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
 
     def __init__(self, parent=None):
         super(ImageWidget, self).__init__()
         self.aspectRatio = 1.78
-        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        size_policy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
+        )
         size_policy.setHeightForWidth(True)
         self.setSizePolicy(size_policy)
 

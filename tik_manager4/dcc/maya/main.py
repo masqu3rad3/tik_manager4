@@ -1,5 +1,6 @@
-import os, sys
-from maya import cmds, mel
+import os
+from maya import cmds
+from maya import mel
 import maya.OpenMaya as om
 from tik_manager4.ui.Qt import QtWidgets, QtCompat
 from maya import OpenMayaUI as omui
@@ -18,10 +19,8 @@ class Dcc(DccTemplate):
             (long or int) Memory Adress
         """
         win = omui.MQtUtil_mainWindow()
-        if sys.version_info.major == 3:
-            ptr = QtCompat.wrapInstance(int(win), QtWidgets.QMainWindow)
-        else:
-            ptr = QtCompat.wrapInstance(long(win), QtWidgets.QMainWindow)
+        # dropping the py2 compatibility
+        ptr = QtCompat.wrapInstance(int(win), QtWidgets.QMainWindow)
         return ptr
 
     def new_scene(self, force=True, fps=None):
@@ -37,13 +36,15 @@ class Dcc(DccTemplate):
         """
         cmds.file(newFile=True, force=force)
         if fps:
-            fps_dict = {15: "game",
-                       24: "film",
-                       25: "pal",
-                       30: "ntsc",
-                       48: "show",
-                       50: "palf",
-                       60: "ntscf"}
+            fps_dict = {
+                15: "game",
+                24: "film",
+                25: "pal",
+                30: "ntsc",
+                48: "show",
+                50: "palf",
+                60: "ntscf",
+            }
             ranges = self.get_ranges()
             cmds.currentUnit(time=fps_dict[fps])
             self.set_ranges(ranges)
@@ -96,8 +97,13 @@ class Dcc(DccTemplate):
         Returns: (List) Referenced nodes
 
         """
-        cmds.file(Dcc._normalize_file_path(file_path), reference=True, groupLocator=True, mergeNamespacesOnClash=False,
-                  namespace=namespace)
+        cmds.file(
+            Dcc._normalize_file_path(file_path),
+            reference=True,
+            groupLocator=True,
+            mergeNamespacesOnClash=False,
+            namespace=namespace,
+        )
         # TODO return referenced nodes
 
     @staticmethod
@@ -117,8 +123,9 @@ class Dcc(DccTemplate):
     @staticmethod
     def get_ranges():
         """
-        Gets the viewport ranges
-        Returns: (list) [<absolute range start>, <user range start>, <user range end>, <absolute range end>
+        Get the viewport ranges.
+        Returns: (list) [<absolute range start>, <user range start>, <user range end>,
+        <absolute range end>
         """
         r_ast = cmds.playbackOptions(query=True, animationStartTime=True)
         r_min = cmds.playbackOptions(query=True, minTime=True)
@@ -129,15 +136,21 @@ class Dcc(DccTemplate):
     @staticmethod
     def set_ranges(range_list):
         """
-        sets the timeline ranges
+        Set the timeline ranges.
 
         Args:
-            range_list: list of ranges as [<animation start>, <user min>, <user max>, <animation end>]
+            range_list: list of ranges as [<animation start>, <user min>, <user max>,
+                                            <animation end>]
 
         Returns: None
 
         """
-        cmds.playbackOptions(animationStartTime=range_list[0], minTime=range_list[1], maxTime=range_list[2], animationEndTime=range_list[3])
+        cmds.playbackOptions(
+            animationStartTime=range_list[0],
+            minTime=range_list[1],
+            maxTime=range_list[2],
+            animationEndTime=range_list[3],
+        )
 
     @staticmethod
     def set_project(file_path):
@@ -172,16 +185,24 @@ class Dcc(DccTemplate):
         # Don't just use cmds.file(q=1, sceneName=1)
         # because it was sometimes returning an empty string,
         # even when there was a valid file
-        # Check both the OpenMaya.MFileIO.currentFile() and the cmds.file(q=1, sceneName=1)
-        # so as to be sure that no file is open. This should mean that if someone does have
-        # a file open and it's named after the untitledFileName we should still be able to return the path.
-        if file_name.startswith(untitled_file_name) and cmds.file(q=1, sceneName=1) == "":
+        # Check both the OpenMaya.MFileIO.currentFile() and
+        # the cmds.file(q=1, sceneName=1)
+        # so as to be sure that no file is open.
+        # This should mean that if someone does have
+        # a file open and it's named after the untitledFileName we should still
+        # be able to return the path.
+        if (
+            file_name.startswith(untitled_file_name)
+            and cmds.file(q=1, sceneName=1) == ""
+        ):
             return ""
         return path
 
     @staticmethod
     def get_current_frame():
-        """Returns current frame in timeline. If dcc does not have a timeline, returns None"""
+        """Return current frame in timeline.
+        If dcc does not have a timeline, returns None.
+        """
         return cmds.currentTime(query=True)
 
     def generate_thumbnail(self, file_path, width, height):
@@ -199,7 +220,18 @@ class Dcc(DccTemplate):
         # create a thumbnail using playblast
         frame = self.get_current_frame()
         store = cmds.getAttr("defaultRenderGlobals.imageFormat")
-        cmds.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
-        cmds.playblast(completeFilename=file_path, forceOverwrite=True, format='image', width=221, height=124,
-                       showOrnaments=False, frame=[frame], viewer=False, percent=100)
+        cmds.setAttr(
+            "defaultRenderGlobals.imageFormat", 8
+        )  # This is the value for jpeg
+        cmds.playblast(
+            completeFilename=file_path,
+            forceOverwrite=True,
+            format="image",
+            width=221,
+            height=124,
+            showOrnaments=False,
+            frame=[frame],
+            viewer=False,
+            percent=100,
+        )
         cmds.setAttr("defaultRenderGlobals.imageFormat", store)  # take it back

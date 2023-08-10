@@ -4,6 +4,7 @@ from tik_manager4.core import filelog
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
+
 class ExtractCore(object):
     def __init__(self):
         self.name: str = ""
@@ -42,6 +43,7 @@ class ExtractCore(object):
         try:
             func()
         except Exception as e:
+            LOG.error(e)
             LOG.error(f"Error while extracting {self.name} to {self.output_path}")
             self._status = "error"
         self._status = "extracted"

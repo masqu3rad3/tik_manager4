@@ -4,11 +4,13 @@ from tik_manager4.core.settings import Settings
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog import feedback
 from tik_manager4.ui.widgets.common import TikButtonBox
+
 # from tik_manager4.ui.layouts.settings_layout import SettingsLayout
 import tik_manager4.ui.layouts.settings_layout
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
+
 
 class EditTask(QtWidgets.QDialog):
     def __init__(self, task_object, parent_sub=None, parent=None, *args, **kwargs):
@@ -45,7 +47,8 @@ class EditTask(QtWidgets.QDialog):
     @staticmethod
     def _collect_category_display_names(category_definition_data, mode=None):
         """Collect category display names and return a dictionary.
-        This essentially uses the display name as the key and category_definition key as the value.
+        This essentially uses the display name as the key and category_definition key
+        as the value.
         """
         _display_name_dict = {}
         for key, data in category_definition_data.items():
@@ -76,8 +79,7 @@ class EditTask(QtWidgets.QDialog):
             _default_categories = all_categories
         else:
             _default_categories = self.filter_category_definitions(
-                all_categories,
-                mode=_mode
+                all_categories, mode=_mode
             )
 
         _ui_definition = {
@@ -101,7 +103,7 @@ class EditTask(QtWidgets.QDialog):
                 "value": list(self.task_object.categories.keys()),
                 "category_list": _default_categories,
                 "tooltip": "Categories of the new task.",
-            }
+            },
         }
 
         return _ui_definition
@@ -110,13 +112,19 @@ class EditTask(QtWidgets.QDialog):
         """Initialize UI."""
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.settings_data = Settings()
-        self.settings_layout = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.ui_definition, self.settings_data, parent=self)
+        self.settings_layout = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
+            self.ui_definition, self.settings_data, parent=self
+        )
         self.main_layout.addLayout(self.settings_layout)
         # create a button box
-        self.button_box = TikButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.button_box = TikButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
         # get the name ValidatedString widget and connect it to the ok button
         _name_line_edit = self.settings_layout.find("name")
-        _name_line_edit.add_connected_widget(self.button_box.button(QtWidgets.QDialogButtonBox.Ok))
+        _name_line_edit.add_connected_widget(
+            self.button_box.button(QtWidgets.QDialogButtonBox.Ok)
+        )
         self.main_layout.addWidget(self.button_box)
         # SIGNALS
         self.button_box.accepted.connect(self.on_edit_task)
@@ -124,9 +132,10 @@ class EditTask(QtWidgets.QDialog):
 
     def on_edit_task(self):
         """Create task."""
-        # self.task_object.build_categories(self.settings_data.get_property("categories"))
         _name = self.settings_data.get_property("name")
-        self.task_object.edit(name=_name, categories=self.settings_data.get_property("categories"))
+        self.task_object.edit(
+            name=_name, categories=self.settings_data.get_property("categories")
+        )
         self.accept()
 
 
@@ -143,7 +152,6 @@ class NewTask(QtWidgets.QDialog):
         self._parent_sub = parent_sub or project_object
         self.parent = parent
         self.setWindowTitle("New Task")
-        # self.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.setFixedSize(600, 400)
         self.setModal(True)
 
@@ -153,7 +161,6 @@ class NewTask(QtWidgets.QDialog):
         self._init_ui()
 
         self._new_task = None
-
 
     def _categorize_category_definitions(self):
         """Categorize category definitions."""
@@ -170,7 +177,8 @@ class NewTask(QtWidgets.QDialog):
     @staticmethod
     def _collect_category_display_names(category_definition_data, mode=None):
         """Collect category display names and return a dictionary.
-        This essentially uses the display name as the key and category_definition key as the value.
+        This essentially uses the display name as the key and category_definition key
+        as the value.
         """
         _display_name_dict = {}
         for key, data in category_definition_data.items():
@@ -201,8 +209,7 @@ class NewTask(QtWidgets.QDialog):
             _default_categories = all_categories
         else:
             _default_categories = self.filter_category_definitions(
-                all_categories,
-                mode=_mode
+                all_categories, mode=_mode
             )
 
         _ui_definition = {
@@ -224,7 +231,7 @@ class NewTask(QtWidgets.QDialog):
                 "type": "categoryList",
                 "value": list(_default_categories.keys()),
                 "tooltip": "Categories of the new task.",
-            }
+            },
         }
 
         return _ui_definition
@@ -233,13 +240,19 @@ class NewTask(QtWidgets.QDialog):
         """Initialize UI."""
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.settings_data = Settings()
-        self.settings_layout = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.ui_definition, self.settings_data, parent=self)
+        self.settings_layout = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
+            self.ui_definition, self.settings_data, parent=self
+        )
         self.main_layout.addLayout(self.settings_layout)
         # create a button box
-        self.button_box = TikButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.button_box = TikButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
         # get the name ValidatedString widget and connect it to the ok button
         _name_line_edit = self.settings_layout.find("name")
-        _name_line_edit.add_connected_widget(self.button_box.button(QtWidgets.QDialogButtonBox.Ok))
+        _name_line_edit.add_connected_widget(
+            self.button_box.button(QtWidgets.QDialogButtonBox.Ok)
+        )
         self.main_layout.addWidget(self.button_box)
         # SIGNALS
         self.button_box.accepted.connect(self.on_create_task)
@@ -253,11 +266,13 @@ class NewTask(QtWidgets.QDialog):
             parent_uid=self._parent_sub.id,
         )
         if self._new_task == -1:
-            self.feedback.pop_info(title="Failed to create task.", text=self.tik_project.log.last_message,
-                                   critical=True)
+            self.feedback.pop_info(
+                title="Failed to create task.",
+                text=self.tik_project.log.last_message,
+                critical=True,
+            )
             return
         self.accept()
 
     def get_created_task(self):
         return self._new_task
-

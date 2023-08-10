@@ -6,7 +6,6 @@ from tik_manager4.ui.widgets.common import TikButton
 from tik_manager4.ui.widgets import signals
 
 
-
 class Boolean(QtWidgets.QCheckBox):
     def __init__(self, name, object_name=None, value=False, disables=None, **kwargs):
         super(Boolean, self).__init__()
@@ -23,7 +22,9 @@ class Boolean(QtWidgets.QCheckBox):
 
 
 class String(QtWidgets.QLineEdit):
-    def __init__(self, name, object_name=None, value="", placeholder="", disables=None, **kwargs):
+    def __init__(
+        self, name, object_name=None, value="", placeholder="", disables=None, **kwargs
+    ):
         super(String, self).__init__()
         self.com = signals.ValueChangeStr()
         self.value = value
@@ -33,14 +34,15 @@ class String(QtWidgets.QLineEdit):
         self.textEdited.connect(self.value_change_event)
         self.disables = disables or []
 
-
     def value_change_event(self, e):
         self.value = e
         self.com.valueChangeEvent(e)
 
 
 class Combo(QtWidgets.QComboBox):
-    def __init__(self, name, object_name=None, value=None, items=None, disables=None, **kwargs):
+    def __init__(
+        self, name, object_name=None, value=None, items=None, disables=None, **kwargs
+    ):
         super(Combo, self).__init__()
         self.com = signals.ValueChangeStr()
         self.value = value
@@ -56,7 +58,16 @@ class Combo(QtWidgets.QComboBox):
 
 
 class SpinnerInt(QtWidgets.QSpinBox):
-    def __init__(self, name, object_name=None, value=0, minimum=-99999, maximum=99999, disables=None, **kwargs):
+    def __init__(
+        self,
+        name,
+        object_name=None,
+        value=0,
+        minimum=-99999,
+        maximum=99999,
+        disables=None,
+        **kwargs
+    ):
         super(SpinnerInt, self).__init__()
         self.com = signals.ValueChangeInt()
         self.value = value
@@ -79,7 +90,16 @@ class Integer(SpinnerInt):
 
 
 class SpinnerFloat(QtWidgets.QDoubleSpinBox):
-    def __init__(self, name, object_name=None, value=0, minimum=-99999.9, maximum=99999.9, disables=None, **kwargs):
+    def __init__(
+        self,
+        name,
+        object_name=None,
+        value=0,
+        minimum=-99999.9,
+        maximum=99999.9,
+        disables=None,
+        **kwargs
+    ):
         super(SpinnerFloat, self).__init__()
         self.com = signals.ValueChangeFloat()
         self.value = value
@@ -103,12 +123,21 @@ class Float(SpinnerFloat):
 
 class _Vector(QtWidgets.QWidget):
     """Convenient class for other vector widget classes"""
-    def __init__(self, name, object_name=None, value=None, minimum=None, maximum=None, disables=None, **kwargs):
+
+    def __init__(
+        self,
+        name,
+        object_name=None,
+        value=None,
+        minimum=None,
+        maximum=None,
+        disables=None,
+        **kwargs
+    ):
         super(_Vector, self).__init__()
         self.com = signals.ValueChangeList()
         self.value = value
         self.setObjectName(object_name or name)
-        # self.valueChanged.connect(self.com.valueChangeEvent)
         self.disables = disables or []
 
         self.layout = QtWidgets.QHBoxLayout()
@@ -189,7 +218,15 @@ class Vector3Int(_Vector):
 class List(QtWidgets.QWidget):
     """Customized List widget with buttons to manage the list"""
 
-    def __init__(self, name=None, object_name=None, value=None, disables=None, buttons_position="side", **kwargs):
+    def __init__(
+        self,
+        name=None,
+        object_name=None,
+        value=None,
+        disables=None,
+        buttons_position="side",
+        **kwargs
+    ):
         super(List, self).__init__()
         self.com = signals.ValueChangeList()
         self.value = value or []
@@ -201,11 +238,18 @@ class List(QtWidgets.QWidget):
             self.label = QtWidgets.QLabel(name)
             self.master_layout.addWidget(self.label)
         self.master_layout.addWidget(self.label)
-        self.layout = QtWidgets.QHBoxLayout() if buttons_position == "side" else QtWidgets.QVBoxLayout()
+        self.layout = (
+            QtWidgets.QHBoxLayout()
+            if buttons_position == "side"
+            else QtWidgets.QVBoxLayout()
+        )
         self.master_layout.addLayout(self.layout)
-        # self.layout = QtWidgets.QHBoxLayout(self) if buttons_position == "side" else QtWidgets.QVBoxLayout(self)
         self.list = QtWidgets.QListWidget()
-        self.button_layout = QtWidgets.QVBoxLayout() if buttons_position == "side" else QtWidgets.QHBoxLayout()
+        self.button_layout = (
+            QtWidgets.QVBoxLayout()
+            if buttons_position == "side"
+            else QtWidgets.QHBoxLayout()
+        )
         self.button_names = kwargs.get("buttons", ["Add", "Remove", "Up", "Down"])
         self.buttons = []
         self._create_buttons()
@@ -283,6 +327,7 @@ class List(QtWidgets.QWidget):
 
 class DropList(List):
     """Custom List Widget which accepts drops"""
+
     dropped = QtCore.Signal(str)
 
     def __init__(self, parent=None, **kwargs):
@@ -290,21 +335,19 @@ class DropList(List):
         self.setAcceptDrops(True)
 
     def dragEnterEvent(self, event):
-        if event.mimeData().hasFormat('text/uri-list'):
+        if event.mimeData().hasFormat("text/uri-list"):
             event.accept()
         else:
             event.ignore()
 
     def dragMoveEvent(self, event):
-        if event.mimeData().hasFormat('text/uri-list'):
+        if event.mimeData().hasFormat("text/uri-list"):
             event.setDropAction(QtCore.Qt.CopyAction)
             event.accept()
         else:
             event.ignore()
 
     def dropEvent(self, event):
-        # rawPath = event.mimeData().data('text/uri-list').__str__()
-        rawPath = event.mimeData().text()
-        path = rawPath.replace("file:///", "").splitlines()[0]
-        # path = path.replace("\\r\\n'", "")
+        raw_path = event.mimeData().text()
+        path = raw_path.replace("file:///", "").splitlines()[0]
         self.dropped.emit(path)

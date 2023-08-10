@@ -5,7 +5,15 @@ from tik_manager4.ui.Qt import QtWidgets
 class CategoryList(List):
     """A special list widget purposed for category selection"""
 
-    def __init__(self, name, object_name=None, value=None, disables=None, category_list=None, **kwargs):
+    def __init__(
+        self,
+        name,
+        object_name=None,
+        value=None,
+        disables=None,
+        category_list=None,
+        **kwargs
+    ):
         super(CategoryList, self).__init__(name, object_name, value, disables, **kwargs)
         self.category_list = category_list or list(self.value)
 
@@ -20,7 +28,9 @@ class CategoryList(List):
         dialog_layout.addWidget(combo)
         button_layout = QtWidgets.QHBoxLayout()
         # create the buttons with button box
-        button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        button_box = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
         button_box.accepted.connect(dialog.accept)
         button_box.rejected.connect(dialog.reject)
         button_layout.addWidget(button_box)

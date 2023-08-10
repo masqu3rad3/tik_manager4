@@ -6,5 +6,6 @@ NAME = "Houdini"
 
 
 class Dcc(DccTemplate):
+    hou.displayMessage("Houdini DCC loaded")
     pass
     # TODO mix-match from Tik Manager 3

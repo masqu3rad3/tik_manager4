@@ -10,14 +10,11 @@ Supported types:
 
 """
 
-import os
-import sys
 from tik_manager4.core.settings import Settings
-#
-import re
+
 from tik_manager4.ui.widgets import value_widgets
 from tik_manager4.ui.widgets.category_list import CategoryList
-# from tik_manager4.ui.widgets import browser
+
 import tik_manager4.ui.widgets.browser
 import tik_manager4.ui.widgets.path_browser
 from tik_manager4.ui.widgets.validated_string import ValidatedString
@@ -26,6 +23,7 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore
 
 class SettingsLayout(QtWidgets.QFormLayout):
     """Visualizes and edits Setting objects in a vertical layout"""
+
     widget_dict = {
         "boolean": value_widgets.Boolean,
         "string": value_widgets.String,
@@ -43,7 +41,7 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "vector3Int": value_widgets.Vector3Int,
         "vector3Float": value_widgets.Vector3Float,
         "pathBrowser": tik_manager4.ui.widgets.path_browser.PathBrowser,
-        "subprojectBrowser": tik_manager4.ui.widgets.browser.SubprojectBrowser
+        "subprojectBrowser": tik_manager4.ui.widgets.browser.SubprojectBrowser,
     }
 
     def __init__(self, ui_definition, settings_data=None, *args, **kwargs):
@@ -52,13 +50,6 @@ class SettingsLayout(QtWidgets.QFormLayout):
         self.settings_data = None
         self.widgets = None
         self.initialize(ui_definition, settings_data)
-        # self.ui_definition = ui_definition
-        # # TODO validate settings data type
-        # self.settings_data = settings_data or Settings()
-        # self.validate_settings_data()
-        #
-        # self.widgets = self.populate()
-        # self.signal_connections(self.widgets)
 
     def initialize(self, ui_definition, data):
         self.ui_definition = ui_definition
@@ -68,25 +59,28 @@ class SettingsLayout(QtWidgets.QFormLayout):
         self.signal_connections(self.widgets)
 
     def validate_settings_data(self):
-        """Make sure all the keys are already present in settings data and all value keys are unique."""
+        """Make sure all the keys are already present in settings data and all
+        value keys are unique.
+        """
         for key, data in self.ui_definition.items():
             if data["type"] == "multi":
                 for sub_key, sub_data in data["value"].items():
-                    self.settings_data.add_property(sub_key, sub_data["value"], force=False)
+                    self.settings_data.add_property(
+                        sub_key, sub_data["value"], force=False
+                    )
             else:
-                self.settings_data.add_property(key, data["value"], force=False) # do not force the value to be set
+                self.settings_data.add_property(
+                    key, data["value"], force=False
+                )  # do not force the value to be set
 
     def populate(self):
         """Create the widgets."""
         _widgets = []  # flattened list of all widgets
         for name, properties in self.ui_definition.items():
-            # _display_name = properties.get("display_name", name)
             _display_name = properties.pop("display_name", name)
             _label = QtWidgets.QLabel(text=_display_name)
-            # _tooltip = properties.get("tooltip", "")
             _tooltip = properties.pop("tooltip", "")
             _label.setToolTip(_tooltip)
-            # _type = properties.get("type", None)
             _type = properties.pop("type", None)
             if _type == "multi":
                 multi_properties = properties.get("value", {})
@@ -101,11 +95,7 @@ class SettingsLayout(QtWidgets.QFormLayout):
                         continue
                     _widget = _widget_class(key, **data)
                     _layout.addWidget(_widget)
-                    _widget.com.valueChanged.connect(
-                        # lambda x, n=name, k=key: self.ui_definition.edit_sub_property([n, "value", k, "value"], x))
-                        # lambda x, n=name, k=key: self.settings_data.edit_property(k, x)
-                        lambda x, k=key: self._test(k, x)
-                    )
+                    _widget.com.valueChanged.connect(lambda x, k=key: self._test(k, x))
                     _widgets.append(_widget)
                 self.addRow(_label, _layout)
             else:
@@ -113,25 +103,19 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 if not _widget_class:
                     continue
                 _widget = _widget_class(name, **properties)
-                _widget.com.valueChanged.connect(
-                    # lambda x, n=name: self.ui_definition.edit_sub_property([n, "value"], x)
-                    # lambda x, n=name: self.settings_data.edit_property(n, x)
-                    lambda x, n=name: self._test(n, x)
-                )
+                _widget.com.valueChanged.connect(lambda x, n=name: self._test(n, x))
                 self.addRow(_label, _widget)
                 _widgets.append(_widget)
 
         return _widgets
 
     def _test(self, key, value):
-        # print("_test")
-        # print(key, value)
         self.settings_data.edit_property(key, value)
-        # print(self.settings_data.get_data())
-        # print("============")
 
     def signal_connections(self, widget_list):
-        """Creates the enable/disable logic between widgets. This needs to be done after population"""
+        """Create the enable/disable logic between widgets. This needs to be done
+        after population.
+        """
         for widget in widget_list:
             # get the disable list
             for disable_data in widget.disables:
@@ -143,8 +127,10 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 if not disable_widget:
                     continue
                 widget.com.valueChanged.connect(
-                    lambda state, wgt=disable_widget, cnd=condition: self.__toggle_enabled(state, cnd, wgt))
-                # widget.com.valueChanged.connect(lambda state, disable_widget, condition: self.__toggle_enabled(state, condition, disable_widget))
+                    lambda st, w=disable_widget, c=condition: self.__toggle_enabled(
+                        st, c, w
+                    )
+                )
                 self.__toggle_enabled(widget.value, condition, disable_widget)
 
     @staticmethod

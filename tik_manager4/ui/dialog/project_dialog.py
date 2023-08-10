@@ -7,7 +7,6 @@ from tik_manager4.ui.widgets.common import TikButton, TikButtonBox
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.value_widgets import DropList
 from tik_manager4.ui.dialog.subproject_dialog import EditSubprojectDialog, FilteredData
-from tik_manager4.ui import pick
 
 
 class SetProjectDialog(QtWidgets.QDialog):
@@ -55,11 +54,17 @@ class SetProjectDialog(QtWidgets.QDialog):
         header_layout.addWidget(recent_pb)
 
         # projects side
-        self.folders_tree = QtWidgets.QTreeView(splitter, minimumSize=QtCore.QSize(0, 0), dragEnabled=True,
-                                                dragDropMode=QtWidgets.QAbstractItemView.DragOnly,
-                                                selectionMode=QtWidgets.QAbstractItemView.SingleSelection,
-                                                itemsExpandable=False, rootIsDecorated=False,
-                                                sortingEnabled=True, frameShape=QtWidgets.QFrame.NoFrame)
+        self.folders_tree = QtWidgets.QTreeView(
+            splitter,
+            minimumSize=QtCore.QSize(0, 0),
+            dragEnabled=True,
+            dragDropMode=QtWidgets.QAbstractItemView.DragOnly,
+            selectionMode=QtWidgets.QAbstractItemView.SingleSelection,
+            itemsExpandable=False,
+            rootIsDecorated=False,
+            sortingEnabled=True,
+            frameShape=QtWidgets.QFrame.NoFrame,
+        )
         folders_tree_layout.addWidget(self.folders_tree)
         directory_filter = QtWidgets.QLineEdit()
         directory_filter.setPlaceholderText("Filter")
@@ -69,7 +74,9 @@ class SetProjectDialog(QtWidgets.QDialog):
         self.source_model.setNameFilterDisables(False)
         self.source_model.setNameFilters(["*"])
         self.source_model.setRootPath(self.main_object.project.folder)
-        self.source_model.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
+        self.source_model.setFilter(
+            QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time
+        )
         self.folders_tree.setModel(self.source_model)
         self.set_tree_root(self.main_object.project.folder)
         # self.folders_tree.setRootIndex(self.source_model.index(self.main_object.project.root))
@@ -78,7 +85,9 @@ class SetProjectDialog(QtWidgets.QDialog):
         self.folders_tree.setColumnWidth(2, 0)
         selection_model = self.folders_tree.selectionModel()
 
-        self.bookmarks_droplist = DropList(name="Bookmarks", buttons_position="down", buttons=["+", "-"])
+        self.bookmarks_droplist = DropList(
+            name="Bookmarks", buttons_position="down", buttons=["+", "-"]
+        )
         plus_btn = self.bookmarks_droplist.buttons[0]
         minus_btn = self.bookmarks_droplist.buttons[1]
         bookmarks_layout.addWidget(self.bookmarks_droplist)
@@ -88,7 +97,9 @@ class SetProjectDialog(QtWidgets.QDialog):
 
         # buttons
         # create a button box as "set" and "cancel"
-        button_box = TikButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        button_box = TikButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
         buttons_layout.addWidget(button_box)
 
         # SIGNALS
@@ -99,18 +110,17 @@ class SetProjectDialog(QtWidgets.QDialog):
         button_box.accepted.connect(self.set_and_close)
         button_box.rejected.connect(self.close)
         self.bookmarks_droplist.list.doubleClicked.connect(
-            lambda: self.set_and_close())  # lambda is needed to pass the argument
+            lambda: self.set_and_close()
+        )  # lambda is needed to pass the argument
         selection_model.selectionChanged.connect(self.activate_folders)
         self.bookmarks_droplist.list.currentRowChanged.connect(self.activate_bookmarks)
         recent_pb.clicked.connect(self.recents_pop_menu)
-        # browser_wgt.com.valueChanged.connect(source_model.setRootPath)
         browser_wgt.com.valueChanged.connect(self.set_tree_root)
 
     def set_tree_root(self, root_path):
         """Set the root of the tree to the given path."""
         # set the root of the model to e
         self.folders_tree.setRootIndex(self.source_model.index(root_path))
-
 
     def recents_pop_menu(self):
         """Pop menu for recent projects."""
@@ -120,8 +130,9 @@ class SetProjectDialog(QtWidgets.QDialog):
         for p in recents_list:
             _temp_action = QtWidgets.QAction(p, self)
             zort_menu.addAction(_temp_action)
-            _temp_action.triggered.connect(lambda _ignore=p, item=p: self.set_and_close(item))
-            # _temp_action.triggered.connect(lambda _ignore=p, itemp=p: self.set_and_close(itemp))
+            _temp_action.triggered.connect(
+                lambda _ignore=p, item=p: self.set_and_close(item)
+            )
 
         if zort_menu.exec_((QtGui.QCursor.pos())):
             return True
@@ -129,15 +140,18 @@ class SetProjectDialog(QtWidgets.QDialog):
             return False
 
     def activate_folders(self):
-        """Get the active project from folders tree and clear the bookmarks area selection."""
-        print("activate_folders")
+        """Get the active project from folders tree and
+        clear the bookmarks area selection.
+        """
         index = self.folders_tree.currentIndex()
-        self.active_project = os.path.normpath(self.folders_tree.model().filePath(index))
+        self.active_project = os.path.normpath(
+            self.folders_tree.model().filePath(index)
+        )
         self.bookmarks_droplist.list.clearSelection()
 
     def activate_bookmarks(self, row):
-        """Get the active project from bookmarks and clear the folders tree area selection."""
-        # row = self.bookmarks_droplist.list.currentRow()
+        """Get the active project from bookmarks and clear the
+        folders tree area selection."""
         if row != -1:
             self.active_project = self.main_object.user.get_project_bookmarks()[row]
             self.folders_tree.clearSelection()
@@ -146,8 +160,11 @@ class SetProjectDialog(QtWidgets.QDialog):
         """Set the active project and close the dialog."""
         project_to_set = project_path or self.active_project
         if not project_to_set:
-            self.feedback.pop_info(title="Cannot set project",
-                                   text="No project selected.\nPlease select a project from the folders or bookmarks and press 'Set'")
+            self.feedback.pop_info(
+                title="Cannot set project",
+                text="No project selected.\nPlease select a project from \
+                the folders or bookmarks and press 'Set'",
+            )
             return
         self.main_object.set_project(project_to_set)
         self.close()
@@ -181,11 +198,14 @@ class SetProjectDialog(QtWidgets.QDialog):
 
 class NewProjectDialog(EditSubprojectDialog):
     """Dialog for creating a new project"""
-    feedback = Feedback()
-    def __init__(self, main_object, *args, **kwargs):
 
+    feedback = Feedback()
+
+    def __init__(self, main_object, *args, **kwargs):
         self.main_object = main_object
-        self.structure_list = list(self.main_object.user.commons.structures.properties.values())
+        self.structure_list = list(
+            self.main_object.user.commons.structures.properties.values()
+        )
         super(NewProjectDialog, self).__init__(main_object.project, *args, **kwargs)
 
         self.structure_data = None
@@ -204,15 +224,14 @@ class NewProjectDialog(EditSubprojectDialog):
         """Define the primary UI."""
         _structure_names = [x["name"] for x in self.structure_list]
         _primary_ui = {
-            "project_root":
-                {
-                    "display_name": "Projects Root :",
-                    "type": "pathBrowser",
-                    # "type": "subprojectBrowser",
-                    "project_object": self.tik_project,
-                    "value": os.path.dirname(self.tik_project.absolute_path),
-                    "tooltip": "Root for the projects",
-                },
+            "project_root": {
+                "display_name": "Projects Root :",
+                "type": "pathBrowser",
+                # "type": "subprojectBrowser",
+                "project_object": self.tik_project,
+                "value": os.path.dirname(self.tik_project.absolute_path),
+                "tooltip": "Root for the projects",
+            },
             "project_name": {
                 "display_name": "Project Name :",
                 "type": "validatedString",
@@ -224,8 +243,8 @@ class NewProjectDialog(EditSubprojectDialog):
                 "type": "combo",
                 "items": _structure_names,
                 "value": "Empty Project",
-                "tooltip": "Pick a template to start with"
-            }
+                "tooltip": "Pick a template to start with",
+            },
         }
         return _primary_ui
 
@@ -255,7 +274,7 @@ class NewProjectDialog(EditSubprojectDialog):
                     "__new_{}".format(key): {
                         "type": "boolean",
                         "value": _check,
-                        "disables": [[False, key]]
+                        "disables": [[False, key]],
                     },
                     key: {
                         "type": _value_type,
@@ -281,7 +300,9 @@ class NewProjectDialog(EditSubprojectDialog):
         # create a button box
         # get the name ValidatedString widget and connect it to the ok button
         _name_line_edit = self.primary_content.find("project_name")
-        _name_line_edit.add_connected_widget(self.button_box.button(QtWidgets.QDialogButtonBox.Ok))
+        _name_line_edit.add_connected_widget(
+            self.button_box.button(QtWidgets.QDialogButtonBox.Ok)
+        )
         template_widget = self.primary_content.find("structure_template")
 
         template_widget.currentIndexChanged.connect(self.on_structure_template_changed)
@@ -296,13 +317,15 @@ class NewProjectDialog(EditSubprojectDialog):
 
     def _execute(self):
         # build a new kwargs dictionary by filtering the settings_data
-        path = os.path.join(self.primary_data.get_property("project_root"),
-                            self.primary_data.get_property("project_name"))
+        path = os.path.join(
+            self.primary_data.get_property("project_root"),
+            self.primary_data.get_property("project_name"),
+        )
 
         # get the primary data
         filtered_data = FilteredData(
             structure_data=self.structure_data,
-            set_after_creation=self.set_after_create_cb.isChecked()
+            set_after_creation=self.set_after_create_cb.isChecked(),
         )
 
         # filtered_data.update_overridden_data(self.secondary_data)
@@ -318,26 +341,11 @@ if __name__ == "__main__":
     import sys
     import tik_manager4
     from tik_manager4.ui import pick
+
     app = QtWidgets.QApplication(sys.argv)
     tik = tik_manager4.initialize("Standalone")
     dialog = SetProjectDialog(tik)
     _style_file = pick.style_file()
-    dialog.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
+    dialog.setStyleSheet(str(_style_file.readAll(), "utf-8"))
     dialog.show()
     sys.exit(app.exec_())
-
-# # Test the new project dialog
-# if __name__ == "__main__":
-#     import sys
-#     import tik_manager4
-#     from tik_manager4.ui import pick
-#
-#     app = QtWidgets.QApplication(sys.argv)
-#     tik = tik_manager4.initialize("Standalone")
-#     tik.user.set("Admin", "1234")
-#
-#     dialog = NewProjectDialog(tik)
-#     _style_file = pick.style_file()
-#     dialog.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
-#     dialog.show()
-#     sys.exit(app.exec_())

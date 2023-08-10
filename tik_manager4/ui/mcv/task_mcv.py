@@ -30,11 +30,10 @@ class TikTaskItem(QtGui.QStandardItem):
 
         self.task = task_obj
         #
-        fnt = QtGui.QFont('Open Sans', 12)
+        fnt = QtGui.QFont("Open Sans", 12)
         fnt.setBold(True)
         self.setEditable(False)
 
-        # self.setForeground(QtGui.QColor(0, 255, 255))
         _color = self.color_dict.get(task_obj.type, (255, 255, 255))
         self.setForeground(QtGui.QColor(*_color))
 
@@ -58,21 +57,6 @@ class TikTaskModel(QtGui.QStandardItemModel):
         """Clear the model"""
         self.setRowCount(0)
 
-    # def set_tasks(self, tasks_list):
-    #     """Set the data for the model"""
-    #     # TODO : validate
-    #     # self._tasks.clear()
-    #     self._tasks = tasks_list
-
-    # def populate(self):
-    #     """Populate the model"""
-    #     pass
-    #     # print("Populating model")
-    #     self.clear()
-    #     # print(self._tasks)
-    #     for task in self._tasks:
-    #         self.append_task(task)
-
     def append_task(self, sub_data):
         """Append a task to the model"""
         # self._tasks.append(sub_data)
@@ -81,37 +65,30 @@ class TikTaskModel(QtGui.QStandardItemModel):
         pid = QtGui.QStandardItem(str(sub_data.id))
         path = QtGui.QStandardItem(sub_data.path)
 
-        self.appendRow([
-            _sub_item,
-            pid,
-            path,
-        ]
+        self.appendRow(
+            [
+                _sub_item,
+                pid,
+                path,
+            ]
         )
         return _sub_item
 
-    # def find_item_by_id_column(self, unique_id):
-    #     """Return the index for the given id"""
-    #     for row in range(self.rowCount()):
-    #         index = self.index(row, 1)
-    #         print(row)
-    #         if index.data() == unique_id:
-    #             return index
-    #     return None
     def find_item_by_id_column(self, unique_id):
         """Search entire tree and find the matching item."""
         # get EVERY item in this model
-        _all_items = self.findItems("*", QtCore.Qt.MatchWildcard | QtCore.Qt.MatchRecursive)
-        # print(_all_items)
+        _all_items = self.findItems(
+            "*", QtCore.Qt.MatchWildcard | QtCore.Qt.MatchRecursive
+        )
         for x in _all_items:
-            # print(x)
             if isinstance(x, TikTaskItem):
-                # if x.task.reference_id == unique_id:
                 if x.task.id == unique_id:
                     return x
 
 
 class TikTaskView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
+
     def __init__(self):
         """Initialize the view"""
         super(TikTaskView, self).__init__()
@@ -141,9 +118,6 @@ class TikTaskView(QtWidgets.QTreeView):
         self.header().setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.header().customContextMenuRequested.connect(self.header_right_click_menu)
 
-        # self.clicked.connect(self.item_clicked)
-        # self.dataChanged.connect(self.item_clicked)
-
         self.expandAll()
 
     def currentChanged(self, *args, **kwargs):
@@ -169,7 +143,7 @@ class TikTaskView(QtWidgets.QTreeView):
         self.resizeColumnToContents(0)
 
     def hide_columns(self, columns):
-        """ If the given column exists in the model, hides it"""
+        """If the given column exists in the model, hides it"""
         if not isinstance(columns, list):
             columns = [columns]
 
@@ -178,7 +152,7 @@ class TikTaskView(QtWidgets.QTreeView):
                 self.setColumnHidden(self.model.columns.index(column), True)
 
     def unhide_columns(self, columns):
-        """ If the given column exists in the model, unhides it"""
+        """If the given column exists in the model, unhides it"""
         if not isinstance(columns, list):
             columns = [columns]
 
@@ -187,7 +161,7 @@ class TikTaskView(QtWidgets.QTreeView):
                 self.setColumnHidden(self.model.columns.index(column), False)
 
     def toggle_column(self, column, state):
-        """ If the given column exists in the model, unhides it"""
+        """If the given column exists in the model, unhides it"""
         if state:
             self.unhide_columns(column)
         else:
@@ -200,8 +174,11 @@ class TikTaskView(QtWidgets.QTreeView):
 
     def get_visible_columns(self):
         """Returns the visible columns."""
-        return [self.model.columns[x] for x in range(self.model.columnCount()) if not self.isColumnHidden(x)]
-
+        return [
+            self.model.columns[x]
+            for x in range(self.model.columnCount())
+            if not self.isColumnHidden(x)
+        ]
 
     def select_first_item(self):
         """Select the first item in the view."""
@@ -215,21 +192,14 @@ class TikTaskView(QtWidgets.QTreeView):
     def select_by_id(self, unique_id):
         """Select the item with the given id"""
         # get the index of the item
-        # print(unique_id)
         match_item = self.model.find_item_by_id_column(unique_id)
         if match_item:
-            idx = (match_item.index())
+            idx = match_item.index()
             idx = idx.sibling(idx.row(), 0)
             index = self.proxy_model.mapFromSource(idx)
             self.setCurrentIndex(index)
             return True
         return False
-        #
-        # if idx:
-        #     # map it to proxy
-        #     idx = self.proxy_model.mapFromSource(idx)
-        #     # select it
-        #     self.setCurrentIndex(idx)
 
     def set_tasks(self, tasks_gen):
         """Set the data for the model"""
@@ -256,9 +226,9 @@ class TikTaskView(QtWidgets.QTreeView):
 
     def filter(self, text):
         """Filter the model"""
-        self.proxy_model.setFilterRegExp(QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp))
-        # exclude TikTaskItems from the filter
-        # self.proxy_model.setFilterKeyColumn(0)
+        self.proxy_model.setFilterRegExp(
+            QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp)
+        )
 
     def header_right_click_menu(self, position):
         menu = QtWidgets.QMenu(self)
@@ -280,9 +250,6 @@ class TikTaskView(QtWidgets.QTreeView):
         index_under_pointer = self.indexAt(position)
         right_click_menu = QtWidgets.QMenu(self)
         if not index_under_pointer.isValid():
-            # act_new_task = right_click_menu.addAction(self.tr("New Task"))
-            # act_new_task.triggered.connect(self.new_task)
-            # right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
             return
         # make sure the idx is pointing to the first column
         index_under_pointer = index_under_pointer.sibling(index_under_pointer.row(), 0)
@@ -308,8 +275,9 @@ class TikTaskView(QtWidgets.QTreeView):
             message, title = LOG.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
             return
-        _dialog = tik_manager4.ui.dialog.task_dialog.EditTask(item.task, parent_sub=item.task.parent_sub,
-                                                           parent=self)
+        _dialog = tik_manager4.ui.dialog.task_dialog.EditTask(
+            item.task, parent_sub=item.task.parent_sub, parent=self
+        )
         state = _dialog.exec_()
         if state:
             # emit clicked signal
@@ -324,12 +292,20 @@ class TikTaskView(QtWidgets.QTreeView):
             self._feedback.pop_info(title.capitalize(), message)
             return
 
-        sure = self._feedback.pop_question("Delete Task", "Are you sure you want to delete this task?", buttons=["ok", "cancel"])
+        sure = self._feedback.pop_question(
+            "Delete Task",
+            "Are you sure you want to delete this task?",
+            buttons=["ok", "cancel"],
+        )
         if sure == "ok":
             if not item.task.parent_sub.is_task_empty(item.task):
-                really_sure = self._feedback.pop_question("Non Empty Task",
-                                                      "The task is not empty.\n\nALL CATEGORIES WORKS AND PUBLISHES UNDER {} WILL BE REMOVED\nARE YOU SURE?".format(
-                                                          item.task.name), buttons=["ok", "cancel"])
+                really_sure = self._feedback.pop_question(
+                    "Non Empty Task",
+                    "The task is not empty.\n\n"
+                    "ALL CATEGORIES WORKS AND PUBLISHES UNDER {} WILL BE REMOVED\n"
+                    "ARE YOU SURE?".format(item.task.name),
+                    buttons=["ok", "cancel"],
+                )
                 if really_sure != "ok":
                     return
 
@@ -342,30 +318,15 @@ class TikTaskView(QtWidgets.QTreeView):
                         break
             else:
                 msg = LOG.last_message()
-                self._feedback.pop_info(title="Task Not Deleted", text=msg, critical=True)
+                self._feedback.pop_info(
+                    title="Task Not Deleted", text=msg, critical=True
+                )
         else:
             return
 
     def refresh(self):
         """Re-populates the model keeping the expanded state"""
-        # print("refreshing")
         pass
-        # save the expanded state
-        # expanded = []
-        # for i in range(self.model.rowCount()):
-        #     item = self.model.item(i)
-        #     if item.isExpanded():
-        #         expanded.append(item.task.name)
-
-        # clear the model
-        # self.model.clear()
-        # populate the model
-        # self.model.populate()
-
-
-        # self.model.populate()
-
-
 
 
 class TikTaskLayout(QtWidgets.QVBoxLayout):

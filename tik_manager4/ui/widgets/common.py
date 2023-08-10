@@ -39,6 +39,7 @@ QPushButton:pressed {
 }
 """
 
+
 class TikButton(QtWidgets.QPushButton):
     """Unified button class for the whole app."""
 
@@ -47,10 +48,6 @@ class TikButton(QtWidgets.QPushButton):
         # make sure the button has a font defined for different OS scales
         self.setFont(FONT)
         self.setStyleSheet(BUTTON_STYLE)
-        # self.setMaximumHeight(30)
-
-        # set color
-        # self.setStyleSheet("background-color: rgb(50, 50, 50); color: rgb(0, 200, 200);")
 
 
 class TikButtonBox(QtWidgets.QDialogButtonBox):
@@ -58,12 +55,6 @@ class TikButtonBox(QtWidgets.QDialogButtonBox):
 
     def __init__(self, *args, **kwargs):
         super(TikButtonBox, self).__init__(*args, **kwargs)
-        # self.setFont(FONT)
-        # make the buttons bigger but use font scale not pixel size
-        # self.setStyleSheet("color: #b1b1b1; background-color: #404040; border-width: 1px; border-color: #1e1e1e; border-style: solid; padding: 10px; font-size: 12px;")
-        # self.setStyleSheet(BUTTON_STYLE)
-
-        # self.setStyleSheet("background-color: rgb(50, 50, 50); color: rgb(0, 200, 200);")
         for button in self.buttons():
             self.modifyButton(button)
 
@@ -74,10 +65,8 @@ class TikButtonBox(QtWidgets.QDialogButtonBox):
         return super(TikButtonBox, self).event(event)
 
     def modifyButton(self, button):
-        # button.setFont(QtGui.QFont("Arial", 10))
         button.setFont(FONT)
         button.setMinimumWidth(100)
-        # button.setStyleSheet("background-color: rgb(50, 50, 50); color: rgb(0, 200, 200);")
         button.setStyleSheet(BUTTON_STYLE)
 
 
@@ -85,8 +74,7 @@ class TikMessageBox(QtWidgets.QMessageBox):
     def __init__(self, *args, **kwargs):
         super(TikMessageBox, self).__init__(*args, **kwargs)
         self.setFont(FONT)
-        # make the buttons bigger
-        # self.setStyleSheet("background-color: rgb(50, 50, 50); color: rgb(0, 200, 200);")
+
 
 class HeaderLabel(QtWidgets.QLabel):
     """Label with bold font and indent."""
@@ -105,19 +93,16 @@ class HeaderLabel(QtWidgets.QLabel):
     def set_color(self, color):
         self.setStyleSheet("color: {};".format(color))
 
+
 class ResolvedText(QtWidgets.QLabel):
     """Label for resolved paths, names etc."""
+
     def __init__(self, *args, **kwargs):
         super(ResolvedText, self).__init__(*args, **kwargs)
         self.setFont(QtGui.QFont("Arial", 10, QtGui.QFont.Bold))
 
         # make is selectable
         self.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
-        # self.setFrameShape(QtWidgets.QFrame.Box)
-
 
     def set_color(self, color):
         self.setStyleSheet("color: {};".format(color))
-        # box and sunken
-
-
