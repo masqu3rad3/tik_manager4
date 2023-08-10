@@ -1,9 +1,10 @@
-"""The template class for all available DCC commands. These commands will be overriden in DCCs"""
+"""Template class for all available DCC commands.
+These commands will be overriden in DCCs.
+"""
 import os.path
 
 
 class DccTemplate(object):
-
     @staticmethod
     def get_main_window():
         """Returns the main window of the DCC"""
@@ -162,19 +163,19 @@ class DccTemplate(object):
 
     @staticmethod
     def get_ranges():
-        """
-        Gets the viewport ranges
-        Returns: (list) [<absolute range start>, <user range start>, <user range end>, <absolute range end>
+        """Get the viewport ranges.
+        Returns: (list) [<absolute range start>, <user range start>, <user range end>,
+        <absolute range end>
         """
         pass
 
     @staticmethod
     def set_ranges(range_list):
-        """
-        sets the timeline ranges
+        """Set the timeline ranges.
 
         Args:
-            range_list: list of ranges as [<animation start>, <user min>, <user max>, <animation end>]
+            range_list: list of ranges as [<animation start>, <user min>, <user max>,
+            <animation end>]
 
         Returns: None
 
@@ -205,12 +206,16 @@ class DccTemplate(object):
 
     @staticmethod
     def get_project():
-        """Returns currently set project by dcc. If dcc does not support project management, returns None"""
+        """Return currently set project by dcc.
+        If dcc does not support project management, return None.
+        """
         return None
 
     @staticmethod
     def get_current_frame():
-        """Returns current frame in timeline. If dcc does not have a timeline, returns None"""
+        """Return current frame in timeline.
+        If dcc does not have a timeline, return None.
+        """
         return None
 
     @staticmethod

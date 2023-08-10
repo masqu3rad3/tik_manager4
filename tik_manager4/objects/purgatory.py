@@ -1,5 +1,6 @@
 """Gate keeper of heavens and earth."""
 
+
 class Purgatory(object):
     """Purgatory is the place where all entities go to be deleted."""
 

@@ -1,4 +1,3 @@
-import sys
 import hashlib
 import os
 from tik_manager4.core import filelog
@@ -14,8 +13,6 @@ FEED = feedback.Feedback()
 
 
 class User(object):
-    # _authenticated = False
-    # _permission_level = 0
     _guard = Guard()
 
     def __init__(self, common_directory=None):
@@ -24,7 +21,9 @@ class User(object):
         self.bookmarks = Settings()
         self.resume = Settings()
         self.user_directory = None
-        self.common_directory = common_directory  # this is only for programmatically set the commons
+        self.common_directory = (
+            common_directory  # this is only for programmatically set the commons
+        )
         self.commons = None
 
         self._active_user = None
@@ -32,12 +31,10 @@ class User(object):
 
     @property
     def is_authenticated(self):
-        # return bool(self._authenticated)
         return bool(self._guard.is_authenticated)
 
     @property
     def permission_level(self):
-        # return self._permission_level
         return self._guard.permission_level
 
     @property
@@ -161,7 +158,6 @@ class User(object):
     def __set_null_categories(cls, empty_categories):
         cls._guard.set_null_categories(empty_categories)
 
-
     def _validate_user_data(self):
         """Finds or creates user directories and files"""
 
@@ -169,20 +165,31 @@ class User(object):
         self.user_directory = os.path.normpath(os.path.join(_user_root, "TikManager4"))
         if not os.path.isdir(os.path.normpath(self.user_directory)):
             os.makedirs(os.path.normpath(self.user_directory))
-        self.settings.settings_file = os.path.join(self.user_directory, "userSettings.json")
-        self.bookmarks.settings_file = os.path.join(self.user_directory, "bookmarks.json")
+        self.settings.settings_file = os.path.join(
+            self.user_directory, "userSettings.json"
+        )
+        self.bookmarks.settings_file = os.path.join(
+            self.user_directory, "bookmarks.json"
+        )
         self.resume.settings_file = os.path.join(self.user_directory, "resume.json")
 
         # Check if the common folder defined in the user settings
-        self.common_directory = self.common_directory or self.settings.get_property("commonFolder")
+        self.common_directory = self.common_directory or self.settings.get_property(
+            "commonFolder"
+        )
         if not self.common_directory or not os.path.isdir(self.common_directory):
             # if it is not overridden while creating the object ask it from the user
             if not self.common_directory:
-                FEED.pop_info(title="Set Commons Directory", text="Commons Directory is not defined. "
-                                                                  "Press Continue to select Commons Directory",
-                              button_label="Continue")
+                FEED.pop_info(
+                    title="Set Commons Directory",
+                    text="Commons Directory is not defined. "
+                    "Press Continue to select Commons Directory",
+                    button_label="Continue",
+                )
                 self.common_directory = FEED.browse_directory()
-            assert self.common_directory, "Commons Directory must be defined to continue"
+            assert (
+                self.common_directory
+            ), "Commons Directory must be defined to continue"
         self.settings.edit_property("commonFolder", self.common_directory)
         self.settings.apply_settings()
 
@@ -190,7 +197,9 @@ class User(object):
         self.__set_category_definitions(self.commons.category_definitions)
 
         # set the default keys for missing ones
-        for key, val in self.commons.user_settings.get_property("userPreferences").items():
+        for key, val in self.commons.user_settings.get_property(
+            "userPreferences"
+        ).items():
             if not self.settings.get_property(key=key):
                 self.settings.add_property(key=key, val=val)
 
@@ -225,34 +234,44 @@ class User(object):
                 if self.check_password(user_name, password):
                     self.__set_authentication_status(True)
                 else:
-                    return -1, log.warning("Wrong password provided for user %s" % user_name)
-            elif self.resume.get_property("user_dhash") == self.__hash_pass("{0}{1}".format(user_name, self.commons.users.get_property(user_name).get("pass"))):
-
+                    return -1, log.warning(
+                        "Wrong password provided for user %s" % user_name
+                    )
+            elif self.resume.get_property("user_dhash") == self.__hash_pass(
+                "{0}{1}".format(
+                    user_name, self.commons.users.get_property(user_name).get("pass")
+                )
+            ):
                 self.__set_authentication_status(True)
             else:
-                self.__set_authentication_status(False)  # make sure it is not authenticated if no password
+                self.__set_authentication_status(
+                    False
+                )  # make sure it is not authenticated if no password
             self._active_user = user_name
             self._guard.set_user(self._active_user)
             if save_to_db:
                 # self.bookmarks.edit_property("activeUser", self._active_user)
                 self.resume.edit_property("user", self._active_user)
-                # self.bookmarks.edit_property("activeUser_dhash", self.__hash_pass("TESTING"))
-                _d_hash = self.__hash_pass("{0}{1}".format(self._active_user, self.commons.users.get_property(self._active_user).get("pass")))
-                # self.bookmarks.edit_property("activeUser_dhash", _d_hash)
+                _d_hash = self.__hash_pass(
+                    "{0}{1}".format(
+                        self._active_user,
+                        self.commons.users.get_property(self._active_user).get("pass"),
+                    )
+                )
                 self.resume.edit_property("user_dhash", _d_hash)
-                # self.bookmarks.apply_settings()
                 self.resume.apply_settings()
             if clear_db:
-                # self.bookmarks.edit_property("activeUser", None)
                 self.resume.edit_property("user", None)
-                # self.bookmarks.edit_property("activeUser_dhash", None)
                 self.resume.edit_property("user_dhash", None)
-                # self.bookmarks.apply_settings()
                 self.resume.apply_settings()
-            self.__set_permission_level(self.commons.check_user_permission_level(user_name))
+            self.__set_permission_level(
+                self.commons.check_user_permission_level(user_name)
+            )
             return user_name, "Success"
         else:
-            return -1, log.warning("User %s cannot set because it does not exist in commons database")
+            return -1, log.warning(
+                "User %s cannot set because it does not exist in commons database"
+            )
 
     def authenticate(self, password):
         if self.check_password(self._active_user, password):
@@ -260,15 +279,25 @@ class User(object):
             return 1, "Success"
         else:
             self.__set_authentication_status(False)
-            return -1, log.warning("Wrong password provided for user %s" % self._active_user)
+            return -1, log.warning(
+                "Wrong password provided for user %s" % self._active_user
+            )
 
-    def create_new_user(self, new_user_name, new_user_initials, new_user_password, permission_level,
-                        active_user_password=None):
+    def create_new_user(
+        self,
+        new_user_name,
+        new_user_initials,
+        new_user_password,
+        permission_level,
+        active_user_password=None,
+    ):
         """Creates a new user and stores it in database"""
 
-        # first check the permissions of active user - Creating new user requires level 3 permissions
+        # first check the permissions of active user
         if self.permission_level < 3:
-            return -1, log.warning("User %s has no permission to create new users" % self._active_user)
+            return -1, log.warning(
+                "User %s has no permission to create new users" % self._active_user
+            )
 
         # Don't allow non-authenticated users to go further
 
@@ -276,14 +305,16 @@ class User(object):
             self.authenticate(active_user_password)
 
         if not self.is_authenticated:
-            return -1, log.warning("Active user is not authenticated or the password is wrong")
+            return -1, log.warning(
+                "Active user is not authenticated or the password is wrong"
+            )
 
         if new_user_name in self.commons.users.keys:
             return -1, log.error("User %s already exists. Aborting" % new_user_name)
         user_data = {
             "initials": new_user_initials,
             "pass": self.__hash_pass(new_user_password),
-            "permissionLevel": self.__clamp_level(permission_level)
+            "permissionLevel": self.__clamp_level(permission_level),
         }
         self.commons.users.add_property(new_user_name, user_data)
         self.commons.users.apply_settings()
@@ -291,15 +322,19 @@ class User(object):
 
     def delete_user(self, user_name, active_user_password=None):
         """Removes the user from database"""
-        # first check the permissions of active user - Creating new user requires level 3 permissions
+        # first check the permissions of active user
         if self.permission_level < 3:
-            return -1, log.warning("User %s has no permission to delete users" % self._active_user)
+            return -1, log.warning(
+                "User %s has no permission to delete users" % self._active_user
+            )
 
         # Don't allow non-authenticated users to go further
         if active_user_password:
             self.authenticate(active_user_password)
         if not self.is_authenticated:
-            return -1, log.warning("Active user is not authenticated or the password is wrong")
+            return -1, log.warning(
+                "Active user is not authenticated or the password is wrong"
+            )
 
         if user_name == "Admin":
             return -1, log.warning("Admin User cannot be deleted")
@@ -318,15 +353,20 @@ class User(object):
         return max(0, min(int(level), 3))
 
     def change_permission_level(self, user_name, new_level, active_user_password=None):
-        # first check the permissions of active user - changing permission levels requires level 3 permissions
+        # first check the permissions of active user
         if self.permission_level < 3:
-            msg = "User %s has no permission to change permission level of other users" % self._active_user
+            msg = (
+                "User %s has no permission to change permission level of other users"
+                % self._active_user
+            )
             return -1, log.warning(msg)
             # Don't allow non-authenticated users to go further
         if active_user_password:
             self.authenticate(active_user_password)
         if not self.is_authenticated:
-            return -1, log.warning("Active user is not authenticated or the password is wrong")
+            return -1, log.warning(
+                "Active user is not authenticated or the password is wrong"
+            )
 
         if user_name == "Admin":
             return -1, log.warning("Admin permission levels cannot be altered")
@@ -343,10 +383,15 @@ class User(object):
         return 1, "Success"
 
     def change_user_password(self, old_password, new_password, user_name=None):
-        """Changes the user password. It only changes the active user, aka needs to be logged in"""
+        """Change the user password.
+        It only changes the active user, a.k.a needs to be logged in"""
         user_name = user_name or self._active_user
-        if self.__hash_pass(old_password) == self.commons.users.get_property(user_name).get("pass"):
-            self.commons.users.get_property(user_name)["pass"] = self.__hash_pass(new_password)
+        if self.__hash_pass(old_password) == self.commons.users.get_property(
+            user_name
+        ).get("pass"):
+            self.commons.users.get_property(user_name)["pass"] = self.__hash_pass(
+                new_password
+            )
             self.commons.users.apply_settings()
             return 1, "Success"
         else:
@@ -363,7 +408,7 @@ class User(object):
     @staticmethod
     def __hash_pass(password):
         """Hashes the password"""
-        return hashlib.sha1(str(password).encode('utf-8')).hexdigest()
+        return hashlib.sha1(str(password).encode("utf-8")).hexdigest()
 
     def get_project_bookmarks(self):
         """Returns the user bookmarked projects as list of dictionaries"""
@@ -400,17 +445,6 @@ class User(object):
             recents_list.pop(0)
         self.bookmarks.apply_settings(force=True)
 
-
     def get_recent_projects(self):
         return self.bookmarks.get_property("recentProjects")
 
-    # def remember(self):
-    #     """Remember the active user and authentication.
-    #
-    #     Checks the activeUser ana activeUser_dhash. If both of them exists and d_hash is correct, then set the
-    #     active user and authenticate it."""
-    #     """
-
-
-
-    # TODO Project Repositories

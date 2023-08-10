@@ -5,6 +5,7 @@ from tik_manager4.ui.Qt import QtCore
 
 class ValueChangeStr(QtCore.QObject):
     """Simple QObject inheritance to pass the Signal and event to custom widgets"""
+
     valueChanged = QtCore.Signal(str)
 
     def __init__(self):
@@ -16,6 +17,7 @@ class ValueChangeStr(QtCore.QObject):
 
 class ValueChangeInt(QtCore.QObject):
     """Simple QObject inheritance to pass the Signal and event to custom widgets"""
+
     valueChanged = QtCore.Signal(int)
 
     def valueChangeEvent(self, e):
@@ -24,6 +26,7 @@ class ValueChangeInt(QtCore.QObject):
 
 class ValueChangeFloat(QtCore.QObject):
     """Simple QObject inheritance to pass the Signal and event to custom widgets"""
+
     valueChanged = QtCore.Signal(float)
 
     def valueChangeEvent(self, e):
@@ -32,6 +35,7 @@ class ValueChangeFloat(QtCore.QObject):
 
 class ValueChangeBool(QtCore.QObject):
     """Simple QObject inheritance to pass the Signal and event to custom widgets"""
+
     valueChanged = QtCore.Signal(bool)
 
     def valueChangeEvent(self, e):
@@ -40,6 +44,7 @@ class ValueChangeBool(QtCore.QObject):
 
 class ValueChangeList(QtCore.QObject):
     """Simple QObject inheritance to pass the Signal and event to custom widgets"""
+
     valueChanged = QtCore.Signal(list)
 
     def valueChangeEvent(self, e):

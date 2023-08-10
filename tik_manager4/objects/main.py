@@ -5,17 +5,19 @@ import sys
 from tik_manager4.core import filelog, settings, utils
 from tik_manager4.objects import user, project
 from tik_manager4 import dcc
-from tik_manager4.ui.Qt import QtWidgets  # Only for browsing if the common folder is not defined
+from tik_manager4.ui.Qt import (
+    QtWidgets,
+)  # Only for browsing if the common folder is not defined
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
-# if __name__ == '__main__' or dcc.NAME == "Standalone":
-#     app = QtWidgets.QApplication(sys.argv)
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
+
 
 class Main(object):
     """Main Tik Manager class. Handles User and Project related functions."""
+
     user = user.User()
     project = project.Project()
     # set the dcc to the guard object
@@ -30,7 +32,9 @@ class Main(object):
         # always make sure the default project exists, in case of urgent fall back
 
         default_project = os.path.join(utils.get_home_dir(), "TM4_default")
-        if not os.path.exists(os.path.join(default_project, "tikDatabase", "project_structure.json")):
+        if not os.path.exists(
+            os.path.join(default_project, "tikDatabase", "project_structure.json")
+        ):
             self._create_default_project()
 
         _project = default_project
@@ -38,7 +42,9 @@ class Main(object):
             recent_projects = self.user.get_recent_projects()
             # try to find the last project that exists
             for _project in reversed(recent_projects):
-                if os.path.exists(os.path.join(_project, "tikDatabase", "project_structure.json")):
+                if os.path.exists(
+                    os.path.join(_project, "tikDatabase", "project_structure.json")
+                ):
                     break
 
         self.set_project(_project)
@@ -60,7 +66,7 @@ class Main(object):
             "resolution": [1920, 1080],
             "fps": 25,
             "mode": "root",
-            "subs": []
+            "subs": [],
         }
         structure_data["name"] = "TM4_default"
 
@@ -69,7 +75,14 @@ class Main(object):
         structure.set_data(structure_data)
         structure.apply_settings()
 
-    def create_project(self, path, structure_template="empty", structure_data=None, set_after_creation=True, **kwargs):
+    def create_project(
+        self,
+        path,
+        structure_template="empty",
+        structure_data=None,
+        set_after_creation=True,
+        **kwargs
+    ):
         """Create a new project."""
         if self.user.permission_level < 3:
             log.warning("This user does not have rights to perform this action")
@@ -88,15 +101,17 @@ class Main(object):
         if structure_data:
             structure_data = structure_data
         else:
-            structure_data = self.user.commons.structures.get_property(structure_template)
+            structure_data = self.user.commons.structures.get_property(
+                structure_template
+            )
         if not structure_data:
             log.warning("Structure template %s is not defined. Creating empty project")
             structure_data = {
-                              "name": project_name,
-                              "path": "",
-                              "mode": "root",
-                              "subs": []
-                            }
+                "name": project_name,
+                "path": "",
+                "mode": "root",
+                "subs": [],
+            }
         # override defined keys
         structure_data["name"] = project_name
         structure_data.update(kwargs)
@@ -111,7 +126,7 @@ class Main(object):
         project_obj._set(path)
         project_obj.create_folders(project_obj.absolute_path)
         project_obj.create_folders(project_obj.database_path)
-        project_obj.save_structure()  # This makes sure IDs are getting saved to the database file
+        project_obj.save_structure()  # This makes sure IDs are getting saved
 
         if set_after_creation:
             self.set_project(path)

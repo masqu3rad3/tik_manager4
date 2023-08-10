@@ -9,16 +9,19 @@ from tik_manager4.core import filelog
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
+
 class Task(Settings, Entity):
-    def __init__(self, absolute_path,
-                 name=None,
-                 categories=None,
-                 path="",
-                 file_name=None,
-                 task_type=None,
-                 parent_sub=None,
-                 task_id=None
-                 ):
+    def __init__(
+        self,
+        absolute_path,
+        name=None,
+        categories=None,
+        path="",
+        file_name=None,
+        task_type=None,
+        parent_sub=None,
+        task_id=None,
+    ):
         # self._task_id = None
         super(Task, self).__init__()
         self.settings_file = absolute_path
@@ -60,11 +63,6 @@ class Task(Settings, Entity):
     def creator(self):
         return self._creator
 
-
-    # @property
-    # def reference_id(self):
-    #     return self._task_id
-
     @property
     def categories(self):
         return self._categories
@@ -79,7 +77,9 @@ class Task(Settings, Entity):
         self._categories = {}
         for category in category_list:
             category_definition = self.guard.category_definitions.get_property(category)
-            self._categories[category] = (Category(name=category, parent_task=self, definition=category_definition))
+            self._categories[category] = Category(
+                name=category, parent_task=self, definition=category_definition
+            )
 
         return self._categories
 
@@ -89,15 +89,23 @@ class Task(Settings, Entity):
         if state != 1:
             return -1
         if category not in self.guard.category_definitions.properties.keys():
-            LOG.error("Category '{0}' is not defined in category definitions.".format(category), proceed=False)
-        # categories are very simple entities which can be constructed with a name and a path
+            LOG.error(
+                "Category '{0}' is not defined in category definitions.".format(
+                    category
+                ),
+                proceed=False,
+            )
         if category not in self._categories.keys():
             self._categories[category] = Category(name=category, parent_task=self)
-            self._currentValue["categories"] = (list(self._categories.keys()))
+            self._currentValue["categories"] = list(self._categories.keys())
             self.apply_settings()
             return self._categories[category]
         else:
-            LOG.warning("Category '{0}' already exists in task '{1}'.".format(category, self.name))
+            LOG.warning(
+                "Category '{0}' already exists in task '{1}'.".format(
+                    category, self.name
+                )
+            )
             return -1
 
     def edit(self, name=None, task_type=None, categories=None):
@@ -108,7 +116,11 @@ class Task(Settings, Entity):
         if name and name != self.name:
             # check the sibling tasks to see if the name is already taken
             if name in self.parent_sub.tasks:
-                LOG.error("Task name '{0}' already exists in sub '{1}'.".format(name, self.parent_sub.name))
+                LOG.error(
+                    "Task name '{0}' already exists in sub '{1}'.".format(
+                        name, self.parent_sub.name
+                    )
+                )
                 return -1
             self._name = name
             self.edit_property("name", name)
@@ -122,7 +134,12 @@ class Task(Settings, Entity):
             # check if the categories are in the category definitions
             for category in categories:
                 if category not in self.guard.category_definitions.properties.keys():
-                    LOG.error("Category '{0}' is not defined in category definitions.".format(category), proceed=False)
+                    LOG.error(
+                        "Category '{0}' is not defined in category definitions.".format(
+                            category
+                        ),
+                        proceed=False,
+                    )
             self._categories = self.build_categories(categories)
             self.edit_property("categories", list(categories))
         self.apply_settings()
@@ -132,13 +149,18 @@ class Task(Settings, Entity):
         Delete a category from the task.
         Args:
             category: (str) Category to delete
-            force: (bool) If True will delete the category with all its contents. If False will only delete it from the database
+            force: (bool) If True will delete the category with all its contents.
+                            If False will only delete it from the database
 
         Returns:
 
         """
         if category not in self._categories:
-            LOG.warning("Category '{0}' does not exist in task '{1}'.".format(category, self.name))
+            LOG.warning(
+                "Category '{0}' does not exist in task '{1}'.".format(
+                    category, self.name
+                )
+            )
             return -1
 
         _is_empty = self._categories[category].is_empty()
@@ -150,15 +172,25 @@ class Task(Settings, Entity):
 
         # delete category from database
         self._categories.pop(category)
-        self._currentValue["categories"] = (list(self._categories.keys()))
+        self._currentValue["categories"] = list(self._categories.keys())
         self.apply_settings()
 
         if not _is_empty:
-            LOG.warning("Sending category '{0}' from task '{1}' to purgatory.".format(category, self.name))
+            LOG.warning(
+                "Sending category '{0}' from task '{1}' to purgatory.".format(
+                    category, self.name
+                )
+            )
             self._io.folder_check(self.get_purgatory_database_path(category))
             self._io.folder_check(self.get_purgatory_project_path(category))
-            shutil.move(self.get_abs_database_path(self.name, category), self.get_purgatory_database_path(self.name, category))
-            shutil.move(self.get_abs_project_path(self.name, category), self.get_purgatory_project_path(self.name, category))
+            shutil.move(
+                self.get_abs_database_path(self.name, category),
+                self.get_purgatory_database_path(self.name, category),
+            )
+            shutil.move(
+                self.get_abs_project_path(self.name, category),
+                self.get_purgatory_project_path(self.name, category),
+            )
 
         return 1
 
@@ -175,11 +207,17 @@ class Task(Settings, Entity):
         if state != 1:
             return -1
         if len(new_order) != len(self._categories):
-            LOG.error("New order list is not the same length as the current categories list.", proceed=False)
+            LOG.error(
+                "New order list is not the same length as the current categories list.",
+                proceed=False,
+            )
         for x in new_order:
             if x not in self.categories:
-                LOG.error("New order list contains a category that is not in the current categories list.", proceed=False)
+                LOG.error(
+                    "New order list contains a category "
+                    "that is not in the current categories list.",
+                    proceed=False,
+                )
         self.edit_property("categories", new_order)
         self.apply_settings()
         return 1
-

@@ -16,16 +16,16 @@ class Category(Entity):
     def __init__(self, parent_task, definition=None, **kwargs):
         super(Category, self).__init__(**kwargs)
         definition = definition or {}
-        # self._name = name
         self._works = {}
         self._publishes = {}
-        # self._publishes = {}
         self.type = definition.get("type", None)
         self.display_name = definition.get("display_name", None)
         self.validations = definition.get("validate", [])
         self.extracts = definition.get("extracts", [])
         self.parent_task = parent_task
-        self._relative_path = os.path.join(self.parent_task._relative_path, self.parent_task.name, self.name)
+        self._relative_path = os.path.join(
+            self.parent_task._relative_path, self.parent_task.name, self.name
+        )
 
     @property
     def works(self):
@@ -52,9 +52,12 @@ class Category(Entity):
         # get all the files in a directory recursively with .twork extension
         else:
             _search_dir = self.get_abs_database_path()
-            _work_paths = glob(os.path.join(_search_dir, "**", "*.twork"), recursive=True)
+            _work_paths = glob(
+                os.path.join(_search_dir, "**", "*.twork"), recursive=True
+            )
 
-        # add the file if it is new. if it is not new, check the modified time and update if necessary
+        # add the file if it is new. if it is not new,
+        # check the modified time and update if necessary
         for _w_path, _w_data in dict(self._works).items():
             if _w_path not in _work_paths:
                 self._works.pop(_w_path)
@@ -82,7 +85,9 @@ class Category(Entity):
 
         contructed_name = self.construct_name(name)
         relative_path = os.path.join(self.path, self.guard.dcc).replace("\\", "/")
-        abs_path = self.get_abs_database_path(self.guard.dcc, "%s.twork" % contructed_name)
+        abs_path = self.get_abs_database_path(
+            self.guard.dcc, "%s.twork" % contructed_name
+        )
         if os.path.exists(abs_path):
             # in that case instantiate the work and iterate the version.
             _work = Work(absolute_path=abs_path)
@@ -107,7 +112,9 @@ class Category(Entity):
 
         _work = self._works.get(name, None)
         if not _work:
-            log.warning("There is no work under this category with the name => %s" % name)
+            log.warning(
+                "There is no work under this category with the name => %s" % name
+            )
             return -1
 
         # if not, check if the user is the owner of the work

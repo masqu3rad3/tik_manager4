@@ -12,8 +12,10 @@ from tik_manager4.objects.task import Task
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
+
 class Metaitem(object):
     """Hold the value and overridden status of a property."""
+
     def __init__(self, value, overridden=False):
         """Initialize Metaitem.
         Args:
@@ -22,8 +24,11 @@ class Metaitem(object):
         """
         self.value = value
         self.overridden = overridden
+
+
 class Metadata(dict):
     """Metadata class."""
+
     def __init__(self, data_dictionary):
         """Initialize Metadata object.
         Args:
@@ -66,10 +71,8 @@ class Metadata(dict):
 
 class Subproject(Entity):
     """Subproject object to hold subproject data and hierarchy."""
-    def __init__(self,
-                 parent_sub=None,
-                 metadata=None,
-                 **kwargs):
+
+    def __init__(self, parent_sub=None, metadata=None, **kwargs):
         """Initialize Subproject object.
         Args:
             parent_sub (Subproject): The parent subproject.
@@ -163,7 +166,9 @@ class Subproject(Entity):
         # get all remaining keys as metadata
         # inherit parents metadata
         if self.__parent_sub:
-            self._metadata = Metadata(dict(self.__parent_sub.metadata.get_all_items())) or Metadata({})
+            self._metadata = Metadata(
+                dict(self.__parent_sub.metadata.get_all_items())
+            ) or Metadata({})
 
         for key, value in data.items():
             if key not in persistent_keys:
@@ -184,7 +189,9 @@ class Subproject(Entity):
                     _relative_path = neighbour.get("path", None)
 
                     # TODO take a look at this if it can be improved
-                    _metadata = Metadata(dict(sub.metadata.get_all_items())) or Metadata({})
+                    _metadata = Metadata(
+                        dict(sub.metadata.get_all_items())
+                    ) or Metadata({})
                     properties = {}
                     for key, value in neighbour.items():
                         if key not in persistent_keys:
@@ -204,12 +211,7 @@ class Subproject(Entity):
                     visited.append(neighbour)
                     queue.append([sub_project, neighbour.get("subs", [])])
 
-    def __build_sub_project(self,
-                            name,
-                            parent_sub,
-                            metadata,
-                            uid
-                            ):
+    def __build_sub_project(self, name, parent_sub, metadata, uid):
         """Build a nested subproject.
 
         Args:
@@ -222,20 +224,14 @@ class Subproject(Entity):
 
         """
 
-        sub_pr = Subproject(name=name,
-                            parent_sub=parent_sub,
-                            metadata=metadata,
-                            uid=uid)
+        sub_pr = Subproject(
+            name=name, parent_sub=parent_sub, metadata=metadata, uid=uid
+        )
         sub_pr.path = os.path.join(self.path, name)
         self._sub_projects[name] = sub_pr
         return sub_pr
 
-    def add_sub_project(self,
-                        name,
-                        parent_sub=None,
-                        uid=None,
-                        **properties
-                        ):
+    def add_sub_project(self, name, parent_sub=None, uid=None, **properties):
         """Add a subproject.
         Requires permissions. Does not create folders or store in
         the persistent database
@@ -254,9 +250,10 @@ class Subproject(Entity):
             return -1
 
         if name in self._sub_projects:
-            LOG.warning("{0} already exist in sub-projects of {1}".format(name, self._name))
+            LOG.warning(
+                "{0} already exist in sub-projects of {1}".format(name, self._name)
+            )
             return -1
-            # return 0
 
         # TODO look at this if it can be improved
         _metadata = Metadata(dict(self.metadata.get_all_items())) or Metadata({})
@@ -264,22 +261,23 @@ class Subproject(Entity):
         properties = {k: v for k, v in properties.items() if v is not None}
         _metadata.override(properties)
 
-        new_sub = self.__build_sub_project(name,
-                                           parent_sub,
-                                           _metadata,
-                                           uid)  # keep uid at the end
+        new_sub = self.__build_sub_project(
+            name, parent_sub, _metadata, uid
+        )  # keep uid at the end
 
         return new_sub
 
-        # # TODO Currently the overriden uid is not getting checked if it is really unique or not
+        # TODO Currently the overriden uid is not getting checked
+        #  if it is really unique or not
 
     def scan_tasks(self):
         """Scan the subproject for tasks."""
 
         _tasks_search_dir = self.get_abs_database_path()
-        _task_paths = glob(os.path.join(_tasks_search_dir, '*.ttask'))
+        _task_paths = glob(os.path.join(_tasks_search_dir, "*.ttask"))
 
-        # add the file if it is new. if it is not new, check the modified time and update if necessary
+        # add the file if it is new. if it is not new,
+        # check the modified time and update if necessary
         for _task_path in _task_paths:
             _task_name = os.path.basename(_task_path).split(".")[0]
             existing_task = self._tasks.get(_task_name, None)
@@ -293,13 +291,18 @@ class Subproject(Entity):
         # if the lengths are not matching that means some tasks are deleted
         if len(_task_paths) != len(self._tasks):
             # get the task names
-            _task_names = [os.path.basename(_task_path).split(".")[0] for _task_path in _task_paths]
+            _task_names = [
+                os.path.basename(_task_path).split(".")[0] for _task_path in _task_paths
+            ]
             # get the task names that are not in the _task_names
-            _deleted_task_names = [task_name for task_name in self._tasks.keys() if task_name not in _task_names]
+            _deleted_task_names = [
+                task_name
+                for task_name in self._tasks.keys()
+                if task_name not in _task_names
+            ]
             # delete the tasks
             for _deleted_task_name in _deleted_task_names:
                 del self._tasks[_deleted_task_name]
-
 
         return self._tasks
 
@@ -324,11 +327,21 @@ class Subproject(Entity):
         relative_path = os.path.join(self.path, file_name)
         abs_path = os.path.join(self.guard.database_root, relative_path)
         if os.path.exists(abs_path):
-            LOG.warning("There is a task under this sub-project with the same name => %s" % name)
+            LOG.warning(
+                "There is a task under this sub-project with the same name => %s" % name
+            )
             return -1
         _task_id = self.generate_id()
-        _task = Task(abs_path, name=name, categories=categories, path=self.path, file_name=file_name,
-                     task_type=task_type, parent_sub=self, task_id=_task_id)
+        _task = Task(
+            abs_path,
+            name=name,
+            categories=categories,
+            path=self.path,
+            file_name=file_name,
+            task_type=task_type,
+            parent_sub=self,
+            task_id=_task_id,
+        )
         _task.add_property("name", name)
         _task.add_property("creator", self.guard.user)
         _task.add_property("type", task_type)
@@ -366,16 +379,23 @@ class Subproject(Entity):
 
         self._tasks.pop(task_name)
 
-
         # move everything to the purgatory
         if not _is_empty:
-            LOG.warning("Sending task {} and everything underneath to purgatory.".format(task_name))
+            LOG.warning(
+                "Sending task {} and everything underneath to purgatory.".format(
+                    task_name
+                )
+            )
             from tik_manager4.core import io
+
             io.IO().folder_check(self.get_purgatory_database_path(task.file_name))
             io.IO().folder_check(self.get_purgatory_project_path())
-            shutil.move(self.get_abs_database_path(task.file_name), self.get_purgatory_database_path(task.file_name))
+            shutil.move(
+                self.get_abs_database_path(task.file_name),
+                self.get_purgatory_database_path(task.file_name),
+            )
             shutil.move(self.get_abs_project_path(), self.get_purgatory_project_path())
-        else: # if the task is empty, just delete the database file
+        else:  # if the task is empty, just delete the database file
             os.remove(task.settings_file)
 
         return 1
@@ -486,7 +506,9 @@ class Subproject(Entity):
             shutil.rmtree(folder)
 
     def create_folders(self, root, sub=None):
-        """Create folders for subprojects and categories below this starting from 'root' path"""
+        """Create folders for subprojects and categories below
+        this starting from 'root' path.
+        """
         sub = sub or self
         folder = os.path.join(root, sub.path)
         if not os.path.exists(folder):
