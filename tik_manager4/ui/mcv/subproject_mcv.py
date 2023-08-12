@@ -174,7 +174,6 @@ class TikSubModel(QtGui.QStandardItemModel):
             "*", QtCore.Qt.MatchWildcard | QtCore.Qt.MatchRecursive
         )
         for x in _all_items:
-            # print(x)
             if isinstance(x, TikSubItem):
                 if x.subproject.id == unique_id:
                     return x
@@ -186,7 +185,7 @@ class TikSubView(QtWidgets.QTreeView):
 
     def __init__(self, project_obj=None, right_click_enabled=True):
         super(TikSubView, self).__init__()
-
+        self._recursive_task_scan = False
         self._feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
@@ -208,10 +207,40 @@ class TikSubView(QtWidgets.QTreeView):
 
         # self.expandAll()
         self.setItemsExpandable(True)
-        self._recursive_task_scan = False
+
 
         # show the root
         self.setRootIsDecorated(False)
+
+        # allow multiple selection but only with ctrl
+        # self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Control:
+            self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        else:
+            super().keyPressEvent(event)
+
+    def keyReleaseEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Control:
+            self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        else:
+            super().keyReleaseEvent(event)
+
+    # override the right click Event
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.RightButton:
+            self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        else:
+            super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == QtCore.Qt.RightButton:
+            self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        else:
+            super().mouseReleaseEvent(event)
+
 
     def expand_first_item(self):
         """Try to expand the first item in the tree"""
@@ -258,21 +287,36 @@ class TikSubView(QtWidgets.QTreeView):
 
         return False
 
-    def currentChanged(self, *args, **kwargs):
-        super(TikSubView, self).currentChanged(*args, **kwargs)
-        self.get_tasks(self.currentIndex())
+    def selectionChanged(self, *args, **kwargs):
+        super(TikSubView, self).selectionChanged(*args, **kwargs)
+        self.get_tasks()
 
-    def get_selected_item(self):
+    # def currentChanged(self, *args, **kwargs):
+    #     super(TikSubView, self).currentChanged(*args, **kwargs)
+    #     # print("++++++++++++++")
+    #     # print(self.selectedIndexes())
+    #     # print("++++++++++++++")
+    #     self.get_tasks()
+    #     # self.get_tasks(self.currentIndex())
+
+    def get_selected_items(self):
         """Return the current item."""
-        idx = self.currentIndex()
-        if not idx.isValid():
-            return None
-        idx = idx.sibling(idx.row(), 0)
+        selected_items = []
+        # get selected indexes
+        selected_indexes = self.selectedIndexes()
+        # idx = self.currentIndex()
+        for idx in selected_indexes:
+            if not idx.isValid():
+                return None
+            idx = idx.sibling(idx.row(), 0)
 
-        # the id needs to mapped from proxy to source
-        index = self.proxy_model.mapToSource(idx)
-        _item = self.model.itemFromIndex(index)
-        return _item
+            # the id needs to mapped from proxy to source
+            index = self.proxy_model.mapToSource(idx)
+            _item = self.model.itemFromIndex(index)
+            # return _item
+            # yield _item
+            selected_items.append(_item)
+        return selected_items
 
     def set_recursive_task_scan(self, value):
         self._recursive_task_scan = value
@@ -330,34 +374,79 @@ class TikSubView(QtWidgets.QTreeView):
         self.resizeColumnToContents(3)
         self.resizeColumnToContents(4)
 
+    # @staticmethod
+    # def collect_tasks(sub_item, recursive=True):
+    #     if not isinstance(sub_item, tik_manager4.objects.subproject.Subproject):
+    #         # just to prevent crashes if something goes wrong
+    #         return
+    #     for key, value in sub_item.scan_tasks().items():
+    #         yield value
+    #
+    #     if recursive:
+    #         queue = list(sub_item.subs.values())
+    #         while queue:
+    #             sub = queue.pop(0)
+    #             for key, value in sub.scan_tasks().items():
+    #                 yield value
+    #             queue.extend(list(sub.subs.values()))
     @staticmethod
-    def collect_tasks(sub_item, recursive=True):
-        if not isinstance(sub_item, tik_manager4.objects.subproject.Subproject):
-            # just to prevent crashes if something goes wrong
-            return
-        for key, value in sub_item.scan_tasks().items():
-            yield value
+    def collect_tasks(sub_items, recursive=True):
+        if not isinstance(sub_items, list):
+            sub_items = [sub_items]
+        for sub_item in sub_items:
+            if not isinstance(sub_item, tik_manager4.objects.subproject.Subproject):
+                # just to prevent crashes if something goes wrong
+                return
+            for key, value in sub_item.scan_tasks().items():
+                yield value
 
-        if recursive:
-            queue = list(sub_item.subs.values())
-            while queue:
-                sub = queue.pop(0)
-                for key, value in sub.scan_tasks().items():
-                    yield value
-                queue.extend(list(sub.subs.values()))
+            if recursive:
+                queue = list(sub_item.subs.values())
+                while queue:
+                    sub = queue.pop(0)
+                    for key, value in sub.scan_tasks().items():
+                        yield value
+                    queue.extend(list(sub.subs.values()))
 
     def get_tasks(self, idx=None):
-        idx = idx or self.currentIndex()
-        # make sure the idx is pointing to the first column
-        first_idx = idx.sibling(idx.row(), 0)
-        # the id needs to mapped from proxy to source
-        index = self.proxy_model.mapToSource(first_idx)
-        _item = self.model.itemFromIndex(index) or self.model.root_item
-        if _item:
-            _tasks = self.collect_tasks(
-                _item.subproject, recursive=self._recursive_task_scan
-            )
-            self.item_selected.emit(_tasks)
+        """Returns the tasks of the selected subproject"""
+        # idx = idx or self.currentIndex()
+        # # make sure the idx is pointing to the first column
+        # first_idx = idx.sibling(idx.row(), 0)
+        # # the id needs to mapped from proxy to source
+        # index = self.proxy_model.mapToSource(first_idx)
+        # _item = self.model.itemFromIndex(index) or self.model.root_item
+        # if _item:
+        #     _tasks = self.collect_tasks(
+        #         _item.subproject, recursive=self._recursive_task_scan
+        #     )
+        #     self.item_selected.emit(_tasks)
+
+        # selected_indexes = self.selectedIndexes()
+        # if len(selected_indexes) < 2:
+        #     selected_indexes = [self.currentIndex()]
+        selected_indexes = self.selectedIndexes()
+
+        # get all selection
+
+        # selected_indexes = self.selectedIndexes()[self.currentIndex()]
+
+        #
+        if not selected_indexes:
+            return
+        sub_project_objects = []
+        for idx in selected_indexes:
+            # Make sure the idx is pointing to the first column
+            first_idx = idx.sibling(idx.row(), 0)
+            # The id needs to be mapped from proxy to source
+            index = self.proxy_model.mapToSource(first_idx)
+            _item = self.model.itemFromIndex(index) or self.model.root_item
+            if _item:
+                sub_project_objects.append(_item.subproject)
+        _tasks = self.collect_tasks(
+            sub_project_objects, recursive=self._recursive_task_scan
+        )
+        self.item_selected.emit(_tasks)
 
     def hide_columns(self, columns):
         """If the given column exists in the model, hides it"""
@@ -421,6 +510,8 @@ class TikSubView(QtWidgets.QTreeView):
         )
 
     def header_right_click_menu(self, position):
+        """Creates a right click menu for the header"""
+
         menu = QtWidgets.QMenu(self)
 
         # add checkable actions for each column
@@ -471,7 +562,11 @@ class TikSubView(QtWidgets.QTreeView):
         act_edit_sub.triggered.connect(
             lambda _=None, x=item: self.edit_sub_project(item)
         )
-        act_delete_sub = right_click_menu.addAction(self.tr("Delete Sub-Project"))
+        # if multiple sub-projects are selected, disable the edit action
+        if len(indexes) > 1:
+            act_edit_sub.setEnabled(False)
+            act_new_sub.setEnabled(False)
+        act_delete_sub = right_click_menu.addAction(self.tr("Delete Sub-Project(s)"))
         act_delete_sub.triggered.connect(
             lambda _=None, x=item: self.delete_sub_project(item)
         )
@@ -479,7 +574,8 @@ class TikSubView(QtWidgets.QTreeView):
         right_click_menu.addSeparator()
 
         act_new_task = right_click_menu.addAction(self.tr("New Task"))
-        act_new_task.triggered.connect(lambda _=None, x=item: self.new_task(item))
+        # act_new_task.triggered.connect(lambda _=None, x=item: self.new_task(item))
+        act_new_task.triggered.connect(self.new_task)
 
         right_click_menu.addSeparator()
 
@@ -543,7 +639,11 @@ class TikSubView(QtWidgets.QTreeView):
             # re-populate the model
             self.refresh()
 
-    def new_task(self, item):
+    def new_task(self):
+        # get the selected items
+        selected_items = self.get_selected_items()
+        sub_projects = [x.subproject for x in selected_items]
+
         # first check for the user permission:
         if self.model.project.check_permissions(level=2) == -1:
             message, title = self.model.project.log.get_last_message()
@@ -551,7 +651,7 @@ class TikSubView(QtWidgets.QTreeView):
             return
 
         _dialog = tik_manager4.ui.dialog.task_dialog.NewTask(
-            self.model.project, parent_sub=item.subproject, parent=self
+            self.model.project, parent_sub=sub_projects, parent=self
         )
         state = _dialog.exec_()
         if state:
@@ -592,7 +692,8 @@ class TikSubView(QtWidgets.QTreeView):
 
                 # after removing the row, find the current selected one
                 # and emit the clicked signal
-                self.get_tasks(self.currentIndex())
+                # self.get_tasks(self.currentIndex())
+                self.get_tasks()
 
             else:
                 message, title = self.model.project.log.get_last_message()
@@ -667,7 +768,7 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
 
     def get_active_subproject(self):
         """Get the selected item and return the subproject object"""
-        selected_item = self.sub_view.get_selected_item()
+        selected_item = self.sub_view.get_selected_items()
         if selected_item:
             return selected_item.subproject
         return None
