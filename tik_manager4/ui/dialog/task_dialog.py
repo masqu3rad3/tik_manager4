@@ -19,6 +19,9 @@ class EditTask(QtWidgets.QDialog):
         self.task_object = task_object
         self.feedback = feedback.Feedback(parent=self)
 
+        # if parent_sub and not isinstance(parent_sub, list):
+        #     parent_sub = [parent_sub]
+
         self._parent_sub = parent_sub or task_object.parent_sub
         self.parent = parent
         self.setWindowTitle("Edit Task")
@@ -128,9 +131,9 @@ class EditTask(QtWidgets.QDialog):
         self.main_layout.addWidget(self.button_box)
 
         # if multi subs, disable path
-        if len(self._parent_sub) > 1:
-            _path_line_edit = self.settings_layout.find("path")
-            _path_line_edit.setHidden(True)
+        # if len(self._parent_sub) > 1:
+        #     _path_line_edit = self.settings_layout.find("path")
+        #     _path_line_edit.setHidden(True)
 
         # SIGNALS
         self.button_box.accepted.connect(self.on_edit_task)
@@ -146,7 +149,7 @@ class EditTask(QtWidgets.QDialog):
 
 
 class NewTask(QtWidgets.QDialog):
-    def __init__(self, project_object, parent_sub=None, multi_subs=None, parent=None, *args, **kwargs):
+    def __init__(self, project_object, parent_sub=None, parent=None, *args, **kwargs):
         """
         Dialog for new task creation.
 
@@ -154,6 +157,9 @@ class NewTask(QtWidgets.QDialog):
         super(NewTask, self).__init__(parent=parent, *args, **kwargs)
         self.tik_project = project_object
         self.feedback = feedback.Feedback()
+
+        if parent_sub and not isinstance(parent_sub, list):
+            parent_sub = [parent_sub]
 
         self._parent_sub = parent_sub or project_object
         # self._multi_parent_subs = multi_subs
