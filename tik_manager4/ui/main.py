@@ -390,7 +390,7 @@ class MainUI(QtWidgets.QMainWindow):
     def load_work(self, event=None):
         """Load the selected work or publish version."""
         # get the work item
-        selected_work_item = self.categories_mcv.work_tree_view.get_selected_items()
+        selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
         if not selected_work_item:
             self.feedback.pop_info(
                 title="No work selected.",
@@ -407,7 +407,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def import_work(self):
         """Import a work into the project."""
-        selected_work_item = self.categories_mcv.work_tree_view.get_selected_items()
+        selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
         if not selected_work_item:
             self.feedback.pop_info(
                 title="No work selected.",
@@ -433,7 +433,7 @@ class MainUI(QtWidgets.QMainWindow):
         if not self._pre_check(level=1):
             return
         # get the selected work. If no work is selected, return
-        selected_work_item = self.categories_mcv.work_tree_view.get_selected_items()
+        selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
         if not selected_work_item:
             self.feedback.pop_info(
                 title="No work selected.",

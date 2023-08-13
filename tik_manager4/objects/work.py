@@ -150,12 +150,14 @@ class Work(Settings, Entity):
 
         """
         version_number = self.get_last_version() + 1
-        version_name = "{0}_{1}_v{2}{3}".format(
-            self._name, self._creator, str(version_number).zfill(3), file_format
-        )
-        thumbnail_name = "{0}_{1}_v{2}_thumbnail.jpg".format(
-            self._name, self._creator, str(version_number).zfill(3)
-        )
+        version_name = f"{self._name}_v{version_number:03d}{file_format}"
+        # version_name = "{0}_{1}_v{2}{3}".format(
+        #     self._name, self._creator, str(version_number).zfill(3), file_format
+        # )
+        thumbnail_name = f"{self._name}_v{version_number:03d}_thumbnail.jpg"
+        # thumbnail_name = "{0}_{1}_v{2}_thumbnail.jpg".format(
+        #     self._name, self._creator, str(version_number).zfill(3)
+        # )
         return version_number, version_name, thumbnail_name
 
     def load_version(self, version_number):
