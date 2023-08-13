@@ -1,0 +1,25 @@
+[project]
+name = "tik_manager4"
+version = "4.0.0"
+license = {file = "LICENSE"}
+authors =[{name="Arda Kutlu", email="ardakutlu@gmail.com"},]
+description="A program to manage pipelines"
+readme = "README.md"
+requires-python = "> 3.9"
+classifiers = [
+"Development Status :: 3 - Alpha",
+"Programming Language :: Python :: 3",
+"License :: OSI Approved :: BSD License",
+"Operating System :: OS Independent",]
+dependencies = [
+    "pyqt5",
+]
+
+[tool.setuptools]
+packages = ["tik_manager4"]
+
+[project.urls]
+"Homepage" = "https://github.com/masqu3rad3/tik_manager4"
+
+[project.scripts]
+tik_manager4 = "tik_manager4.objects:main"
