@@ -2,6 +2,9 @@
 import os
 import glob
 import pytest
+import platform
+import codecs
+from pathlib import Path
 from tik_manager4.core import filelog
 from tik_manager4.core import io
 from tik_manager4.external.filelock import FileLock, Timeout
@@ -30,7 +33,23 @@ def test_filelog():
     assert log._get_now() == ""
     assert log.title("Test") == "Test"
     log.clear()
-    assert log.get_size() == 44
+    
+    with open(Path(_test_log_dir) / 'test_log.log') as fin:
+        log_file_contents = fin.read()
+
+    log_file_contents_truth = "============\nnew_log_name\n============\n\n"
+    assert log_file_contents == log_file_contents_truth
+    
+    # We should probably supply the encoding argument?
+    bytes_ = codecs.encode(log_file_contents_truth)
+    newline_count = bytes_.count(b"\n")
+    nbytes = len(bytes_)
+    nbytes_truth_per_system = {
+            "Linux": nbytes,
+            "Windows": nbytes + newline_count  # 2 chars for newline on windows
+            }
+    assert log.get_size() == nbytes_truth_per_system[platform.system()]
+
 
 def test_io():
     """Test io module"""
@@ -93,8 +112,3 @@ def test_io():
 
     # test reading corrupted file
     pytest.raises(Exception, _io.read)
-
-
-
-
-
