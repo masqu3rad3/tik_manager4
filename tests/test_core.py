@@ -3,6 +3,7 @@ import os
 import glob
 import pytest
 import platform
+import codecs
 from pathlib import Path
 from tik_manager4.core import filelog
 from tik_manager4.core import io
@@ -39,12 +40,15 @@ def test_filelog():
     log_file_contents_truth = "============\nnew_log_name\n============\n\n"
     assert log_file_contents == log_file_contents_truth
     
+    # We should probably supply the encoding argument?
     bytes_ = codecs.encode(log_file_contents_truth)
     newline_count = bytes_.count(b"\n")
     nbytes = len(bytes_)
-    nbytes_truth_per_system = {"Linux": nbytes, "Windows": nbytes + newline_count}
-
-    assert log.get_size() == nbytes_truth_per_system(platform.system())
+    nbytes_truth_per_system = {
+            "Linux": nbytes,
+            "Windows": nbytes + newline_count  # 2 chars for newline on windows
+            }
+    assert log.get_size() == nbytes_truth_per_system[platform.system()]
 
 
 def test_io():
