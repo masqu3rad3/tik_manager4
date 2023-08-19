@@ -1,4 +1,3 @@
-import core
 
 from tik_manager4.dcc.main_core import DccTemplate
 

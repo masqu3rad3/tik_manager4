@@ -7,8 +7,6 @@ from tik_manager4.ui.widgets.common import TikButtonBox
 import tik_manager4.ui.layouts.settings_layout
 from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
 
-# from tik_manager4.objects import guard
-
 
 class EditSubprojectDialog(QtWidgets.QDialog):
     def __init__(self, project_object, parent_sub=None, parent=None, *args, **kwargs):
@@ -41,7 +39,7 @@ class EditSubprojectDialog(QtWidgets.QDialog):
 
         self._new_subproject = None
         self.button_box = None
-        self.button_box_layout = None # an empty layout to hold the button box
+        self.button_box_layout = None  # an empty layout to hold the button box
 
         self.build_ui()
 
@@ -78,17 +76,24 @@ class EditSubprojectDialog(QtWidgets.QDialog):
 
         scroll_layout.addStretch()
 
-        self.primary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.primary_definition, self.primary_data, parent=self)
+        self.primary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
+            self.primary_definition, self.primary_data, parent=self
+        )
         self.primary_layout.contents_layout.addLayout(self.primary_content)
-        self.secondary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.secondary_definition, self.secondary_data, parent=self)
+        self.secondary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
+            self.secondary_definition, self.secondary_data, parent=self
+        )
         self.secondary_layout.contents_layout.addLayout(self.secondary_content)
-        self.tertiary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.tertiary_definition, self.tertiary_data, parent=self)
+        self.tertiary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
+            self.tertiary_definition, self.tertiary_data, parent=self
+        )
         self.tertiary_layout.contents_layout.addLayout(self.tertiary_content)
 
         # create a button box
         self.button_box_layout = QtWidgets.QHBoxLayout()
-        # self.button_box = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
-        self.button_box = TikButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.button_box = TikButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
         main_layout.addLayout(self.button_box_layout)
         self.button_box_layout.addWidget(self.button_box)
         # SIGNALS
@@ -133,9 +138,15 @@ class EditSubprojectDialog(QtWidgets.QDialog):
                 _value_suffix = "Float"
             else:
                 _value_suffix = "Int"
-            return "vector{0}{1}".format(len(default_value), _value_suffix), default_value, enum
+            return (
+                "vector{0}{1}".format(len(default_value), _value_suffix),
+                default_value,
+                enum,
+            )
         else:
-            raise ValueError("Unsupported metadata type: {}".format(type(default_value)))
+            raise ValueError(
+                "Unsupported metadata type: {}".format(type(default_value))
+            )
 
     def define_other_ui(self):
         """Define the secondary UI."""
@@ -160,7 +171,7 @@ class EditSubprojectDialog(QtWidgets.QDialog):
                         "__override_{}".format(key): {
                             "type": "boolean",
                             "value": self._get_metadata_override(key),
-                            "disables": [[False, key]]
+                            "disables": [[False, key]],
                         },
                         key: {
                             "type": _value_type,
@@ -179,7 +190,7 @@ class EditSubprojectDialog(QtWidgets.QDialog):
                         "__new_{}".format(key): {
                             "type": "boolean",
                             "value": False,
-                            "disables": [[False, key]]
+                            "disables": [[False, key]],
                         },
                         key: {
                             "type": _value_type,
@@ -225,45 +236,42 @@ class NewSubprojectDialog(EditSubprojectDialog):
         """Define the primary UI."""
         _primary_ui = {
             "name": {
-                   "display_name": "Name :",
-                   "type": "validatedString",
-                   # "type": "string",
-                   "value": "",
-                   "tooltip": "Name of the subproject",
-               },
-            "parent_path":
-               {
-                   "display_name": "Parent :",
-                   # "type": "pathBrowser",
-                   "type": "subprojectBrowser",
-                   "project_object": self.tik_project,
-                   "value": self._parent_sub.path,
-                   "tooltip": "Path of the sub-project",
-               }
+                "display_name": "Name :",
+                "type": "validatedString",
+                # "type": "string",
+                "value": "",
+                "tooltip": "Name of the subproject",
+            },
+            "parent_path": {
+                "display_name": "Parent :",
+                # "type": "pathBrowser",
+                "type": "subprojectBrowser",
+                "project_object": self.tik_project,
+                "value": self._parent_sub.path,
+                "tooltip": "Path of the sub-project",
+            },
         }
         return _primary_ui
 
     def reinitilize_other_ui(self, new_parent_sub):
         """Reinitialize the secondary and tertiary UIs."""
         self._parent_sub = new_parent_sub
-        # delete the old setting_layouts
-        # self.clear_layout(self.secondary_content)
-        # self.clear_layout(self.tertiary_content)
         self.secondary_content.clear()
         self.tertiary_content.clear()
         self.secondary_content.deleteLater()
         self.tertiary_content.deleteLater()
 
-
         self.secondary_definition, self.tertiary_definition = self.define_other_ui()
-        # self.secondary_data = Settings()
-        # self.tertiary_data = Settings()
         self.secondary_content = None
         self.tertiary_content = None
 
-        self.secondary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.secondary_definition, self.secondary_data, parent=self)
+        self.secondary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
+            self.secondary_definition, self.secondary_data, parent=self
+        )
         self.secondary_layout.contents_layout.addLayout(self.secondary_content)
-        self.tertiary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.tertiary_definition, self.tertiary_data, parent=self)
+        self.tertiary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
+            self.tertiary_definition, self.tertiary_data, parent=self
+        )
         self.tertiary_layout.contents_layout.addLayout(self.tertiary_content)
 
     def _get_metadata_override(self, key):
@@ -277,7 +285,9 @@ class NewSubprojectDialog(EditSubprojectDialog):
         # create a button box
         # get the name ValidatedString widget and connect it to the ok button
         _name_line_edit = self.primary_content.find("name")
-        _name_line_edit.add_connected_widget(self.button_box.button(QtWidgets.QDialogButtonBox.Ok))
+        _name_line_edit.add_connected_widget(
+            self.button_box.button(QtWidgets.QDialogButtonBox.Ok)
+        )
         _browse_widget = self.primary_content.find("parent_path")
         _browse_widget.sub.connect(lambda x: self.reinitilize_other_ui(x))
 
@@ -319,7 +329,6 @@ class FilteredData(dict):
                 continue
             # if the key has a __override key, check if it is True
             _override_key = "__override_{}".format(key)
-            # if the _override_key is in the settings_data and it is True, add the key to the filtered_data
             if _override_key not in list(settings_data.get_data().keys()):
                 self[key] = value
             else:
@@ -334,22 +343,3 @@ class FilteredData(dict):
             _new_key = "__new_{}".format(key)
             if settings_data.get_property(_new_key):
                 self[key] = value
-
-
-# test new subproject dialog
-# if __name__ == "__main__":
-#     import sys
-#     import os
-#     import tik_manager4
-#
-#     app = QtWidgets.QApplication(sys.argv)
-#
-#     test_project_path = os.path.join(os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE")
-#     tik = tik_manager4.initialize("Standalone")
-#     tik.user.set("Admin", "1234")
-#     tik.set_project(test_project_path)
-#     dialog = NewSubproject(tik.project)
-#     dialog.show()
-#     app.exec_()
-#
-#     sys.exit(app.exec_())

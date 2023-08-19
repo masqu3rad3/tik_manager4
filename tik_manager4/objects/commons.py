@@ -1,4 +1,3 @@
-# import hashlib
 import os
 import shutil
 
@@ -12,7 +11,6 @@ log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 class Commons(object):
     exportSettings = None
     importSettings = None
-    # manager = None
     user_settings = None
     project_settings = None
     users = None
@@ -35,15 +33,31 @@ class Commons(object):
             if not os.path.isfile(common_file):
                 shutil.copy(default_file, common_file)
 
-        self.exportSettings = Settings(file_path=os.path.join(self._folder_path, "exportSettings.json"))
-        self.importSettings = Settings(file_path=os.path.join(self._folder_path, "importSettings.json"))
-        self.category_definitions = Settings(file_path=os.path.join(self._folder_path, "category_definitions.json"))
-        self.user_settings = Settings(file_path=os.path.join(self._folder_path, "user_settings.json"))
-        self.project_settings = Settings(file_path=os.path.join(self._folder_path, "project_settings.json"))
+        self.exportSettings = Settings(
+            file_path=os.path.join(self._folder_path, "exportSettings.json")
+        )
+        self.importSettings = Settings(
+            file_path=os.path.join(self._folder_path, "importSettings.json")
+        )
+        self.category_definitions = Settings(
+            file_path=os.path.join(self._folder_path, "category_definitions.json")
+        )
+        self.user_settings = Settings(
+            file_path=os.path.join(self._folder_path, "user_settings.json")
+        )
+        self.project_settings = Settings(
+            file_path=os.path.join(self._folder_path, "project_settings.json")
+        )
         self.users = Settings(file_path=os.path.join(self._folder_path, "users.json"))
-        self.template = Settings(file_path=os.path.join(self._folder_path, "templates.json"))
-        self.structures = Settings(file_path=os.path.join(self._folder_path, "structures.json"))
-        self.metadata = Settings(file_path=os.path.join(self._folder_path, "metadata.json"))
+        self.template = Settings(
+            file_path=os.path.join(self._folder_path, "templates.json")
+        )
+        self.structures = Settings(
+            file_path=os.path.join(self._folder_path, "structures.json")
+        )
+        self.metadata = Settings(
+            file_path=os.path.join(self._folder_path, "metadata.json")
+        )
 
     def check_user_permission_level(self, user_name):
         """Returns the permission level for given user"""

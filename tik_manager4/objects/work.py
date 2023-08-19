@@ -10,10 +10,7 @@ from tik_manager4 import dcc
 class Work(Settings, Entity):
     _dcc_handler = dcc.Dcc()
 
-    def __init__(self, absolute_path,
-                 name=None,
-                 path=None
-                 ):
+    def __init__(self, absolute_path, name=None, path=None):
         super(Work, self).__init__()
         self.settings_file = absolute_path
 
@@ -65,8 +62,6 @@ class Work(Settings, Entity):
     def reload(self):
         """Reload from file"""
         self.__init__(self.settings_file)
-        # print(self._io.read())
-        # self.initialize(self._io.read())
 
     def omit_work(self):
         """Omit the work."""
@@ -107,15 +102,11 @@ class Work(Settings, Entity):
             raise ValueError("File format is not valid.")
 
         # get filepath of current version
-        _version_number, _version_name, _thumbnail_name = self.construct_names(file_format)
+        _version_number, _version_name, _thumbnail_name = self.construct_names(
+            file_format
+        )
 
-        # _version_number = self.get_last_version() + 1
-        # _version_name = "{0}_{1}_v{2}{3}".format(self._name, self._creator,
-        #                                          str(_version_number).zfill(3),
-        #                                          file_format)
         _abs_version_path = self.get_abs_project_path(_version_name)
-        # _thumbnail_name = "{0}_{1}_v{2}_thumbnail.jpg".format(self._name, self._creator,
-        #                                                       str(_version_number).zfill(3))
         _thumbnail_path = self.get_abs_database_path("thumbnails", _thumbnail_name)
         self._io.folder_check(_abs_version_path)
 
@@ -132,9 +123,7 @@ class Work(Settings, Entity):
             "version_number": _version_number,
             "workstation": socket.gethostname(),
             "notes": notes,
-            # "thumbnail": os.path.join(self._relative_path, "thumbnails", _thumbnail_name).replace("\\", "/"),
             "thumbnail": os.path.join("thumbnails", _thumbnail_name).replace("\\", "/"),
-            # "scene_path": os.path.join(self._relative_path, _version_name).replace("\\", "/"),
             "scene_path": os.path.join("", _version_name).replace("\\", "/"),
             "user": self.guard.user,
             "preview": "",
@@ -161,11 +150,12 @@ class Work(Settings, Entity):
 
         """
         version_number = self.get_last_version() + 1
-        version_name = "{0}_{1}_v{2}{3}".format(self._name, self._creator,
-                                                 str(version_number).zfill(3),
-                                                 file_format)
-        thumbnail_name = "{0}_{1}_v{2}_thumbnail.jpg".format(self._name, self._creator,
-                                                              str(version_number).zfill(3))
+        version_name = "{0}_{1}_v{2}{3}".format(
+            self._name, self._creator, str(version_number).zfill(3), file_format
+        )
+        thumbnail_name = "{0}_{1}_v{2}_thumbnail.jpg".format(
+            self._name, self._creator, str(version_number).zfill(3)
+        )
         return version_number, version_name, thumbnail_name
 
     def load_version(self, version_number):
@@ -175,7 +165,6 @@ class Work(Settings, Entity):
             relative_path = version_obj.get("scene_path")
             abs_path = self.get_abs_project_path(relative_path)
             self._dcc_handler.open(abs_path)
-
 
     def delete_work(self):
         """Delete the work."""

@@ -4,6 +4,7 @@ from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog.user_dialog import LoginDialog
 from tik_manager4.ui.widgets.common import TikButton, ResolvedText
 
+
 class TikUserLayout(QtWidgets.QHBoxLayout):
     """Layout for displaying user information"""
 
@@ -27,7 +28,6 @@ class TikUserLayout(QtWidgets.QHBoxLayout):
         self.set_user_btn.clicked.connect(self.on_set_user)
 
         # get the parent dialog
-
 
     def refresh(self):
         """Refresh the user name"""

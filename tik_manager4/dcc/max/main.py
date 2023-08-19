@@ -6,5 +6,5 @@ NAME = "Max"
 
 
 class Dcc(DccTemplate):
-    pass
+    rt.__doc__ = "3ds Max"
     # TODO mix-match from Tik Manager 3

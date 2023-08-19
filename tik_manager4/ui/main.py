@@ -20,6 +20,7 @@ import tik_manager4
 LOG = logging.getLogger(__name__)
 WINDOW_NAME = "Tik Manager {}".format(version.__version__)
 
+
 def launch(dcc="Standalone"):
     all_widgets = QtWidgets.QApplication.allWidgets()
     tik = tik_manager4.initialize(dcc)
@@ -34,12 +35,9 @@ def launch(dcc="Standalone"):
     m = MainUI(tik, parent=parent)
     m.show()
 
+
 class MainUI(QtWidgets.QMainWindow):
     def __init__(self, main_object, **kwargs):
-        # print("MainUI init")
-        # self.tik = tik_manager4.initialize(dcc)
-
-        # self.parent = self.tik.dcc.get_main_window()
         super(MainUI, self).__init__(**kwargs)
         self.tik = main_object
 
@@ -54,11 +52,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # set style
         _style_file = pick.style_file()
-        self.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
-        # self.setStyleSheet(str(_style_file.readAll()))
-
-        # self.setStyleSheet(six.text_type(_style_file.readAll(), 'utf-8'))
-
+        self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
 
         # define layouts
         self.master_layout = QtWidgets.QVBoxLayout(self.central_widget)
@@ -68,7 +62,6 @@ class MainUI(QtWidgets.QMainWindow):
         project_user_layout = QtWidgets.QHBoxLayout()
 
         self.project_layout = QtWidgets.QHBoxLayout()
-
         self.user_layout = QtWidgets.QHBoxLayout()
 
         project_user_layout.addLayout(self.project_layout)
@@ -86,7 +79,9 @@ class MainUI(QtWidgets.QMainWindow):
         project_user_layout.addLayout(self.user_layout)
 
         self.main_layout = QtWidgets.QVBoxLayout()
-        self.splitter = QtWidgets.QSplitter(self.central_widget, orientation=QtCore.Qt.Horizontal)
+        self.splitter = QtWidgets.QSplitter(
+            self.central_widget, orientation=QtCore.Qt.Horizontal
+        )
         self.splitter.setHandleWidth(5)
 
         self.main_layout.addWidget(self.splitter)
@@ -155,7 +150,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         subproject_id = self.tik.user.last_subproject
         if subproject_id:
-            # self.tik.project.find_sub_by_id(subproject_id)
             state = self.subprojects_mcv.sub_view.select_by_id(subproject_id)
             if state:
                 # if its successfully set, then select the last task
@@ -168,7 +162,9 @@ class MainUI(QtWidgets.QMainWindow):
                         self.categories_mcv.set_category_by_index(category_index)
                         work_id = self.tik.user.last_work
                         if work_id:
-                            state = self.categories_mcv.work_tree_view.select_by_id(work_id)
+                            state = self.categories_mcv.work_tree_view.select_by_id(
+                                work_id
+                            )
                             if state:
                                 # if its successfully set, then select the last version
                                 version_id = self.tik.user.last_version
@@ -179,7 +175,9 @@ class MainUI(QtWidgets.QMainWindow):
             self.subprojects_mcv.sub_view.select_first_item()
             LOG.info("No subproject found, selecting the first one.")
 
-        self.subprojects_mcv.sub_view.set_expanded_state(self.tik.user.expanded_subprojects)
+        self.subprojects_mcv.sub_view.set_expanded_state(
+            self.tik.user.expanded_subprojects
+        )
 
         # regardless from the state, always try to expand the first row
         self.subprojects_mcv.sub_view.expand_first_item()
@@ -188,21 +186,15 @@ class MainUI(QtWidgets.QMainWindow):
         _sizes = self.tik.user.split_sizes or [291, 180, 290, 291]
         self.splitter.setSizes(_sizes)
 
-
-        # self.subprojects_mcv.sub_view.hide_all_columns()
-        self.subprojects_mcv.sub_view.show_columns(self.tik.user.visible_columns.get("subprojects", []))
-        self.tasks_mcv.task_view.show_columns(self.tik.user.visible_columns.get("tasks", []))
-        self.categories_mcv.work_tree_view.show_columns(self.tik.user.visible_columns.get("categories", []))
-
-        # Adjust column visibilities
-
-        # # if there is only a single subproject, then select the first one
-        # if self.subprojects_mcv.sub_view.row_count() == 1:
-        #     self.subprojects_mcv.sub_view.select_first_item()
-
-        # self.tasks_mcv.refresh()
-        # self.subprojects_mcv.sub_view.select_first_item()
-        # self.refresh_project()
+        self.subprojects_mcv.sub_view.show_columns(
+            self.tik.user.visible_columns.get("subprojects", [])
+        )
+        self.tasks_mcv.task_view.show_columns(
+            self.tik.user.visible_columns.get("tasks", [])
+        )
+        self.categories_mcv.work_tree_view.show_columns(
+            self.tik.user.visible_columns.get("categories", [])
+        )
 
     def initialize_mcv(self):
         self.project_mcv = TikProjectLayout(self.tik.project)
@@ -212,7 +204,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.user_layout.addLayout(self.user_mcv)
 
         self.subprojects_mcv = TikSubProjectLayout(self.tik.project)
-        # self.subprojects_mcv.sub_view.hide_columns(["id", "path"])
         self.subproject_tree_layout.addLayout(self.subprojects_mcv)
 
         self.tasks_mcv = TikTaskLayout()
@@ -228,20 +219,21 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.project_mcv.set_project_btn.clicked.connect(self.on_set_project)
         self.project_mcv.recent_projects_btn.clicked.connect(self.on_recent_projects)
-        self.subprojects_mcv.sub_view.item_selected.connect(self.tasks_mcv.task_view.set_tasks)
-        self.subprojects_mcv.sub_view.add_item.connect(self.tasks_mcv.task_view.add_task)
+        self.subprojects_mcv.sub_view.item_selected.connect(
+            self.tasks_mcv.task_view.set_tasks
+        )
+        self.subprojects_mcv.sub_view.add_item.connect(
+            self.tasks_mcv.task_view.add_task
+        )
         self.tasks_mcv.task_view.item_selected.connect(self.categories_mcv.set_task)
-        self.categories_mcv.work_tree_view.item_selected.connect(self.versions_mcv.set_base)
+        self.categories_mcv.work_tree_view.item_selected.connect(
+            self.versions_mcv.set_base
+        )
         self.categories_mcv.mode_changed.connect(self.set_buttons_visibility)
         self.categories_mcv.work_tree_view.version_created.connect(self._ingest_success)
         self.categories_mcv.work_tree_view.doubleClicked.connect(self.load_work)
         self.categories_mcv.work_tree_view.load_event.connect(self.load_work)
         self.categories_mcv.work_tree_view.import_event.connect(self.load_work)
-
-
-    def on_double_click(self, event):
-        """Double click event for the work tree view"""
-        print(event)
 
     def set_last_state(self):
         """Set the last selections for the user"""
@@ -274,26 +266,6 @@ class MainUI(QtWidgets.QMainWindow):
             "categories": self.categories_mcv.work_tree_view.get_visible_columns(),
         }
         self.tik.user.visible_columns = columns_states
-        # _subproject_columns = self.subprojects_mcv.sub_view.get_visible_columns()
-        # self.tik.user.visible_columns = {"subprojects": _subproject_columns}
-        # _task_columns = self.tasks_mcv.task_view.get_visible_columns()
-        # self.tik.user.visible_columns["tasks"] = _task_columns
-        # _category_columns = self.categories_mcv.work_tree_view.get_visible_columns()
-        # print(_category_columns)
-        # print(_category_columns)
-        # print(_category_columns)
-        # print(_category_columns)
-        # print(_category_columns)
-        # print(_category_columns)
-        # print(_category_columns)
-        # # self.tik.user.visible_columns["categories"] = _category_columns
-        # self.tik.user.visible_columns.update({"categories": _category_columns})
-        # print("Aaa")
-        # print(self.tik.user.visible_columns["categories"])
-        # print(self.tik.user.visible_columns["categories"])
-        # print(self.tik.user.visible_columns["categories"])
-        # print(self.tik.user.visible_columns["categories"])
-        # self.tik.user.resume.apply_settings()
 
     # override the closeEvent to save the window state
     def closeEvent(self, event):
@@ -306,10 +278,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.set_last_state()
 
         # set the expanded state of the subproject tree
-        self.tik.user.expanded_subprojects = self.subprojects_mcv.sub_view.get_expanded_state()
+        self.tik.user.expanded_subprojects = (
+            self.subprojects_mcv.sub_view.get_expanded_state()
+        )
 
         self.tik.user.resume.apply_settings()
-        a = QtWidgets.QApplication.allWidgets()
+        _ = QtWidgets.QApplication.allWidgets()
         event.accept()
 
     def set_buttons_visibility(self, mode):
@@ -350,7 +324,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         # SIGNALS
         load_btn.clicked.connect(self.load_work)
-        # load_btn.clicked.connect(self.test)
         save_version_btn.clicked.connect(self.on_new_version)
         ingest_version_btn.clicked.connect(self.on_ingest_version)
         save_new_work_btn.clicked.connect(self.on_new_work)
@@ -406,42 +379,23 @@ class MainUI(QtWidgets.QMainWindow):
 
     def test(self):
         """Test function."""
-        # print("testing")
-        # # _item = self.tasks_mcv.task_view.get_selected_item()
-        # # print(_item)
-        # # self.subprojects_mcv.sub_view.get_tasks(_index)
-        # from time import time
-        # start = time()
-        # self.subprojects_mcv.sub_view.get_tasks()
-        # end = time()
-        # print("Scanning tasks took {0} seconds".format(end - start))
 
         print("Subprojects:")
         print(self.subprojects_mcv.sub_view.get_items_count())
         print("Tasks:")
         print(self.tasks_mcv.task_view.get_items_count())
         self.tasks_mcv.task_view.select_first_item()
-        # print(_index)
-        # self.refresh_subprojects()
-
-        # import os
-        # print("test")
-        # project_path = self.tik.project.absolute_path
-        # test_file_path = self.tik.dcc.get_scene_file()
-        # # get relative path from project
-        # print(test_file_path)
-        # test_path = os.path.dirname(test_file_path)
-        # relative_path = os.path.relpath(test_path, project_path)
-        # print(relative_path)
-        # database_path = self.tik.project.get_abs_database_path(relative_path)
-        # print(database_path)
 
     def load_work(self, event=None):
         """Load the selected work or publish version."""
         # get the work item
         selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
         if not selected_work_item:
-            self.feedback.pop_info(title="No work selected.", text="Please select a work to load.", critical=True)
+            self.feedback.pop_info(
+                title="No work selected.",
+                text="Please select a work to load.",
+                critical=True,
+            )
             return
         # get the version
         selected_version = self.versions_mcv.get_selected_version()
@@ -454,7 +408,11 @@ class MainUI(QtWidgets.QMainWindow):
         """Import a work into the project."""
         selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
         if not selected_work_item:
-            self.feedback.pop_info(title="No work selected.", text="Please select a work to import.", critical=True)
+            self.feedback.pop_info(
+                title="No work selected.",
+                text="Please select a work to import.",
+                critical=True,
+            )
             return
         # get the version
         selected_version = self.versions_mcv.get_selected_version()
@@ -476,9 +434,15 @@ class MainUI(QtWidgets.QMainWindow):
         # get the selected work. If no work is selected, return
         selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
         if not selected_work_item:
-            self.feedback.pop_info(title="No work selected.", text="Please select a work to ingest a version into.", critical=True)
+            self.feedback.pop_info(
+                title="No work selected.",
+                text="Please select a work to ingest a version into.",
+                critical=True,
+            )
             return
-        dialog = NewVersionDialog(work_object=selected_work_item.work, parent=self, ingest=True)
+        dialog = NewVersionDialog(
+            work_object=selected_work_item.work, parent=self, ingest=True
+        )
         state = dialog.exec_()
         if state:
             self._ingest_success()
@@ -498,18 +462,17 @@ class MainUI(QtWidgets.QMainWindow):
             subproject = self.subprojects_mcv.get_active_subproject()
             existing_tasks = subproject.scan_tasks()
             if not existing_tasks:
-                self.feedback.pop_info(title="No tasks found.", text="Selected Sub-object does not have any tasks under it.\nPlease create a task before creating a work.", critical=True)
+                self.feedback.pop_info(
+                    title="No tasks found.",
+                    text="Selected Sub-object does not have any tasks under it.\n"
+                    "Please create a task before creating a work.",
+                    critical=True,
+                )
                 return
-        print(category, task, subproject)
-        # print(category.name, task.path, subproject.path)
-        # print(selected_category_object, selected_task_item, selected_subproject_item)
 
-        # if selected_subproject_item:
-        #     subproject = selected_subproject_item.subproject
-        #     if selected_task_item:
-        #         task = selected_task_item.task
-
-        dialog = NewWorkDialog(self.tik, parent=self, subproject=subproject, task=task, category=category)
+        dialog = NewWorkDialog(
+            self.tik, parent=self, subproject=subproject, task=task, category=category
+        )
         state = dialog.exec_()
         if state:
             self.set_last_state()
@@ -523,12 +486,24 @@ class MainUI(QtWidgets.QMainWindow):
             return
         scene_file_path = self.tik.dcc.get_scene_file()
         if not scene_file_path:
-            self.feedback.pop_info(title="Scene file cannot be found.", text="Scene file cannot be found. Please either save your scene by creating a new work or ingest it into an existing one.", critical=True)
+            self.feedback.pop_info(
+                title="Scene file cannot be found.",
+                text="Scene file cannot be found. \
+                Please either save your scene by creating a new work or \
+                ingest it into an existing one.",
+                critical=True,
+            )
             return
         _work = self.tik.project.find_work_by_absolute_path(scene_file_path)
 
         if not _work:
-            self.feedback.pop_info(title="Work object cannot be found.", text="Work cannot be found. Versions can only saved on work objects.\nIf there is no work associated with current scene either create a work or use the ingest method to save it into an existing work", critical=True)
+            self.feedback.pop_info(
+                title="Work object cannot be found.",
+                text="Work cannot be found. Versions can only saved on work objects.\n\
+                If there is no work associated with current scene either create a work \
+                or use the ingest method to save it into an existing work",
+                critical=True,
+            )
             return
 
         dialog = NewVersionDialog(work_object=_work, parent=self)
@@ -543,7 +518,6 @@ class MainUI(QtWidgets.QMainWindow):
         """Refresh the project ui."""
         self.project_mcv.refresh()
         self.refresh_subprojects()
-        # self.subprojects_mcv.sub_view.select_first_item()
 
     def refresh_subprojects(self):
         """Refresh the subprojects' ui."""
@@ -552,7 +526,6 @@ class MainUI(QtWidgets.QMainWindow):
 
     def refresh_tasks(self):
         """Refresh the tasks' ui."""
-        # self.tasks_mcv.refresh()
         self.refresh_categories()
 
     def refresh_categories(self):
@@ -572,7 +545,6 @@ class MainUI(QtWidgets.QMainWindow):
     def on_set_project(self):
         """Launch the set project dialog."""
         dialog = SetProjectDialog(self.tik, parent=self)
-        # dialog.show()
         if dialog.exec_():
             self.tik.project = dialog.main_object
             self.status_bar.showMessage("Set project successfully")
@@ -613,15 +585,12 @@ class MainUI(QtWidgets.QMainWindow):
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
-    # launch()
-    # main = MainUI()
-    # main.show()
     from time import time
+
     start = time()
     launch()
     end = time()
     print("Took {0} seconds".format(end - start))
-    # main.test()
-    # main.on_create_new_project()
     sys.exit(app.exec_())

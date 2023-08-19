@@ -1,21 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from logging import getLogger
+
+LOG = getLogger(__name__)
+LOG.warning("This module is deprecated.")
+
 
 def encode(data):
-    try: return unicode(data).encode("utf-8")
-    except NameError: return data
+    try:
+        return unicode(data).encode("utf-8")
+    except NameError:
+        return data
 
 
 def decode(data):
-    try: return unicode(data).decode("utf-8")
+    try:
+        return unicode(data).decode("utf-8")
     except NameError:
         if type(data) == bytes:
             return data.decode("utf-8")
         else:
             return data
-
-
-
-
-
-

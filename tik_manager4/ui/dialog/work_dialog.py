@@ -1,14 +1,26 @@
 """Dialogs for creating work files and versions of them."""
 
 from tik_manager4.core.settings import Settings
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
-from tik_manager4.ui.widgets.common import TikButtonBox, HeaderLabel, ResolvedText
+from tik_manager4.ui.Qt import QtWidgets, QtCore
+from tik_manager4.ui.widgets.common import HeaderLabel, ResolvedText
 from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4.ui.layouts.settings_layout
 from tik_manager4.ui.widgets.common import TikButtonBox
 
+
 class NewWorkDialog(QtWidgets.QDialog):
-    def __init__(self, main_object, subproject=None, task=None, category=None, subproject_id=None, task_id=None, category_index=None, *args, **kwargs):
+    def __init__(
+        self,
+        main_object,
+        subproject=None,
+        task=None,
+        category=None,
+        subproject_id=None,
+        task_id=None,
+        category_index=None,
+        *args,
+        **kwargs
+    ):
         super(NewWorkDialog, self).__init__(*args, **kwargs)
 
         self.feedback = Feedback(parent=self)
@@ -21,7 +33,6 @@ class NewWorkDialog(QtWidgets.QDialog):
         # if no objects are given, try to resolve them from the given data
         if not any([subproject, task, category]):
             self.resolve_objects(subproject_id, task_id, category_index)
-
 
         self.category_index = category_index or self.tik.user.last_category
 
@@ -70,8 +81,12 @@ class NewWorkDialog(QtWidgets.QDialog):
                     _task = self.subproject.find_task_by_id(task_id)
                     if _task != -1:
                         self.task = _task
-                        category_index = category_index or self.tik.user.last_category or 0
-                        _category_name = self.task.get_property("categories")[category_index]
+                        category_index = (
+                            category_index or self.tik.user.last_category or 0
+                        )
+                        _category_name = self.task.get_property("categories")[
+                            category_index
+                        ]
                         self.category = self.task.categories[_category_name]
 
     def define_primary_ui(self):
@@ -87,35 +102,35 @@ class NewWorkDialog(QtWidgets.QDialog):
                 "type": "subprojectBrowser",
                 "project_object": self.tik.project,
                 "value": sub_path,
-                "tooltip": "Path of the sub-project"
+                "tooltip": "Path of the sub-project",
             },
             "task": {
                 "display_name": "Task",
                 "type": "combo",
                 "items": tasks,
                 "value": task_name,
-                "tooltip": "Name of the Task"
+                "tooltip": "Name of the Task",
             },
             "category": {
                 "display_name": "Category",
                 "type": "combo",
                 "items": categories,
                 "value": category_name,
-                "tooltip": "Category of the work file"
+                "tooltip": "Category of the work file",
             },
             "name": {
                 "display_name": "Name",
                 "type": "validatedString",
                 "value": "",
-                "tooltip": "Name of the work file"
-                },
+                "tooltip": "Name of the work file",
+            },
             "file_format": {
                 "display_name": "File Format",
                 "type": "combo",
                 "items": self.tik.dcc.formats,
                 "value": self.tik.dcc.formats[0],
-                "tooltip": "File format of the work file"
-            }
+                "tooltip": "File format of the work file",
+            },
         }
 
         return _primary_ui
@@ -128,7 +143,6 @@ class NewWorkDialog(QtWidgets.QDialog):
         tasks = subproject.scan_tasks()
         if tasks:
             self.refresh_tasks(tasks)
-
 
     def refresh_tasks(self, tasks):
         """Refresh the task and below."""
@@ -173,14 +187,15 @@ class NewWorkDialog(QtWidgets.QDialog):
         name = self.primary_data.get_property("name")
         file_format = self.primary_data.get_property("file_format")
         notes = self.notes_te.toPlainText()
-        # print(name, file_format, notes)
         self.category.create_work(name, file_format=file_format, notes=notes)
         self.accept()
 
     def build_ui(self):
         """Build the UI elements"""
 
-        self.primary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(self.primary_definition, self.primary_data, parent=self)
+        self.primary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
+            self.primary_definition, self.primary_data, parent=self
+        )
         self.left_layout.addLayout(self.primary_content)
 
         _name_line_edit = self.primary_content.find("name")
@@ -189,7 +204,6 @@ class NewWorkDialog(QtWidgets.QDialog):
         _browse_subproject_widget.sub.connect(self.refresh_subproject)
 
         self.tasks_combo = self.primary_content.find("task")
-        # self.tasks_combo.current.connect(self.populate_categories)
         self.tasks_combo.currentTextChanged.connect(self.set_task)
 
         self.categories_combo = self.primary_content.find("category")
@@ -203,22 +217,16 @@ class NewWorkDialog(QtWidgets.QDialog):
 
         # create a the TikButtonBox
         button_box = TikButtonBox(parent=self)
-        create_work_btn = button_box.addButton("Create Work", QtWidgets.QDialogButtonBox.AcceptRole)
-        cancel_btn = button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
+        create_work_btn = button_box.addButton(
+            "Create Work", QtWidgets.QDialogButtonBox.AcceptRole
+        )
+        _ = button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
         self.master_layout.addWidget(button_box)
 
         _name_line_edit.add_connected_widget(create_work_btn)
 
         button_box.accepted.connect(self.on_create_work)
         button_box.rejected.connect(self.reject)
-
-
-
-
-
-
-
-
 
 
 class NewVersionDialog(QtWidgets.QDialog):
@@ -243,15 +251,17 @@ class NewVersionDialog(QtWidgets.QDialog):
         self.resize(QtCore.QSize(size_hint.width() + 10, 300))
 
     def build_ui(self):
-
         header = HeaderLabel(self.windowTitle())
         _color = "orange" if not self.ingest else "pink"
         header.set_color(_color)
-        # header.set_color("rgb(255, 255, 255)")
         self.master_layout.addWidget(header)
 
         path = self.work_object.path
-        _version_number, version_name, _thumbnail_name = self.work_object.construct_names(self.work_object._dcc_handler.formats[0])
+        (
+            _version_number,
+            version_name,
+            _thumbnail_name,
+        ) = self.work_object.construct_names(self.work_object._dcc_handler.formats[0])
 
         path_label = ResolvedText(path)
         path_label.set_color("gray")
@@ -266,11 +276,12 @@ class NewVersionDialog(QtWidgets.QDialog):
         self.notes_text.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.notes_text.setMinimumHeight(50)
         # make its initial size not bigger than the minimum size
-        self.notes_text.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        self.notes_text.setSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+        )
 
         self.master_layout.addWidget(notes_label)
         self.master_layout.addWidget(self.notes_text)
-        # self.master_layout.addStretch(0)
 
         # format
         self.format_combo = QtWidgets.QComboBox()
@@ -289,7 +300,9 @@ class NewVersionDialog(QtWidgets.QDialog):
 
         # buttons
         button_box = TikButtonBox()
-        button_box.addButton("Create New Version", QtWidgets.QDialogButtonBox.AcceptRole)
+        button_box.addButton(
+            "Create New Version", QtWidgets.QDialogButtonBox.AcceptRole
+        )
         button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
         self.master_layout.addWidget(button_box)
 
@@ -298,15 +311,25 @@ class NewVersionDialog(QtWidgets.QDialog):
         self.format_combo.currentTextChanged.connect(self.on_format_changed)
 
     def on_create_version(self):
-        _version = self.work_object.new_version(self.format_combo.currentText(), self.notes_text.toPlainText())
+        _version = self.work_object.new_version(
+            self.format_combo.currentText(), self.notes_text.toPlainText()
+        )
         if _version != -1:
             self.accept()
         else:
-            self.feedback.pop_info(title="Error", text="Could not create version. Check the script editor for details.", critical=True)
+            self.feedback.pop_info(
+                title="Error",
+                text="Could not create version. Check the script editor for details.",
+                critical=True,
+            )
             self.reject()
 
     def on_format_changed(self, file_format):
-        _version_number, version_name, _thumbnail_name = self.work_object.construct_names(file_format)
+        (
+            _version_number,
+            version_name,
+            _thumbnail_name,
+        ) = self.work_object.construct_names(file_format)
         self.name_label.setText(version_name)
 
 
@@ -315,6 +338,7 @@ if __name__ == "__main__":
     import sys
     import tik_manager4
     from tik_manager4.ui import pick
+
     app = QtWidgets.QApplication(sys.argv)
     tik = tik_manager4.initialize("Standalone")
     tik.user.set("Admin", "1234")
@@ -325,10 +349,8 @@ if __name__ == "__main__":
     category = task.categories.get("Model")
     works = category.scan_works()
     work = list(works.values())[0]
-    print(work)
     dialog = NewWorkDialog(main_object=tik)
-    # dialog = NewVersionDialog(work_object=work)
     _style_file = pick.style_file()
-    dialog.setStyleSheet(str(_style_file.readAll(), 'utf-8'))
+    dialog.setStyleSheet(str(_style_file.readAll(), "utf-8"))
     dialog.show()
     sys.exit(app.exec_())

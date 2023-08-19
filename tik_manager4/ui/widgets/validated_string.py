@@ -3,26 +3,17 @@ from tik_manager4.ui.widgets.value_widgets import String
 
 
 class ValidatedString(String):
-    def __init__(self,
-                 *args,
-                 connected_widgets=None,
-                 allow_spaces=False,
-                 allow_directory=False,
-                 allow_empty=False,
-                 allow_special_characters=False,
-                 **kwargs):
-    # def __init__(self,
-    #              name,
-    #              object_name=None,
-    #              connected_widgets=None,
-    #              allow_spaces=False,
-    #              allow_directory=False,
-    #              allow_empty=False,
-    #              allow_special_characters=False,
-    #              *args,
-    #              **kwargs):
+    def __init__(
+        self,
+        *args,
+        connected_widgets=None,
+        allow_spaces=False,
+        allow_directory=False,
+        allow_empty=False,
+        allow_special_characters=False,
+        **kwargs
+    ):
         """Custom QLineEdit widget to validate entered values"""
-        # super(ValidatedString, self).__init__(name, *args, **kwargs)
         super(ValidatedString, self).__init__(*args, **kwargs)
         self.allow_spaces = allow_spaces
         self.allow_directory = allow_directory
@@ -31,7 +22,9 @@ class ValidatedString(String):
         self.connected_widgets = connected_widgets or []
         self.default_stylesheet = self.styleSheet()
         if connected_widgets:
-            self.set_connected_widgets(connected_widgets)  # validate and toggle connected widgets
+            self.set_connected_widgets(
+                connected_widgets
+            )  # validate and toggle connected widgets
         else:
             self._validate()  # just validate the value
 
@@ -57,7 +50,12 @@ class ValidatedString(String):
         current_text = self.text()
         if not self.allow_empty and not current_text:
             self._fail()
-        elif not self.string_value(current_text, allow_spaces=self.allow_spaces, directory=self.allow_directory, allow_special=self.allow_special_characters):
+        elif not self.string_value(
+            current_text,
+            allow_spaces=self.allow_spaces,
+            directory=self.allow_directory,
+            allow_special=self.allow_special_characters,
+        ):
             self._fail()
         else:
             self.setStyleSheet(self.default_stylesheet)
@@ -80,19 +78,18 @@ class ValidatedString(String):
                 wid.setEnabled(True)
 
     @staticmethod
-    def string_value(input_text, allow_spaces=False, directory=False, allow_special=False):
+    def string_value(
+        input_text, allow_spaces=False, directory=False, allow_special=False
+    ):
         """Check the text for illegal characters."""
         _start = "^[:A-Za-z0-9"
         _end = "]*$"
         allow_spaces = " " if allow_spaces else ""
         directory = "/\\\\:" if directory or allow_special else ""
-        specials = ".A_!\"#$%&\'()*+,./:;<=>?@[\\]^_`{|}~-" if allow_special else ".A_-"
-        pattern = "{0}{1}{2}{3}{4}".format(_start, allow_spaces, directory, specials, _end)
-
-        # pattern = r'^[:A-Za-z0-9%s%s.A_-]*$' % (directory, allow_spaces)
-
-        # pattern = r'^[:A-Za-z0-9%s%s.A_-!"#$%&\'()*+,./:;<=>?@[\\]^_`{|}~]*$' % (directory, allow_spaces)
-        # pattern = r'^[:A-Za-z0-9%s%s.A_-!"#$%&\'()*+,./:;<=>?@[\\]^_`{|}~]*$' % (directory, allow_spaces)
+        specials = ".A_!\"#$%&'()*+,./:;<=>?@[\\]^_`{|}~-" if allow_special else ".A_-"
+        pattern = "{0}{1}{2}{3}{4}".format(
+            _start, allow_spaces, directory, specials, _end
+        )
 
         if re.match(pattern, input_text):
             return True

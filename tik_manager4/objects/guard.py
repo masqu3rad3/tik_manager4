@@ -78,27 +78,3 @@ class Guard(object):
     @property
     def category_definitions(self):
         return self._category_definitions
-
-    # @classmethod
-    # def set_asset_categories(cls, categories):
-    #     cls._asset_categories = categories
-
-    # @property
-    # def asset_categories(self):
-    #     return self._asset_categories
-
-    # @classmethod
-    # def set_shot_categories(cls, categories):
-    #     cls._shot_categories = categories
-
-    # @property
-    # def shot_categories(self):
-    #     return self._shot_categories
-
-    # @classmethod
-    # def set_null_categories(cls, categories):
-    #     cls._null_categories = categories
-
-    # @property
-    # def null_categories(self):
-    #     return self._null_categories

@@ -1,10 +1,11 @@
 """Module for picking stuff."""
 import os
+
 # from tik_manager4.ui.Qt.QtGui import QPixmap
 from tik_manager4.ui.Qt import QtCore, QtGui
 
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-IMAGES_FOLDER = os.path.join(DIRECTORY, 'images')
+IMAGES_FOLDER = os.path.join(DIRECTORY, "images")
 THEME_FOLDER = os.path.join(DIRECTORY, "theme")
 ICON_FOLDER = os.path.join(DIRECTORY, "icons")
 RC_FOLDER = os.path.join(THEME_FOLDER, "rc")
@@ -17,7 +18,6 @@ def pixmap(image_name):
 
 def icon(icon_name):
     """Instantiate an QIcon from an image in the theme/rc folder."""
-    # return QtGui.QIcon(os.path.join(RC_FOLDER, icon_name))
     return QtGui.QIcon(os.path.join(ICON_FOLDER, icon_name))
 
 

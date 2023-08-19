@@ -1,9 +1,10 @@
-import os
 from tik_manager4.dcc.main_core import DccTemplate
 import subprocess
 
+
 class Dcc(DccTemplate):
     formats = [".txt", ".log"]
+
     @staticmethod
     def save_as(file_path):
         """
@@ -55,8 +56,7 @@ class Dcc(DccTemplate):
 
     def get_scene_file(self):
         """Gets the current loaded scene file"""
-        test_path = "C:\\Users\kutlu\\t4_test_manual_DO_NOT_USE\\Assets\\Characters\\Soldier\\bizarro\\Model\\Maya\\bizarro_Model_default_Admin_v001.txt"
+        test_path = ("C:\\Users\\kutlu\\t4_test_manual_"
+                     "DO_NOT_USE\\Assets\\Characters\\Soldier\\bizarro\\Model\\Maya"
+                     "\\bizarro_Model_default_Admin_v001.txt")
         return self._normalize_file_path(test_path)
-
-
-

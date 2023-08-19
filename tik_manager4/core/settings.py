@@ -1,4 +1,6 @@
-"""Gets the settings from a json file. Edits, adds and applies it if there are changes"""
+"""Gets the settings from a json file.
+Edits, adds and applies it if there are changes.
+"""
 from copy import deepcopy
 from tik_manager4.core import io
 
@@ -7,6 +9,7 @@ class Settings(object):
     """
     Generic Settings class to hold read and compare dictionary data
     """
+
     def __init__(self, file_path=None):
         super(Settings, self).__init__()
         self._io = io.IO()
@@ -22,7 +25,6 @@ class Settings(object):
     @property
     def date_modified(self):
         # convert the _time_stamp to a readable date
-
 
         return self._time_stamp
 
@@ -89,10 +91,6 @@ class Settings(object):
         """Update the property key with given value."""
         self._currentValue.update({key: val})
 
-    # def edit_sub_property(self, key, sub_key, val):
-    #     """Updates the sub property key with given value"""
-    #     self._currentValue[key].update({sub_key: val})
-
     def edit_sub_property(self, sub_keys, new_val):
         """Edit nested properties."""
         val = self._currentValue
@@ -116,10 +114,6 @@ class Settings(object):
     def get_property(self, key, default=None):
         """Returns the value of the property key"""
         return self._currentValue.get(key, default)
-
-    # def get_sub_property(self, key, sub_key):
-    #     """Return the value of the sub property key."""
-    #     return self._currentValue[key].get(sub_key, None)
 
     def get_sub_property(self, sub_keys):
         """Return the value of the sub property key."""

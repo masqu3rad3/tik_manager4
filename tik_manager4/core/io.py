@@ -7,13 +7,13 @@ import json
 from json.decoder import JSONDecodeError
 from tik_manager4.core import filelog
 from tik_manager4.external import filelock as fl
+
 # from tik_manager4.external.filelock import FileLock, Timeout
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager")
 
 
 class IO(dict):
-    # def __init__(self, file_name=None, folder_name=None, root_path=None, file_path=None):
     def __init__(self, file_path=None):
         super(IO, self).__init__()
         self.valid_extensions = [".json", ".ttask", ".twork", ".tpub"]
@@ -36,8 +36,6 @@ class IO(dict):
             log.error("IO maya_modules does not support this extension (%s)" % ext)
             raise Exception
         self["file_path"] = self.folder_check(new_path)
-        # else:
-        #     self["file_path"] = os.path.join(self.root_path, self.folder_name, new_path)
 
     def read(self, file_path=None):
         file_path = file_path if file_path else self.file_path
@@ -58,7 +56,7 @@ class IO(dict):
         """Loads the given json file"""
         if os.path.isfile(file_path):
             try:
-                with open(file_path, 'r') as f:
+                with open(file_path, "r") as f:
                     data = json.load(f)
                     return data
             except (ValueError, JSONDecodeError):

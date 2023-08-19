@@ -4,14 +4,11 @@ from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.subproject import Subproject
 from tik_manager4.objects.work import Work
-# from tik_manager4.objects.commons import Commons
-
-# log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
-# class Project(Settings, Subproject):
 class Project(Subproject):
     log = filelog.Filelog(logname=__name__, filename="tik_manager4")
+
     def __init__(self, path=None, name=None, resolution=None, fps=None):
         super(Project, self).__init__()
         self.structure = Settings()
@@ -42,7 +39,7 @@ class Project(Subproject):
 
     @property
     def path(self):
-        """This is overriden to return an empty string indicating that this is the project root"""
+        """Return an empty string indicating the project root."""
         return ""  # return empty string instead "\\" for easier path join
 
     @property
@@ -59,16 +56,26 @@ class Project(Subproject):
         self._absolute_path = absolute_path
         self._relative_path = ""
         self.name = os.path.basename(absolute_path)
-        self._database_path = self.structure._io.folder_check(os.path.join(absolute_path, "tikDatabase"))
-        self.structure.settings_file = os.path.join(self._database_path, "project_structure.json")
+        self._database_path = self.structure._io.folder_check(
+            os.path.join(absolute_path, "tikDatabase")
+        )
+        self.structure.settings_file = os.path.join(
+            self._database_path, "project_structure.json"
+        )
         self.set_sub_tree(self.structure.properties)
         self.guard.set_project_root(self._absolute_path)
         self.guard.set_database_root(self._database_path)
         # get project settings
-        self.settings.settings_file = os.path.join(self._database_path, "project_settings.json")
+        self.settings.settings_file = os.path.join(
+            self._database_path, "project_settings.json"
+        )
         self.settings.set_fallback(self.guard.commons.project_settings.settings_file)
-        self.metadata_definitions.settings_file = os.path.join(self._database_path, "project_metadata.json")
-        self.metadata_definitions.set_fallback(self.guard.commons.metadata.settings_file)
+        self.metadata_definitions.settings_file = os.path.join(
+            self._database_path, "project_metadata.json"
+        )
+        self.metadata_definitions.set_fallback(
+            self.guard.commons.metadata.settings_file
+        )
 
     def delete_sub_project(self, uid=None, path=None):
         if uid:
@@ -83,15 +90,15 @@ class Project(Subproject):
         return 1
 
     def create_sub_project(self, name, parent_uid=None, parent_path=None, **kwargs):
-        """
-             Similar to add_sub_project method but creates it under specified parent sub and writes data to
-        persistent database
+        """Create a sub-project under a specified parent sub and write data to
+        persistent database.
 
         Args:
             name: (String) Name of the subproject
             parent_uid: (Int) Parent Subproject Unique ID or project itself.
                                 Either this or parent_path needs to be defined
-            parent_path: (String) Parent Sub-Project Relative path. If uid defined this will be skipped
+            parent_path: (String) Parent Sub-Project Relative path. If uid defined this
+                                will be skipped
 
         Returns:
             <class Subproject>
@@ -100,7 +107,9 @@ class Project(Subproject):
         if parent_sub == -1:
             return -1
 
-        new_sub = parent_sub.add_sub_project(name, parent_sub=parent_sub, uid=None, **kwargs)
+        new_sub = parent_sub.add_sub_project(
+            name, parent_sub=parent_sub, uid=None, **kwargs
+        )
         if new_sub == -1:
             return -1
         self.save_structure()
@@ -140,15 +149,7 @@ class Project(Subproject):
         if not parent_uid and not parent_path:
             self.log.error("Requires at least a parent uid or parent path ")
             return -1
-        # state = self._check_permissions(level=1)
-        # if state != 1:
-        #     return -1
         parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
-        # confirm category exists
-        # category_object = parent_sub.get_category(category)
-        # if category_object == -1:
-        #     log.error("Category %s does not exist" % category)
-        #     return -1
         task = parent_sub.add_task(name, categories=categories)
         if not task:
             return -1  # There is a task with same absolute path
@@ -174,7 +175,6 @@ class Project(Subproject):
             parent = self.find_sub_by_path(parent_path)
         if parent == -1:
             self.log.error("Parent subproject does not exist")
-        #     raise Exception("Parent cannot identified")
         return parent
 
     def find_work_by_absolute_path(self, file_path):
@@ -192,11 +192,3 @@ class Project(Subproject):
             for version in _work.versions:
                 if version.get("scene_path") == base_name:
                     return _work
-
-    # def scan_tasks(self):
-    #     self._tasks = {}
-    #     super(Project, self).scan_tasks()
-    #     return self._tasks
-
-
-
