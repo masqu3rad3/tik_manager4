@@ -503,9 +503,9 @@ class MainUI(QtWidgets.QMainWindow):
         if not scene_file_path:
             self.feedback.pop_info(
                 title="Scene file cannot be found.",
-                text="Scene file cannot be found. \
-                Please either save your scene by creating a new work or \
-                ingest it into an existing one.",
+                text="Scene file cannot be found. "
+                     "Please either save your scene by creating a new work or "
+                     "ingest it into an existing one.",
                 critical=True,
             )
             return
@@ -514,9 +514,9 @@ class MainUI(QtWidgets.QMainWindow):
         if not _work:
             self.feedback.pop_info(
                 title="Work object cannot be found.",
-                text="Work cannot be found. Versions can only saved on work objects.\n\
-                If there is no work associated with current scene either create a work \
-                or use the ingest method to save it into an existing work",
+                text="Work cannot be found. Versions can only saved on work objects.\n"
+                     "If there is no work associated with current scene either create a work "
+                     "or use the ingest method to save it into an existing work",
                 critical=True,
             )
             return

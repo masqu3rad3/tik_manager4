@@ -78,7 +78,7 @@ class NewWorkDialog(QtWidgets.QDialog):
                 self.subproject = _subproject
                 task_id = task_id or self.tik.user.last_task
                 if task_id:
-                    _task = self.subproject.find_task_by_id(task_id)
+                    _task = self.subproject.get_task_by_id(task_id)
                     if _task != -1:
                         self.task = _task
                         category_index = (
