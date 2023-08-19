@@ -1,3 +1,5 @@
+import os
+
 from tik_manager4.dcc.main_core import DccTemplate
 import subprocess
 
@@ -56,7 +58,6 @@ class Dcc(DccTemplate):
 
     def get_scene_file(self):
         """Gets the current loaded scene file"""
-        test_path = ("C:\\Users\\kutlu\\t4_test_manual_"
-                     "DO_NOT_USE\\Assets\\Characters\\Soldier\\bizarro\\Model\\Maya"
-                     "\\bizarro_Model_default_Admin_v001.txt")
+        # returns a mockup file path
+        test_path = os.path.join(os.path.expanduser("~"), "test_scene_v001.txt")
         return self._normalize_file_path(test_path)
