@@ -73,31 +73,25 @@ class TestStress:
             for y in range (1, iteration):
                 shot = self.tik.project.create_sub_project("Shot_{}".format(y), parent_path=seq.path)
 
-
-
-        # # create 100 Character, 100 Props, 100 Environment and 100 Vehicle sub-projects
-        # random_int_list_a = [random.randint(0, 9999) for x in range(100)]
-        # random_int_list_b = [random.randint(0, 9999) for x in range(100)]
-        # random_int_list_c = [random.randint(0, 9999) for x in range(100)]
-        # random_int_list_d = [random.randint(0, 9999) for x in range(100)]
-        # for x in random_int_list_a:
-        #     word = WORDS[x].decode("utf-8") # convert bytes to string
-        #     self.tik.project.create_sub_project(word, parent_path="Assets/Characters")
-        # for x in random_int_list_b:
-        #     word = WORDS[x].decode("utf-8")
-        #     self.tik.project.create_sub_project(word, parent_path="Assets/Props")
-        # for x in random_int_list_c:
-        #     word = WORDS[x].decode("utf-8")
-        #     self.tik.project.create_sub_project(word, parent_path="Assets/Environment")
-        # for x in random_int_list_d:
-        #     word = WORDS[x].decode("utf-8")
-        #     self.tik.project.create_sub_project(word, parent_path="Assets/Vehicles")
+        # # create n Character, n Props, n Environment and n Vehicle sub-projects
+        n = 10
+        random_int_list_a = [random.randint(0, 9999) for x in range(n)]
+        random_int_list_b = [random.randint(0, 9999) for x in range(n)]
+        random_int_list_c = [random.randint(0, 9999) for x in range(n)]
+        random_int_list_d = [random.randint(0, 9999) for x in range(n)]
+        for x in random_int_list_a:
+            word = WORDS[x].decode("utf-8") # convert bytes to string
+            self.tik.project.create_sub_project(word, parent_path="Assets/Characters")
+        for x in random_int_list_b:
+            word = WORDS[x].decode("utf-8")
+            self.tik.project.create_sub_project(word, parent_path="Assets/Props")
+        for x in random_int_list_c:
+            word = WORDS[x].decode("utf-8")
+            self.tik.project.create_sub_project(word, parent_path="Assets/Environment")
+        for x in random_int_list_d:
+            word = WORDS[x].decode("utf-8")
+            self.tik.project.create_sub_project(word, parent_path="Assets/Vehicles")
 
         # set the project
-        print(test_stress_project_path)
-        print(test_stress_project_path)
-        print(test_stress_project_path)
-        print(test_stress_project_path)
-        print(test_stress_project_path)
-        print(test_stress_project_path)
+
         self.tik.set_project(test_stress_project_path)
