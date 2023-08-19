@@ -2,6 +2,7 @@
 import os
 import glob
 import pytest
+from pathlib import Path
 from tik_manager4.core import filelog
 from tik_manager4.core import io
 from tik_manager4.external.filelock import FileLock, Timeout
@@ -30,7 +31,13 @@ def test_filelog():
     assert log._get_now() == ""
     assert log.title("Test") == "Test"
     log.clear()
-    assert log.get_size() == 44
+    
+    with open(Path(_test_log_dir) / 'test_log.log') as fin:
+        log_file_contents = fin.read()
+
+    log_file_contents_truth = "============\nnew_log_name\n============\n\n"
+    assert log_file_contents == log_file_contents_truth
+
 
 def test_io():
     """Test io module"""
@@ -93,8 +100,3 @@ def test_io():
 
     # test reading corrupted file
     pytest.raises(Exception, _io.read)
-
-
-
-
-
