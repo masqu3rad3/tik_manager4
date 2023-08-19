@@ -30,7 +30,8 @@ def test_filelog():
     assert log._get_now() == ""
     assert log.title("Test") == "Test"
     log.clear()
-    assert log.get_size() == 44
+    log_size = int(log.get_size())
+    assert log_size == 44
 
 def test_io():
     """Test io module"""
