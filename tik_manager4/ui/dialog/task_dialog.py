@@ -19,6 +19,9 @@ class EditTask(QtWidgets.QDialog):
         self.task_object = task_object
         self.feedback = feedback.Feedback(parent=self)
 
+        # if parent_sub and not isinstance(parent_sub, list):
+        #     parent_sub = [parent_sub]
+
         self._parent_sub = parent_sub or task_object.parent_sub
         self.parent = parent
         self.setWindowTitle("Edit Task")
@@ -126,6 +129,12 @@ class EditTask(QtWidgets.QDialog):
             self.button_box.button(QtWidgets.QDialogButtonBox.Ok)
         )
         self.main_layout.addWidget(self.button_box)
+
+        # if multi subs, disable path
+        # if len(self._parent_sub) > 1:
+        #     _path_line_edit = self.settings_layout.find("path")
+        #     _path_line_edit.setHidden(True)
+
         # SIGNALS
         self.button_box.accepted.connect(self.on_edit_task)
         self.button_box.rejected.connect(self.reject)
@@ -149,7 +158,11 @@ class NewTask(QtWidgets.QDialog):
         self.tik_project = project_object
         self.feedback = feedback.Feedback()
 
+        if parent_sub and not isinstance(parent_sub, list):
+            parent_sub = [parent_sub]
+
         self._parent_sub = parent_sub or project_object
+        # self._multi_parent_subs = multi_subs
         self.parent = parent
         self.setWindowTitle("New Task")
         self.setFixedSize(600, 400)
@@ -160,11 +173,11 @@ class NewTask(QtWidgets.QDialog):
         self.ui_definition = self.define_ui_dictionary()
         self._init_ui()
 
-        self._new_task = None
+        self._new_tasks = []
 
     def _categorize_category_definitions(self):
         """Categorize category definitions."""
-        _items = self._parent_sub.guard.category_definitions.get_data().items()
+        _items = self._parent_sub[-1].guard.category_definitions.get_data().items()
         # separate groups by type
         _groups = {}
         for key, val in _items:
@@ -203,8 +216,9 @@ class NewTask(QtWidgets.QDialog):
     def define_ui_dictionary(self):
         """Populate settings."""
 
-        _mode = self._parent_sub.metadata.get_value("mode", "")
-        all_categories = self._parent_sub.guard.category_definitions.get_data()
+        # get the metadata from the last selected one
+        _mode = self._parent_sub[-1].metadata.get_value("mode", "")
+        all_categories = self._parent_sub[-1].guard.category_definitions.get_data()
         if _mode == "" or _mode == "root":
             _default_categories = all_categories
         else:
@@ -222,7 +236,7 @@ class NewTask(QtWidgets.QDialog):
             "path": {
                 "display_name": "Path :",
                 "type": "string",
-                "value": self._parent_sub.path,
+                "value": self._parent_sub[-1].path,
                 "tooltip": "Path of the new task.",
                 "readOnly": True,
             },
@@ -254,25 +268,50 @@ class NewTask(QtWidgets.QDialog):
             self.button_box.button(QtWidgets.QDialogButtonBox.Ok)
         )
         self.main_layout.addWidget(self.button_box)
+
+        # if multi subs, disable path
+        if len(self._parent_sub) > 1:
+            _path_line_edit = self.settings_layout.find("path")
+            _path_line_edit.setEnabled(False)
+            self.setWindowTitle("New Task (Multiple Selection)")
+
         # SIGNALS
         self.button_box.accepted.connect(self.on_create_task)
         self.button_box.rejected.connect(self.reject)
 
     def on_create_task(self):
         """Create task."""
-        self._new_task = self.tik_project.create_task(
-            name=self.settings_data.get_property("name"),
-            categories=self.settings_data.get_property("categories"),
-            parent_uid=self._parent_sub.id,
-        )
-        if self._new_task == -1:
-            self.feedback.pop_info(
-                title="Failed to create task.",
-                text=self.tik_project.log.last_message,
-                critical=True,
+
+        for sub in self._parent_sub:
+            _new_task = self.tik_project.create_task(
+                name=self.settings_data.get_property("name"),
+                categories=self.settings_data.get_property("categories"),
+                parent_uid=sub.id,
             )
-            return
-        self.accept()
+            if _new_task == -1:
+                self.feedback.pop_info(
+                    title="Failed to create task.",
+                    text=self.tik_project.log.last_message,
+                    critical=True,
+                )
+                return
+            self._new_tasks.append(_new_task)
+            self.accept()
+
+        #
+        # self._new_task = self.tik_project.create_task(
+        #     name=self.settings_data.get_property("name"),
+        #     categories=self.settings_data.get_property("categories"),
+        #     parent_uid=self._parent_sub.id,
+        # )
+        # if self._new_task == -1:
+        #     self.feedback.pop_info(
+        #         title="Failed to create task.",
+        #         text=self.tik_project.log.last_message,
+        #         critical=True,
+        #     )
+        #     return
+        # self.accept()
 
     def get_created_task(self):
-        return self._new_task
+        return self._new_tasks

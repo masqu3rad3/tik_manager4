@@ -2,6 +2,8 @@ import uuid
 import os
 import subprocess
 import platform
+
+from tik_manager4.external import pyperclip
 from tik_manager4.objects.guard import Guard
 from tik_manager4.core import filelog
 
@@ -97,6 +99,11 @@ class Entity(object):
             subprocess.Popen(["xdg-open", target])
         else:
             subprocess.Popen(["open", target])
+
+
+    def copy_path_to_clipboard(self, file_or_folder_path):
+        """Copy the path to the clipboard."""
+        pyperclip.copy(file_or_folder_path)
 
     def show_project_folder(self):
         """Open the path in Windows Explorer(Windows) or Nautilus(Linux)"""

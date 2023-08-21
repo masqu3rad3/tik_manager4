@@ -223,7 +223,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.tasks_mcv.task_view.set_tasks
         )
         self.subprojects_mcv.sub_view.add_item.connect(
-            self.tasks_mcv.task_view.add_task
+            self.tasks_mcv.task_view.add_tasks
         )
         self.tasks_mcv.task_view.item_selected.connect(self.categories_mcv.set_task)
         self.categories_mcv.work_tree_view.item_selected.connect(
@@ -239,8 +239,9 @@ class MainUI(QtWidgets.QMainWindow):
         """Set the last selections for the user"""
         self.tik.user.last_project = self.tik.project.name
         # get the currently selected subproject
-        _subproject_item = self.subprojects_mcv.sub_view.get_selected_item()
+        _subproject_item = self.subprojects_mcv.sub_view.get_selected_items()
         if _subproject_item:
+            _subproject_item = _subproject_item[0]
             self.tik.user.last_subproject = _subproject_item.subproject.id
             _task_item = self.tasks_mcv.task_view.get_selected_item()
             if _task_item:
@@ -458,10 +459,9 @@ class MainUI(QtWidgets.QMainWindow):
             task = category.parent_task
             subproject = task.parent_sub
         else:
-            task = None
-            subproject = self.subprojects_mcv.get_active_subproject()
-            existing_tasks = subproject.scan_tasks()
-            if not existing_tasks:
+            # get the active task
+            task = self.tasks_mcv.get_active_task()
+            if not task:
                 self.feedback.pop_info(
                     title="No tasks found.",
                     text="Selected Sub-object does not have any tasks under it.\n"
@@ -469,6 +469,21 @@ class MainUI(QtWidgets.QMainWindow):
                     critical=True,
                 )
                 return
+            subproject = task.parent_sub
+
+
+
+            # task = None
+            # subproject = self.subprojects_mcv.get_active_subproject()
+            # existing_tasks = subproject.scan_tasks()
+            # if not existing_tasks:
+            #     self.feedback.pop_info(
+            #         title="No tasks found.",
+            #         text="Selected Sub-object does not have any tasks under it.\n"
+            #         "Please create a task before creating a work.",
+            #         critical=True,
+            #     )
+            #     return
 
         dialog = NewWorkDialog(
             self.tik, parent=self, subproject=subproject, task=task, category=category
@@ -488,9 +503,9 @@ class MainUI(QtWidgets.QMainWindow):
         if not scene_file_path:
             self.feedback.pop_info(
                 title="Scene file cannot be found.",
-                text="Scene file cannot be found. \
-                Please either save your scene by creating a new work or \
-                ingest it into an existing one.",
+                text="Scene file cannot be found. "
+                     "Please either save your scene by creating a new work or "
+                     "ingest it into an existing one.",
                 critical=True,
             )
             return
@@ -499,9 +514,9 @@ class MainUI(QtWidgets.QMainWindow):
         if not _work:
             self.feedback.pop_info(
                 title="Work object cannot be found.",
-                text="Work cannot be found. Versions can only saved on work objects.\n\
-                If there is no work associated with current scene either create a work \
-                or use the ingest method to save it into an existing work",
+                text="Work cannot be found. Versions can only saved on work objects.\n"
+                     "If there is no work associated with current scene either create a work "
+                     "or use the ingest method to save it into an existing work",
                 critical=True,
             )
             return
