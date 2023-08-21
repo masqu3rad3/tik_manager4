@@ -33,11 +33,17 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         version_lbl.setFont(QtGui.QFont("Arial", 10))
         version_lbl.setMinimumSize = QtCore.QSize(60, 30)
         version_lbl.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignRight)
-        self.version_combo = QtWidgets.QComboBox()
-        # set its minimum height to 30
-        self.version_combo.setMinimumSize(QtCore.QSize(60, 30))
         version_layout.addWidget(version_lbl)
+
+        self.version_combo = QtWidgets.QComboBox()
+        self.version_combo.setMinimumSize(QtCore.QSize(60, 30))
         version_layout.addWidget(self.version_combo)
+
+        self.show_preview_btn = QtWidgets.QPushButton()
+        self.show_preview_btn.setText("Show Preview")
+        self.show_preview_btn.setMinimumSize(QtCore.QSize(60, 30))
+        # self.preview_btn.setMaximumSize(QtCore.QSize(60, 30))
+        version_layout.addWidget(self.show_preview_btn)
 
         notes_layout = QtWidgets.QVBoxLayout()
         self.addLayout(notes_layout)
