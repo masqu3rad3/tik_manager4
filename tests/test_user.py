@@ -1,6 +1,22 @@
 """Tests for User related functions"""
-from .mockup import Mockup, clean_user
+from .mockup import Mockup
 from tik_manager4.objects import user
+import pytest
+
+
+@pytest.fixture(autouse=True, scope='function')
+def clean_user():
+    # NOTE: There are other modules where clean_user is used as the decorator
+    # under tests/mockup.py.  Since we don't wanna replicate this in each of
+    # these files, this piece of code can be moved to a `conftest.py` (see
+    # pytest documentation) and autouse may be disabled.  In this case, the
+    # clean_user fixture should be explicitly added to all test arguments.
+    # Explicit is better than implicit anyways...
+    m = Mockup()
+    m.backup_user()
+    user.User(common_directory=m.mockup_commons_path)
+    yield
+    m.revert()
 
 
 class TestUser(object):
@@ -11,14 +27,12 @@ class TestUser(object):
     import tik_manager4  # importing main checks the common folder definition, thats why its here
     tik = tik_manager4.initialize("Standalone")
 
-    @clean_user
     def test_reinitializing_user(self):
         """Tests validating the user information (again)"""
         self.tik.project.__init__()
         self.tik.user.__init__()
         assert self.tik.user._validate_user_data() == 1, "Existing user data failed to initialize"
 
-    @clean_user
     def test_query_users(self):
         """Tests getting the user list from commons database"""
         self.tik.project.__init__()
@@ -26,7 +40,6 @@ class TestUser(object):
         user_list = self.tik.user.commons.get_users()
         assert user_list
 
-    @clean_user
     def test_query_structures(self):
         """Tests if preset structures can be returned"""
         self.tik.project.__init__()
@@ -34,7 +47,6 @@ class TestUser(object):
         structures = self.tik.user.commons.get_project_structures()
         assert structures
 
-    @clean_user
     def test_get_active_user(self):
         """Tests getting the currently active user from user database"""
         self.tik.project.__init__()
@@ -42,7 +54,6 @@ class TestUser(object):
         assert self.tik.user.get() == "Generic"
         assert self.tik.project.guard.user == "Generic"
 
-    @clean_user
     def test_authenticating_user(self):
         """Tests authenticating the active user"""
         self.tik.project.__init__()
@@ -51,7 +62,6 @@ class TestUser(object):
         assert self.tik.user.authenticate("1234")
         assert self.tik.project.guard.is_authenticated == True
 
-    @clean_user
     def test_switching_users(self):
         """Tests switching between users"""
         self.tik.project.__init__()
@@ -63,7 +73,6 @@ class TestUser(object):
         assert self.tik.user.set("Generic", password="1234")
         assert self.tik.user.is_authenticated
 
-    @clean_user
     def test_adding_new_users(self):
         """Tests adding new users to database"""
         self.tik.project.__init__()
@@ -92,7 +101,6 @@ class TestUser(object):
         assert self.tik.user.set("Test_AdminUser", password="password") == ("Test_AdminUser", "Success")
         assert self.tik.user.create_new_user("Extra_User", "ext", "extra", 2) == (1, "Success")
 
-    @clean_user
     def test_change_user_password(self):
         self.tik.project.__init__()
         self.tik.user.__init__()
@@ -119,7 +127,6 @@ class TestUser(object):
         assert self.tik.user.change_user_password("1234", "awesome_password", user_name="Admin") == (1, "Success")
         assert self.tik.user.set("Admin", password="awesome_password") == ("Admin", "Success")
 
-    @clean_user
     def test_change_permission_levels(self):
         self.tik.project.__init__()
         self.tik.user.__init__()
@@ -139,7 +146,6 @@ class TestUser(object):
         assert self.tik.user.change_permission_level("Test_TaskUser", 3) == \
                (1, "Success")
 
-    @clean_user
     def test_delete_user(self):
         self.tik.project.__init__()
         self.tik.user.__init__()
@@ -155,7 +161,6 @@ class TestUser(object):
         assert self.tik.user.delete_user("Burhan Altintop") == (-1, "User Burhan Altintop does not exist. Aborting")
         assert self.tik.user.delete_user("Extra_User") == (1, "Success")
 
-    @clean_user
     def test_adding_new_project_bookmarks(self):
         self.tik.project.__init__()
         self.tik.user.__init__()
@@ -163,7 +168,6 @@ class TestUser(object):
         assert self.tik.user.add_project_bookmark("/path/to/projectB") == 1
         assert self.tik.user.add_project_bookmark("/path/to/projectB") == -1
 
-    @clean_user
     def test_delete_project_bookmarks(self):
         self.tik.project.__init__()
         self.tik.user.__init__()
@@ -173,7 +177,6 @@ class TestUser(object):
         assert len(self.tik.user.get_project_bookmarks()) == 0
         assert self.tik.user.delete_project_bookmark("/non/existing/project") == -1
 
-    @clean_user
     def test_get_project_bookmarks(self):
         self.tik.project.__init__()
         self.tik.user.__init__()
