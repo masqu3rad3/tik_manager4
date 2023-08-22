@@ -126,12 +126,29 @@ class Work(Settings, Entity):
             "thumbnail": os.path.join("thumbnails", _thumbnail_name).replace("\\", "/"),
             "scene_path": os.path.join("", _version_name).replace("\\", "/"),
             "user": self.guard.user,
-            "preview": "",
+            "previews": [],
         }
         self._versions.append(_version)
         self.edit_property("versions", self._versions)
         self.apply_settings(force=True)
         return _version
+
+    def make_preview(self, version_number, camera=None, settings=None, resolution=None):
+        """Initiate a playblast for the given version."""
+        _preview_folder = self.get_abs_database_path("previews")
+        self._io.folder_check(_preview_folder)
+
+        # get the work name
+        _name = f"{self._name}_v{version_number:03d}"
+
+        preview_file_abs_path = self._dcc_handler.generate_preview(_name, _preview_folder, camera=camera, resolution=resolution, settings_file=settings)
+        if preview_file_abs_path:
+            _file_name = os.path.basename(preview_file_abs_path)
+            _version = self.get_version(version_number)
+            _version["previews"] = os.path.join("previews", _file_name).replace("\\", "/")
+            self.apply_settings(force=True)
+
+
 
     def make_publish(self, notes, elements=None):
         """Create a publish from the currently loaded version on DCC."""

@@ -27,13 +27,11 @@
     "WireOnShaded": false,
     "Codec": "png",
     "ShowCategory": false,
-    "ResolutionPercentage": 75,
-    "OverrideResolution": false,
+    "ResolutionPercentage": 100,
     "Resolution": [
         1920,
         1080
     ],
-    "Quality": 100,
-    "SuffixPresets": ["anim", "previs", "tech", "layout"]
+    "Quality": 100
   }
 }

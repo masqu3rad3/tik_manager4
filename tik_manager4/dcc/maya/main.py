@@ -235,3 +235,24 @@ class Dcc(DccTemplate):
             percent=100,
         )
         cmds.setAttr("defaultRenderGlobals.imageFormat", store)  # take it back
+
+    @staticmethod
+    def get_scene_cameras():
+        """
+        Return all the cameras in the scene.
+        Returns: (list) List of camera names
+        """
+        return [cmds.listRelatives(x, parent=True)[0] for x in cmds.ls(type="camera")]
+
+
+    @staticmethod
+    def generate_preview(name, folder, camera=None, resolution=None, settings_file=None):
+        """
+        Create a preview from the current scene
+        Args:
+            file_path: (String) File path to save the preview
+
+        Returns: (String) File path of the preview
+
+        """
+        pass
