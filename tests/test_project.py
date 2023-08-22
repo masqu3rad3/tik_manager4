@@ -251,7 +251,7 @@ class TestProject:
         assert task.type == "asset"
 
         # create a task directly from a sub-project
-        task = self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].add_tasks("batman", categories=["Model", "Rig", "LookDev"], task_type="Asset")
+        task = self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].add_task("batman", categories=["Model", "Rig", "LookDev"], task_type="Asset")
 
         # TODO make a test to create illegal categories (not defined in the category definitions)
 
