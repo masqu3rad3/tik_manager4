@@ -43,6 +43,10 @@ class Work(Settings, Entity):
         return self._work_id
 
     @property
+    def task_id(self):
+        return self._task_id
+
+    @property
     def creator(self):
         return self._creator
 
@@ -133,20 +137,41 @@ class Work(Settings, Entity):
         self.apply_settings(force=True)
         return _version
 
-    def make_preview(self, version_number, camera=None, settings=None, resolution=None):
+    def make_preview(self, version_number, label=None, camera=None, resolution=None, settings=None):
         """Initiate a playblast for the given version."""
         _preview_folder = self.get_abs_database_path("previews")
         self._io.folder_check(_preview_folder)
 
         # get the work name
-        _name = f"{self._name}_v{version_number:03d}"
+        # _label = f"{label}_" if label else ""
+        # _name = f"{self._name}_{_label}v{version_number:03d}"
 
-        preview_file_abs_path = self._dcc_handler.generate_preview(_name, _preview_folder, camera=camera, resolution=resolution, settings_file=settings)
+        _nice_name, _full_name = self.resolve_preview_names(version_number, camera, label=label)
+
+        preview_file_abs_path = self._dcc_handler.generate_preview(_full_name, _preview_folder, camera=camera, resolution=resolution, settings_file=settings)
         if preview_file_abs_path:
-            _file_name = os.path.basename(preview_file_abs_path)
+            _relative_path = os.path.join("previews", os.path.basename(preview_file_abs_path)).replace("\\", "/")
             _version = self.get_version(version_number)
-            _version["previews"] = os.path.join("previews", _file_name).replace("\\", "/")
+            new_preview_data = {
+                _nice_name: _relative_path
+            }
+
+            if "previews" in _version.keys():
+                _version["previews"].update(new_preview_data)
+            else:
+                _version["previews"] = new_preview_data
+
             self.apply_settings(force=True)
+
+    def resolve_preview_names(self, version, camera, label=None):
+        """Resolve the preview name."""
+        if not label:
+            nice_name = [camera]
+        else:
+            nice_name = [camera, label]
+
+        full_name = nice_name.extend([self._name, f"v{version:03d}"])
+        return "_".join(nice_name), "_".join(full_name)
 
 
 

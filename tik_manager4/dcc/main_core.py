@@ -4,7 +4,8 @@ These commands will be overriden in DCCs.
 import os.path
 
 
-class DccTemplate(object):
+class DccTemplate():
+    preview_enabled = True
     @staticmethod
     def get_main_window():
         """Returns the main window of the DCC"""

@@ -1,4 +1,5 @@
 import os
+import logging
 from maya import cmds
 from maya import mel
 import maya.OpenMaya as om
@@ -7,9 +8,11 @@ from maya import OpenMayaUI as omui
 
 from tik_manager4.dcc.main_core import DccTemplate
 
+LOG = logging.getLogger(__name__)
 
 class Dcc(DccTemplate):
     formats = [".ma", ".mb"]
+    preview_enabled = True
 
     @staticmethod
     def get_main_window():
@@ -255,4 +258,5 @@ class Dcc(DccTemplate):
         Returns: (String) File path of the preview
 
         """
+        LOG.warning("generate_preview is not yet implemented for Maya")
         pass

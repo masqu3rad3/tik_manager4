@@ -3,6 +3,7 @@
 
 import os
 from glob import glob
+from fnmatch import fnmatch
 
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.work import Work
@@ -31,6 +32,15 @@ class Category(Entity):
     def works(self):
         self.scan_works()
         return self._works
+
+    def get_works_by_wildcard(self, wildcard):
+        """Return a list of works that match the wildcard."""
+        matched_items = []
+        for work in self.works.values():
+            if fnmatch(work.name, wildcard):
+                print(work.name)
+                matched_items.append(work)
+        return matched_items
 
     @property
     def publishes(self):

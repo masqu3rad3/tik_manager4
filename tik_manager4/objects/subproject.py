@@ -410,6 +410,19 @@ class Subproject(Entity):
             _tasks.extend(current.get_tasks_by_wildcard(wildcard))
         return _tasks
 
+    def find_task_by_id(self, uid):
+        """Find the task by id."""
+        _tasks = []
+        queue = list(self.subs.values())
+        while queue:
+            current = queue.pop(0)
+            queue.extend(list(current.subs.values()))
+            _search = current.get_task_by_id(uid)
+            if _search != -1:
+                return _search
+        LOG.warning("Requested uid does not exist")
+        return -1
+
     def find_sub_by_id(self, uid):
         """Find the subproject by id."""
         if self.id == uid:

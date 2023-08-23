@@ -11,6 +11,7 @@ from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog, SetProjectDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
 from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog
+from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.common import TikButton
 from tik_manager4.ui import pick
@@ -353,8 +354,7 @@ class MainUI(QtWidgets.QMainWindow):
         exit_action = QtWidgets.QAction("&Exit", self)
         file_menu.addAction(exit_action)
 
-        placeholder = QtWidgets.QAction("PLACEHOLDER", self)
-        tools_menu.addAction(placeholder)
+
 
         # Tools Menu
 
@@ -377,6 +377,13 @@ class MainUI(QtWidgets.QMainWindow):
         user_login.triggered.connect(self.on_login)
         set_project.triggered.connect(self.on_set_project)
         exit_action.triggered.connect(self.close)
+
+        # check if the tik.main.dcc has a preview method
+        if self.tik.dcc.preview_enabled:
+            create_preview = QtWidgets.QAction("&Create Preview", self)
+            tools_menu.addAction(create_preview)
+            create_preview.triggered.connect(self.on_create_preview)
+
 
     def test(self):
         """Test function."""
@@ -509,7 +516,7 @@ class MainUI(QtWidgets.QMainWindow):
                 critical=True,
             )
             return
-        _work = self.tik.project.find_work_by_absolute_path(scene_file_path)
+        _work, _version = self.tik.project.find_work_by_absolute_path(scene_file_path)
 
         if not _work:
             self.feedback.pop_info(
@@ -586,6 +593,38 @@ class MainUI(QtWidgets.QMainWindow):
     def on_login(self):
         """Login."""
         dialog = LoginDialog(self.tik.user, parent=self)
+        dialog.show()
+
+    def on_create_preview(self):
+        """Initiate a preview creation and launch the preview dialog."""
+        # find the work by scene
+        scene_file_path = self.tik.dcc.get_scene_file()
+        if not scene_file_path:
+            self.feedback.pop_info(
+                title="Scene file cannot be found.",
+                text="Scene file cannot be found. "
+                     "Please either save your scene by creating a new work or "
+                     "ingest it into an existing one.",
+                critical=True,
+            )
+            return
+        _work, _version = self.tik.project.find_work_by_absolute_path(scene_file_path)
+        if not _work:
+            self.feedback.pop_info(
+                title="Work object cannot be found.",
+                text="Work cannot be found. Versions can only saved on work objects.\n"
+                     "If there is no work associated with current scene either create a work "
+                     "or use the ingest method to save it into an existing work",
+                critical=True,
+            )
+            return
+
+        # find the task from the work
+        _task = self.tik.project.find_task_by_id(_work.task_id)
+        # get the resolution from the task (if any)
+        _resolution = _task.parent_sub.metadata.get_value("resolution", fallback_value=None)
+
+        dialog = PreviewDialog(work_object=_work, version=_version, resolution=_resolution, parent=self)
         dialog.show()
 
     def _pre_check(self, level):
