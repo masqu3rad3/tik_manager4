@@ -1,5 +1,7 @@
 """Main UI for Tik Manager 4."""
 import logging
+
+from tik_manager4.core import utils
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 
 from tik_manager4.ui.mcv.user_mcv import TikUserLayout
@@ -235,6 +237,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.doubleClicked.connect(self.load_work)
         self.categories_mcv.work_tree_view.load_event.connect(self.load_work)
         self.categories_mcv.work_tree_view.import_event.connect(self.load_work)
+        self.versions_mcv.show_preview_btn.clicked.connect(self.on_show_preview)
 
     def set_last_state(self):
         """Set the last selections for the user"""
@@ -478,20 +481,6 @@ class MainUI(QtWidgets.QMainWindow):
                 return
             subproject = task.parent_sub
 
-
-
-            # task = None
-            # subproject = self.subprojects_mcv.get_active_subproject()
-            # existing_tasks = subproject.scan_tasks()
-            # if not existing_tasks:
-            #     self.feedback.pop_info(
-            #         title="No tasks found.",
-            #         text="Selected Sub-object does not have any tasks under it.\n"
-            #         "Please create a task before creating a work.",
-            #         critical=True,
-            #     )
-            #     return
-
         dialog = NewWorkDialog(
             self.tik, parent=self, subproject=subproject, task=task, category=category
         )
@@ -623,15 +612,43 @@ class MainUI(QtWidgets.QMainWindow):
         _task = self.tik.project.find_task_by_id(_work.task_id)
         # get the resolution from the task (if any)
         _resolution = _task.parent_sub.metadata.get_value("resolution", fallback_value=None)
+        _range_start = _task.parent_sub.metadata.get_value("start_frame", fallback_value=None)
+        _range_end = _task.parent_sub.metadata.get_value("end_frame", fallback_value=None)
+        _range = [_range_start, _range_end]
 
-        dialog = PreviewDialog(work_object=_work, version=_version, resolution=_resolution, parent=self)
+        dialog = PreviewDialog(work_object=_work, version=_version, resolution=_resolution, range=_range, parent=self)
         dialog.show()
+
+    def on_show_preview(self):
+        """Make a dropdown list for the available previews and play selected one."""
+
+        # get the selected work object and the version
+        _work_item = self.categories_mcv.work_tree_view.get_selected_item()
+        _version_index = self.versions_mcv.get_selected_version()
+        _version = _work_item.work.get_version(_version_index)
+
+        preview_dict = _version.get("previews")
+        if len(preview_dict.values()) == 1:
+            abs_path = _work_item.work.get_abs_project_path(list(preview_dict.values())[0])
+            utils.execute(abs_path)
+            return
+        if not preview_dict:
+            return
+        zort_menu = QtWidgets.QMenu(parent=self)
+        for z in list(preview_dict.keys()):
+            tempAction = QtWidgets.QAction(z, self)
+            zort_menu.addAction(tempAction)
+            ## Take note about the usage of lambda "item=z" makes it possible using the loop, ignore -> for discarding emitted value
+            tempAction.triggered.connect(lambda ignore=z, item=_work_item.work.get_abs_project_path(preview_dict[z]): utils.execute(str(item)))
+
+        zort_menu.exec_((QtGui.QCursor.pos()))
+
 
     def _pre_check(self, level):
         """Check for permissions before drawing the dialog."""
         # new projects can be created by users with level 3
         if self.tik.project.check_permissions(level=level) == -1:
-            msg, _type = self.tik.log.get_last_message()
+            msg, _type = self.tik.LOG.get_last_message()
             self.feedback.pop_info(title="Permissions", text=msg)
             return False
         return True

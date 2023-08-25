@@ -14,7 +14,7 @@
     "ShowFrameRange": true,
     "CrfValue": 23,
     "Format": "video",
-    "PostConversion": false,
+    "PostConversion": true,
     "ShowFPS": true,
     "PolygonOnly": true,
     "Percent": 100,

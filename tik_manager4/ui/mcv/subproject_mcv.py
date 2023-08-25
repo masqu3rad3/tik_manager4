@@ -597,7 +597,7 @@ class TikSubView(QtWidgets.QTreeView):
     def new_sub_project(self, item):
         # first check for the user permission:
         if self.model.project.check_permissions(level=2) == -1:
-            message, title = self.model.project.log.get_last_message()
+            message, title = self.model.project.LOG.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
             return
         _dialog = tik_manager4.ui.dialog.subproject_dialog.NewSubprojectDialog(
@@ -628,7 +628,7 @@ class TikSubView(QtWidgets.QTreeView):
     def edit_sub_project(self, item):
         # first check for the user permission:
         if self.model.project.check_permissions(level=2) == -1:
-            message, title = self.model.project.log.get_last_message()
+            message, title = self.model.project.LOG.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
             return
         _dialog = tik_manager4.ui.dialog.subproject_dialog.EditSubprojectDialog(
@@ -646,7 +646,7 @@ class TikSubView(QtWidgets.QTreeView):
 
         # first check for the user permission:
         if self.model.project.check_permissions(level=2) == -1:
-            message, title = self.model.project.log.get_last_message()
+            message, title = self.model.project.LOG.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
             return
 
@@ -661,7 +661,7 @@ class TikSubView(QtWidgets.QTreeView):
     def delete_sub_project(self, item):
         # Prompt the user to confirm the deletion
         if self.model.project.check_permissions(level=3) == -1:
-            message, title = self.model.project.log.get_last_message()
+            message, title = self.model.project.LOG.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
             return
 
@@ -696,7 +696,7 @@ class TikSubView(QtWidgets.QTreeView):
                 self.get_tasks()
 
             else:
-                message, title = self.model.project.log.get_last_message()
+                message, title = self.model.project.LOG.get_last_message()
                 self._feedback.pop_info(title.capitalize(), message)
         else:
             return

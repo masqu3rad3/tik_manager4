@@ -1,16 +1,21 @@
 """Dialog to create previews for the current scene."""
 
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+from tik_manager4.ui.Qt import QtWidgets, QtCore
 
+from tik_manager4.ui.dialog import feedback
 from tik_manager4.ui.widgets.validated_string import ValidatedString
 from tik_manager4.ui.widgets import common
 
 class PreviewDialog(QtWidgets.QDialog):
-    def __init__(self, work_object, version, resolution=None, *args, **kwargs):
+    def __init__(self, work_object, version, resolution=None, range=None, *args, **kwargs):
         super(PreviewDialog, self).__init__(*args, **kwargs)
+        self.feedback = feedback.Feedback(parent=self)
         self.version = version
         self.work = work_object
         self.resolution = resolution or self.work.guard.project_settings.get_property("resolution", [1920, 1080])
+        range_start, _urs, _ure, range_end = self.work._dcc_handler.get_ranges()
+        _range = range or [range_start, range_end]
+        self.range = [_range[0] or range_start, _range[1] or range_end]
         self.setWindowTitle("Create Preview")
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
 
@@ -18,17 +23,19 @@ class PreviewDialog(QtWidgets.QDialog):
         self.setLayout(self.master_layout)
         self.build_ui()
 
-    def resolve_name(self):
+    def resolve_name(self, **kwargs):
         """Resolve the name of the preview."""
-        _label = self.preview_name_le.text()
-        _camera = self.cameras_combo.currentText()
+        _label = self.preview_name_le.text() or ""
+        _camera = self.cameras_combo.currentText() or ""
         _version = self.version
-        _resolved_name = self.work.resolve_name(_name)
-        self.resolved_text.setText(_resolved_name)
+        _resolved_name = self.work.resolve_preview_names(_version, _camera, label=_label)
+        self.resolved_text.setText(_resolved_name[1])
 
     def build_ui(self):
         """Build the UI."""
         self.resolved_text = common.ResolvedText()
+        self.master_layout.addWidget(self.resolved_text)
+
         form_layout = QtWidgets.QFormLayout()
         self.master_layout.addLayout(form_layout)
         preview_name_lbl = QtWidgets.QLabel("Preview Label: ")
@@ -55,6 +62,21 @@ class PreviewDialog(QtWidgets.QDialog):
         resolution_layout.addWidget(self.resolution_y_sp)
         form_layout.addRow(resolution_lbl, resolution_layout)
 
+        range_lbl = QtWidgets.QLabel("Range: ")
+        range_layout = QtWidgets.QHBoxLayout()
+        self.range_start_sp = QtWidgets.QSpinBox()
+        self.range_start_sp.setRange(-999999, 999999)
+        self.range_start_sp.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.range_start_sp.setValue(self.range[0])
+        self.range_end_sp = QtWidgets.QSpinBox()
+        self.range_end_sp.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.range_end_sp.setRange(-999999, 999999)
+        self.range_end_sp.setValue(self.range[1])
+        range_layout.addWidget(self.range_start_sp)
+        range_layout.addWidget(self.range_end_sp)
+        form_layout.addRow(range_lbl, range_layout)
+
+
         # add a button box to create the preview or cancel
         button_box = common.TikButtonBox(parent=self)
         self.master_layout.addWidget(button_box)
@@ -63,7 +85,10 @@ class PreviewDialog(QtWidgets.QDialog):
         )
         _cancel_btn = button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
 
+        self.resolve_name()
         # SIGNALS
+        self.preview_name_le.textChanged.connect(self.resolve_name)
+        self.cameras_combo.currentTextChanged.connect(self.resolve_name)
         button_box.accepted.connect(self.create_preview)
         button_box.rejected.connect(self.close)
 
@@ -72,8 +97,13 @@ class PreviewDialog(QtWidgets.QDialog):
         _name = self.preview_name_le.text()
         _camera = self.cameras_combo.currentText()
         _resolution = [self.resolution_x_sp.value(), self.resolution_y_sp.value()]
-        print(_name, _camera, _resolution)
-        self.work.make_preview(self.version, _name, _camera, _resolution, settings=self.work.guard.project_settings)
+        _range = [self.range_start_sp.value(), self.range_end_sp.value()]
+        state = self.work.make_preview(self.version, _camera, _resolution, _range, label=_name, settings=self.work.guard.project_settings.get_property("previewSettings", {}))
+        if state:
+            self.close()
+        else:
+            self.feedback.pop_info("Preview not created", "Preview not created. Cancelled by user.")
+
 
 # Test the dialog
 if __name__ == "__main__":

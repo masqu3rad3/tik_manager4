@@ -10,7 +10,7 @@ from tik_manager4.objects.work import Work
 from tik_manager4.core import filelog
 
 
-log = filelog.Filelog(logname=__name__, filename="tik_manager4")
+LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Category(Entity):
@@ -122,14 +122,14 @@ class Category(Entity):
 
         _work = self._works.get(name, None)
         if not _work:
-            log.warning(
+            LOG.warning(
                 "There is no work under this category with the name => %s" % name
             )
             return -1
 
         # if not, check if the user is the owner of the work
         if self.guard.user != _work.creator or self.check_permissions(level=3):
-            log.warning("You do not have the permission to delete this work")
+            LOG.warning("You do not have the permission to delete this work")
             return -1
 
         del self._works[name]
