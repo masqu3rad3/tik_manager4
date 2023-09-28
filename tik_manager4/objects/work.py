@@ -168,6 +168,14 @@ class Work(Settings, Entity):
             abs_path = self.get_abs_project_path(relative_path)
             self._dcc_handler.open(abs_path)
 
+    def import_version(self, version_number):
+        """Import the given version of the work to the scene."""
+        version_obj = self.get_version(version_number)
+        if version_obj:
+            relative_path = version_obj.get("scene_path")
+            abs_path = self.get_abs_project_path(relative_path)
+            self._dcc_handler.import_file(abs_path)
+
     def delete_work(self):
         """Delete the work."""
         # TODO: implement this. This should move the work to the purgatory.

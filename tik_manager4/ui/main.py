@@ -233,7 +233,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.version_created.connect(self._ingest_success)
         self.categories_mcv.work_tree_view.doubleClicked.connect(self.load_work)
         self.categories_mcv.work_tree_view.load_event.connect(self.load_work)
-        self.categories_mcv.work_tree_view.import_event.connect(self.load_work)
+        self.categories_mcv.work_tree_view.import_event.connect(self.import_work)
 
     def set_last_state(self):
         """Set the last selections for the user"""
@@ -417,7 +417,7 @@ class MainUI(QtWidgets.QMainWindow):
             return
         # get the version
         selected_version = self.versions_mcv.get_selected_version()
-
+        selected_work_item.work.import_version(selected_version)
         print(selected_work_item)
         print(selected_version)
         print("Not implemented yet.")
