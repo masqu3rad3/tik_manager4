@@ -303,15 +303,15 @@ class MainUI(QtWidgets.QMainWindow):
         # Work buttons
         save_new_work_btn = TikButton("Save New Work")
         save_new_work_btn.setMinimumSize(150, 40)
-        save_version_btn = TikButton("Save Version")
-        save_version_btn.setMinimumSize(150, 40)
+        increment_version_btn = TikButton("Increment Version")
+        increment_version_btn.setMinimumSize(150, 40)
         ingest_version_btn = TikButton("Ingest Version")
         ingest_version_btn.setMinimumSize(150, 40)
         load_btn = TikButton("Load")
         load_btn.setMinimumSize(150, 40)
 
         self.work_buttons_layout.addWidget(save_new_work_btn)
-        self.work_buttons_layout.addWidget(save_version_btn)
+        self.work_buttons_layout.addWidget(increment_version_btn)
         self.work_buttons_layout.addWidget(ingest_version_btn)
         self.work_buttons_layout.addStretch(1)
         self.work_buttons_layout.addWidget(load_btn)
@@ -325,7 +325,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # SIGNALS
         load_btn.clicked.connect(self.load_work)
-        save_version_btn.clicked.connect(self.on_new_version)
+        increment_version_btn.clicked.connect(self.on_new_version)
         ingest_version_btn.clicked.connect(self.on_ingest_version)
         save_new_work_btn.clicked.connect(self.on_new_work)
 

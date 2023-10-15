@@ -127,6 +127,7 @@ class Work(Settings, Entity):
             "scene_path": os.path.join("", _version_name).replace("\\", "/"),
             "user": self.guard.user,
             "preview": "",
+            "file_format": file_format
         }
         self._versions.append(_version)
         self.edit_property("versions", self._versions)
