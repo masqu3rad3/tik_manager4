@@ -82,4 +82,4 @@ class Feedback:
         dlg.setModal(modal)
         dlg.setFileMode(QtWidgets.QFileDialog.Directory)
         if dlg.exec_():
-            return os.path.normpath(compat.encode(dlg.selectedFiles()[0]))
+            return os.path.normpath(dlg.selectedFiles()[0])

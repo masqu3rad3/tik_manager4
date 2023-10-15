@@ -2,26 +2,18 @@ import logging
 import os
 import datetime
 
-
 class Filelog(object):
+    # FIXME(ckutlu): We should definitely rethink the need for global state as
+    # part of the class variable.
     last_message = None
     last_message_type = None
 
-    def __init__(
-        self,
-        logname=None,
-        filename=None,
-        filedir=None,
-        date=True,
-        time=True,
-        size_cap=500000,
-        *args,
-        **kwargs
-    ):
+    def __init__(self, logname = None, filename=None, filedir=None, date=True, time=True, size_cap=500000, *args, **kwargs):
+        # FIXME(ckutlu): Perhaps we can live with only a path argument
         super(Filelog, self).__init__()
         self.fileName = filename if filename else "defaultLog"
         self.fileDir = filedir if filedir else os.path.expanduser("~")
-        self.filePath = os.path.join(self.fileDir, "%s.log" % self.fileName)
+        self.filePath = os.path.join(self.fileDir, "%s.log" %self.fileName)
         self.logger = logging.getLogger(self.fileName)
         self.logger.setLevel(logging.DEBUG)
         self.log_name = logname if logname else self.fileName
@@ -51,7 +43,7 @@ class Filelog(object):
             if self.is_time:
                 now_data.append(now.strftime("%H:%M"))
             now_string = " - ".join(now_data)
-            return "%s - " % now_string
+            return "%s - " %now_string
         else:
             return ""
 
@@ -65,7 +57,7 @@ class Filelog(object):
         return self.log_name
 
     def info(self, msg):
-        stamped_msg = "%sINFO    : %s" % (self._get_now(), msg)
+        stamped_msg = "%sINFO    : %s" %(self._get_now(), msg)
         self._start_logging()
         self.logger.info(stamped_msg)
         self.__set_last_message(msg, "info")
@@ -93,9 +85,9 @@ class Filelog(object):
     def title(self, msg):
         self._start_logging()
         self.logger.debug("")
-        self.logger.debug("=" * (len(msg)))
+        self.logger.debug("="*(len(msg)))
         self.logger.debug(msg)
-        self.logger.debug("=" * (len(msg)))
+        self.logger.debug("="*(len(msg)))
         # self.logger.debug("\n")
         self._end_logging()
         return msg
@@ -112,7 +104,7 @@ class Filelog(object):
     def seperator(self):
         self._start_logging()
         self.logger.debug("")
-        self.logger.debug("-" * 30)
+        self.logger.debug("-"*30)
         # self.logger.debug("\n")
         self._end_logging()
         return True

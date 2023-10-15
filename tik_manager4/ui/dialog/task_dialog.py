@@ -219,7 +219,10 @@ class NewTask(QtWidgets.QDialog):
         # get the metadata from the last selected one
         _mode = self._parent_sub[-1].metadata.get_value("mode", "")
         all_categories = self._parent_sub[-1].guard.category_definitions.get_data()
-        if _mode == "" or _mode == "root":
+        print("DEBUG")
+        print(all_categories)
+        print(_mode)
+        if _mode == "" or _mode == "root" or _mode == "null" or _mode == "global":
             _default_categories = all_categories
         else:
             _default_categories = self.filter_category_definitions(
