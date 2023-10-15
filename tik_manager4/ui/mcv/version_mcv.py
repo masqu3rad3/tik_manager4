@@ -27,7 +27,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         version_layout = QtWidgets.QHBoxLayout()
         self.addLayout(version_layout)
-        # version_lbl = QtWidgets.QLabel("Version:")
         version_lbl = QtWidgets.QLabel(text="Version: ")
         # set the font size to 10
         version_lbl.setFont(QtGui.QFont("Arial", 10))
@@ -42,7 +41,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.show_preview_btn = QtWidgets.QPushButton()
         self.show_preview_btn.setText("Show Preview")
         self.show_preview_btn.setMinimumSize(QtCore.QSize(60, 30))
-        # self.preview_btn.setMaximumSize(QtCore.QSize(60, 30))
         version_layout.addWidget(self.show_preview_btn)
 
         notes_layout = QtWidgets.QVBoxLayout()
@@ -129,7 +127,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         version_number = int(self.version_combo.currentText())
         return version_number
         # Following returns the dictionary. We probably won't need it.
-        # return self.base.get_version(version_number)
 
     def refresh(self):
         """Refresh the version dropdown."""
@@ -154,7 +151,7 @@ class ImageWidget(QtWidgets.QLabel):
         size_policy.setHeightForWidth(True)
         self.setSizePolicy(size_policy)
 
-    def resizeEvent(self, r):
-        h = self.width()
-        self.setMinimumHeight(int(h / self.aspectRatio))
-        self.setMaximumHeight(int(h / self.aspectRatio))
+    def resizeEvent(self, _resize_event):
+        height = self.width()
+        self.setMinimumHeight(int(height / self.aspectRatio))
+        self.setMaximumHeight(int(height / self.aspectRatio))

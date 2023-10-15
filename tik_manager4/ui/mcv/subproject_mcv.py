@@ -102,7 +102,6 @@ class TikSubModel(QtGui.QStandardItemModel):
         self.root_item.setForeground(QtGui.QColor(0, 0, 0, 0))
         self.root_item.setText("Project Root")
         parent_row.appendRow(self.root_item)
-        # queue.append([all_data, self.project, parent_row])
         queue.append([all_data, self.project, self.root_item])
 
         while queue:
@@ -205,15 +204,12 @@ class TikSubView(QtWidgets.QTreeView):
         self.header().setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.header().customContextMenuRequested.connect(self.header_right_click_menu)
 
-        # self.expandAll()
         self.setItemsExpandable(True)
-
 
         # show the root
         self.setRootIsDecorated(False)
 
         # allow multiple selection but only with ctrl
-        # self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
     def keyPressEvent(self, event):
@@ -240,7 +236,6 @@ class TikSubView(QtWidgets.QTreeView):
             self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         else:
             super().mouseReleaseEvent(event)
-
 
     def expand_first_item(self):
         """Try to expand the first item in the tree"""
@@ -290,14 +285,6 @@ class TikSubView(QtWidgets.QTreeView):
     def selectionChanged(self, *args, **kwargs):
         super(TikSubView, self).selectionChanged(*args, **kwargs)
         self.get_tasks()
-
-    # def currentChanged(self, *args, **kwargs):
-    #     super(TikSubView, self).currentChanged(*args, **kwargs)
-    #     # print("++++++++++++++")
-    #     # print(self.selectedIndexes())
-    #     # print("++++++++++++++")
-    #     self.get_tasks()
-    #     # self.get_tasks(self.currentIndex())
 
     def get_selected_items(self):
         """Return the current item."""
@@ -374,21 +361,6 @@ class TikSubView(QtWidgets.QTreeView):
         self.resizeColumnToContents(3)
         self.resizeColumnToContents(4)
 
-    # @staticmethod
-    # def collect_tasks(sub_item, recursive=True):
-    #     if not isinstance(sub_item, tik_manager4.objects.subproject.Subproject):
-    #         # just to prevent crashes if something goes wrong
-    #         return
-    #     for key, value in sub_item.scan_tasks().items():
-    #         yield value
-    #
-    #     if recursive:
-    #         queue = list(sub_item.subs.values())
-    #         while queue:
-    #             sub = queue.pop(0)
-    #             for key, value in sub.scan_tasks().items():
-    #                 yield value
-    #             queue.extend(list(sub.subs.values()))
     @staticmethod
     def collect_tasks(sub_items, recursive=True):
         if not isinstance(sub_items, list):
@@ -410,28 +382,9 @@ class TikSubView(QtWidgets.QTreeView):
 
     def get_tasks(self, idx=None):
         """Returns the tasks of the selected subproject"""
-        # idx = idx or self.currentIndex()
-        # # make sure the idx is pointing to the first column
-        # first_idx = idx.sibling(idx.row(), 0)
-        # # the id needs to mapped from proxy to source
-        # index = self.proxy_model.mapToSource(first_idx)
-        # _item = self.model.itemFromIndex(index) or self.model.root_item
-        # if _item:
-        #     _tasks = self.collect_tasks(
-        #         _item.subproject, recursive=self._recursive_task_scan
-        #     )
-        #     self.item_selected.emit(_tasks)
 
-        # selected_indexes = self.selectedIndexes()
-        # if len(selected_indexes) < 2:
-        #     selected_indexes = [self.currentIndex()]
         selected_indexes = self.selectedIndexes()
 
-        # get all selection
-
-        # selected_indexes = self.selectedIndexes()[self.currentIndex()]
-
-        #
         if not selected_indexes:
             return
         sub_project_objects = []
@@ -574,7 +527,6 @@ class TikSubView(QtWidgets.QTreeView):
         right_click_menu.addSeparator()
 
         act_new_task = right_click_menu.addAction(self.tr("New Task"))
-        # act_new_task.triggered.connect(lambda _=None, x=item: self.new_task(item))
         act_new_task.triggered.connect(self.new_task)
 
         right_click_menu.addSeparator()
@@ -692,7 +644,6 @@ class TikSubView(QtWidgets.QTreeView):
 
                 # after removing the row, find the current selected one
                 # and emit the clicked signal
-                # self.get_tasks(self.currentIndex())
                 self.get_tasks()
 
             else:

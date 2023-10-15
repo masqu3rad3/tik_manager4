@@ -141,7 +141,6 @@ class Project(Subproject):
         sub_tree.update(properties)
 
         sub.set_sub_tree(sub_tree)
-        # sub.metadata.override(properties)
         self.save_structure()
         return 1
 
@@ -180,13 +179,6 @@ class Project(Subproject):
 
     def find_work_by_absolute_path(self, file_path):
         """Using the absolute path of the scene file return work object"""
-        print(file_path)
-        print(file_path)
-        print(file_path)
-        print(file_path)
-        print(file_path)
-        print(file_path)
-        print(file_path)
         parent_path = os.path.dirname(file_path)
         # get the base name without extension
         base_name = os.path.basename(file_path)

@@ -166,14 +166,9 @@ class Work(Settings, Entity):
                                                                    resolution=resolution, range=frame_range,
                                                                    settings=preview_settings)
         if preview_file_abs_path:
-            # print("Preview saved to: {}".format(preview_file_abs_path))
-            # print(settings)
             if settings.get("PostConversion", False):
-                # print("Converting preview to mp4...")
                 ffmpeg = self._check_ffmpeg()
-                # print("ffmpeg: {}".format(ffmpeg))
                 if ffmpeg:
-                    # print("ffmpeg found...")
                     preview_file_abs_path = self._convert_preview(preview_file_abs_path, ffmpeg, overwrite=True)
                 else:
                     LOG.warning("FFMPEG not found. Skipping conversion.")
@@ -191,19 +186,12 @@ class Work(Settings, Entity):
                 _version["previews"] = new_preview_data
 
             self.apply_settings(force=True)
-
-            # import pdb
-            # pdb.set_trace()
             utils.execute(preview_file_abs_path)
             return True
         else:
             return False
 
     def _convert_preview(self, preview_file_abs_path, ffmpeg, overwrite=False):
-        # abort if system is not supported or converter exe is missing
-        compatibleVideos = [".avi", ".mov", ".mp4", ".flv", ".webm", ".mkv", ".mp4"]
-        compatibleImages = [".tga", ".jpg", ".exr", ".png", ".pic"]
-
         # TODO: Format validation
 
         # get the conversion lut
@@ -291,13 +279,7 @@ class Work(Settings, Entity):
         """
         version_number = self.get_last_version() + 1
         version_name = f"{self._name}_v{version_number:03d}{file_format}"
-        # version_name = "{0}_{1}_v{2}{3}".format(
-        #     self._name, self._creator, str(version_number).zfill(3), file_format
-        # )
         thumbnail_name = f"{self._name}_v{version_number:03d}_thumbnail.jpg"
-        # thumbnail_name = "{0}_{1}_v{2}_thumbnail.jpg".format(
-        #     self._name, self._creator, str(version_number).zfill(3)
-        # )
         return version_number, version_name, thumbnail_name
 
     def load_version(self, version_number):

@@ -19,9 +19,6 @@ class EditTask(QtWidgets.QDialog):
         self.task_object = task_object
         self.feedback = feedback.Feedback(parent=self)
 
-        # if parent_sub and not isinstance(parent_sub, list):
-        #     parent_sub = [parent_sub]
-
         self._parent_sub = parent_sub or task_object.parent_sub
         self.parent = parent
         self.setWindowTitle("Edit Task")
@@ -129,11 +126,6 @@ class EditTask(QtWidgets.QDialog):
             self.button_box.button(QtWidgets.QDialogButtonBox.Ok)
         )
         self.main_layout.addWidget(self.button_box)
-
-        # if multi subs, disable path
-        # if len(self._parent_sub) > 1:
-        #     _path_line_edit = self.settings_layout.find("path")
-        #     _path_line_edit.setHidden(True)
 
         # SIGNALS
         self.button_box.accepted.connect(self.on_edit_task)
@@ -300,21 +292,6 @@ class NewTask(QtWidgets.QDialog):
                 return
             self._new_tasks.append(_new_task)
             self.accept()
-
-        #
-        # self._new_task = self.tik_project.create_task(
-        #     name=self.settings_data.get_property("name"),
-        #     categories=self.settings_data.get_property("categories"),
-        #     parent_uid=self._parent_sub.id,
-        # )
-        # if self._new_task == -1:
-        #     self.feedback.pop_info(
-        #         title="Failed to create task.",
-        #         text=self.tik_project.log.last_message,
-        #         critical=True,
-        #     )
-        #     return
-        # self.accept()
 
     def get_created_task(self):
         return self._new_tasks
