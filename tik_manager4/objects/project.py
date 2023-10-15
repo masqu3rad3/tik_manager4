@@ -70,6 +70,7 @@ class Project(Subproject):
             self._database_path, "project_settings.json"
         )
         self.settings.set_fallback(self.guard.commons.project_settings.settings_file)
+        self.guard.set_project_settings(self.settings)
         self.metadata_definitions.settings_file = os.path.join(
             self._database_path, "project_metadata.json"
         )
@@ -140,7 +141,6 @@ class Project(Subproject):
         sub_tree.update(properties)
 
         sub.set_sub_tree(sub_tree)
-        # sub.metadata.override(properties)
         self.save_structure()
         return 1
 
@@ -179,7 +179,6 @@ class Project(Subproject):
 
     def find_work_by_absolute_path(self, file_path):
         """Using the absolute path of the scene file return work object"""
-
         parent_path = os.path.dirname(file_path)
         # get the base name without extension
         base_name = os.path.basename(file_path)
@@ -189,6 +188,6 @@ class Project(Subproject):
         work_files = glob(os.path.join(database_path, "*.twork"), recursive=False)
         for work_file in work_files:
             _work = Work(work_file)
-            for version in _work.versions:
+            for nmb, version in enumerate(_work.versions):
                 if version.get("scene_path") == base_name:
-                    return _work
+                    return _work, version.get("version_number", nmb)

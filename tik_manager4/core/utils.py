@@ -2,15 +2,16 @@
 
 import os
 import platform
+import subprocess
 
-
+CURRENT_PLATFORM = platform.system()
 def get_home_dir():
     """Get the user home directory.
     expanduser does not always return the same result
     (in Maya it returns user/Documents). This returns the true user folder for all
     platforms and dccs.
     """
-    if platform.system() == "Windows":
+    if CURRENT_PLATFORM == "Windows":
         return os.path.normpath(os.getenv("USERPROFILE"))
     else:
         return os.path.normpath(os.getenv("HOME"))
@@ -25,3 +26,15 @@ def apply_stylesheet(file_path, widget):
         return True
     else:
         return False
+
+
+def execute(file_path):
+    if CURRENT_PLATFORM == "Windows":
+        os.startfile(file_path)
+    elif platform.system() == "Linux":
+        # logger.warning("Linux execution not yet implemented")
+        subprocess.Popen(["xdg-open", file_path])
+        pass
+    else:
+        subprocess.Popen(["open", file_path])
+        pass

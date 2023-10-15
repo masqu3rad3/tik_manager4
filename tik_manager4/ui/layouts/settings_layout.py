@@ -166,3 +166,22 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 child.widget().deleteLater()
             elif child.layout():
                 self._clear_layout(child.layout())
+
+# test the layout
+def main():
+    import sys
+    import os
+    app = QtWidgets.QApplication(sys.argv)
+    test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uiSettings_testA.json")
+
+    test_settings = Settings(test_file)
+    dialog = QtWidgets.QDialog()
+    setting_lay = SettingsLayout(test_settings.get_data())
+
+    dialog.setLayout(setting_lay)
+    dialog.show()
+    sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()
+

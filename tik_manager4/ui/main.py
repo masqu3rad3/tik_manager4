@@ -1,5 +1,7 @@
 """Main UI for Tik Manager 4."""
 import logging
+
+from tik_manager4.core import utils
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 
 from tik_manager4.ui.mcv.user_mcv import TikUserLayout
@@ -11,6 +13,7 @@ from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog, SetProjectDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
 from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog
+from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.common import TikButton
 from tik_manager4.ui import pick
@@ -223,7 +226,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.tasks_mcv.task_view.set_tasks
         )
         self.subprojects_mcv.sub_view.add_item.connect(
-            self.tasks_mcv.task_view.add_task
+            self.tasks_mcv.task_view.add_tasks
         )
         self.tasks_mcv.task_view.item_selected.connect(self.categories_mcv.set_task)
         self.categories_mcv.work_tree_view.item_selected.connect(
@@ -234,13 +237,16 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.doubleClicked.connect(self.load_work)
         self.categories_mcv.work_tree_view.load_event.connect(self.load_work)
         self.categories_mcv.work_tree_view.import_event.connect(self.import_work)
+        self.versions_mcv.show_preview_btn.clicked.connect(self.on_show_preview)
+
 
     def set_last_state(self):
         """Set the last selections for the user"""
         self.tik.user.last_project = self.tik.project.name
         # get the currently selected subproject
-        _subproject_item = self.subprojects_mcv.sub_view.get_selected_item()
+        _subproject_item = self.subprojects_mcv.sub_view.get_selected_items()
         if _subproject_item:
+            _subproject_item = _subproject_item[0]
             self.tik.user.last_subproject = _subproject_item.subproject.id
             _task_item = self.tasks_mcv.task_view.get_selected_item()
             if _task_item:
@@ -302,15 +308,15 @@ class MainUI(QtWidgets.QMainWindow):
         # Work buttons
         save_new_work_btn = TikButton("Save New Work")
         save_new_work_btn.setMinimumSize(150, 40)
-        save_version_btn = TikButton("Save Version")
-        save_version_btn.setMinimumSize(150, 40)
+        increment_version_btn = TikButton("Increment Version")
+        increment_version_btn.setMinimumSize(150, 40)
         ingest_version_btn = TikButton("Ingest Version")
         ingest_version_btn.setMinimumSize(150, 40)
         load_btn = TikButton("Load")
         load_btn.setMinimumSize(150, 40)
 
         self.work_buttons_layout.addWidget(save_new_work_btn)
-        self.work_buttons_layout.addWidget(save_version_btn)
+        self.work_buttons_layout.addWidget(increment_version_btn)
         self.work_buttons_layout.addWidget(ingest_version_btn)
         self.work_buttons_layout.addStretch(1)
         self.work_buttons_layout.addWidget(load_btn)
@@ -324,7 +330,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # SIGNALS
         load_btn.clicked.connect(self.load_work)
-        save_version_btn.clicked.connect(self.on_new_version)
+        increment_version_btn.clicked.connect(self.on_new_version)
         ingest_version_btn.clicked.connect(self.on_ingest_version)
         save_new_work_btn.clicked.connect(self.on_new_work)
 
@@ -352,8 +358,7 @@ class MainUI(QtWidgets.QMainWindow):
         exit_action = QtWidgets.QAction("&Exit", self)
         file_menu.addAction(exit_action)
 
-        placeholder = QtWidgets.QAction("PLACEHOLDER", self)
-        tools_menu.addAction(placeholder)
+
 
         # Tools Menu
 
@@ -376,6 +381,13 @@ class MainUI(QtWidgets.QMainWindow):
         user_login.triggered.connect(self.on_login)
         set_project.triggered.connect(self.on_set_project)
         exit_action.triggered.connect(self.close)
+
+        # check if the tik.main.dcc has a preview method
+        if self.tik.dcc.preview_enabled:
+            create_preview = QtWidgets.QAction("&Create Preview", self)
+            tools_menu.addAction(create_preview)
+            create_preview.triggered.connect(self.on_create_preview)
+
 
     def test(self):
         """Test function."""
@@ -458,10 +470,9 @@ class MainUI(QtWidgets.QMainWindow):
             task = category.parent_task
             subproject = task.parent_sub
         else:
-            task = None
-            subproject = self.subprojects_mcv.get_active_subproject()
-            existing_tasks = subproject.scan_tasks()
-            if not existing_tasks:
+            # get the active task
+            task = self.tasks_mcv.get_active_task()
+            if not task:
                 self.feedback.pop_info(
                     title="No tasks found.",
                     text="Selected Sub-object does not have any tasks under it.\n"
@@ -469,6 +480,7 @@ class MainUI(QtWidgets.QMainWindow):
                     critical=True,
                 )
                 return
+            subproject = task.parent_sub
 
         dialog = NewWorkDialog(
             self.tik, parent=self, subproject=subproject, task=task, category=category
@@ -488,20 +500,20 @@ class MainUI(QtWidgets.QMainWindow):
         if not scene_file_path:
             self.feedback.pop_info(
                 title="Scene file cannot be found.",
-                text="Scene file cannot be found. \
-                Please either save your scene by creating a new work or \
-                ingest it into an existing one.",
+                text="Scene file cannot be found. "
+                     "Please either save your scene by creating a new work or "
+                     "ingest it into an existing one.",
                 critical=True,
             )
             return
-        _work = self.tik.project.find_work_by_absolute_path(scene_file_path)
+        _work, _version = self.tik.project.find_work_by_absolute_path(scene_file_path)
 
         if not _work:
             self.feedback.pop_info(
                 title="Work object cannot be found.",
-                text="Work cannot be found. Versions can only saved on work objects.\n\
-                If there is no work associated with current scene either create a work \
-                or use the ingest method to save it into an existing work",
+                text="Work cannot be found. Versions can only saved on work objects.\n"
+                     "If there is no work associated with current scene either create a work "
+                     "or use the ingest method to save it into an existing work",
                 critical=True,
             )
             return
@@ -573,11 +585,71 @@ class MainUI(QtWidgets.QMainWindow):
         dialog = LoginDialog(self.tik.user, parent=self)
         dialog.show()
 
+    def on_create_preview(self):
+        """Initiate a preview creation and launch the preview dialog."""
+        # find the work by scene
+        scene_file_path = self.tik.dcc.get_scene_file()
+        if not scene_file_path:
+            self.feedback.pop_info(
+                title="Scene file cannot be found.",
+                text="Scene file cannot be found. "
+                     "Please either save your scene by creating a new work or "
+                     "ingest it into an existing one.",
+                critical=True,
+            )
+            return
+        _work, _version = self.tik.project.find_work_by_absolute_path(scene_file_path)
+        if not _work:
+            self.feedback.pop_info(
+                title="Work object cannot be found.",
+                text="Work cannot be found. Versions can only saved on work objects.\n"
+                     "If there is no work associated with current scene either create a work "
+                     "or use the ingest method to save it into an existing work",
+                critical=True,
+            )
+            return
+
+        # find the task from the work
+        _task = self.tik.project.find_task_by_id(_work.task_id)
+        # get the resolution from the task (if any)
+        _resolution = _task.parent_sub.metadata.get_value("resolution", fallback_value=None)
+        _range_start = _task.parent_sub.metadata.get_value("start_frame", fallback_value=None)
+        _range_end = _task.parent_sub.metadata.get_value("end_frame", fallback_value=None)
+        _range = [_range_start, _range_end]
+
+        dialog = PreviewDialog(work_object=_work, version=_version, resolution=_resolution, range=_range, parent=self)
+        dialog.show()
+
+    def on_show_preview(self):
+        """Make a dropdown list for the available previews and play selected one."""
+
+        # get the selected work object and the version
+        _work_item = self.categories_mcv.work_tree_view.get_selected_item()
+        _version_index = self.versions_mcv.get_selected_version()
+        _version = _work_item.work.get_version(_version_index)
+
+        preview_dict = _version.get("previews")
+        if len(preview_dict.values()) == 1:
+            abs_path = _work_item.work.get_abs_project_path(list(preview_dict.values())[0])
+            utils.execute(abs_path)
+            return
+        if not preview_dict:
+            return
+        zort_menu = QtWidgets.QMenu(parent=self)
+        for z in list(preview_dict.keys()):
+            tempAction = QtWidgets.QAction(z, self)
+            zort_menu.addAction(tempAction)
+            ## Take note about the usage of lambda "item=z" makes it possible using the loop, ignore -> for discarding emitted value
+            tempAction.triggered.connect(lambda ignore=z, item=_work_item.work.get_abs_project_path(preview_dict[z]): utils.execute(str(item)))
+
+        zort_menu.exec_((QtGui.QCursor.pos()))
+
+
     def _pre_check(self, level):
         """Check for permissions before drawing the dialog."""
         # new projects can be created by users with level 3
         if self.tik.project.check_permissions(level=level) == -1:
-            msg, _type = self.tik.log.get_last_message()
+            msg, _type = self.tik.LOG.get_last_message()
             self.feedback.pop_info(title="Permissions", text=msg)
             return False
         return True

@@ -1,4 +1,7 @@
 import os
+import logging
+import platform
+
 from maya import cmds
 from maya import mel
 import maya.OpenMaya as om
@@ -6,10 +9,13 @@ from tik_manager4.ui.Qt import QtWidgets, QtCompat
 from maya import OpenMayaUI as omui
 
 from tik_manager4.dcc.main_core import DccTemplate
+from tik_manager4.dcc.maya import panels
 
+LOG = logging.getLogger(__name__)
 
 class Dcc(DccTemplate):
     formats = [".ma", ".mb"]
+    preview_enabled = True
 
     @staticmethod
     def get_main_window():
@@ -235,3 +241,112 @@ class Dcc(DccTemplate):
             percent=100,
         )
         cmds.setAttr("defaultRenderGlobals.imageFormat", store)  # take it back
+
+    @staticmethod
+    def get_scene_cameras():
+        """
+        Return all the cameras in the scene.
+        Returns: (list) List of camera names
+        """
+        return [cmds.listRelatives(x, parent=True)[0] for x in cmds.ls(type="camera")]
+
+
+    @staticmethod
+    def generate_preview(name, folder, camera, resolution, range, settings=None):
+        """
+        Create a preview from the current scene
+        Args:
+            file_path: (String) File path to save the preview
+
+        Returns: (String) File path of the preview
+
+        """
+
+        settings = settings or {
+            "DisplayFieldChart": False,
+            "DisplayGateMask": False,
+            "DisplayFilmGate": False,
+            "DisplayFilmOrigin": False,
+            "DisplayFilmPivot": False,
+            "DisplayResolution": False,
+            "DisplaySafeAction": False,
+            "DisplaySafeTitle": False,
+            "DisplayAppearance": "smoothShaded",
+            "ClearSelection": True,
+            "ShowFrameNumber": True,
+            "ShowFrameRange": True,
+            "CrfValue": 23,
+            "Format": "video",
+            "PostConversion": True,
+            "ShowFPS": True,
+            "PolygonOnly": True,
+            "Percent": 100,
+            "DisplayTextures": True,
+            "ShowGrid": False,
+            "ShowSceneName": False,
+            "UseDefaultMaterial": False,
+            "ViewportAsItIs": False,
+            "HudsAsItIs": False,
+            "WireOnShaded": False,
+            "Codec": "png",
+            "ShowCategory": False,
+            "Quality": 100,
+        }
+
+        playback_slider = mel.eval('$tmpVar=$gPlayBackSlider')
+        active_sound = cmds.timeControl(playback_slider, q=True, sound=True)
+
+        if platform.system() == "Windows":
+            output_format = u'avi'
+            output_codec = u'none'
+            extension = 'avi'
+        else:
+            output_format = u'qt'
+            output_codec = u'jpg'
+            extension = 'mov'
+
+        # Create pb panel and adjust it due to settings
+        pb_panel = panels.PanelManager(camera, resolution, inherit=True)
+
+        if not settings.get("ViewportAsItIs"):
+            pb_panel.display_field_chart = settings.get("DisplayFieldChart", False)
+            pb_panel.display_gate_mask = settings.get("DisplayGateMask", False)
+            pb_panel.display_film_gate = settings.get("DisplayFilmGate", False)
+            pb_panel.display_film_origin = settings.get("DisplayFilmOrigin", False)
+            pb_panel.display_film_pivot = settings.get("DisplayFilmPivot", False)
+            pb_panel.display_resolution = settings.get("DisplayResolution", False)
+            pb_panel.display_safe_action = settings.get("DisplaySafeAction", False)
+            pb_panel.display_safe_title = settings.get("DisplaySafeTitle", False)
+
+            pb_panel.all_objects = not settings.get("PolygonOnly", True)
+            pb_panel.display_appearance = settings.get("DisplayAppearance", "smoothShaded")
+            pb_panel.display_textures = settings.get("DisplayTextures", True)
+            pb_panel.grid = settings.get("ShowGrid", False)
+            pb_panel.use_default_material = settings.get("UseDefaultMaterial", False)
+            pb_panel.polymeshes = True
+            pb_panel.image_plane = True
+
+        if not settings.get("HudsAsItIs"):
+            pb_panel.hud = False
+
+        _output = cmds.playblast(format=output_format,
+                                      # sequenceTime=sequenceTime,
+                                      filename=os.path.join(folder, name),
+                                      widthHeight=resolution,
+                                      percent=settings.get("Percent", 100),
+                                      quality=settings.get("Quality", 100),
+                                      compression=output_codec,
+                                      sound=active_sound,
+                                      # useTraxSounds=True,
+                                      viewer=False,
+                                      offScreen=True,
+                                      offScreenViewportUpdate=True,
+                                      activeEditor=False,
+                                      editorPanelName=pb_panel.panel,
+                                      startTime=range[0],
+                                      endTime=range[1]
+                                      )
+
+        final_clip = "{0}.{1}".format(_output, extension)
+        pb_panel.kill()
+        return final_clip

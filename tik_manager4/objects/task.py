@@ -221,3 +221,10 @@ class Task(Settings, Entity):
         self.edit_property("categories", new_order)
         self.apply_settings()
         return 1
+
+    def find_works_by_wildcard(self, wildcard):
+        """Search for works by wildcard among all categories."""
+        matched_works = []
+        for category in self.categories:
+            matched_works.extend(self.categories[category].get_works_by_wildcard(wildcard))
+        return matched_works

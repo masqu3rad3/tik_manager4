@@ -400,6 +400,29 @@ class Subproject(Entity):
 
         return 1
 
+    def find_tasks_by_wildcard(self, wildcard):
+        """Search recursively for all subprojects and the tasks inside them. Return the tasks matching the wildcard."""
+        _tasks = []
+        queue = list(self.subs.values())
+        while queue:
+            current = queue.pop(0)
+            queue.extend(list(current.subs.values()))
+            _tasks.extend(current.get_tasks_by_wildcard(wildcard))
+        return _tasks
+
+    def find_task_by_id(self, uid):
+        """Find the task by id."""
+        _tasks = []
+        queue = list(self.subs.values())
+        while queue:
+            current = queue.pop(0)
+            queue.extend(list(current.subs.values()))
+            _search = current.get_task_by_id(uid)
+            if _search != -1:
+                return _search
+        LOG.warning("Requested uid does not exist")
+        return -1
+
     def find_sub_by_id(self, uid):
         """Find the subproject by id."""
         if self.id == uid:
@@ -451,13 +474,22 @@ class Subproject(Entity):
         sub = self.find_sub_by_id(uid)
         return sub.path if sub != -1 else sub
 
-    def find_task_by_id(self, uid):
+    def get_task_by_id(self, uid):
         """Get the task by id. Search through only the tasks under this subproject."""
         self.scan_tasks()
         for _task_name, task_object in self.tasks.items():
             if task_object.id == uid:
                 return task_object
         return -1
+
+    def get_tasks_by_wildcard(self, name):
+        """Get the task by name. Search through only the tasks under this subproject."""
+        self.scan_tasks()
+        tasks = []
+        for _task_name, task_object in self.tasks.items():
+            if fnmatch(_task_name, name):
+                tasks.append(task_object)
+        return tasks
 
     @staticmethod
     def is_subproject_empty(sub):

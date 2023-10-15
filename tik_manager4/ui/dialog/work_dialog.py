@@ -78,7 +78,7 @@ class NewWorkDialog(QtWidgets.QDialog):
                 self.subproject = _subproject
                 task_id = task_id or self.tik.user.last_task
                 if task_id:
-                    _task = self.subproject.find_task_by_id(task_id)
+                    _task = self.subproject.get_task_by_id(task_id)
                     if _task != -1:
                         self.task = _task
                         category_index = (
@@ -96,6 +96,7 @@ class NewWorkDialog(QtWidgets.QDialog):
         task_name = self.task.name if self.task else ""
         categories = list(self.task.categories.keys()) if self.task else []
         category_name = self.category.name if self.category else ""
+
         _primary_ui = {
             "subproject": {
                 "display_name": "Sub-project",
@@ -288,6 +289,11 @@ class NewVersionDialog(QtWidgets.QDialog):
         self.format_combo.addItems(self.work_object._dcc_handler.formats)
         # align texts in combo to the right
         self.format_combo.setItemDelegate(QtWidgets.QStyledItemDelegate())
+        # try to get the format from the last version and set it as current
+        _format = self.work_object.versions[-1].get("file_format", self.work_object._dcc_handler.formats[0])
+        self.format_combo.setCurrentText(_format)
+        self.on_format_changed(_format) # initialize the name label with the format
+
         self.master_layout.addWidget(self.format_combo)
 
         # add a separator before buttons

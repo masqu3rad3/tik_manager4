@@ -4,7 +4,8 @@ These commands will be overriden in DCCs.
 import os.path
 
 
-class DccTemplate(object):
+class DccTemplate():
+    preview_enabled = True
     @staticmethod
     def get_main_window():
         """Returns the main window of the DCC"""
@@ -225,18 +226,26 @@ class DccTemplate(object):
 
     @staticmethod
     def get_scene_fps():
-        """Returns the current FPS value set by DCC. None if not supported"""
+        """Return the current FPS value set by DCC. None if not supported."""
         return None
 
     @staticmethod
     def set_scene_fps(fps_value):
         """
-        Sets the FPS value in DCC if supported.
+        Set the FPS value in DCC if supported.
         Args:
             fps_value: (integer) fps value
 
         Returns: None
 
+        """
+        pass
+
+    @staticmethod
+    def get_scene_cameras():
+        """
+        Return all the cameras in the scene.
+        Returns: (list) List of camera names
         """
         pass
 
@@ -255,6 +264,18 @@ class DccTemplate(object):
             height: (Int) Height of the thumbnail
 
         Returns: None
+
+        """
+        pass
+
+    @staticmethod
+    def generate_preview(name, folder, camera=None, resolution=None, settings_file=None):
+        """
+        Create a preview from the current scene
+        Args:
+            file_path: (String) File path to save the preview
+
+        Returns: (String) File path of the preview
 
         """
         pass

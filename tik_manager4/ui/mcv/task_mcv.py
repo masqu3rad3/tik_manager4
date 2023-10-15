@@ -205,6 +205,10 @@ class TikTaskView(QtWidgets.QTreeView):
         """Set the data for the model"""
         self.model.clear()
         for task in tasks_gen:
+            # if the task is already in model, skip it
+            if self.model.find_item_by_id_column(task.id):
+                continue
+
             self.model.append_task(task)
         self.expandAll()
 
@@ -219,9 +223,9 @@ class TikTaskView(QtWidgets.QTreeView):
         _item = self.model.itemFromIndex(index)
         return _item
 
-    def add_task(self, task):
+    def add_tasks(self, tasks):
         """Add a task to the model"""
-        self.model.append_task(task)
+        _ = [self.model.append_task(x) for x in tasks]
         self.expandAll()
 
     def filter(self, text):

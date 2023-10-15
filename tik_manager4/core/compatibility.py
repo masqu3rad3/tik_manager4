@@ -3,7 +3,7 @@
 from logging import getLogger
 
 LOG = getLogger(__name__)
-LOG.warning("This module is deprecated.")
+LOG.warning("Compatibility module is deprecated.")
 
 
 def encode(data):
