@@ -1,8 +1,8 @@
 {
   "Model": {
     "type": "asset",
-    "validations": [],
-    "extracts": ["scene_file"]
+    "validations": ["unique_names", "forbidden_nodes"],
+    "extracts": ["scene_file", "alembic"]
   },
   "Assembly": {
     "type": "asset",
@@ -22,7 +22,7 @@
   "Animation": {
         "type": "shot",
         "validations": [],
-        "extracts": ["scene_file"]
+        "extracts": ["scene_file", "alembic"]
     },
   "Layout": {
         "type": "shot",
@@ -37,7 +37,7 @@
   "Fx": {
         "type": "shot",
         "validations": [],
-        "extracts": ["scene_file"]
+        "extracts": ["scene_file", "alembic"]
     },
   "Comp": {
         "type": "shot",

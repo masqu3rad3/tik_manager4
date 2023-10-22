@@ -38,7 +38,6 @@ class Category(Entity):
         matched_items = []
         for work in self.works.values():
             if fnmatch(work.name, wildcard):
-                print(work.name)
                 matched_items.append(work)
         return matched_items
 
