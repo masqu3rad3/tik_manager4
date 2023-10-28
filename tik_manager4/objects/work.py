@@ -261,13 +261,13 @@ class Work(Settings, Entity):
         full_name = nice_name + [self._name, f"v{version:03d}"]
         return "_".join(nice_name), "_".join(full_name)
 
-    def make_publish(self, notes, elements=None):
-        """Create a publish from the currently loaded version on DCC."""
-
-        # valid file_format keyword can be collected from main.dcc.formats
-        state = self.check_permissions(level=1)
-        if state != 1:
-            return -1
+    # def make_publish(self, notes, elements=None):
+    #     """Create a publish from the currently loaded version on DCC."""
+    #
+    #     # valid file_format keyword can be collected from main.dcc.formats
+    #     state = self.check_permissions(level=1)
+    #     if state != 1:
+    #         return -1
 
     def construct_names(self, file_format):
         """Construct a name for the work version.
