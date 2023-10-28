@@ -7,7 +7,7 @@ import random
 from pprint import pprint
 import pytest
 # import uuid
-from .mockup import Mockup, clean_user
+from .mockup import Mockup
 from tik_manager4.objects import user
 from tik_manager4.core import filelog, utils
 

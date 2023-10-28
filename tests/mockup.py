@@ -58,21 +58,21 @@ class Mockup(object):
             os.makedirs(self.user_path)
 
 
-def clean_user(func):
-    """Decorator to make a fresh start (user folder)
-    """
-
-    @wraps(func)
-    def _fresh(*args, **kwargs):
-        m = Mockup()
-        m.backup_user()
-        user.User(common_directory=m.mockup_commons_path)
-        # pdb.set_trace()
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            raise
-        finally:
-            m.revert()
-
-    return _fresh
+# def clean_user(func):
+#     """Decorator to make a fresh start (user folder)
+#     """
+#
+#     @wraps(func)
+#     def _fresh(*args, **kwargs):
+#         m = Mockup()
+#         m.backup_user()
+#         user.User(common_directory=m.mockup_commons_path)
+#         # pdb.set_trace()
+#         try:
+#             return func(*args, **kwargs)
+#         except Exception as e:
+#             raise
+#         finally:
+#             m.revert()
+#
+#     return _fresh
