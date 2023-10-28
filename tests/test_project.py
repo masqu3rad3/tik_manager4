@@ -11,7 +11,7 @@ from tik_manager4.core import filelog, utils
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
-
+@pytest.mark.usefixtures("clean_user")
 class TestProject:
     """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
     # _salt = str(uuid.uuid4()).split("-")[-1]
@@ -24,7 +24,7 @@ class TestProject:
     # tik = Main()
     tik = tik_manager4.initialize("Standalone")
 
-    @clean_user
+    # @clean_user
     def test_default_project_paths(self):
         assert self.tik.project.path == "" # this is overridden by project class and must always return empty string
         self.tik.set_project(os.path.join(utils.get_home_dir(), "TM4_default"))
@@ -34,7 +34,6 @@ class TestProject:
         assert self.tik.project.guard.project_root == os.path.join(utils.get_home_dir(), "TM4_default")
         assert self.tik.project.guard.database_root == os.path.join(utils.get_home_dir(), "TM4_default", "tikDatabase")
 
-    @clean_user
     def test_create_new_project(self):
         # no user permission
         test_project_path = os.path.join(utils.get_home_dir(), "t4_test_project_DO_NOT_USE")
@@ -57,12 +56,10 @@ class TestProject:
                                        fps=30) == 1
         return test_project_path
 
-    @clean_user
     def test_set_project_with_arguments(self):
         test_project_path = self.test_create_new_project()
         self.tik.project.__init__(path=test_project_path)
 
-    @clean_user
     def test_create_sub_project(self):
         """Tests creating sub-projects with parent id and path"""
         test_project_path = self.test_create_new_project()
@@ -88,7 +85,6 @@ class TestProject:
         assert self.tik.project.create_sub_project("anotherSub", parent_uid=new_sub.id) == -1
         assert log.get_last_message() == ("anotherSub already exist in sub-projects of testSub", "warning")
 
-    @clean_user
     def test_edit_sub_project(self):
         """Test editing sub-projects with parent id and path"""
 
@@ -109,7 +105,6 @@ class TestProject:
         # test with path
         assert self.tik.project.edit_sub_project(path=new_sub.path, name="testEditedSub", resolution=[4096, 2144], fps=40, lens=50) == 1
 
-    @clean_user
     def test_create_a_shot_asset_project_structure(self, print_results=False):
         self.tik.project.__init__()
         self.tik.user.__init__()
@@ -164,7 +159,6 @@ class TestProject:
         # self.tik.project.create_folders(self.tik.project.absolute_path)
         return test_project_path
 
-    @clean_user
     def test_validating_existing_project(self):
         """Tests reading an existing project structure and compares it to the created one on-the-fly"""
         test_project_path = self.test_create_a_shot_asset_project_structure()
@@ -178,7 +172,6 @@ class TestProject:
         pprint(existing_subtree)
         assert current_subtree == existing_subtree, "Read and Write of project structure does not match"
 
-    @clean_user
     def test_deleting_sub_projects(self):
         """Tests deleting the sub-projects"""
         test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
@@ -202,7 +195,6 @@ class TestProject:
         assert self.tik.project.delete_sub_project(uid=123123123123123123) == -1
         assert self.tik.project.delete_sub_project(uid=uid) == 1
 
-    @clean_user
     def test_find_subs_by_path_and_id(self):
         test_project_path = self.test_create_new_project()
         self.tik.set_project(test_project_path)
@@ -216,7 +208,6 @@ class TestProject:
         assert self.tik.project.find_sub_by_path("Burhan/Altintop") == -1
         assert self.tik.project.find_sub_by_id(123123123123123123123) == -1
 
-    @clean_user
     def test_find_subs_by_wildcard(self):
         test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
         self.tik.set_project(test_project_path)
@@ -225,7 +216,6 @@ class TestProject:
         assert shots
         assert len(shots) == 7
 
-    @clean_user
     def test_get_uid_and_get_path(self):
         test_project_path = self.test_create_new_project()
         self.tik.set_project(test_project_path)
@@ -238,7 +228,6 @@ class TestProject:
         assert self.tik.project.get_uid_by_path("Burhan/Altintop") == -1
         assert self.tik.project.get_path_by_uid(123123123123123123123) == -1
 
-    @clean_user
     def test_creating_and_adding_new_tasks(self):
         test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
         self.tik.set_project(test_project_path)
@@ -265,7 +254,6 @@ class TestProject:
         assert self.tik.LOG.get_last_message() == ('This user does not have permissions for this action', 'warning')
         self.tik.user.set("Admin", password="1234")
 
-    @clean_user
     def test_edit_task(self):
         test_project_path = self.test_create_a_shot_asset_project_structure(print_results=False)
         self.tik.set_project(test_project_path)
@@ -304,7 +292,6 @@ class TestProject:
         assert task.name == "Aquaman"
         assert task.type == "Shot"
 
-    @clean_user
     def test_adding_categories(self):
         self.test_creating_and_adding_new_tasks()
         # add a category
@@ -328,7 +315,6 @@ class TestProject:
         # check the log message
         assert self.tik.LOG.get_last_message() == ("Category 'Burhan' is not defined in category definitions.", 'error')
 
-    @clean_user
     def test_order_categories(self):
         self.test_creating_and_adding_new_tasks()
 
@@ -353,7 +339,6 @@ class TestProject:
         # check the log message
         assert self.tik.LOG.get_last_message() == ("New order list contains a category that is not in the current categories list.", 'error')
 
-    @clean_user
     def test_scanning_tasks(self):
         self.test_creating_and_adding_new_tasks()
 
@@ -366,7 +351,6 @@ class TestProject:
         self.tik.user.set("Admin", password=1234)
         assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].scan_tasks()
 
-    @clean_user
     def test_creating_works(self):
         self.test_creating_and_adding_new_tasks()
 
@@ -408,7 +392,6 @@ class TestProject:
         this_should_have_2_versions = ultraman_task.categories["Rig"].create_work("varC", notes="this is a complete new version of varC")
         assert this_should_have_2_versions.version_count == 2
 
-    @clean_user
     def test_scanning_works(self):
         self.test_creating_works()
 
@@ -426,7 +409,6 @@ class TestProject:
         self.tik.project.guard._dcc = "Maya"
         assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works(all_dcc=False) == {}
 
-    @clean_user
     def test_deleting_empty_task(self):
         self.test_creating_and_adding_new_tasks()
 
@@ -442,7 +424,6 @@ class TestProject:
         self.tik.user.set("Admin", password="1234")
         assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].delete_task("superman") == 1
 
-    @clean_user
     def test_deleting_empty_categories(self):
         self.test_adding_categories()
 
@@ -456,7 +437,6 @@ class TestProject:
         self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Gotham")
         assert "Gotham" not in self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories.keys()
 
-    @clean_user
     def test_deleting_non_empty_categories(self):
         self.test_adding_categories()
         # add a version to the Gotham category
@@ -468,7 +448,6 @@ class TestProject:
         # check the log message
         assert self.tik.LOG.get_last_message() == ("Sending category 'Temp' from task 'batman' to purgatory.", 'warning')
 
-    @clean_user
     def test_deleting_non_empty_tasks(self):
         self.test_creating_works()
         self.tik.user.set("Admin", password="1234")

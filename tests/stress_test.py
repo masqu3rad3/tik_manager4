@@ -25,9 +25,7 @@ class TestStress:
     user.User(common_directory=mock.common)  # this is for not popping up the "missing common folder" message
     import tik_manager4 # importing main checks the common folder definition, thats why its here
     tik = tik_manager4.initialize("Standalone")
-
-    @clean_user
-    def test_create_a_big_project(self):
+    def test_create_a_big_project(self, clean_user):
         test_stress_project_path = os.path.join(utils.get_home_dir(), "t4_stress_test_DO_NOT_USE")
         if os.path.exists(test_stress_project_path):
             shutil.rmtree(test_stress_project_path)
@@ -94,10 +92,4 @@ class TestStress:
         #     self.tik.project.create_sub_project(word, parent_path="Assets/Vehicles")
 
         # set the project
-        print(test_stress_project_path)
-        print(test_stress_project_path)
-        print(test_stress_project_path)
-        print(test_stress_project_path)
-        print(test_stress_project_path)
-        print(test_stress_project_path)
         self.tik.set_project(test_stress_project_path)
