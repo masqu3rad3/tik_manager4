@@ -7,8 +7,9 @@ from tik_manager4 import dcc
 class Publisher():
     _dcc_handler = dcc.Dcc()
 
-    def __init__(self, absolute_path, name=None, path=None):
-        pass
+    def __init__(self, work_object):
+        """Initialize the Publisher object."""
+        self._work_object = work_object
     def resolve(self):
         """Resolve the validations, extracts, variables, etc."""
         pass
