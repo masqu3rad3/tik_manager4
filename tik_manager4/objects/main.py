@@ -9,8 +9,6 @@ from tik_manager4.ui.Qt import (
     QtWidgets,
 )  # Only for browsing if the common folder is not defined
 
-LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
-
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
 
@@ -24,7 +22,7 @@ class Main(object):
     project.guard.set_dcc(dcc.NAME)
     project.guard.set_commons(user.commons)
     dcc = dcc.Dcc()
-    LOG = LOG
+    log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
     def __init__(self):
@@ -86,17 +84,17 @@ class Main(object):
     ):
         """Create a new project."""
         if self.user.permission_level < 3:
-            LOG.warning("This user does not have rights to perform this action")
+            self.log.warning("This user does not have rights to perform this action")
             return -1
         if not self.user.is_authenticated:
-            LOG.warning("User is not authenticated")
+            self.log.warning("User is not authenticated")
             return -1
         database_path = os.path.join(path, "tikDatabase")
         if not os.path.exists(database_path):
             os.makedirs(database_path)
         structure_file = os.path.join(database_path, "project_structure.json")
         if os.path.exists(structure_file):
-            LOG.warning("Project already exists. Aborting")
+            self.log.warning("Project already exists. Aborting")
             return -1
         project_name = os.path.basename(path)
         if structure_data:
@@ -106,7 +104,7 @@ class Main(object):
                 structure_template
             )
         if not structure_data:
-            LOG.warning("Structure template %s is not defined. Creating empty project")
+            self.log.warning("Structure template %s is not defined. Creating empty project")
             structure_data = {
                 "name": project_name,
                 "path": "",
@@ -136,7 +134,7 @@ class Main(object):
     def set_project(self, absolute_path):
         """Set the current project."""
         if not os.path.exists(absolute_path):
-            LOG.error("Project Path does not exist. Aborting")
+            self.log.error("Project Path does not exist. Aborting")
             return -1
         self.project._set(absolute_path)
         # add to recent projects

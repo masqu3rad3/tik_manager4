@@ -3,25 +3,16 @@ import os
 import shutil
 from pprint import pprint
 import pytest
-# import uuid
-from .mockup import Mockup
-from tik_manager4.objects import user
-from tik_manager4.core import filelog, utils
+from tik_manager4.core import utils
 
-log = filelog.Filelog(logname=__name__, filename="tik_manager4")
+# log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 @pytest.mark.usefixtures("clean_user")
+@pytest.mark.usefixtures("prepare")
 class TestProject:
     """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
-    # _salt = str(uuid.uuid4()).split("-")[-1]
-    mock = Mockup()
-    mock.prepare()
-    user.User(common_directory=mock.common)  # this is for not popping up the "missing common folder" message
-    # from tik_manager4.objects.main import Main  # importing main checks the common folder definition, thats why its here
-    # from tik_manager4.objects.main import Main  # importing main checks the common folder definition, thats why its here
     import tik_manager4 # importing main checks the common folder definition, thats why its here
-    # tik = Main()
     tik = tik_manager4.initialize("Standalone")
 
     # @clean_user
@@ -83,7 +74,8 @@ class TestProject:
 
         # try creating an existing one
         assert self.tik.project.create_sub_project("anotherSub", parent_uid=new_sub.id) == -1
-        assert log.get_last_message() == ("anotherSub already exist in sub-projects of testSub", "warning")
+        assert self.tik.log.get_last_message() == ("anotherSub already exist in sub-projects of testSub", "warning")
+        # assert log.get_last_message() == ("anotherSub already exist in sub-projects of testSub", "warning")
 
     def test_edit_sub_project(self):
         """Test editing sub-projects with parent id and path"""
@@ -251,7 +243,7 @@ class TestProject:
         self.tik.user.set("Generic", password="1234")
         assert self.tik.project.create_task("this_asset_shouldnt_exist", categories=["Model", "Rig", "LookDev"], parent_path="Assets/Characters/Soldier") == -1
         # check if the log message is correct
-        assert self.tik.LOG.get_last_message() == ('This user does not have permissions for this action', 'warning')
+        assert self.tik.log.get_last_message() == ('This user does not have permissions for this action', 'warning')
         self.tik.user.set("Admin", password="1234")
 
     def test_edit_task(self):
@@ -269,14 +261,14 @@ class TestProject:
         # no permissions
         self.tik.user.set("Generic", password="1234")
         assert task.edit(name="Aquaman", categories=["Model", "Rig", "LookDev", "Animation"], task_type="Shot") == -1
-        assert self.tik.LOG.get_last_message() == ('This user does not have permissions for this action', 'warning')
+        assert self.tik.log.get_last_message() == ('This user does not have permissions for this action', 'warning')
         self.tik.user.set("Admin", password="1234")
 
         # existing task name
         existing_task = self.tik.project.create_task("Wonderboy", categories=["Model", "Rig", "LookDev"],
                                             parent_path="Assets/Characters/Soldier")
         assert task.edit(name="Wonderboy", categories=["Model", "Rig", "LookDev", "Animation"], task_type="Shot") == -1
-        assert self.tik.LOG.get_last_message() == ("Task name 'Wonderboy' already exists in sub 'Soldier'.", 'error')
+        assert self.tik.log.get_last_message() == ("Task name 'Wonderboy' already exists in sub 'Soldier'.", 'error')
 
         # wrong category type
         with pytest.raises(Exception):
@@ -307,13 +299,13 @@ class TestProject:
         # try to add a duplicate category
         assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].add_category("Temp") == -1
         # check the log message
-        assert self.tik.LOG.get_last_message() == ("Category 'Temp' already exists in task 'batman'.", 'warning')
+        assert self.tik.log.get_last_message() == ("Category 'Temp' already exists in task 'batman'.", 'warning')
 
         # try to add a category that is not defined in the category definitions
         with pytest.raises(Exception) as e_info:
             self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].add_category("Burhan")
         # check the log message
-        assert self.tik.LOG.get_last_message() == ("Category 'Burhan' is not defined in category definitions.", 'error')
+        assert self.tik.log.get_last_message() == ("Category 'Burhan' is not defined in category definitions.", 'error')
 
     def test_order_categories(self):
         self.test_creating_and_adding_new_tasks()
@@ -331,13 +323,13 @@ class TestProject:
         with pytest.raises(Exception) as e_info:
             self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["superman"].order_categories(["LookDev", "Model"])
         # check the log message
-        assert self.tik.LOG.get_last_message() == ("New order list is not the same length as the current categories list.", 'error')
+        assert self.tik.log.get_last_message() == ("New order list is not the same length as the current categories list.", 'error')
 
         # try to order categories with an item not in the current categories list
         with pytest.raises(Exception) as e_info:
             self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["superman"].order_categories(["Model", "LookDev", "Temp"])
         # check the log message
-        assert self.tik.LOG.get_last_message() == ("New order list contains a category that is not in the current categories list.", 'error')
+        assert self.tik.log.get_last_message() == ("New order list contains a category that is not in the current categories list.", 'error')
 
     def test_scanning_tasks(self):
         self.test_creating_and_adding_new_tasks()
@@ -416,7 +408,7 @@ class TestProject:
         self.tik.user.set("Generic", password="1234")
         assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].delete_task("superman") == -1
         # check if the log message is correct
-        assert self.tik.LOG.get_last_message() == ('This user does not have permissions for this action', 'warning')
+        assert self.tik.log.get_last_message() == ('This user does not have permissions for this action', 'warning')
         # try to delete a non-existing task
         assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].delete_task("this_task_doesnt_exist") == -1
 
@@ -446,7 +438,7 @@ class TestProject:
         assert self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].categories["Temp"].is_empty() == False
         self.tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"].delete_category("Temp")
         # check the log message
-        assert self.tik.LOG.get_last_message() == ("Sending category 'Temp' from task 'batman' to purgatory.", 'warning')
+        assert self.tik.log.get_last_message() == ("Sending category 'Temp' from task 'batman' to purgatory.", 'warning')
 
     def test_deleting_non_empty_tasks(self):
         self.test_creating_works()

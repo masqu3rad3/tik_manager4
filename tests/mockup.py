@@ -2,10 +2,6 @@
 import uuid
 import shutil
 import os
-from functools import wraps
-from tik_manager4.objects import user
-import pdb
-
 
 class Mockup(object):
     def __init__(self):

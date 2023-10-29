@@ -7,7 +7,6 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class ExtractCore(object):
     def __init__(self):
-        self.name: str = ""
         self._output_path: str = ""
         self._category: str = ""
         self._status = "idle"
@@ -39,7 +38,7 @@ class ExtractCore(object):
         self._category = category
 
     def extract(self):
-        func = self.category_functions.get(self.category, self.extract_default)
+        func = self.category_functions.get(self.category, self._extract_default)
         try:
             func()
         except Exception as e:
@@ -48,6 +47,6 @@ class ExtractCore(object):
             self._status = "error"
         self._status = "extracted"
 
-    def extract_default(self):
+    def _extract_default(self):
         """Extract method for any non-specified category"""
         pass

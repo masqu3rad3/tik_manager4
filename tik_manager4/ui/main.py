@@ -649,7 +649,7 @@ class MainUI(QtWidgets.QMainWindow):
         """Check for permissions before drawing the dialog."""
         # new projects can be created by users with level 3
         if self.tik.project.check_permissions(level=level) == -1:
-            msg, _type = self.tik.LOG.get_last_message()
+            msg, _type = self.tik.log.get_last_message()
             self.feedback.pop_info(title="Permissions", text=msg)
             return False
         return True

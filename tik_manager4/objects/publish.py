@@ -22,6 +22,7 @@ class Publish(Settings, Entity):
         self._task_id = self.get_property("task_id") or None
         self._relative_path = self.get_property("path") or path
         self._software_version = self.get_property("softwareVersion") or None
+        self._elements = self.get_property("elements") or []
         # self._is_promoted = self.get_property("isPromoted") or False
         self.modified_time = None  # to compare and update if necessary
 

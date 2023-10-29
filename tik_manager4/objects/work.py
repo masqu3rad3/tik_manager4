@@ -56,8 +56,13 @@ class Work(Settings, Entity):
         return self._creator
 
     @property
-    def publishes(self):
-        return self._publishes
+    def category(self):
+        """Return the category of the work."""
+        return self._category
+
+    # @property
+    # def publishes(self):
+    #     return self._publishes
 
     @property
     def versions(self):

@@ -11,17 +11,14 @@ class Alembic(ExtractCore):
     def __init__(self):
         super(ExtractCore).__init__()
         om.MGlobal.displayInfo("Alembic Extractor loaded")
-        self.name: str = ""
-        self._output_path: str = ""
-        self._category: str = ""
 
         self.category_functions = {"model": self._extract_model,
                                    "animation": self._extract_animation,
                                    "fx": self._extract_fx}
 
-    def extract(self):
-        func = self.category_functions.get(self.category, self._extract_default)
-        pass
+    # def extract(self):
+    #     func = self.category_functions.get(self.category, self._extract_default)
+    #     pass
 
     def _extract_model(self):
         """Extract method for model category"""

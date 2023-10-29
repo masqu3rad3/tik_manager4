@@ -286,7 +286,7 @@ class NewTask(QtWidgets.QDialog):
             if _new_task == -1:
                 self.feedback.pop_info(
                     title="Failed to create task.",
-                    text=self.tik_project.LOG.last_message,
+                    text=self.tik_project.log.last_message,
                     critical=True,
                 )
                 return

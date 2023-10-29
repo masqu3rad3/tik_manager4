@@ -10,12 +10,17 @@ from maya import OpenMayaUI as omui
 
 from tik_manager4.dcc.main_core import DccTemplate
 from tik_manager4.dcc.maya import panels
+from tik_manager4.dcc.maya import validate
+from tik_manager4.dcc.maya import extract
 
 LOG = logging.getLogger(__name__)
 
 class Dcc(DccTemplate):
+    name = "Maya"
     formats = [".ma", ".mb"]
     preview_enabled = True
+    validations = validate.classes
+    extracts = extract.classes
 
     @staticmethod
     def get_main_window():
@@ -68,7 +73,6 @@ class Dcc(DccTemplate):
         Args:
             file_path: (String) File path that will be written
             file_format: (String) File format
-            **extra_arguments: Compatibility arguments
 
         Returns:
 
@@ -249,7 +253,6 @@ class Dcc(DccTemplate):
         Returns: (list) List of camera names
         """
         return [cmds.listRelatives(x, parent=True)[0] for x in cmds.ls(type="camera")]
-
 
     @staticmethod
     def generate_preview(name, folder, camera, resolution, range, settings=None):
