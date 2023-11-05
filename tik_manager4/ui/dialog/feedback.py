@@ -1,10 +1,6 @@
 import os
 import sys
 
-from tik_manager4.core import compatibility as compat
-
-# from tik_manager4.core import filelog
-
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.widgets.common import TikMessageBox
 

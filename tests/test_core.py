@@ -92,13 +92,6 @@ def test_io(tmp_path):
     with pytest.raises(Exception):
         _io.read(file_path=str(tmp_path/"test_io.NA"))
 
-    # create the non existing folder
-    # FIXME(ckutlu): folder_check really shouldn't be doing this.
-    _io.folder_check(str(tmp_path / "test_io_folder" / "test_io.json"))
-
-    # delete the folder with os.rmdir
-    (tmp_path / "test_io_folder").rmdir()
-
     # corrupt the test_io.json file purpose is to test the file_exists function
     with open(tmp_path / "test_io.json", "w") as f:
         f.write("test")

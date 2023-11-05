@@ -129,14 +129,14 @@ class Work(Settings, Entity):
 
         abs_version_path = self.get_abs_project_path(version_name)
         thumbnail_path = self.get_abs_database_path("thumbnails", thumbnail_name)
-        self._io.folder_check(abs_version_path)
+        Path(abs_version_path).parent.mkdir(parents=True, exist_ok=True)
 
         # save the file
         self._dcc_handler.save_as(abs_version_path)
 
         # generate thumbnail
         # create the thumbnail folder if it doesn't exist
-        self._io.folder_check(thumbnail_path)
+        Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
         self._dcc_handler.generate_thumbnail(thumbnail_path, 100, 100)
 
         # add it to the versions
@@ -170,7 +170,7 @@ class Work(Settings, Entity):
 
         preview_settings = settings or {}
         preview_folder = self.get_abs_project_path("previews")
-        self._io.folder_check(preview_folder)
+        Path(preview_folder).mkdir(parents=True, exist_ok=True)
 
         nice_name, full_name = self.resolve_preview_names(version_number, camera, label=label)
 
@@ -271,14 +271,6 @@ class Work(Settings, Entity):
 
         full_name = nice_name + [self._name, f"v{version:03d}"]
         return "_".join(nice_name), "_".join(full_name)
-
-    # def make_publish(self, notes, elements=None):
-    #     """Create a publish from the currently loaded version on DCC."""
-    #
-    #     # valid file_format keyword can be collected from main.dcc.formats
-    #     state = self.check_permissions(level=1)
-    #     if state != 1:
-    #         return -1
 
     def construct_names(self, file_format):
         """Construct a name for the work version.

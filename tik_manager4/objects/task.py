@@ -1,6 +1,7 @@
 # pylint: disable=consider-using-f-string
 # pylint: disable=super-with-arguments
 
+from pathlib import Path
 import shutil
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.category import Category
@@ -181,8 +182,8 @@ class Task(Settings, Entity):
                     category, self.name
                 )
             )
-            self._io.folder_check(self.get_purgatory_database_path(category))
-            self._io.folder_check(self.get_purgatory_project_path(category))
+            Path(self.get_purgatory_database_path(category)).mkdir(parents=True, exist_ok=True)
+            Path(self.get_purgatory_project_path(category)).mkdir(parents=True, exist_ok=True)
             shutil.move(
                 self.get_abs_database_path(self.name, category),
                 self.get_purgatory_database_path(self.name, category),

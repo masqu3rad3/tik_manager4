@@ -1,25 +1,27 @@
 import logging
 import os
+from pathlib import Path
+
 import datetime
 
-class Filelog(object):
+class Filelog():
     # FIXME(ckutlu): We should definitely rethink the need for global state as
     # part of the class variable.
     last_message = None
     last_message_type = None
 
-    def __init__(self, logname = None, filename=None, filedir=None, date=True, time=True, size_cap=500000, *args, **kwargs):
+    def __init__(self, logname = None, filename=None, filedir=None, date=True, time=True, size_cap=500000):
         # FIXME(ckutlu): Perhaps we can live with only a path argument
         super(Filelog, self).__init__()
-        self.fileName = filename if filename else "defaultLog"
-        self.fileDir = filedir if filedir else os.path.expanduser("~")
-        self.filePath = os.path.join(self.fileDir, "%s.log" %self.fileName)
-        self.logger = logging.getLogger(self.fileName)
+        self.file_name = filename if filename else "defaultLog"
+        self.file_dir = filedir or str(Path().home())
+        self.file_path_obj = Path(self.file_dir, f"{self.file_name}.log")
+        self.logger = logging.getLogger(self.file_name)
         self.logger.setLevel(logging.DEBUG)
-        self.log_name = logname if logname else self.fileName
+        self.log_name = logname if logname else self.file_name
         self.is_date = date
         self.is_time = time
-        if not os.path.isfile(self.filePath):
+        if not self.file_path_obj.is_file():
             self._welcome()
         if self.get_size() > size_cap:
             self.clear()
@@ -110,13 +112,13 @@ class Filelog(object):
         return True
 
     def clear(self):
-        if os.path.isfile(self.filePath):
-            os.remove(self.filePath)
+        if self.file_path_obj.is_file():
+            self.file_path_obj.unlink()
         self._welcome()
 
     def _start_logging(self):
         """Prepares logger to write into log file"""
-        file_logger = logging.FileHandler(self.filePath)
+        file_logger = logging.FileHandler(str(self.file_path_obj))
         self.logger.addHandler(file_logger)
 
     def _end_logging(self):
@@ -127,5 +129,4 @@ class Filelog(object):
             handler.close()
 
     def get_size(self):
-        size = os.path.getsize(self.filePath)
-        return size
+        return self.file_path_obj.stat().st_size
