@@ -1,5 +1,4 @@
 import hashlib
-# import os
 from pathlib import Path
 from tik_manager4.core import filelog
 from tik_manager4.core import utils

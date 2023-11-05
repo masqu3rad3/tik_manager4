@@ -41,7 +41,8 @@ class IO(dict):
 
     def read(self, file_path=None):
         file_path = file_path or self.file_path
-        if os.path.isfile(file_path):
+        if Path(file_path).is_file():
+        # if os.path.isfile(file_path):
             return self._load_json(file_path)
         else:
             msg = "File does not exist => %s" % file_path
@@ -50,7 +51,7 @@ class IO(dict):
 
     def write(self, data, file_path=None):
         file_path = file_path or self.file_path
-        _lock_path = "{}.lock".format(file_path)
+        _lock_path = f"{file_path}.lock"
         lock = fl.FileLock(_lock_path, timeout=3)
         try:
             lock.acquire()
