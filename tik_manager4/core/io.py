@@ -9,9 +9,7 @@ from json.decoder import JSONDecodeError
 from tik_manager4.core import filelog
 from tik_manager4.external import filelock as fl
 
-# from tik_manager4.external.filelock import FileLock, Timeout
-
-log = filelog.Filelog(logname=__name__, filename="tik_manager")
+LOG = filelog.Filelog(logname=__name__, filename="tik_manager")
 
 
 class IO(dict):
@@ -32,21 +30,26 @@ class IO(dict):
         ext = _new_path_obj.suffix
 
         if not ext:
-            log.error("IO module needs to know the extension")
+            LOG.error("IO module needs to know the extension")
             raise Exception
         if ext not in self.valid_extensions:
-            log.error("IO maya_modules does not support this extension (%s)" % ext)
+            LOG.error("IO maya_modules does not support this extension (%s)" % ext)
             raise Exception
         _new_path_obj.parent.mkdir(parents=True, exist_ok=True)
         self["file_path"] = self.folder_check(new_path)
         # self["file_path"] = str(_new_path_obj)
 
     def read(self, file_path=None):
-        file_path = file_path if file_path else self.file_path
-        return self._load_json(file_path)
+        file_path = file_path or self.file_path
+        if os.path.isfile(file_path):
+            return self._load_json(file_path)
+        else:
+            msg = "File does not exist => %s" % file_path
+            LOG.error(msg)
+            raise Exception(msg)
 
     def write(self, data, file_path=None):
-        file_path = file_path if file_path else self.file_path
+        file_path = file_path or self.file_path
         _lock_path = "{}.lock".format(file_path)
         lock = fl.FileLock(_lock_path, timeout=3)
         try:
@@ -58,18 +61,13 @@ class IO(dict):
     @staticmethod
     def _load_json(file_path):
         """Loads the given json file"""
-        if os.path.isfile(file_path):
-            try:
-                with open(file_path, "r") as f:
-                    data = json.load(f)
-                    return data
-            except (ValueError, JSONDecodeError):
-                log.error("Corrupted file => %s" % file_path)
-                raise Exception("Corrupted file => %s" % file_path)
-        else:
-            msg = "File does not exist => %s" % file_path
-            log.error(msg)
-            raise Exception(msg)
+        try:
+            with open(file_path, "r") as f:
+                data = json.load(f)
+                return data
+        except (ValueError, JSONDecodeError):
+            LOG.error("Corrupted file => %s" % file_path)
+            raise Exception("Corrupted file => %s" % file_path)
 
     @staticmethod
     def file_exists(file_path):

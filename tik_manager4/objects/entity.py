@@ -32,13 +32,10 @@ class Entity(object):
 
     @property
     def path(self):
-        # return str(Path(self._relative_path).resolve())
-        # return str(Path(self._relative_path).resolve())
         return str(Path(self._relative_path).as_posix())
 
     @path.setter
     def path(self, val):
-        # self._relative_path = Path(val)
         self._relative_path = val
 
     @property
@@ -73,16 +70,16 @@ class Entity(object):
         return 1
 
     def get_abs_database_path(self, *args):
-        return str(Path(self.guard.database_root, self.path, *args).resolve())
+        return str(Path(self.guard.database_root, self.path, *args))
 
     def get_abs_project_path(self, *args):
-        return str(Path(self.guard.project_root, self.path, *args).resolve())
+        return str(Path(self.guard.project_root, self.path, *args))
 
     def get_purgatory_project_path(self, *args):
-        return str(Path(self.guard.project_root, "__purgatory", self.path, *args).resolve())
+        return str(Path(self.guard.project_root, "__purgatory", self.path, *args))
 
     def get_purgatory_database_path(self, *args):
-        return str(Path(self.guard.project_root, "__purgatory", "tikDatabase",  self.path, *args).resolve())
+        return str(Path(self.guard.project_root, "__purgatory", "tikDatabase",  self.path, *args))
 
     @staticmethod
     def _open_folder(target):
