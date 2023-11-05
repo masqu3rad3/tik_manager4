@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from glob import glob
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
@@ -35,7 +36,8 @@ class Project(Subproject):
     @property
     def folder(self):
         """Return the root of the project, where all projects lives happily"""
-        return os.path.abspath(os.path.join(self._absolute_path, os.pardir))
+        return str(Path(self._absolute_path).parent)
+        # return os.path.abspath(os.path.join(self._absolute_path, os.pardir))
 
     @property
     def path(self):
@@ -55,7 +57,7 @@ class Project(Subproject):
     def _set(self, absolute_path):
         self._absolute_path = absolute_path
         self._relative_path = ""
-        self.name = os.path.basename(absolute_path)
+        self.name = str(Path(absolute_path).name)
         self._database_path = self.structure._io.folder_check(
             os.path.join(absolute_path, "tikDatabase")
         )

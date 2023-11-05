@@ -1,5 +1,4 @@
-# from tik_manager4 import dcc
-
+"""Global object that holds the state of the application."""
 
 class Guard(object):
     _user = None
@@ -34,7 +33,6 @@ class Guard(object):
 
     @property
     def dcc(self):
-        # return self._dcc or dcc.NAME
         return self._dcc
 
     @classmethod

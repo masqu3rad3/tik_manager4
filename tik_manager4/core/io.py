@@ -3,6 +3,7 @@
 :author: Arda Kutlu <ardakutlu@gmail.com>
 """
 import os
+from pathlib import Path
 import json
 from json.decoder import JSONDecodeError
 from tik_manager4.core import filelog
@@ -27,15 +28,18 @@ class IO(dict):
 
     @file_path.setter
     def file_path(self, new_path):
-        name, ext = os.path.splitext(new_path)
-        directory, _ = os.path.split(new_path)
+        _new_path_obj = Path(new_path)
+        ext = _new_path_obj.suffix
+
         if not ext:
             log.error("IO module needs to know the extension")
             raise Exception
         if ext not in self.valid_extensions:
             log.error("IO maya_modules does not support this extension (%s)" % ext)
             raise Exception
+        _new_path_obj.parent.mkdir(parents=True, exist_ok=True)
         self["file_path"] = self.folder_check(new_path)
+        # self["file_path"] = str(_new_path_obj)
 
     def read(self, file_path=None):
         file_path = file_path if file_path else self.file_path

@@ -1,5 +1,6 @@
 import hashlib
-import os
+# import os
+from pathlib import Path
 from tik_manager4.core import filelog
 from tik_manager4.core import utils
 from tik_manager4.core.settings import Settings
@@ -40,7 +41,8 @@ class User(object):
     @property
     def bookmark_names(self):
         """Return the bookmark names"""
-        return [os.path.basename(x) for x in self.get_project_bookmarks()]
+        return [Path(x).name for x in self.get_project_bookmarks()]
+        # return [os.path.basename(x) for x in self.get_project_bookmarks()]
 
     @property
     def last_project(self):
@@ -162,22 +164,29 @@ class User(object):
         """Finds or creates user directories and files"""
 
         _user_root = utils.get_home_dir()
-        self.user_directory = os.path.normpath(os.path.join(_user_root, "TikManager4"))
-        if not os.path.isdir(os.path.normpath(self.user_directory)):
-            os.makedirs(os.path.normpath(self.user_directory))
-        self.settings.settings_file = os.path.join(
-            self.user_directory, "userSettings.json"
-        )
-        self.bookmarks.settings_file = os.path.join(
-            self.user_directory, "bookmarks.json"
-        )
-        self.resume.settings_file = os.path.join(self.user_directory, "resume.json")
+        # self.user_directory = str((Path(_user_root, "TikManager4").mkdir(exist_ok=True)))
+        _user_dir = Path(_user_root, "TikManager4")
+        _user_dir.mkdir(exist_ok=True)
+        self.user_directory = str(_user_dir)
+        # self.user_directory = os.path.normpath(os.path.join(_user_root, "TikManager4"))
+        # if not os.path.isdir(os.path.normpath(self.user_directory)):
+        #     os.makedirs(os.path.normpath(self.user_directory))
+        self.settings.settings_file = str(Path(self.user_directory, "userSettings.json"))
+        # self.settings.settings_file = os.path.join(
+        #     self.user_directory, "userSettings.json"
+        # )
+        self.bookmarks.settings_file = str(Path(self.user_directory, "bookmarks.json"))
+        # self.bookmarks.settings_file = os.path.join(
+        #     self.user_directory, "bookmarks.json"
+        # )
+        self.resume.settings_file = str(Path(self.user_directory, "resume.json"))
+        # self.resume.settings_file = os.path.join(self.user_directory, "resume.json")
 
         # Check if the common folder defined in the user settings
         self.common_directory = self.common_directory or self.settings.get_property(
             "commonFolder"
         )
-        if not self.common_directory or not os.path.isdir(self.common_directory):
+        if not self.common_directory or not Path(self.common_directory).is_dir():
             # if it is not overridden while creating the object ask it from the user
             if not self.common_directory:
                 FEED.pop_info(

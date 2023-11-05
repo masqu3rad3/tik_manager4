@@ -1,5 +1,6 @@
 import uuid
 import os
+from pathlib import Path
 import subprocess
 import platform
 
@@ -31,10 +32,13 @@ class Entity(object):
 
     @property
     def path(self):
-        return self._relative_path.replace("\\", "/")
+        # return str(Path(self._relative_path).resolve())
+        # return str(Path(self._relative_path).resolve())
+        return str(Path(self._relative_path).as_posix())
 
     @path.setter
     def path(self, val):
+        # self._relative_path = Path(val)
         self._relative_path = val
 
     @property
@@ -69,30 +73,22 @@ class Entity(object):
         return 1
 
     def get_abs_database_path(self, *args):
-        return os.path.normpath(
-            os.path.join(self.guard.database_root, self.path, *args)
-        )
+        return str(Path(self.guard.database_root, self.path, *args).resolve())
 
     def get_abs_project_path(self, *args):
-        return os.path.normpath(os.path.join(self.guard.project_root, self.path, *args))
+        return str(Path(self.guard.project_root, self.path, *args).resolve())
 
     def get_purgatory_project_path(self, *args):
-        return os.path.normpath(
-            os.path.join(self.guard.project_root, "__purgatory", self.path, *args)
-        )
+        return str(Path(self.guard.project_root, "__purgatory", self.path, *args).resolve())
 
     def get_purgatory_database_path(self, *args):
-        return os.path.normpath(
-            os.path.join(
-                self.guard.project_root, "__purgatory", "tikDatabase", self.path, *args
-            )
-        )
+        return str(Path(self.guard.project_root, "__purgatory", "tikDatabase",  self.path, *args).resolve())
 
     @staticmethod
     def _open_folder(target):
         """Open the path in Windows Explorer(Windows) or Nautilus(Linux)."""
-        if os.path.isfile(target):
-            target = os.path.dirname(target)
+        if Path(target).is_file():
+            target = Path(target).stem
         if platform.system() == "Windows":
             os.startfile(target)
         elif platform.system() == "Linux":

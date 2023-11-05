@@ -1,6 +1,6 @@
 """Main Module for the Tik Manager"""
 
-import os
+from pathlib import Path
 import sys
 from tik_manager4.core import filelog, settings, utils
 from tik_manager4.objects import user, project
@@ -30,20 +30,18 @@ class Main(object):
         # set either the latest project or the default one
         # always make sure the default project exists, in case of urgent fall back
 
-        default_project = os.path.join(utils.get_home_dir(), "TM4_default")
-        if not os.path.exists(
-            os.path.join(default_project, "tikDatabase", "project_structure.json")
-        ):
+        default_project = Path(utils.get_home_dir(), "TM4_default")
+        # default_project = os.path.join(utils.get_home_dir(), "TM4_default")
+
+        if not default_project / "tikDatabase" / "project_structure.json":
             self._create_default_project()
 
-        _project = default_project
+        _project = str(default_project)
         if self.user.get_recent_projects():
             recent_projects = self.user.get_recent_projects()
             # try to find the last project that exists
             for _project in reversed(recent_projects):
-                if os.path.exists(
-                    os.path.join(_project, "tikDatabase", "project_structure.json")
-                ):
+                if Path(_project) / "tikDatabase" / "project_structure.json":
                     break
 
         self.set_project(_project)
@@ -51,13 +49,11 @@ class Main(object):
     def _create_default_project(self):
         """Create a default project. Protected method."""
         # this does not require any permissions
-        _project_path = os.path.join(utils.get_home_dir(), "TM4_default")
-        _database_path = os.path.join(_project_path, "tikDatabase")
-        _structure_file = os.path.join(_database_path, "project_structure.json")
-        if os.path.exists(_structure_file):
+        _project_path = Path(utils.get_home_dir(), "TM4_default")
+        _database_path = (_project_path / "tikDatabase").mkdir(exist_ok=True)
+        _structure_file = _database_path / "project_structure.json"
+        if _structure_file.exists():
             return
-        if not os.path.exists(_database_path):
-            os.makedirs(_database_path)
 
         structure_data = self.user.commons.structures.get_property("empty") or {
             "name": "TM4_default",
@@ -89,14 +85,13 @@ class Main(object):
         if not self.user.is_authenticated:
             self.log.warning("User is not authenticated")
             return -1
-        database_path = os.path.join(path, "tikDatabase")
-        if not os.path.exists(database_path):
-            os.makedirs(database_path)
-        structure_file = os.path.join(database_path, "project_structure.json")
-        if os.path.exists(structure_file):
+        database_path = Path(path, "tikDatabase")
+        database_path.mkdir(parents=True, exist_ok=True)
+        structure_file = database_path / "project_structure.json"
+        if structure_file.exists():
             self.log.warning("Project already exists. Aborting")
             return -1
-        project_name = os.path.basename(path)
+        project_name = Path(path).name
         if structure_data:
             structure_data = structure_data
         else:
@@ -133,7 +128,7 @@ class Main(object):
 
     def set_project(self, absolute_path):
         """Set the current project."""
-        if not os.path.exists(absolute_path):
+        if not Path(absolute_path).exists():
             self.log.error("Project Path does not exist. Aborting")
             return -1
         self.project._set(absolute_path)
