@@ -1,15 +1,13 @@
 """Stress tests for Tik Manager 4"""
 
-import os
+from pathlib import Path
 import shutil
 import requests
 import random
-from pprint import pprint
-import pytest
-# import uuid
 from .mockup import Mockup
 from tik_manager4.objects import user
 from tik_manager4.core import filelog, utils
+import pytest
 
 log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -18,22 +16,25 @@ word_site = "https://www.mit.edu/~ecprice/wordlist.10000"
 response = requests.get(word_site)
 WORDS = response.content.splitlines()
 
+@pytest.mark.usefixtures("clean_user")
+@pytest.mark.usefixtures("prepare")
 class TestStress:
     """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
-    mock = Mockup()
-    mock.prepare()
-    user.User(common_directory=mock.common)  # this is for not popping up the "missing common folder" message
-    import tik_manager4 # importing main checks the common folder definition, thats why its here
-    tik = tik_manager4.initialize("Standalone")
-    def test_create_a_big_project(self, clean_user):
-        test_stress_project_path = os.path.join(utils.get_home_dir(), "t4_stress_test_DO_NOT_USE")
-        if os.path.exists(test_stress_project_path):
-            shutil.rmtree(test_stress_project_path)
+    # mock = Mockup()
+    # mock.prepare()
+    # user.User(common_directory=mock.common)  # this is for not popping up the "missing common folder" message
+    # import tik_manager4 # importing main checks the common folder definition, thats why its here
+    # tik = tik_manager4.initialize("Standalone")
+    def test_create_a_big_project(self, tik):
+        test_stress_project_path = Path(utils.get_home_dir(), "t4_stress_test_DO_NOT_USE")
+        # test_stress_project_path = os.path.join(utils.get_home_dir(), "t4_stress_test_DO_NOT_USE")
+        if test_stress_project_path.exists():
+            shutil.rmtree(str(test_stress_project_path))
 
-        self.tik.user.set("Admin", "1234")
+        tik.user.set("Admin", "1234")
 
         # create project with lots of assets, shots, tasks, works, publishes and metadata
-        self.tik.create_project(test_stress_project_path,
+        tik.create_project(str(test_stress_project_path),
                                 structure_template="asset_sequence",
                                 resolution=[3840, 2160],
                                 fps=24,
@@ -52,12 +53,12 @@ class TestStress:
             random_int_list = [random.randint(0, 9999) for x in range(iteration)]
             for x in random_int_list:
                 word = WORDS[x].decode("utf-8")
-                sub = self.tik.project.create_sub_project(word, parent_path=sub_asset)
+                sub = tik.project.create_sub_project(word, parent_path=sub_asset)
                 # create 5 task for each sub
                 if sub == -1:
                     continue
                 for x in range(1, 6):
-                    task = self.tik.project.create_task("{0}_Task_{1}".format(word, x), categories=["Model", "Rig", "LookDev"], parent_path=sub.path)
+                    task = tik.project.create_task("{0}_Task_{1}".format(word, x), categories=["Model", "Rig", "LookDev"], parent_path=sub.path)
                     # for each category, create 10 works
                     for _, category in task.categories.items():
                         for y in range(1, 6):
@@ -67,9 +68,9 @@ class TestStress:
 
         # SEQUENCES AND SHOTS
         for x in range (1, 5):
-            seq = self.tik.project.create_sub_project("Sequence_{}".format(x), parent_path="Sequences")
+            seq = tik.project.create_sub_project("Sequence_{}".format(x), parent_path="Sequences")
             for y in range (1, iteration):
-                shot = self.tik.project.create_sub_project("Shot_{}".format(y), parent_path=seq.path)
+                shot = tik.project.create_sub_project("Shot_{}".format(y), parent_path=seq.path)
 
 
 
@@ -92,4 +93,4 @@ class TestStress:
         #     self.tik.project.create_sub_project(word, parent_path="Assets/Vehicles")
 
         # set the project
-        self.tik.set_project(test_stress_project_path)
+        tik.set_project(str(test_stress_project_path))

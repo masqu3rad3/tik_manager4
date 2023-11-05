@@ -54,7 +54,7 @@ class Project(Subproject):
     def _set(self, absolute_path):
         _absolute_path_obj = Path(absolute_path)
 
-        self._absolute_path = str(_absolute_path_obj)
+        self._absolute_path = absolute_path
         self._relative_path = ""
         self.name = _absolute_path_obj.name
         _database_path_obj = _absolute_path_obj / "tikDatabase"

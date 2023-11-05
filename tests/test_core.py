@@ -1,5 +1,4 @@
 """Tests for core modules."""
-import glob
 import pytest
 import platform
 import codecs
