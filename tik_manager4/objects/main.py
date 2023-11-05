@@ -33,24 +33,25 @@ class Main(object):
         default_project = Path(utils.get_home_dir(), "TM4_default")
         # default_project = os.path.join(utils.get_home_dir(), "TM4_default")
 
-        if not default_project / "tikDatabase" / "project_structure.json":
+        if not (default_project / "tikDatabase" / "project_structure.json").exists():
             self._create_default_project()
 
-        _project = str(default_project)
+        _project = default_project
         if self.user.get_recent_projects():
             recent_projects = self.user.get_recent_projects()
             # try to find the last project that exists
             for _project in reversed(recent_projects):
-                if Path(_project) / "tikDatabase" / "project_structure.json":
+                if Path(_project, "tikDatabase", "project_structure.json").exists():
                     break
 
-        self.set_project(_project)
+        self.set_project(str(_project))
 
     def _create_default_project(self):
         """Create a default project. Protected method."""
         # this does not require any permissions
         _project_path = Path(utils.get_home_dir(), "TM4_default")
-        _database_path = (_project_path / "tikDatabase").mkdir(exist_ok=True)
+        _database_path = _project_path / "tikDatabase"
+        _database_path.mkdir(parents=True, exist_ok=True)
         _structure_file = _database_path / "project_structure.json"
         if _structure_file.exists():
             return

@@ -8,7 +8,7 @@ from tik_manager4.external import pyperclip
 from tik_manager4.objects.guard import Guard
 from tik_manager4.core import filelog
 
-log = filelog.Filelog(logname=__name__, filename="tik_manager4")
+LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Entity(object):
@@ -61,11 +61,11 @@ class Entity(object):
     def check_permissions(self, level):
         """Checks the user permissions for project actions."""
         if self.permission_level < level:
-            log.warning("This user does not have permissions for this action")
+            LOG.warning("This user does not have permissions for this action")
             return -1
 
         if not self.is_authenticated:
-            log.warning("User is not authenticated")
+            LOG.warning("User is not authenticated")
             return -1
         return 1
 

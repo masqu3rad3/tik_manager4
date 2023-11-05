@@ -31,13 +31,12 @@ class Project(Subproject):
 
     @property
     def absolute_path(self):
-        return self._absolute_path
+        return str(self._absolute_path)
 
     @property
     def folder(self):
         """Return the root of the project, where all projects lives happily"""
         return str(Path(self._absolute_path).parent)
-        # return os.path.abspath(os.path.join(self._absolute_path, os.pardir))
 
     @property
     def path(self):
@@ -46,7 +45,7 @@ class Project(Subproject):
 
     @property
     def database_path(self):
-        return self._database_path
+        return str(self._database_path)
 
     def save_structure(self):
         self.structure._currentValue = self.get_sub_tree()
@@ -58,15 +57,18 @@ class Project(Subproject):
         self._absolute_path = absolute_path
         self._relative_path = ""
         self.name = str(Path(absolute_path).name)
-        self._database_path = self.structure._io.folder_check(
-            os.path.join(absolute_path, "tikDatabase")
-        )
-        self.structure.settings_file = os.path.join(
-            self._database_path, "project_structure.json"
-        )
+        self._database_path = Path(absolute_path, "tikDatabase")
+        self._database_path.mkdir(parents=True, exist_ok=True)
+        # self._database_path = self.structure._io.folder_check(
+        #     os.path.join(absolute_path, "tikDatabase")
+        # )
+        self.structure.settings_file = str(self._database_path / "project_structure.json")
+        # self.structure.settings_file = os.path.join(
+        #     self._database_path, "project_structure.json"
+        # )
         self.set_sub_tree(self.structure.properties)
-        self.guard.set_project_root(self._absolute_path)
-        self.guard.set_database_root(self._database_path)
+        self.guard.set_project_root(self.absolute_path)
+        self.guard.set_database_root(self.database_path)
         # get project settings
         self.settings.settings_file = os.path.join(
             self._database_path, "project_settings.json"

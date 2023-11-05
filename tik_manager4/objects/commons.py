@@ -1,11 +1,8 @@
 from pathlib import Path
 import shutil
 
-from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4 import defaults
-
-log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Commons(object):
