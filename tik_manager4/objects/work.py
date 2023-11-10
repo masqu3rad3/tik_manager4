@@ -8,6 +8,7 @@ from tik_manager4.core import utils
 from tik_manager4.core.settings import Settings
 from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
+from tik_manager4.objects.publish import Publish
 from tik_manager4 import dcc
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
@@ -97,6 +98,18 @@ class Work(Settings, Entity):
         self._state = "working" if not self.publishes else "published"
         self.edit_property("state", self._state)
         self.apply_settings()
+
+    def scan_publishes(self):
+        """Scan the publishes from the publish folder."""
+        publish_folder = Path(self.get_abs_database_path("publish", self._name))
+        if not publish_folder.exists():
+            return
+
+        # get the publish files and add it to the list
+        publish_files = publish_folder.glob("*.tpub")
+        for publish_file in publish_files:
+            publish = Publish(publish_file)
+            self._publishes.append(publish)
 
     def get_last_version(self):
         """Return the last version of the work."""
