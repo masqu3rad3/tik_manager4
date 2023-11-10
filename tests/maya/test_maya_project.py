@@ -1,5 +1,6 @@
 """Project management related tests for Maya."""
 
+import shutil
 import pytest
 from pathlib import Path
 from tik_manager4.core import utils
@@ -8,17 +9,42 @@ from maya import cmds
 @pytest.mark.usefixtures("clean_user")
 @pytest.mark.usefixtures("prepare")
 class TestMayaProject():
-    """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
+    """Maya Project related tests."""
 
-    def test_sphere(self, tik):
-        """Tests creating a sphere"""
-        # tik.maya.create_sphere()
-        sph = cmds.polySphere()
-        assert(sph)
-        # assert tik.maya.get_selected_nodes() == ["pSphere1"]
+    @pytest.fixture(scope='function')
+    def project(self, tik):
+        project_path = Path(utils.get_home_dir(), "t4_maya_test_project_DO_NOT_USE")
+        if project_path.exists():
+            shutil.rmtree(str(project_path))
+        tik.user.set("Admin", "1234")
+        tik.create_project(str(project_path), structure_template="empty")
+        return tik.project
 
-    def test_create_a_work(self, tik):
+    def test_create_a_work(self, project):
         """Tests creating a work"""
-        project_path = str(Path(utils.get_home_dir(), "TM4_default"))
-        tik.set_project(project_path)
-        # assert tik.maya.get_selected_nodes() == ["work"]
+
+        test_task = project.create_task("test_task", categories=["Model"], parent_uid=project.id)
+        assert test_task != -1
+
+        # create a cube and save it as a work with binary format
+        test_cube = cmds.polyCube(name="test_cube")
+        work_obj = test_task.categories["Model"].create_work("test_cube", file_format=".mb", notes="This is the test cube.")
+
+        assert work_obj.name == "test_task_Model_test_cube"
+        assert work_obj.creator == "Admin"
+        assert work_obj.category == "Model"
+        assert work_obj.dcc == "Maya"
+        assert len(work_obj.versions) == 1
+        assert work_obj.task_name == "test_task"
+        assert work_obj.task_id == test_task.id
+        assert work_obj.path == "test_task/Model/Maya"
+        assert work_obj.state == "working"
+
+        # iterate a version with .ma format
+        work_obj = test_task.categories["Model"].create_work("test_cube", file_format=".ma", notes="Same cube. Only ma format.")
+        assert len(work_obj.versions) == 2
+
+        # iterate another version scaling the cube
+        cmds.setAttr("test_cube.scale", 4, 4, 4)
+        work_obj = test_task.categories["Model"].create_work("test_cube", notes="Scaled the cube.")
+        assert len(work_obj.versions) == 3
