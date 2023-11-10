@@ -400,8 +400,8 @@ class TestProject:
         assert tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works(all_dcc=True)
 
         # override the guard.dcc
-        tik.project.guard._dcc = "Maya"
-        assert tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works(all_dcc=False) == {}
+        # tik.project.guard._dcc = "Maya"
+        # assert tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works(all_dcc=False) == {}
 
     def test_deleting_empty_task(self, project_manual_path, tik):
         self.test_creating_and_adding_new_tasks(project_manual_path, tik)

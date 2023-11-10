@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 import requests
 import random
-from .mockup import Mockup
+from mockup import Mockup
 from tik_manager4.objects import user
 from tik_manager4.core import filelog, utils
 import pytest

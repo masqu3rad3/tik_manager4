@@ -2,11 +2,11 @@
 
 import pytest
 
-from .mockup import Mockup
+from mockup import Mockup
 from tik_manager4.objects import user
 
 @pytest.mark.usefixtures("clean_user")
-class TestUser(object):
+class TestUser():
     """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
     mock = Mockup()
     mock.prepare()
