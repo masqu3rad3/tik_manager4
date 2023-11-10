@@ -2,7 +2,7 @@
 :created: 19/04/2020
 :author: Arda Kutlu <ardakutlu@gmail.com>
 """
-import os
+
 from pathlib import Path
 import json
 from json.decoder import JSONDecodeError
