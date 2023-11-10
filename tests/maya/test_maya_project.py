@@ -11,6 +11,11 @@ from maya import cmds
 class TestMayaProject():
     """Maya Project related tests."""
 
+    @pytest.fixture(autouse=True, scope='function')
+    def reset(self):
+        """Reset the maya scene."""
+        cmds.file(new=True, force=True)
+
     @pytest.fixture(scope='function')
     def project(self, tik):
         project_path = Path(utils.get_home_dir(), "t4_maya_test_project_DO_NOT_USE")
@@ -37,7 +42,7 @@ class TestMayaProject():
         assert len(work_obj.versions) == 1
         assert work_obj.task_name == "test_task"
         assert work_obj.task_id == test_task.id
-        assert work_obj.path == "test_task/Model/Maya"
+        assert work_obj.path == "test_task/Model"
         assert work_obj.state == "working"
 
         # iterate a version with .ma format
@@ -48,3 +53,29 @@ class TestMayaProject():
         cmds.setAttr("test_cube.scale", 4, 4, 4)
         work_obj = test_task.categories["Model"].create_work("test_cube", notes="Scaled the cube.")
         assert len(work_obj.versions) == 3
+        return work_obj
+
+    def test_getting_current_work(self, project):
+        """Test for getting work object from the scene."""
+
+        _compare_work_obj = self.test_create_a_work(project)
+
+        # reset the scene
+        cmds.file(new=True, force=True)
+        # try getting the work object from a scene without a work.
+        assert project.get_current_work() == (None, None)
+
+        # open the scene and get the work object
+        _compare_work_obj.load_version(2)
+        test_work, version = project.get_current_work()
+        assert test_work.name == _compare_work_obj.name
+        assert test_work.id == _compare_work_obj.id
+
+    def test_publishing_a_work(self, project):
+        """Test to publish a work."""
+        work_obj = self.test_create_a_work(project)
+
+        work_obj.load_version(2)
+
+        print("WIP")
+        pass

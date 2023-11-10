@@ -14,9 +14,9 @@ from tik_manager4.objects.publish import Publish
 class Publisher():
     _dcc_handler = dcc.Dcc()
 
-    def __init__(self, work_object):
+    def __init__(self, project_object):
         """Initialize the Publisher object."""
-        self._work_object = work_object
+        self._work_object, self._work_version = project_object.get_current_work()
 
         # resolved variables
         self._resolved_extracts = {}
@@ -30,6 +30,10 @@ class Publisher():
 
     def resolve(self):
         """Resolve the validations, extracts, variables, etc."""
+
+        if not self._work_object:
+            LOG.warning("No work object found. Aborting.")
+            return False
 
         _category_definitons = self._work_object.guard.category_definitions
         extracts = _category_definitons.get(self._work_object.category, {}).get("extracts", [])
@@ -47,7 +51,14 @@ class Publisher():
                 LOG.warning("Validation {0} defined in category settings but it is not available on {1}".format(validation, self._dcc_handler.name))
 
         # resolve the publish data path
-        self._abs_publish_data_folder = self._work_object.get_abs_database_path("publish")
+        self._abs_publish_data_folder = self._work_object.get_abs_database_path("publish", self._work_object.name)
+
+        # if the folder exists, get the highest version and increment it by 1
+        if pathlib.Path(self._abs_publish_data_folder).exists():
+            _publishes = Publish.get_publishes_in_folder(self._abs_publish_data_folder)
+            _publishes_versions = [publish.version for publish in _publishes]
+            latest_publish_version = max(_publishes_versions) if _publishes_versions else 0
+            self._publish_file_name = f"{self._work_object.name}_v{latest_publish_version+1:03d}.tpub"
 
         # get the highest version from the _work_objects publishes
         # TODO - this is not working
@@ -85,3 +96,11 @@ class Publisher():
     def publish(self):
         """Finalize the publish by updating the reserved slot."""
         pass
+
+
+    def get_publishes_in_folder(self, folder_path):
+        """Get the publishes in the given folder path."""
+        _publishes = []
+        for _file in pathlib.Path(folder_path).glob("*.tpub"):
+            _publishes.append(Publish(_file))
+        return _publishes

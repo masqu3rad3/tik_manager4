@@ -33,22 +33,7 @@ class Work(Settings, Entity):
         # there are 3 states: working, published, omitted
         self._state = "working"
 
-
-        # self._name = self.get_property("name") or name
-        # self._creator = self.get_property("creator") or self.guard.user
-        # self._category = self.get_property("category") or None
-        # self._dcc = self.get_property("dcc") or self.guard.dcc
-        # self._versions = self.get_property("versions") or []
-        # self._work_id = self.get_property("work_id") or self._id
-        # self._task_name = self.get_property("task_name") or None
-        # self._task_id = self.get_property("task_id") or None
-        # self._relative_path = self.get_property("path") or path
-        # self._software_version = self.get_property("softwareVersion") or None
-        # # there are 3 states: working, published, omitted
-        # self._state = self.get_property("state") or "working"
         self.modified_time = None  # to compare and update if necessary
-
-
 
         self._publishes = []
         # Example:
