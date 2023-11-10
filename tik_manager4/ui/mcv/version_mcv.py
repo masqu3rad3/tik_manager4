@@ -1,5 +1,5 @@
 """UI Layout for work and publish objects."""
-import os.path
+from pathlib import Path
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.core import filelog
@@ -111,7 +111,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.thumbnail.clear()
         self.notes_editor.setPlainText(_version.get("notes"))
         _thumbnail_path = self.base.get_abs_database_path(_version.get("thumbnail", ""))
-        if os.path.isfile(_thumbnail_path):
+        if Path(_thumbnail_path).is_file():
             self.thumbnail.setPixmap(QtGui.QPixmap(_thumbnail_path))
         else:
             self.thumbnail.setPixmap(self.empty_pixmap)

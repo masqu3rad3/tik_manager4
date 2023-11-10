@@ -5,7 +5,6 @@ from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog import feedback
 from tik_manager4.ui.widgets.common import TikButtonBox
 
-# from tik_manager4.ui.layouts.settings_layout import SettingsLayout
 import tik_manager4.ui.layouts.settings_layout
 
 if __name__ == "__main__":
