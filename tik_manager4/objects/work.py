@@ -35,7 +35,8 @@ class Work(Settings, Entity):
 
         self.modified_time = None  # to compare and update if necessary
 
-        self._publishes = []
+        self._publishes = {}
+        # self._publishes = []
         # Example:
         # [
         #     <version>: {
@@ -101,6 +102,7 @@ class Work(Settings, Entity):
     @property
     def publishes(self):
         """Return the publishes has been made from this work."""
+        return self.scan_publishes()
         return self._publishes
 
     @property
@@ -131,15 +133,28 @@ class Work(Settings, Entity):
 
     def scan_publishes(self):
         """Scan the publishes from the publish folder."""
-        publish_folder = Path(self.get_abs_database_path("publish", self._name))
-        if not publish_folder.exists():
-            return
+        _search_dir = Path(self.get_abs_database_path("publish", self._name))
+        if not _search_dir.exists():
+            return {}
+        _publish_paths = _search_dir.glob("*.tpub")
 
-        # get the publish files and add it to the list
-        publish_files = publish_folder.glob("*.tpub")
-        for publish_file in publish_files:
-            publish = Publish(publish_file)
-            self._publishes.append(publish)
+        # add the file if it is new. if it is not new,
+        # check the modified time and update if necessary
+        for _p_path, _p_data in dict(self._publishes).items():
+            if _p_path not in _publish_paths:
+                self._publishes.pop(_p_path)
+        for _publish_path in _publish_paths:
+            existing_publish = self._publishes.get(_publish_path, None)
+            if not existing_publish:
+                _publish = Publish(_publish_path)
+                self._publishes[_publish_path] = _publish
+            else:
+                if existing_publish.is_modified():
+                    existing_publish.reload()
+
+        return self._publishes
+
+
 
     def get_last_version(self):
         """Return the last version of the work."""
