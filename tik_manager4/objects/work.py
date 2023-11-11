@@ -102,7 +102,7 @@ class Work(Settings, Entity):
     @property
     def publishes(self):
         """Return the publishes has been made from this work."""
-        return self.scan_publishes()
+        self.scan_publishes()
         return self._publishes
 
     @property
