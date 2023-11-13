@@ -1,6 +1,9 @@
 """Pytest configuration for Maya tests."""
 
+import os
 import pytest
+
+IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
 @pytest.fixture(scope='session', autouse=True)
 def initialize():
@@ -26,3 +29,8 @@ def tik():
     import tik_manager4 # importing main checks the common folder definition, thats why its here
     reload(tik_manager4)
     return tik_manager4.initialize("Maya")
+
+@pytest.fixture(autouse=True)
+def skip_github():
+    if IN_GITHUB_ACTIONS:
+        pytest.skip('Skipping Maya tests in GitHub Actions.')
