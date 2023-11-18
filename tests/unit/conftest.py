@@ -3,7 +3,7 @@
 import shutil
 from pathlib import Path
 import pytest
-from tik_manager4.core import utils
+# from tik_manager4.core import utils
 
 
 @pytest.fixture(scope='function')
@@ -15,8 +15,9 @@ def tik(tmp_path):
     print("----------------------------")
     mockup_commons_path = Path(tmp_path / "mockup_common")
     mockup_commons_path.mkdir(parents=True, exist_ok=True)
-    user_home = Path(utils.get_home_dir())
-    user_path = user_home / "TikManager4"
+    # user_home = Path(utils.get_home_dir())
+    user_path = Path().home() / "TikManager4"
+    # user_path = user_home / "TikManager4"
     user_path.mkdir(parents=True, exist_ok=True)
     # backup the user to the tmp_path
     shutil.copytree(str(user_path), str(tmp_path / "user_backup"))
