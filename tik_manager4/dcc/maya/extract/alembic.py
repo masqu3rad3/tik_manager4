@@ -9,9 +9,10 @@ class Alembic(ExtractCore):
     """Extract Alembic from Maya scene"""
     name = "alembic" # IMPORTANT. Must match to the one in category_definitions.json
     def __init__(self):
-        super(ExtractCore).__init__()
+        super(Alembic, self).__init__()
         om.MGlobal.displayInfo("Alembic Extractor loaded")
 
+        self._extension = ".abc"
         self.category_functions = {"model": self._extract_model,
                                    "animation": self._extract_animation,
                                    "fx": self._extract_fx}
@@ -22,7 +23,10 @@ class Alembic(ExtractCore):
 
     def _extract_model(self):
         """Extract method for model category"""
-        pass
+        _file_path = self.resolve_output()
+        _flags = "-frameRange 0 0 -uvWrite -worldSpace -writeVisibility -dataFormat ogawa"
+        command = "{0} -file {1}".format(_flags, _file_path)
+        cmds.AbcExport(j=command)
 
     def _extract_animation(self):
         """Extract method for animation category"""

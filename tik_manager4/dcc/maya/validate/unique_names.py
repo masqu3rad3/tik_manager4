@@ -7,7 +7,7 @@ from tik_manager4.dcc.validate_core import ValidateCore
 class UniqueNames(ValidateCore):
     """Validate class for Maya"""
 
-    name = "Unique Names"
+    name = "unique_names"
 
     def __init__(self):
         super(UniqueNames, self).__init__()

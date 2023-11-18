@@ -32,6 +32,7 @@ class Publish(Settings, Entity):
         promoted_file = _folder / "promoted.json"
         self._promoted_object = Settings(promoted_file)
 
+
     @property
     def creator(self):
         """Return the creator of the publish."""

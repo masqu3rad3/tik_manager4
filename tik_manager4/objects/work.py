@@ -138,6 +138,12 @@ class Work(Settings, Entity):
             return {}
         _publish_paths = _search_dir.glob("*.tpub")
 
+        # self._publishes.clear()
+        #
+        # for _publish_path in _publish_paths:
+        #     _publish = Publish(_publish_path)
+        #     self._publishes[_publish_path] = _publish
+
         # add the file if it is new. if it is not new,
         # check the modified time and update if necessary
         for _p_path, _p_data in dict(self._publishes).items():

@@ -10,7 +10,7 @@ class Guard(object):
     _last_error = None
     _last_warning = None
     _last_info = None
-    _category_definitions = {}
+    _category_definitions = None
     _asset_categories = []
     _shot_categories = []
     _null_categories = []

@@ -10,9 +10,10 @@ class Scene(ExtractCore):
     """Extract Alembic from Maya scene"""
     name = "scene" # IMPORTANT. Must match to the one in category_definitions.json
     def __init__(self):
-        super(ExtractCore).__init__()
+        super(Scene, self).__init__()
         om.MGlobal.displayInfo("Maya Scene Extractor loaded")
 
+        self.extension = ".mb"
         # self.category_functions = {"model": self._extract_model,
         #                            "animation": self._extract_animation,
         #                            "fx": self._extract_fx}
@@ -23,8 +24,9 @@ class Scene(ExtractCore):
 
     def _extract_default(self):
         """Extract method for any non-specified category"""
-        pass
-        # extension = pathlib.Path(self.output_path).suffix
+        _file_path = self.resolve_output()
         # file_format = "mayaAscii" if extension == ".ma" else "mayaBinary"
-        # cmds.file(rename=self.output_path)
-        # cmds.file(save=True, type=file_format)
+        _original_path = cmds.file(query=True, sceneName=True)
+        cmds.file(rename=_file_path)
+        cmds.file(save=True, type="mayaBinary")
+        cmds.file(rename=_original_path)
