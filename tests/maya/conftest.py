@@ -2,6 +2,10 @@
 
 import os
 import pytest
+import shutil
+from pathlib import Path
+import pytest
+from tik_manager4.core import utils
 
 IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
@@ -18,11 +22,7 @@ def initialize():
     maya.standalone.uninitialize()
 
 # Override the default tik_manager4 initialization for Maya
-import shutil
-from pathlib import Path
-import pytest
-from tik_manager4.core import utils
-import tik_manager4
+
 
 @pytest.fixture(scope='function')
 def tik(tmp_path):
@@ -41,7 +41,7 @@ def tik(tmp_path):
     # clear the user folder
     shutil.rmtree(str(user_path))
     user_path.mkdir(parents=True, exist_ok=True)
-
+    import tik_manager4
     yield tik_manager4.initialize("Maya", common_folder=str(mockup_commons_path))
     # restore the original user directory
     shutil.rmtree(str(user_path))
