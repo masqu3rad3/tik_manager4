@@ -1,11 +1,9 @@
 """Pytest configuration for Maya tests."""
 
 import os
-import pytest
 import shutil
 from pathlib import Path
 import pytest
-# from tik_manager4.core import utils
 
 IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 

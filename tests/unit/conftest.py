@@ -3,8 +3,6 @@
 import shutil
 from pathlib import Path
 import pytest
-# from tik_manager4.core import utils
-
 
 @pytest.fixture(scope='function')
 def tik(tmp_path):
