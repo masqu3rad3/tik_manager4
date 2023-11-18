@@ -1,5 +1,6 @@
 import uuid
 import os
+from pathlib import Path
 import subprocess
 import platform
 
@@ -7,7 +8,7 @@ from tik_manager4.external import pyperclip
 from tik_manager4.objects.guard import Guard
 from tik_manager4.core import filelog
 
-log = filelog.Filelog(logname=__name__, filename="tik_manager4")
+LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Entity(object):
@@ -31,7 +32,7 @@ class Entity(object):
 
     @property
     def path(self):
-        return self._relative_path.replace("\\", "/")
+        return str(Path(self._relative_path).as_posix())
 
     @path.setter
     def path(self, val):
@@ -60,39 +61,31 @@ class Entity(object):
     def check_permissions(self, level):
         """Checks the user permissions for project actions."""
         if self.permission_level < level:
-            log.warning("This user does not have permissions for this action")
+            LOG.warning("This user does not have permissions for this action")
             return -1
 
         if not self.is_authenticated:
-            log.warning("User is not authenticated")
+            LOG.warning("User is not authenticated")
             return -1
         return 1
 
     def get_abs_database_path(self, *args):
-        return os.path.normpath(
-            os.path.join(self.guard.database_root, self.path, *args)
-        )
+        return str(Path(self.guard.database_root, self.path, *args))
 
     def get_abs_project_path(self, *args):
-        return os.path.normpath(os.path.join(self.guard.project_root, self.path, *args))
+        return str(Path(self.guard.project_root, self.path, *args))
 
     def get_purgatory_project_path(self, *args):
-        return os.path.normpath(
-            os.path.join(self.guard.project_root, "__purgatory", self.path, *args)
-        )
+        return str(Path(self.guard.project_root, "__purgatory", self.path, *args))
 
     def get_purgatory_database_path(self, *args):
-        return os.path.normpath(
-            os.path.join(
-                self.guard.project_root, "__purgatory", "tikDatabase", self.path, *args
-            )
-        )
+        return str(Path(self.guard.project_root, "__purgatory", "tikDatabase",  self.path, *args))
 
     @staticmethod
     def _open_folder(target):
         """Open the path in Windows Explorer(Windows) or Nautilus(Linux)."""
-        if os.path.isfile(target):
-            target = os.path.dirname(target)
+        if Path(target).is_file():
+            target = Path(target).stem
         if platform.system() == "Windows":
             os.startfile(target)
         elif platform.system() == "Linux":

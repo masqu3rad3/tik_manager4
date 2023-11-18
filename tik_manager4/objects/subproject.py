@@ -1,8 +1,7 @@
 # pylint: disable=consider-using-f-string
 # pylint: disable=super-with-arguments
 
-from glob import glob
-import os
+from pathlib import Path
 import shutil
 
 from fnmatch import fnmatch
@@ -227,7 +226,7 @@ class Subproject(Entity):
         sub_pr = Subproject(
             name=name, parent_sub=parent_sub, metadata=metadata, uid=uid
         )
-        sub_pr.path = os.path.join(self.path, name)
+        sub_pr.path = str(Path(self.path, name))
         self._sub_projects[name] = sub_pr
         return sub_pr
 
@@ -273,13 +272,13 @@ class Subproject(Entity):
     def scan_tasks(self):
         """Scan the subproject for tasks."""
 
-        _tasks_search_dir = self.get_abs_database_path()
-        _task_paths = glob(os.path.join(_tasks_search_dir, "*.ttask"))
+        _tasks_search_dir = Path(self.get_abs_database_path())
+        _task_paths = list(_tasks_search_dir.glob("*.ttask"))
 
         # add the file if it is new. if it is not new,
         # check the modified time and update if necessary
         for _task_path in _task_paths:
-            _task_name = os.path.basename(_task_path).split(".")[0]
+            _task_name = _task_path.stem
             existing_task = self._tasks.get(_task_name, None)
             if not existing_task:
                 _task = Task(absolute_path=_task_path, parent_sub=self)
@@ -291,9 +290,7 @@ class Subproject(Entity):
         # if the lengths are not matching that means some tasks are deleted
         if len(_task_paths) != len(self._tasks):
             # get the task names
-            _task_names = [
-                os.path.basename(_task_path).split(".")[0] for _task_path in _task_paths
-            ]
+            _task_names = [_task_path.stem for _task_path in _task_paths]
             # get the task names that are not in the _task_names
             _deleted_task_names = [
                 task_name
@@ -324,16 +321,16 @@ class Subproject(Entity):
         if state != 1:
             return -1
         file_name = "{0}.ttask".format(name)
-        relative_path = os.path.join(self.path, file_name)
-        abs_path = os.path.join(self.guard.database_root, relative_path)
-        if os.path.exists(abs_path):
+        relative_path = Path(self.path, file_name)
+        abs_path = Path(self.guard.database_root, relative_path)
+        if abs_path.exists():
             LOG.warning(
                 "There is a task under this sub-project with the same name => %s" % name
             )
             return -1
         _task_id = self.generate_id()
         _task = Task(
-            abs_path,
+            str(abs_path),
             name=name,
             categories=categories,
             path=self.path,
@@ -388,16 +385,17 @@ class Subproject(Entity):
             )
             from tik_manager4.core import io
 
-            io.IO().folder_check(self.get_purgatory_database_path(task.file_name))
-            io.IO().folder_check(self.get_purgatory_project_path())
+            Path(self.get_purgatory_database_path(task.file_name)).mkdir(parents=True, exist_ok=True)
+            # io.IO().folder_check(self.get_purgatory_database_path(task.file_name))
+            Path(self.get_purgatory_project_path()).mkdir(parents=True, exist_ok=True)
+            # io.IO().folder_check(self.get_purgatory_project_path())
             shutil.move(
                 self.get_abs_database_path(task.file_name),
                 self.get_purgatory_database_path(task.file_name),
             )
             shutil.move(self.get_abs_project_path(), self.get_purgatory_project_path())
         else:  # if the task is empty, just delete the database file
-            os.remove(task.settings_file)
-
+            Path(task.settings_file).unlink()
         return 1
 
     def find_tasks_by_wildcard(self, wildcard):
@@ -524,7 +522,7 @@ class Subproject(Entity):
             if state != 1:
                 return -1
 
-        parent_path = os.path.dirname(kill_sub.path) or ""
+        parent_path = str(Path(kill_sub.path).parent) or ""
         parent_sub = self.find_sub_by_path(parent_path)
         del parent_sub.subs[kill_sub.name]
 
@@ -533,16 +531,16 @@ class Subproject(Entity):
     def _delete_folders(self, root, sub=None):
         """Delete the folders of the subproject."""
         sub = sub or self
-        folder = os.path.normpath(os.path.join(root, sub.path))
-        if os.path.exists(folder):
-            shutil.rmtree(folder)
+        folder = Path(root, sub.path)
+        if folder.exists():
+            shutil.rmtree(str(folder))
 
     def create_folders(self, root, sub=None):
         """Create folders for subprojects and categories below
         this starting from 'root' path.
         """
         sub = sub or self
-        folder = os.path.join(root, sub.path)
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+        folder = Path(root, sub.path)
+        if not folder.exists():
+            folder.mkdir(parents=True, exist_ok=True)
         _ = [sub.create_folders(root, sub=sub) for sub in sub.subs.values()]

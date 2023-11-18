@@ -1,58 +1,58 @@
 {
   "Model": {
     "type": "asset",
-    "validations": [],
-    "extracts": ["scene_file"]
+    "validations": ["unique_names", "forbidden_nodes"],
+    "extracts": ["scene", "alembic"]
   },
   "Assembly": {
     "type": "asset",
     "validations": [],
-    "extracts": ["scene_file"]
+    "extracts": ["scene"]
   },
   "LookDev": {
     "type": "asset",
     "validations": [],
-    "extracts": ["scene_file"]
+    "extracts": ["scene"]
   },
   "Rig": {
     "type": "asset",
     "validations": [],
-    "extracts": ["scene_file"]
+    "extracts": ["scene"]
   },
   "Animation": {
         "type": "shot",
         "validations": [],
-        "extracts": ["scene_file"]
+        "extracts": ["scene", "alembic"]
     },
   "Layout": {
         "type": "shot",
         "validations": [],
-        "extracts": ["scene_file"]
+        "extracts": ["scene"]
     },
   "Lighting": {
         "type": "shot",
         "validations": [],
-        "extracts": ["scene_file"]
+        "extracts": ["scene"]
     },
   "Fx": {
         "type": "shot",
         "validations": [],
-        "extracts": ["scene_file"]
+        "extracts": ["scene", "alembic"]
     },
   "Comp": {
         "type": "shot",
         "validations": [],
-        "extracts": ["scene_file"]
+        "extracts": ["scene"]
     },
   "Temp": {
         "type": "",
         "validations": [],
-        "extracts": ["scene_file"]
+        "extracts": ["scene"]
     },
   "Garbage": {
         "type": "",
         "validations": [],
-        "extracts": ["scene_file"],
+        "extracts": ["scene"],
         "archived": true
     }
 }

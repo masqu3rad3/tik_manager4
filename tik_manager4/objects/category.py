@@ -1,8 +1,7 @@
 # pylint: disable=consider-using-f-string
 # pylint: disable=super-with-arguments
 
-import os
-from glob import glob
+from pathlib import Path
 from fnmatch import fnmatch
 
 from tik_manager4.objects.entity import Entity
@@ -24,9 +23,7 @@ class Category(Entity):
         self.validations = definition.get("validate", [])
         self.extracts = definition.get("extracts", [])
         self.parent_task = parent_task
-        self._relative_path = os.path.join(
-            self.parent_task._relative_path, self.parent_task.name, self.name
-        )
+        self._relative_path = str(Path(self.parent_task._relative_path, self.parent_task.name, self.name))
 
     @property
     def works(self):
@@ -38,7 +35,6 @@ class Category(Entity):
         matched_items = []
         for work in self.works.values():
             if fnmatch(work.name, wildcard):
-                print(work.name)
                 matched_items.append(work)
         return matched_items
 
@@ -57,14 +53,12 @@ class Category(Entity):
         # get all the files in directory with .twork extension
         if not all_dcc:
             _search_dir = self.get_abs_database_path(self.guard.dcc)
-            _work_paths = glob(os.path.join(_search_dir, "*.twork"), recursive=False)
+            _work_paths = Path(_search_dir).glob("*.twork")
 
         # get all the files in a directory recursively with .twork extension
         else:
             _search_dir = self.get_abs_database_path()
-            _work_paths = glob(
-                os.path.join(_search_dir, "**", "*.twork"), recursive=True
-            )
+            _work_paths = Path(_search_dir).rglob("**/*.twork")
 
         # add the file if it is new. if it is not new,
         # check the modified time and update if necessary
@@ -94,11 +88,11 @@ class Category(Entity):
             return -1
 
         contructed_name = self.construct_name(name)
-        relative_path = os.path.join(self.path, self.guard.dcc).replace("\\", "/")
+        relative_path = Path(self.path, self.guard.dcc).as_posix()
         abs_path = self.get_abs_database_path(
             self.guard.dcc, "%s.twork" % contructed_name
         )
-        if os.path.exists(abs_path):
+        if Path(abs_path).exists():
             # in that case instantiate the work and iterate the version.
             _work = Work(absolute_path=abs_path)
             _work.new_version(file_format=file_format, notes=notes)

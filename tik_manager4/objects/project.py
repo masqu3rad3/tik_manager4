@@ -1,5 +1,4 @@
-import os
-from glob import glob
+from pathlib import Path
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.subproject import Subproject
@@ -35,7 +34,7 @@ class Project(Subproject):
     @property
     def folder(self):
         """Return the root of the project, where all projects lives happily"""
-        return os.path.abspath(os.path.join(self._absolute_path, os.pardir))
+        return str(Path(self._absolute_path).parent)
 
     @property
     def path(self):
@@ -53,27 +52,35 @@ class Project(Subproject):
         self.structure.apply_settings()
 
     def _set(self, absolute_path):
+        _absolute_path_obj = Path(absolute_path)
+
         self._absolute_path = absolute_path
         self._relative_path = ""
-        self.name = os.path.basename(absolute_path)
-        self._database_path = self.structure._io.folder_check(
-            os.path.join(absolute_path, "tikDatabase")
-        )
-        self.structure.settings_file = os.path.join(
-            self._database_path, "project_structure.json"
-        )
+        self.name = _absolute_path_obj.name
+        _database_path_obj = _absolute_path_obj / "tikDatabase"
+        _database_path_obj.mkdir(parents=True, exist_ok=True)
+        self._database_path = str(_database_path_obj)
+        # self._database_path = self.structure._io.folder_check(
+        #     os.path.join(absolute_path, "tikDatabase")
+        # )
+        self.structure.settings_file = str(_database_path_obj / "project_structure.json")
+        # self.structure.settings_file = os.path.join(
+        #     self._database_path, "project_structure.json"
+        # )
         self.set_sub_tree(self.structure.properties)
-        self.guard.set_project_root(self._absolute_path)
-        self.guard.set_database_root(self._database_path)
+        self.guard.set_project_root(self.absolute_path)
+        self.guard.set_database_root(self.database_path)
         # get project settings
-        self.settings.settings_file = os.path.join(
-            self._database_path, "project_settings.json"
-        )
+        self.settings.settings_file = str(_database_path_obj / "project_settings.json")
+        # self.settings.settings_file = os.path.join(
+        #     self._database_path, "project_settings.json"
+        # )
         self.settings.set_fallback(self.guard.commons.project_settings.settings_file)
         self.guard.set_project_settings(self.settings)
-        self.metadata_definitions.settings_file = os.path.join(
-            self._database_path, "project_metadata.json"
-        )
+        self.metadata_definitions.settings_file = str(_database_path_obj / "project_metadata.json")
+        # self.metadata_definitions.settings_file = os.path.join(
+        #     self._database_path, "project_metadata.json"
+        # )
         self.metadata_definitions.set_fallback(
             self.guard.commons.metadata.settings_file
         )
@@ -86,7 +93,8 @@ class Project(Subproject):
 
         if self._remove_sub_project(uid, path) == -1:
             return -1
-        self._delete_folders(os.path.join(self._database_path, _remove_path))
+        self._delete_folders(str(Path(self._database_path, _remove_path)))
+        # self._delete_folders(os.path.join(self._database_path, _remove_path))
         self.save_structure()
         return 1
 
@@ -179,13 +187,13 @@ class Project(Subproject):
 
     def find_work_by_absolute_path(self, file_path):
         """Using the absolute path of the scene file return work object"""
-        parent_path = os.path.dirname(file_path)
+        _file_path_obj = Path(file_path)
+        parent_path = _file_path_obj.parent
         # get the base name without extension
-        base_name = os.path.basename(file_path)
-        relative_path = os.path.relpath(parent_path, self.absolute_path)
-        database_path = self.get_abs_database_path(relative_path)
-        # get all the work files under the database path
-        work_files = glob(os.path.join(database_path, "*.twork"), recursive=False)
+        base_name = _file_path_obj.stem
+        relative_path = parent_path.relative_to(self.absolute_path)
+        database_path = Path(self.get_abs_database_path(str(relative_path)))
+        work_files = database_path.glob("*.twork")
         for work_file in work_files:
             _work = Work(work_file)
             for nmb, version in enumerate(_work.versions):

@@ -1,9 +1,5 @@
-import os
+from pathlib import Path
 import sys
-
-from tik_manager4.core import compatibility as compat
-
-# from tik_manager4.core import filelog
 
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.widgets.common import TikMessageBox
@@ -78,8 +74,9 @@ class Feedback:
                 return key
 
     def browse_directory(self, modal=True):
+        # FIXME: This is method shouldnt be in this class
         dlg = QtWidgets.QFileDialog(parent=self.parent)
         dlg.setModal(modal)
         dlg.setFileMode(QtWidgets.QFileDialog.Directory)
         if dlg.exec_():
-            return os.path.normpath(dlg.selectedFiles()[0])
+            return str(Path(dlg.selectedFiles()[0]))

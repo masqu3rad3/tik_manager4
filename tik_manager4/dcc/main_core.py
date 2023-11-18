@@ -1,11 +1,13 @@
 """Template class for all available DCC commands.
 These commands will be overriden in DCCs.
 """
-import os.path
-
+import pathlib
 
 class DccTemplate():
+    name = ""
     preview_enabled = True
+    validations = []
+    extracts = []
     @staticmethod
     def get_main_window():
         """Returns the main window of the DCC"""
@@ -252,7 +254,9 @@ class DccTemplate():
     @staticmethod
     def _normalize_file_path(file_path):
         """Returns the normalized path"""
-        return os.path.normpath(file_path)
+        # normalize the path using pathlib
+        file_path = pathlib.Path(file_path)
+        return file_path.as_posix()
 
     @staticmethod
     def generate_thumbnail(file_path, width, height):

@@ -1,11 +1,8 @@
-import os
+from pathlib import Path
 import shutil
 
-from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4 import defaults
-
-log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Commons(object):
@@ -28,35 +25,38 @@ class Commons(object):
         """Makes sure the 'commons folder' contains the necessary setting files"""
         # copy the default template files to common folder
         for default_file in defaults.all:
-            base_name = os.path.basename(default_file)
-            common_file = os.path.join(self._folder_path, base_name)
-            if not os.path.isfile(common_file):
-                shutil.copy(default_file, common_file)
+            _default_file_path = Path(default_file)
+            base_name = _default_file_path.name
+            _common_file_path = Path(self._folder_path, base_name)
+            if not _common_file_path.is_file():
+                shutil.copy(default_file, str(_common_file_path))
 
         self.exportSettings = Settings(
-            file_path=os.path.join(self._folder_path, "exportSettings.json")
+            file_path=str(Path(self._folder_path, "exportSettings.json"))
         )
         self.importSettings = Settings(
-            file_path=os.path.join(self._folder_path, "importSettings.json")
+            file_path=str(Path(self._folder_path, "importSettings.json"))
         )
         self.category_definitions = Settings(
-            file_path=os.path.join(self._folder_path, "category_definitions.json")
+            file_path=str(Path(self._folder_path, "category_definitions.json"))
         )
         self.user_settings = Settings(
-            file_path=os.path.join(self._folder_path, "user_settings.json")
+            file_path=str(Path(self._folder_path, "user_settings.json"))
         )
         self.project_settings = Settings(
-            file_path=os.path.join(self._folder_path, "project_settings.json")
+            file_path=str(Path(self._folder_path, "project_settings.json"))
         )
-        self.users = Settings(file_path=os.path.join(self._folder_path, "users.json"))
+        self.users = Settings(
+            file_path=str(Path(self._folder_path, "users.json"))
+        )
         self.template = Settings(
-            file_path=os.path.join(self._folder_path, "templates.json")
+            file_path=str(Path(self._folder_path, "templates.json"))
         )
         self.structures = Settings(
-            file_path=os.path.join(self._folder_path, "structures.json")
+            file_path=str(Path(self._folder_path, "structures.json"))
         )
         self.metadata = Settings(
-            file_path=os.path.join(self._folder_path, "metadata.json")
+            file_path=str(Path(self._folder_path, "metadata.json"))
         )
 
     def check_user_permission_level(self, user_name):

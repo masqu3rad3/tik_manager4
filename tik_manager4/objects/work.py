@@ -1,9 +1,9 @@
 # pylint: disable=super-with-arguments
 # pylint: disable=consider-using-f-string
-import os
 import socket
 import platform
 import subprocess
+from pathlib import Path
 from tik_manager4.core import utils
 from tik_manager4.core.settings import Settings
 from tik_manager4.core import filelog
@@ -17,7 +17,7 @@ class Work(Settings, Entity):
 
     def __init__(self, absolute_path, name=None, path=None):
         super(Work, self).__init__()
-        self.settings_file = absolute_path
+        self.settings_file = Path(absolute_path)
 
         self._name = self.get_property("name") or name
         self._creator = self.get_property("creator") or self.guard.user
@@ -33,7 +33,16 @@ class Work(Settings, Entity):
         self._state = self.get_property("state") or "working"
         self.modified_time = None  # to compare and update if necessary
 
-        self._publishes = {}
+        self._publishes = []
+        # Example:
+        # [
+        #     <version>: {
+        #         "version": <version>,
+        #         "name": "publish_name",
+        #         "path": "relative_path"
+        #         "publish_id": <publish_id>
+        #     }
+        # ]
 
     @property
     def state(self):
@@ -54,6 +63,11 @@ class Work(Settings, Entity):
     @property
     def creator(self):
         return self._creator
+
+    @property
+    def category(self):
+        """Return the category of the work."""
+        return self._category
 
     @property
     def publishes(self):
@@ -86,7 +100,7 @@ class Work(Settings, Entity):
 
     def get_last_version(self):
         """Return the last version of the work."""
-        # First try to get last version from the versions list. If not found, return 0.
+        # First try to get the last version from the versions list. If not found, return 0.
         if self._versions:
             return self._versions[-1].get("version_number", self.version_count)
         else:
@@ -111,37 +125,35 @@ class Work(Settings, Entity):
             raise ValueError("File format is not valid.")
 
         # get filepath of current version
-        _version_number, _version_name, _thumbnail_name = self.construct_names(
-            file_format
-        )
+        version_number, version_name, thumbnail_name = self.construct_names(file_format)
 
-        _abs_version_path = self.get_abs_project_path(_version_name)
-        _thumbnail_path = self.get_abs_database_path("thumbnails", _thumbnail_name)
-        self._io.folder_check(_abs_version_path)
+        abs_version_path = self.get_abs_project_path(version_name)
+        thumbnail_path = self.get_abs_database_path("thumbnails", thumbnail_name)
+        Path(abs_version_path).parent.mkdir(parents=True, exist_ok=True)
 
         # save the file
-        self._dcc_handler.save_as(_abs_version_path)
+        self._dcc_handler.save_as(abs_version_path)
 
         # generate thumbnail
         # create the thumbnail folder if it doesn't exist
-        self._io.folder_check(_thumbnail_path)
-        self._dcc_handler.generate_thumbnail(_thumbnail_path, 100, 100)
+        Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
+        self._dcc_handler.generate_thumbnail(thumbnail_path, 100, 100)
 
         # add it to the versions
-        _version = {
-            "version_number": _version_number,
+        version = {
+            "version_number": version_number,
             "workstation": socket.gethostname(),
             "notes": notes,
-            "thumbnail": os.path.join("thumbnails", _thumbnail_name).replace("\\", "/"),
-            "scene_path": os.path.join("", _version_name).replace("\\", "/"),
+            "thumbnail": str(Path("thumbnails") / thumbnail_name),
+            "scene_path": str(version_name),
             "user": self.guard.user,
             "previews": {},
             "file_format": file_format
         }
-        self._versions.append(_version)
+        self._versions.append(version)
         self.edit_property("versions", self._versions)
         self.apply_settings(force=True)
-        return _version
+        return version
 
     def make_preview(self, version_number, camera, resolution, frame_range, label=None, settings=None):
         """Initiate a playblast for the given version.
@@ -157,12 +169,12 @@ class Work(Settings, Entity):
         """
 
         preview_settings = settings or {}
-        _preview_folder = self.get_abs_project_path("previews")
-        self._io.folder_check(_preview_folder)
+        preview_folder = self.get_abs_project_path("previews")
+        Path(preview_folder).mkdir(parents=True, exist_ok=True)
 
-        _nice_name, _full_name = self.resolve_preview_names(version_number, camera, label=label)
+        nice_name, full_name = self.resolve_preview_names(version_number, camera, label=label)
 
-        preview_file_abs_path = self._dcc_handler.generate_preview(_full_name, _preview_folder, camera=camera,
+        preview_file_abs_path = self._dcc_handler.generate_preview(full_name, preview_folder, camera=camera,
                                                                    resolution=resolution, range=frame_range,
                                                                    settings=preview_settings)
         if preview_file_abs_path:
@@ -173,17 +185,16 @@ class Work(Settings, Entity):
                 else:
                     LOG.warning("FFMPEG not found. Skipping conversion.")
 
-            _relative_path = os.path.join("previews", os.path.basename(preview_file_abs_path)).replace("\\", "/")
-            _version = self.get_version(version_number)
+            relative_path = Path("previews") / preview_file_abs_path.name
+            version = self.get_version(version_number)
             new_preview_data = {
-                _nice_name: _relative_path
+                nice_name: relative_path
             }
 
-
-            if "previews" in _version.keys():
-                _version["previews"].update(new_preview_data)
+            if "previews" in version.keys():
+                version["previews"].update(new_preview_data)
             else:
-                _version["previews"] = new_preview_data
+                version["previews"] = new_preview_data
 
             self.apply_settings(force=True)
             utils.execute(preview_file_abs_path)
@@ -205,16 +216,16 @@ class Work(Settings, Entity):
         }
 
         # set output file
-        base, ext = os.path.splitext(preview_file_abs_path)
-        output_file = "%s.mp4" % (base)
+        base, ext = preview_file_abs_path.stem, preview_file_abs_path.suffix
+        output_file = f"{base}.mp4"
         # deal with the existing output
-        if os.path.isfile(output_file):
+        if output_file.exists():
             if overwrite:
-                os.remove(output_file)
+                output_file.unlink()
             else:
                 return
 
-        flagStart = ["%s" % ffmpeg, "-i", preview_file_abs_path]
+        flagStart = [ffmpeg, "-i", str(preview_file_abs_path)]
 
         fullFlagList = flagStart + \
                        presetLUT["videoCodec"].split() + \
@@ -228,17 +239,17 @@ class Work(Settings, Entity):
             subprocess.check_call(fullFlagList, shell=False)
         else:
             subprocess.check_call(fullFlagList)
-        os.remove(preview_file_abs_path)
+        preview_file_abs_path.unlink()
         return output_file
 
     def _check_ffmpeg(self):
         """Checks if the FFMPEG present in the system"""
         if platform.system() == "Windows":
             # get the ffmpeg.exe from the parallel folder 'external'
-            parent_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            ffmpeg_folder = os.path.join(parent_folder, "external", "ffmpeg")
-            ffmpeg = os.path.join(ffmpeg_folder, "ffmpeg.exe")
-            if not os.path.isfile(ffmpeg):
+            parent_folder = Path(__file__).parent.parent
+            ffmpeg_folder = parent_folder / "external" / "ffmpeg"
+            ffmpeg = ffmpeg_folder / "ffmpeg.exe"
+            if not ffmpeg.exists():
                 return False
             else:
                 return ffmpeg
@@ -260,14 +271,6 @@ class Work(Settings, Entity):
 
         full_name = nice_name + [self._name, f"v{version:03d}"]
         return "_".join(nice_name), "_".join(full_name)
-
-    def make_publish(self, notes, elements=None):
-        """Create a publish from the currently loaded version on DCC."""
-
-        # valid file_format keyword can be collected from main.dcc.formats
-        state = self.check_permissions(level=1)
-        if state != 1:
-            return -1
 
     def construct_names(self, file_format):
         """Construct a name for the work version.

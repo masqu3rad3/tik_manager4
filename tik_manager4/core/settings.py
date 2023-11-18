@@ -34,6 +34,7 @@ class Settings(object):
 
     @settings_file.setter
     def settings_file(self, file_path):
+        """Sets the settings file path"""
         self._filePath = file_path
         self._io.file_path = file_path
         if self._io.file_exists(file_path):

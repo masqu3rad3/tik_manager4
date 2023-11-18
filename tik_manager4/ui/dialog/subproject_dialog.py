@@ -219,7 +219,7 @@ class EditSubprojectDialog(QtWidgets.QDialog):
             self._new_subproject = self._parent_sub
             self.accept()
         else:
-            msg, title = self.tik_project.LOG.get_last_message()
+            msg, title = self.tik_project.log.get_last_message()
             self.feedback.pop_info(title, msg, critical=True)
 
 
@@ -310,7 +310,7 @@ class NewSubprojectDialog(EditSubprojectDialog):
             self._new_subproject = sub
             self.accept()
         else:
-            msg, title = self.tik_project.LOG.get_last_message()
+            msg, title = self.tik_project.log.get_last_message()
             self.feedback.pop_info(title, msg, critical=True)
 
     def get_created_subproject(self):

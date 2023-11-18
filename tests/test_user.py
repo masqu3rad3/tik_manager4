@@ -1,24 +1,11 @@
 """Tests for User related functions"""
-from .mockup import Mockup
-from tik_manager4.objects import user
+
 import pytest
 
+from .mockup import Mockup
+from tik_manager4.objects import user
 
-@pytest.fixture(autouse=True, scope='function')
-def clean_user():
-    # NOTE: There are other modules where clean_user is used as the decorator
-    # under tests/mockup.py.  Since we don't wanna replicate this in each of
-    # these files, this piece of code can be moved to a `conftest.py` (see
-    # pytest documentation) and autouse may be disabled.  In this case, the
-    # clean_user fixture should be explicitly added to all test arguments.
-    # Explicit is better than implicit anyways...
-    m = Mockup()
-    m.backup_user()
-    user.User(common_directory=m.mockup_commons_path)
-    yield
-    m.revert()
-
-
+@pytest.mark.usefixtures("clean_user")
 class TestUser(object):
     """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
     mock = Mockup()
