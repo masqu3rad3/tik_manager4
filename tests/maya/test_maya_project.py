@@ -11,9 +11,6 @@ try:
 except ImportError:
     pytest.skip('Maya is not installed.', allow_module_level=True)
 
-
-@pytest.mark.usefixtures("clean_user")
-@pytest.mark.usefixtures("prepare")
 class TestMayaProject():
     """Maya Project related tests."""
 

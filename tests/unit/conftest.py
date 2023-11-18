@@ -1,23 +1,5 @@
-"""Pytest configuration for Maya tests."""
+"""Configuration for pytest."""
 
-import os
-import pytest
-
-IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
-
-@pytest.fixture(scope='session', autouse=True)
-def initialize():
-    """Initialize Maya standalone session before running tests."""
-    import maya.standalone
-    try:
-        maya.standalone.initialize()
-    except RuntimeError:
-        # Maya is already initialized
-        pass
-    yield
-    maya.standalone.uninitialize()
-
-# Override the default tik_manager4 initialization for Maya
 import shutil
 from pathlib import Path
 import pytest
@@ -42,13 +24,7 @@ def tik(tmp_path):
     shutil.rmtree(str(user_path))
     user_path.mkdir(parents=True, exist_ok=True)
 
-    yield tik_manager4.initialize("Maya", common_folder=str(mockup_commons_path))
+    yield tik_manager4.initialize("Standalone", common_folder=str(mockup_commons_path))
     # restore the original user directory
     shutil.rmtree(str(user_path))
     shutil.copytree(str(tmp_path / "user_backup"), str(user_path))
-
-
-@pytest.fixture(autouse=True)
-def skip_github():
-    if IN_GITHUB_ACTIONS:
-        pytest.skip('Skipping Maya tests in GitHub Actions.')

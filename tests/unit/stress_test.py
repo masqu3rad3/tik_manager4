@@ -4,8 +4,6 @@ from pathlib import Path
 import shutil
 import requests
 import random
-from mockup import Mockup
-from tik_manager4.objects import user
 from tik_manager4.core import filelog, utils
 import pytest
 
@@ -16,15 +14,10 @@ word_site = "https://www.mit.edu/~ecprice/wordlist.10000"
 response = requests.get(word_site)
 WORDS = response.content.splitlines()
 
-@pytest.mark.usefixtures("clean_user")
-@pytest.mark.usefixtures("prepare")
+# @pytest.mark.usefixtures("clean_user")
+# @pytest.mark.usefixtures("prepare")
 class TestStress:
     """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
-    # mock = Mockup()
-    # mock.prepare()
-    # user.User(common_directory=mock.common)  # this is for not popping up the "missing common folder" message
-    # import tik_manager4 # importing main checks the common folder definition, thats why its here
-    # tik = tik_manager4.initialize("Standalone")
     def test_create_a_big_project(self, tik):
         test_stress_project_path = Path(utils.get_home_dir(), "t4_stress_test_DO_NOT_USE")
         # test_stress_project_path = os.path.join(utils.get_home_dir(), "t4_stress_test_DO_NOT_USE")

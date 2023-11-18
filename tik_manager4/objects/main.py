@@ -13,22 +13,26 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
 
 
-class Main(object):
+class Main():
     """Main Tik Manager class. Handles User and Project related functions."""
 
-    user = user.User()
-    project = project.Project()
+
+
     # set the dcc to the guard object
-    project.guard.set_dcc(dcc.NAME)
-    project.guard.set_commons(user.commons)
+
+
     dcc = dcc.Dcc()
     log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
-    def __init__(self):
+    def __init__(self, common_folder=None):
         """Initialize."""
         # set either the latest project or the default one
         # always make sure the default project exists, in case of urgent fall back
+        self.user = user.User(common_directory=common_folder)
+        self.project = project.Project()
+        self.project.guard.set_dcc(dcc.NAME)
+        self.project.guard.set_commons(self.user.commons)
 
         default_project = Path(utils.get_home_dir(), "TM4_default")
         # default_project = os.path.join(utils.get_home_dir(), "TM4_default")

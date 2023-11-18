@@ -215,6 +215,7 @@ class User(object):
             if not self.bookmarks.get_property(key=key):
                 self.bookmarks.add_property(key=key, val=val)
 
+
         for key, val in self.commons.user_settings.get_property("resume").items():
             if not self.resume.get_property(key=key):
                 self.resume.add_property(key=key, val=val)

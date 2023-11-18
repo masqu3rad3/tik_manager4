@@ -1,13 +1,12 @@
 """Tests for Project related functions"""
 from pathlib import Path
-import os
 import shutil
 from pprint import pprint
 import pytest
 from tik_manager4.core import utils
 
-@pytest.mark.usefixtures("clean_user")
-@pytest.mark.usefixtures("prepare")
+# @pytest.mark.usefixtures("clean_user")
+# @pytest.mark.usefixtures("prepare")
 class TestProject:
     """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
     # import tik_manager4 # importing main checks the common folder definition, thats why its here
