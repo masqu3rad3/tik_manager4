@@ -12,7 +12,8 @@ class TikWorkItem(QtGui.QStandardItem):
     state_color_dict = {
         "working": (255, 255, 0),
         "published": (0, 255, 0),
-        "omitted": (255, 0, 0),
+        # "omitted": (255, 0, 0),
+        "omitted": (255, 255, 0),
     }
 
     def __init__(self, work_obj):
@@ -20,11 +21,12 @@ class TikWorkItem(QtGui.QStandardItem):
 
         self.work = work_obj
         #
-        fnt = QtGui.QFont("Open Sans", 10)
-        fnt.setBold(False)
+        self.fnt = QtGui.QFont("Open Sans", 10)
+        self.fnt.setBold(False)
+
         self.setEditable(False)
 
-        self.setFont(fnt)
+        self.setFont(self.fnt)
         self.setText(work_obj.name)
         self.state = None
         self.refresh()
@@ -35,6 +37,14 @@ class TikWorkItem(QtGui.QStandardItem):
     def set_state(self, state):
         self.state = state
         self.setForeground(QtGui.QColor(*self.state_color_dict[state]))
+        # cross out omitted items
+        self.fnt.setStrikeOut(state == "omitted")
+        self.setFont(self.fnt)
+        # if the work not saved with the same dcc of the current dcc, make it italic
+        if self.work.dcc != self.work.guard.dcc:
+            self.fnt.setItalic(True)
+            self.setFont(self.fnt)
+
 
 
 class TikPublishItem(QtGui.QStandardItem):
@@ -439,7 +449,6 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
     def get_active_category(self):
         """Get the active category object and return it."""
         if self.task and self.category_tab_widget.currentWidget():
-            print("PASSED")
             return self.task.categories[
                 self.category_tab_widget.currentWidget().objectName()
             ]

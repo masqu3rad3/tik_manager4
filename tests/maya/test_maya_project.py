@@ -53,31 +53,32 @@ class TestMayaProject():
         assert task.path == "test_subproject"
         return task
 
-    def test_create_a_work(self, project):
+    # @pytest.mark.parametrize("category", ["Model", "Rig", "LookDev"])
+    def test_create_a_work(self, project, category="Model"):
         """Tests creating a work"""
         test_task = self.test_create_a_task(project)
 
         # create a cube and save it as a work with binary format
         test_cube = cmds.polyCube(name="test_cube")
-        work_obj = test_task.categories["Model"].create_work("test_cube", file_format=".mb", notes="This is the test cube.")
+        work_obj = test_task.categories[category].create_work("test_cube", file_format=".mb", notes="This is the test cube.")
 
-        assert work_obj.name == "test_task_Model_test_cube"
+        assert work_obj.name == f"test_task_{category}_test_cube"
         assert work_obj.creator == "Admin"
-        assert work_obj.category == "Model"
+        assert work_obj.category == category
         assert work_obj.dcc == "Maya"
         assert len(work_obj.versions) == 1
         assert work_obj.task_name == "test_task"
         assert work_obj.task_id == test_task.id
-        assert work_obj.path == "test_subproject/test_task/Model"
+        assert work_obj.path == f"test_subproject/test_task/{category}"
         assert work_obj.state == "working"
 
         # iterate a version with .ma format
-        work_obj = test_task.categories["Model"].create_work("test_cube", file_format=".ma", notes="Same cube. Only ma format.")
+        work_obj = test_task.categories[category].create_work("test_cube", file_format=".ma", notes="Same cube. Only ma format.")
         assert len(work_obj.versions) == 2
 
         # iterate another version scaling the cube
         cmds.setAttr("test_cube.scale", 4, 4, 4)
-        work_obj = test_task.categories["Model"].create_work("test_cube", notes="Scaled the cube.")
+        work_obj = test_task.categories[category].create_work("test_cube", notes="Scaled the cube.")
         assert len(work_obj.versions) == 3
         return work_obj
 
