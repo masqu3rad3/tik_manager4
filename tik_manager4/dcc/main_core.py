@@ -285,6 +285,11 @@ class DccTemplate():
         pass
 
     @staticmethod
+    def get_dcc_version():
+        """Returns the current DCC version"""
+        pass
+
+    @staticmethod
     def test():
         """Test function"""
         print("TESTING")

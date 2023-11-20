@@ -10,21 +10,25 @@ class Alembic(ExtractCore):
     name = "alembic" # IMPORTANT. Must match to the one in category_definitions.json
     def __init__(self):
         super(Alembic, self).__init__()
+        if not cmds.pluginInfo("AbcExport", loaded=True, query=True):
+            try:
+                cmds.loadPlugin("AbcExport")
+            except Exception as e:
+                om.MGlobal.displayInfo("Alembic Plugin cannot be initialized")
+                raise e
+
         om.MGlobal.displayInfo("Alembic Extractor loaded")
 
         self._extension = ".abc"
-        self.category_functions = {"model": self._extract_model,
-                                   "animation": self._extract_animation,
-                                   "fx": self._extract_fx}
-
-    # def extract(self):
-    #     func = self.category_functions.get(self.category, self._extract_default)
-    #     pass
+        # Category names must match to the ones in category_definitions.json (case sensitive)
+        self.category_functions = {"Model": self._extract_model,
+                                   "Animation": self._extract_animation,
+                                   "Fx": self._extract_fx}
 
     def _extract_model(self):
         """Extract method for model category"""
         _file_path = self.resolve_output()
-        _flags = "-frameRange 0 0 -uvWrite -worldSpace -writeVisibility -dataFormat ogawa"
+        _flags = "-frameRange 0 0 -ro -uvWrite -worldSpace -writeUVSets -writeVisibility -dataFormat ogawa"
         command = "{0} -file {1}".format(_flags, _file_path)
         cmds.AbcExport(j=command)
 

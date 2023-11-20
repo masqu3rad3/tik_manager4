@@ -208,11 +208,12 @@ class Work(Settings, Entity):
             "version_number": version_number,
             "workstation": socket.gethostname(),
             "notes": notes,
-            "thumbnail": str(Path("thumbnails") / thumbnail_name),
+            "thumbnail": Path("thumbnails", thumbnail_name).as_posix(),
             "scene_path": str(version_name),
             "user": self.guard.user,
             "previews": {},
-            "file_format": file_format
+            "file_format": file_format,
+            "dcc_version": self._dcc_handler.get_dcc_version()
         }
         self._versions.append(version)
         self.edit_property("versions", self._versions)

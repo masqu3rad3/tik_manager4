@@ -28,11 +28,34 @@ class TestMayaProject():
         tik.create_project(str(project_path), structure_template="empty")
         return tik.project
 
+    def test_create_a_sub_project(self, project):
+        """Test to create a subproject."""
+        sub_project = project.create_sub_project("test_subproject", parent_path="")
+        assert sub_project != -1
+        assert sub_project.path == "test_subproject"
+
+    def test_delete_a_sub_project(self, project):
+        """Test to delete a subproject."""
+        self.test_create_a_sub_project(project)
+        # try to delete a non existing sub-project
+        assert project.delete_sub_project(path="non_existing_subproject") == -1
+        # delete an existing one
+        assert project.delete_sub_project(path="test_subproject") == 1
+
+    def test_create_a_task(self, project):
+        """Test to create a task"""
+        self.test_create_a_sub_project(project)
+        task = project.create_task("test_task", categories=["Model", "Rig", "LookDev"],
+                                       parent_path="test_subproject")
+        assert task.name == "test_task"
+        assert task.creator == "Admin"
+        assert list(task.categories.keys()) == ["Model", "Rig", "LookDev"]
+        assert task.path == "test_subproject"
+        return task
+
     def test_create_a_work(self, project):
         """Tests creating a work"""
-
-        test_task = project.create_task("test_task", categories=["Model"], parent_uid=project.id)
-        assert test_task != -1
+        test_task = self.test_create_a_task(project)
 
         # create a cube and save it as a work with binary format
         test_cube = cmds.polyCube(name="test_cube")
@@ -45,7 +68,7 @@ class TestMayaProject():
         assert len(work_obj.versions) == 1
         assert work_obj.task_name == "test_task"
         assert work_obj.task_id == test_task.id
-        assert work_obj.path == "test_task/Model"
+        assert work_obj.path == "test_subproject/test_task/Model"
         assert work_obj.state == "working"
 
         # iterate a version with .ma format
@@ -77,8 +100,43 @@ class TestMayaProject():
     def test_publishing_a_work(self, project):
         """Test to publish a work."""
         work_obj = self.test_create_a_work(project)
-
         work_obj.load_version(2)
 
-        print("WIP")
-        pass
+        # RESOLVE
+        project.publisher.resolve()
+        assert work_obj.path == project.publisher._work_object.path
+        assert work_obj.name == project.publisher._work_object.name
+        assert work_obj.id == project.publisher._work_object.id
+        assert project.publisher.publish_version == 1
+        assert project.publisher.extract_names == ["scene", "alembic"]
+        assert project.publisher.validation_names == ["unique_names", "forbidden_nodes"]
+        assert project.publisher.relative_data_path == "tikDatabase/test_subproject/test_task/Model/publish/test_task_Model_test_cube"
+        assert project.publisher.relative_scene_path == "test_subproject/test_task/Model/publish/test_task_Model_test_cube"
+
+        # RESERVE
+        project.publisher.reserve()
+        assert project.publisher._published_object.get_property("name") == "test_task_Model_test_cube"
+        assert project.publisher._published_object.get_property("creator") == "Admin"
+        assert project.publisher._published_object.get_property("category") == "Model"
+        assert project.publisher._published_object.get_property("dcc") == "Maya"
+        assert project.publisher._published_object.get_property("version") == 1
+        assert project.publisher._published_object.get_property("work_version") == 2
+        assert project.publisher._published_object.get_property("task_name") == "test_task"
+        assert project.publisher._published_object.get_property("path") == "test_subproject/test_task/Model/publish"
+
+        # VALIDATE
+        project.publisher.validate()
+        for val_name, val_object in project.publisher._resolved_validators.items():
+            assert val_object.state == "passed"
+
+        # EXTRACT
+        project.publisher.extract()
+        for ext_name, ext_object in project.publisher._resolved_extractors.items():
+            assert ext_object.status == "extracted"
+
+        # PUBLISH
+        project.publisher.publish()
+        for element in project.publisher._published_object.get_property("elements"):
+            # path is relative, get the absolute against the root
+            element_path = Path(project.publisher._published_object.guard.project_root, element["path"])
+            assert element_path.exists()

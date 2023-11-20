@@ -4,12 +4,14 @@ from tik_manager4.core.settings import Settings
 from tik_manager4.objects.subproject import Subproject
 from tik_manager4.objects.work import Work
 from tik_manager4 import dcc
+from tik_manager4.objects.publisher import Publisher
 
 class Project(Subproject):
     log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
     def __init__(self, path=None, name=None, resolution=None, fps=None):
         super(Project, self).__init__()
+        self.publisher = Publisher(self)
         self.structure = Settings()
         self.settings = Settings()
         self.metadata_definitions = Settings()

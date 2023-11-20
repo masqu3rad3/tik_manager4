@@ -17,12 +17,15 @@ class Publisher():
     def __init__(self, project_object):
         """Initialize the Publisher object."""
         self._project_object = project_object
-        self._work_object, self._work_version = project_object.get_current_work()
+        # self._work_object, self._work_version = project_object.get_current_work()
+        self._work_object = None
+        self._work_version = None
 
         # resolved variables
-        self._resolved_extracts = {}
-        self._resolved_validations = {}
+        self._resolved_extractors = {}
+        self._resolved_validators = {}
         self._abs_publish_data_folder = None
+        self._abs_publish_scene_folder = None
         self._publish_file_name = None
         self._publish_version = None
 
@@ -30,9 +33,9 @@ class Publisher():
 
         self._published_object = None
 
-
     def resolve(self):
         """Resolve the validations, extracts, variables, etc."""
+        self._work_object, self._work_version = self._project_object.get_current_work()
 
         if not self._work_object:
             LOG.warning("No work object found. Aborting.")
@@ -44,13 +47,13 @@ class Publisher():
         # collect the matching extracts and validations from the dcc_handler.
         for extract in extracts:
             if extract in list(self._dcc_handler.extracts.keys()):
-                self._resolved_extracts[extract] = self._dcc_handler.extracts[extract]()
+                self._resolved_extractors[extract] = self._dcc_handler.extracts[extract]()
             else:
                 LOG.warning("Extract {0} defined in category settings but it is not available on {1}".format(extract, self._dcc_handler.name))
         for validation in validations:
             print("validation", self._dcc_handler.validations.keys())
             if validation in list(self._dcc_handler.validations.keys()):
-                self._resolved_validations[validation] = self._dcc_handler.validations[validation]()
+                self._resolved_validators[validation] = self._dcc_handler.validations[validation]()
             else:
                 LOG.warning("Validation {0} defined in category settings but it is not available on {1}".format(validation, self._dcc_handler.name))
 
@@ -65,14 +68,7 @@ class Publisher():
         latest_publish_version = 0 if not _publish_versions else max(_publish_versions)
 
         self._abs_publish_data_folder = self._work_object.get_abs_database_path("publish", self._work_object.name)
-        #
-        # # if the folder exists, get the highest version and increment it by 1
-        # if pathlib.Path(self._abs_publish_data_folder).exists():
-        #     _publishes = self.get_publishes_in_folder(self._abs_publish_data_folder)
-        #     _publish_versions = [publish.version for publish in _publishes]
-        #     latest_publish_version = max(_publish_versions) if _publish_versions else 0
-        # else:
-        #     latest_publish_version = 0
+        self._abs_publish_scene_folder = self._work_object.get_abs_project_path("publish", self._work_object.name)
         self._publish_version = latest_publish_version + 1
         self._publish_file_name = f"{self._work_object.name}_v{self._publish_version:03d}.tpub"
         return self._publish_file_name
@@ -95,10 +91,11 @@ class Publisher():
         self._published_object.add_property("dcc", self._work_object.guard.dcc)
         self._published_object.add_property("publish_id", self._published_object.generate_id())
         self._published_object.add_property("version", self._publish_version)
+        self._published_object.add_property("work_version", self._work_version)
         self._published_object.add_property("task_name", self._work_object.task_name)
         self._published_object.add_property("task_id", self._work_object.task_id)
         self._published_object.add_property("path", Path(self._work_object.path, "publish").as_posix())
-        # self._published_object.add_property("softwareVersion", self._dcc_handler.version)
+        self._published_object.add_property("dcc_version", self._dcc_handler.get_dcc_version())
         self._published_object.add_property("elements", [])
 
         self._published_object.apply_settings() # make sure the file is created
@@ -110,11 +107,7 @@ class Publisher():
         """Validate the scene."""
         print(self._dcc_handler.validations)
 
-        for val_name, val_object in self._resolved_validations.items():
-            # print(val)
-            # validator = self._resolved_validations[val]()
-            # self._validator_objects[val] = validator
-            # validator.category = self._work_object.category
+        for val_name, val_object in self._resolved_validators.items():
             val_object.validate()
             print(val_object.state)
 
@@ -123,12 +116,11 @@ class Publisher():
         """Extract the elements."""
         # first save the scene
         self._dcc_handler.save_scene()
-        # scene_file = self._dcc_handler.get_scene_file()
         publish_path = Path(self._work_object.get_abs_project_path("publish", self._work_object.name))
         print("publish_path", publish_path)
 
-        for extract_type_name, extract_object in self._resolved_extracts.items():
-            extract_object.category = self._work_object.category.lower() # define the category
+        for extract_type_name, extract_object in self._resolved_extractors.items():
+            extract_object.category = self._work_object.category # define the category
             extract_object.extract_folder = str(publish_path) # define the extract folder
             extract_object.extract_name = f"{self._work_object.name}_v{self._publish_version:03d}" # define the extract name
             extract_object.extract()
@@ -137,7 +129,7 @@ class Publisher():
     def publish(self):
         """Finalize the publish by updating the reserved slot."""
         # collect the extracted elements information and add to the publish object
-        for extract_type_name, extract_object in self._resolved_extracts.items():
+        for extract_type_name, extract_object in self._resolved_extractors.items():
             element = {
                 "type": extract_object.name,
                 # get the relative path to the project
@@ -147,3 +139,45 @@ class Publisher():
 
         self._published_object.edit_property("elements", self._published_object._elements)
         self._published_object.apply_settings(force=True)
+
+    @property
+    def publish_version(self):
+        """Return the resolved publish version."""
+        return self._publish_version
+
+    @property
+    def extract_names(self):
+        """Return the resolved extract names."""
+        return list(self._resolved_extractors.keys())
+
+    @property
+    def validation_names(self):
+        """Return the resolved validation names."""
+        return list(self._resolved_validators.keys())
+
+    @property
+    def publish_name(self):
+        """Return the resolved publish name."""
+        return self._publish_file_name
+
+    @property
+    def absolute_data_path(self):
+        """Return the resolved absolute data path."""
+        return self._abs_publish_data_folder
+
+    @property
+    def absolute_scene_path(self):
+        """Return the resolved absolute scene path."""
+        return self._abs_publish_scene_folder
+
+    @property
+    def relative_data_path(self):
+        """Return the resolved relative path."""
+        return Path(self._abs_publish_data_folder).relative_to(self._work_object.guard.project_root).as_posix()
+
+    @property
+    def relative_scene_path(self):
+        """Return the resolved relative path."""
+        return Path(self._abs_publish_scene_folder).relative_to(self._work_object.guard.project_root).as_posix()
+
+

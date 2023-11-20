@@ -437,7 +437,7 @@ class Subproject(Entity):
 
     def find_sub_by_path(self, path):
         """Find the subproject by path."""
-        if path == "":  # this is root
+        if path == "" or path == ".":  # this is root
             return self
         queue = list(self.subs.values())
         while queue:

@@ -19,10 +19,11 @@ class Publish(Settings, Entity):
         self._dcc = self.get_property("dcc") or self.guard.dcc
         self._publish_id = self.get_property("publish_id") or self._id
         self._version = self.get_property("version") or 1
+        self._work_version = self.get_property("work_version") or None
         self._task_name = self.get_property("task_name") or None
         self._task_id = self.get_property("task_id") or None
         self._relative_path = self.get_property("path") or path
-        self._software_version = self.get_property("softwareVersion") or None
+        self._dcc_version = self.get_property("dcc_version") or None
         self._elements = self.get_property("elements") or []
         # self._is_promoted = self.get_property("isPromoted") or False
         self.modified_time = None  # to compare and update if necessary
@@ -76,7 +77,7 @@ class Publish(Settings, Entity):
     @property
     def software_version(self):
         """Return the software version of the publish."""
-        return self._software_version
+        return self._dcc_version
 
     @property
     def elements(self):
