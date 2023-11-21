@@ -69,7 +69,7 @@ class TestMayaProject():
         assert len(work_obj.versions) == 1
         assert work_obj.task_name == "test_task"
         assert work_obj.task_id == test_task.id
-        assert work_obj.path == f"test_subproject/test_task/{category}"
+        assert work_obj.path == f"test_subproject/test_task/{category}/Maya"
         assert work_obj.state == "working"
 
         # iterate a version with .ma format
@@ -111,8 +111,8 @@ class TestMayaProject():
         assert project.publisher.publish_version == 1
         assert project.publisher.extract_names == ["scene", "alembic"]
         assert project.publisher.validation_names == ["unique_names", "forbidden_nodes"]
-        assert project.publisher.relative_data_path == "tikDatabase/test_subproject/test_task/Model/publish/test_task_Model_test_cube"
-        assert project.publisher.relative_scene_path == "test_subproject/test_task/Model/publish/test_task_Model_test_cube"
+        assert project.publisher.relative_data_path == "tikDatabase/test_subproject/test_task/Model/Maya/publish/test_task_Model_test_cube"
+        assert project.publisher.relative_scene_path == "test_subproject/test_task/Model/Maya/publish/test_task_Model_test_cube"
 
         # RESERVE
         project.publisher.reserve()
@@ -123,7 +123,7 @@ class TestMayaProject():
         assert project.publisher._published_object.get_property("version") == 1
         assert project.publisher._published_object.get_property("work_version") == 2
         assert project.publisher._published_object.get_property("task_name") == "test_task"
-        assert project.publisher._published_object.get_property("path") == "test_subproject/test_task/Model/publish"
+        assert project.publisher._published_object.get_property("path") == "test_subproject/test_task/Model/Maya/publish"
 
         # VALIDATE
         project.publisher.validate()

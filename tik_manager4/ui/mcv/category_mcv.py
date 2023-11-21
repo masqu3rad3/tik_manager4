@@ -36,7 +36,7 @@ class TikWorkItem(QtGui.QStandardItem):
 
     def set_state(self, state):
         self.state = state
-        self.setForeground(QtGui.QColor(*self.state_color_dict[state]))
+        _state_color = self.state_color_dict[state]
         # cross out omitted items
         self.fnt.setStrikeOut(state == "omitted")
         self.setFont(self.fnt)
@@ -44,7 +44,8 @@ class TikWorkItem(QtGui.QStandardItem):
         if self.work.dcc != self.work.guard.dcc:
             self.fnt.setItalic(True)
             self.setFont(self.fnt)
-
+            _state_color = tuple([int(x * 0.5) for x in _state_color])
+        self.setForeground(QtGui.QColor(*_state_color))
 
 
 class TikPublishItem(QtGui.QStandardItem):

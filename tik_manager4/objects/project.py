@@ -156,6 +156,9 @@ class Project(Subproject):
 
     def create_task(self, name, categories=None, parent_uid=None, parent_path=None):
         """Creates a task and stores it in persistent database"""
+        state = self.check_permissions(level=2)
+        if state != 1:
+            return -1
         if not parent_uid and not parent_path:
             self.log.error("Requires at least a parent uid or parent path ")
             return -1

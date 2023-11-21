@@ -317,9 +317,6 @@ class Subproject(Entity):
         """
         # inherit the task type from the parent subproject 'mode' if not specified
         task_type = task_type or self.metadata.get_value("mode", None)
-        state = self.check_permissions(level=2)
-        if state != 1:
-            return -1
         file_name = "{0}.ttask".format(name)
         relative_path = Path(self.path, file_name)
         abs_path = Path(self.guard.database_root, relative_path)

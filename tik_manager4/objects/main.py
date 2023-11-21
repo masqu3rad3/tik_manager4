@@ -75,6 +75,10 @@ class Main():
         structure.set_data(structure_data)
         structure.apply_settings()
 
+        # create an initial main task under the root
+        categories = list(self.project.guard.category_definitions.properties.keys())
+        _main_task = self.project.add_task("main", categories=categories)
+
     def create_project(
         self,
         path,
@@ -126,6 +130,9 @@ class Main():
         project_obj.create_folders(project_obj.absolute_path)
         project_obj.create_folders(project_obj.database_path)
         project_obj.save_structure()  # This makes sure IDs are getting saved
+
+        categories = list(self.project.guard.category_definitions.properties.keys())
+        _main_task = self.project.add_task("main", categories=categories)
 
         if set_after_creation:
             self.set_project(path)

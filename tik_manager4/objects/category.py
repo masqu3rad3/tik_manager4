@@ -92,18 +92,18 @@ class Category(Entity):
         if state != 1:
             return -1
 
-        contructed_name = self.construct_name(name)
-        # relative_path = Path(self.path, self.guard.dcc).as_posix()
-        relative_path = Path(self.path).as_posix()
-        # abs_path = self.get_abs_database_path(self.guard.dcc, "%s.twork" % contructed_name)
-        abs_path = self.get_abs_database_path("%s.twork" % contructed_name)
+        constructed_name = self.construct_name(name)
+        relative_path = Path(self.path, self.guard.dcc).as_posix()
+        # relative_path = Path(self.path).as_posix()
+        abs_path = self.get_abs_database_path(self.guard.dcc, f"{constructed_name}.twork")
+        # abs_path = self.get_abs_database_path(f"{constructed_name}.twork")
         if Path(abs_path).exists():
             # in that case instantiate the work and iterate the version.
             _work = Work(absolute_path=abs_path)
             _work.new_version(file_format=file_format, notes=notes)
             return _work
-        _work = Work(abs_path, name=contructed_name, path=relative_path)
-        _work.add_property("name", contructed_name)
+        _work = Work(abs_path, name=constructed_name, path=relative_path)
+        _work.add_property("name", constructed_name)
         _work.add_property("creator", self.guard.user)
         _work.add_property("category", self.name)
         _work.add_property("dcc", self.guard.dcc)
