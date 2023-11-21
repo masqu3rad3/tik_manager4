@@ -75,9 +75,9 @@ class Main():
         structure.set_data(structure_data)
         structure.apply_settings()
 
-        # create an initial main task under the root
-        categories = list(self.project.guard.category_definitions.properties.keys())
-        _main_task = self.project.add_task("main", categories=categories)
+        # # create an initial main task under the root
+        # categories = list(self.project.guard.category_definitions.properties.keys())
+        # _main_task = self.project.add_task("main", categories=categories)
 
     def create_project(
         self,
