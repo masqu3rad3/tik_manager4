@@ -3,13 +3,15 @@ from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.subproject import Subproject
 from tik_manager4.objects.work import Work
-
+from tik_manager4 import dcc
+from tik_manager4.objects.publisher import Publisher
 
 class Project(Subproject):
     log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
     def __init__(self, path=None, name=None, resolution=None, fps=None):
         super(Project, self).__init__()
+        self.publisher = Publisher(self)
         self.structure = Settings()
         self.settings = Settings()
         self.metadata_definitions = Settings()
@@ -154,6 +156,9 @@ class Project(Subproject):
 
     def create_task(self, name, categories=None, parent_uid=None, parent_path=None):
         """Creates a task and stores it in persistent database"""
+        state = self.check_permissions(level=2)
+        if state != 1:
+            return -1
         if not parent_uid and not parent_path:
             self.log.error("Requires at least a parent uid or parent path ")
             return -1
@@ -186,11 +191,18 @@ class Project(Subproject):
         return parent
 
     def find_work_by_absolute_path(self, file_path):
-        """Using the absolute path of the scene file return work object"""
+        """Using the absolute path of the scene file return work object and version number.
+
+        Args:
+            file_path: (String) Absolute path of the scene file.
+
+        Returns: Tuple(<work object>, <version number>)
+        """
+
         _file_path_obj = Path(file_path)
         parent_path = _file_path_obj.parent
-        # get the base name without extension
-        base_name = _file_path_obj.stem
+        # get the base name with extension
+        base_name = _file_path_obj.name
         relative_path = parent_path.relative_to(self.absolute_path)
         database_path = Path(self.get_abs_database_path(str(relative_path)))
         work_files = database_path.glob("*.twork")
@@ -199,3 +211,16 @@ class Project(Subproject):
             for nmb, version in enumerate(_work.versions):
                 if version.get("scene_path") == base_name:
                     return _work, version.get("version_number", nmb)
+
+    def get_current_work(self):
+        """Get the current work object AND version by resolving the current scene.
+
+        Returns: Tuple(<work object>, <version number>)
+        """
+        dcc_handler = dcc.Dcc()
+        current_scene_path = dcc_handler.get_scene_file()
+
+        if not current_scene_path:
+            return None, None
+        return self.find_work_by_absolute_path(current_scene_path)
+

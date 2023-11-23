@@ -8,6 +8,7 @@ from tik_manager4.core import utils
 from tik_manager4.core.settings import Settings
 from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
+from tik_manager4.objects.publish import Publish
 from tik_manager4 import dcc
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
@@ -19,21 +20,24 @@ class Work(Settings, Entity):
         super(Work, self).__init__()
         self.settings_file = Path(absolute_path)
 
-        self._name = self.get_property("name") or name
-        self._creator = self.get_property("creator") or self.guard.user
-        self._category = self.get_property("category") or None
-        self._dcc = self.get_property("dcc") or self.guard.dcc
-        self._versions = self.get_property("versions") or []
-        self._work_id = self.get_property("work_id") or self._id
-        self._task_name = self.get_property("task_name") or None
-        self._task_id = self.get_property("task_id") or None
-        self._relative_path = self.get_property("path") or path
-        self._software_version = self.get_property("softwareVersion") or None
+        self._name = name
+        self._creator = self.guard.user
+        self._category = None
+        self._dcc = self.guard.dcc
+        self._dcc_version = None
+        self._versions = []
+        self._work_id = self._id
+        self._task_name = None
+        self._task_id = None
+        self._relative_path = path
+        self._software_version = None
         # there are 3 states: working, published, omitted
-        self._state = self.get_property("state") or "working"
+        self._state = "working"
+
         self.modified_time = None  # to compare and update if necessary
 
-        self._publishes = []
+        self._publishes = {}
+        # self._publishes = []
         # Example:
         # [
         #     <version>: {
@@ -44,24 +48,57 @@ class Work(Settings, Entity):
         #     }
         # ]
 
+        self.init_properties()
+
+    def init_properties(self):
+        """Initialize the properties of the work from the inherited dictionary."""
+        self._name = self.get_property("name", self._name)
+        self._creator = self.get_property("creator", self.guard.user)
+        self._category = self.get_property("category", self._category)
+        self._dcc = self.get_property("dcc", self.guard.dcc)
+        self._dcc_version = self.get_property("dcc_version", self._dcc_version)
+        self._versions = self.get_property("versions", [])
+        self._work_id = self.get_property("work_id", self._id)
+        self._task_name = self.get_property("task_name", self._task_name)
+        self._task_id = self.get_property("task_id")
+        self._relative_path = self.get_property("path", self._relative_path)
+        self._software_version = self.get_property("softwareVersion")
+        self._state = self.get_property("state", self._state)
+
+
     @property
     def state(self):
+        """Return the state of the work."""
         return self._state
 
     @property
     def dcc(self):
+        """Return the dcc of the work."""
         return self._dcc
 
     @property
+    def dcc_version(self):
+        """Return the dcc version of the work."""
+        return self._dcc_version
+
+    @property
     def id(self):
+        """Return the id of the work."""
         return self._work_id
 
     @property
     def task_id(self):
+        """Return the id of the task."""
         return self._task_id
 
     @property
+    def task_name(self):
+        """Return the name of the task."""
+        return self._task_name
+
+    @property
     def creator(self):
+        """Return the creator of the work."""
         return self._creator
 
     @property
@@ -71,10 +108,13 @@ class Work(Settings, Entity):
 
     @property
     def publishes(self):
+        """Return the publishes has been made from this work."""
+        self.scan_publishes()
         return self._publishes
 
     @property
     def versions(self):
+        """Return the versions of the work."""
         return self._versions
 
     @property
@@ -97,6 +137,37 @@ class Work(Settings, Entity):
         self._state = "working" if not self.publishes else "published"
         self.edit_property("state", self._state)
         self.apply_settings()
+
+    def scan_publishes(self):
+        """Scan the publishes from the publish folder."""
+        _search_dir = Path(self.get_abs_database_path("publish", self._name))
+        if not _search_dir.exists():
+            return {}
+        _publish_paths = _search_dir.glob("*.tpub")
+
+        # self._publishes.clear()
+        #
+        # for _publish_path in _publish_paths:
+        #     _publish = Publish(_publish_path)
+        #     self._publishes[_publish_path] = _publish
+
+        # add the file if it is new. if it is not new,
+        # check the modified time and update if necessary
+        for _p_path, _p_data in dict(self._publishes).items():
+            if _p_path not in _publish_paths:
+                self._publishes.pop(_p_path)
+        for _publish_path in _publish_paths:
+            existing_publish = self._publishes.get(_publish_path, None)
+            if not existing_publish:
+                _publish = Publish(_publish_path)
+                self._publishes[_publish_path] = _publish
+            else:
+                if existing_publish.is_modified():
+                    existing_publish.reload()
+
+        return self._publishes
+
+
 
     def get_last_version(self):
         """Return the last version of the work."""
@@ -144,11 +215,12 @@ class Work(Settings, Entity):
             "version_number": version_number,
             "workstation": socket.gethostname(),
             "notes": notes,
-            "thumbnail": str(Path("thumbnails") / thumbnail_name),
+            "thumbnail": Path("thumbnails", thumbnail_name).as_posix(),
             "scene_path": str(version_name),
             "user": self.guard.user,
             "previews": {},
-            "file_format": file_format
+            "file_format": file_format,
+            "dcc_version": self._dcc_handler.get_dcc_version()
         }
         self._versions.append(version)
         self.edit_property("versions", self._versions)

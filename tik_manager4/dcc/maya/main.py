@@ -353,3 +353,8 @@ class Dcc(DccTemplate):
         final_clip = "{0}.{1}".format(_output, extension)
         pb_panel.kill()
         return final_clip
+
+    @staticmethod
+    def get_dcc_version():
+        """Return the version of the DCC."""
+        return str(cmds.about(query=True, api=True))

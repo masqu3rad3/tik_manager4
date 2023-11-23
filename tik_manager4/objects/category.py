@@ -38,27 +38,32 @@ class Category(Entity):
                 matched_items.append(work)
         return matched_items
 
-    @property
-    def publishes(self):
-        self.scan_publishes()
-        return self._publishes
+    # @property
+    # def publishes(self):
+    #     self.scan_publishes()
+    #     return self._publishes
 
-    def scan_publishes(self):
-        pass
+    # def scan_publishes(self):
+    #     pass
 
     def scan_works(self, all_dcc=False):
-        if self.guard.dcc == "Standalone":
-            all_dcc = True
+        # if self.guard.dcc == "Standalone":
+        #     all_dcc = True
+        #
+        # # get all the files in directory with .twork extension
+        # if not all_dcc:
+        #     _search_dir = self.get_abs_database_path(self.guard.dcc)
+        #     _work_paths = Path(_search_dir).glob("*.twork")
+        #
+        # # get all the files in a directory recursively with .twork extension
+        # else:
+        #     _search_dir = self.get_abs_database_path()
+        #     _work_paths = Path(_search_dir).rglob("**/*.twork")
 
-        # get all the files in directory with .twork extension
-        if not all_dcc:
-            _search_dir = self.get_abs_database_path(self.guard.dcc)
-            _work_paths = Path(_search_dir).glob("*.twork")
+        # get all files recursively, regardless of the dcc
+        _search_dir = self.get_abs_database_path()
+        _work_paths = Path(_search_dir).rglob("**/*.twork")
 
-        # get all the files in a directory recursively with .twork extension
-        else:
-            _search_dir = self.get_abs_database_path()
-            _work_paths = Path(_search_dir).rglob("**/*.twork")
 
         # add the file if it is new. if it is not new,
         # check the modified time and update if necessary
@@ -87,27 +92,29 @@ class Category(Entity):
         if state != 1:
             return -1
 
-        contructed_name = self.construct_name(name)
+        constructed_name = self.construct_name(name)
         relative_path = Path(self.path, self.guard.dcc).as_posix()
-        abs_path = self.get_abs_database_path(
-            self.guard.dcc, "%s.twork" % contructed_name
-        )
+        # relative_path = Path(self.path).as_posix()
+        abs_path = self.get_abs_database_path(self.guard.dcc, f"{constructed_name}.twork")
+        # abs_path = self.get_abs_database_path(f"{constructed_name}.twork")
         if Path(abs_path).exists():
             # in that case instantiate the work and iterate the version.
             _work = Work(absolute_path=abs_path)
             _work.new_version(file_format=file_format, notes=notes)
             return _work
-        _work = Work(abs_path, name=contructed_name, path=relative_path)
-        _work.add_property("name", contructed_name)
+        _work = Work(abs_path, name=constructed_name, path=relative_path)
+        _work.add_property("name", constructed_name)
         _work.add_property("creator", self.guard.user)
         _work.add_property("category", self.name)
         _work.add_property("dcc", self.guard.dcc)
+        _work.add_property("dcc_version", _work._dcc_handler.get_dcc_version())
         _work.add_property("versions", [])
         _work.add_property("work_id", _work.generate_id())
         _work.add_property("task_name", self.parent_task.name)
         _work.add_property("task_id", self.parent_task.id)
         _work.add_property("path", relative_path)
         _work.add_property("state", "working")
+        _work.init_properties()
         _work.new_version(file_format=file_format, notes=notes)
         return _work
 

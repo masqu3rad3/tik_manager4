@@ -178,6 +178,9 @@ class MainUI(QtWidgets.QMainWindow):
             self.subprojects_mcv.sub_view.select_first_item()
             LOG.info("No subproject found, selecting the first one.")
 
+            # if there is no task, then select the first one
+            self.tasks_mcv.task_view.select_first_item()
+
         self.subprojects_mcv.sub_view.set_expanded_state(
             self.tik.user.expanded_subprojects
         )

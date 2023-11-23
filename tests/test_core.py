@@ -44,7 +44,8 @@ def test_filelog(tmp_path: Path):
     nbytes = len(bytes_)
     nbytes_truth_per_system = {
             "Linux": nbytes,
-            "Windows": nbytes + newline_count  # 2 chars for newline on windows
+            "Windows": nbytes + newline_count,  # 2 chars for newline on windows
+            "Darwin": nbytes
             }
     assert log.get_size() == nbytes_truth_per_system[platform.system()]
 

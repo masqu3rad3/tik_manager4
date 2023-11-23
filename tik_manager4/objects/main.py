@@ -13,22 +13,26 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
 
 
-class Main(object):
+class Main():
     """Main Tik Manager class. Handles User and Project related functions."""
 
-    user = user.User()
-    project = project.Project()
+
+
     # set the dcc to the guard object
-    project.guard.set_dcc(dcc.NAME)
-    project.guard.set_commons(user.commons)
+
+
     dcc = dcc.Dcc()
     log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
-    def __init__(self):
+    def __init__(self, common_folder=None):
         """Initialize."""
         # set either the latest project or the default one
         # always make sure the default project exists, in case of urgent fall back
+        self.user = user.User(common_directory=common_folder)
+        self.project = project.Project()
+        self.project.guard.set_dcc(dcc.NAME)
+        self.project.guard.set_commons(self.user.commons)
 
         default_project = Path(utils.get_home_dir(), "TM4_default")
         # default_project = os.path.join(utils.get_home_dir(), "TM4_default")
@@ -70,6 +74,13 @@ class Main(object):
         structure = settings.Settings(file_path=_structure_file)
         structure.set_data(structure_data)
         structure.apply_settings()
+
+        project_obj = project.Project()  # this will be temporary
+        project_obj._set(_project_path)
+
+        # create an initial main task under the root
+        categories = list(project_obj.guard.category_definitions.properties.keys())
+        _main_task = project_obj.add_task("main", categories=categories)
 
     def create_project(
         self,
@@ -122,6 +133,9 @@ class Main(object):
         project_obj.create_folders(project_obj.absolute_path)
         project_obj.create_folders(project_obj.database_path)
         project_obj.save_structure()  # This makes sure IDs are getting saved
+
+        categories = list(project_obj.guard.category_definitions.properties.keys())
+        _main_task = project_obj.add_task("main", categories=categories)
 
         if set_after_creation:
             self.set_project(path)

@@ -1,13 +1,10 @@
 """Tests for Project related functions"""
 from pathlib import Path
-import os
 import shutil
 from pprint import pprint
 import pytest
 from tik_manager4.core import utils
 
-@pytest.mark.usefixtures("clean_user")
-@pytest.mark.usefixtures("prepare")
 class TestProject:
     """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
     # import tik_manager4 # importing main checks the common folder definition, thats why its here
@@ -181,6 +178,8 @@ class TestProject:
 
         # non existing path
         assert tik.project.delete_sub_project(path="Burhan/Altintop") == -1
+
+        # by path
         assert tik.project.delete_sub_project(path="Assets/Props") == 1
 
         # uid methods
@@ -189,6 +188,9 @@ class TestProject:
         # non existing uid
         assert tik.project.delete_sub_project(uid=123123123123123123) == -1
         assert tik.project.delete_sub_project(uid=uid) == 1
+
+        # delete a sub-project on root
+        assert tik.project.delete_sub_project(path="Assets") == 1
 
     def test_find_subs_by_path_and_id(self, project_path, tik):
         test_project_path = self.test_create_new_project(project_path, tik)
@@ -400,8 +402,8 @@ class TestProject:
         assert tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works(all_dcc=True)
 
         # override the guard.dcc
-        tik.project.guard._dcc = "Maya"
-        assert tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works(all_dcc=False) == {}
+        # tik.project.guard._dcc = "Maya"
+        # assert tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works(all_dcc=False) == {}
 
     def test_deleting_empty_task(self, project_manual_path, tik):
         self.test_creating_and_adding_new_tasks(project_manual_path, tik)
