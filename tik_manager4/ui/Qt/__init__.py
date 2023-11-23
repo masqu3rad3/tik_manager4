@@ -442,7 +442,6 @@ _common_members = {
         "QAbstractScrollArea",
         "QAbstractSlider",
         "QAbstractSpinBox",
-        # "QAction",
         "QActionGroup",
         "QApplication",
         "QBoxLayout",
@@ -550,7 +549,6 @@ _common_members = {
         "QRubberBand",
         "QScrollArea",
         "QScrollBar",
-        "QShortcut",
         "QSizeGrip",
         "QSizePolicy",
         "QSlider",
@@ -1009,9 +1007,10 @@ These members from the original submodule are misplaced relative PySide2
 """
 _misplaced_members = {
     "PySide6": {
+        "QtGui.QShortcut": "QtWidgets.QShortcut",
         "QtCore.QStringListModel": "QtCore.QStringListModel",
         "QtGui.QStringListModel": "QtCore.QStringListModel",
-        "QtGui.QAction": "QtWidgets.QAction", ## @rd@
+        "QtGui.QAction": "QtWidgets.QAction",
         "QtCore.Property": "QtCore.Property",
         "QtCore.Signal": "QtCore.Signal",
         "QtCore.Slot": "QtCore.Slot",
@@ -1038,9 +1037,10 @@ _misplaced_members = {
         "QtMultimedia.QSound": "QtMultimedia.QSound",
     },
     "PySide2": {
+        "QtWidgets.QShortcut": "QtWidgets.QShortcut",
         "QtCore.QStringListModel": "QtCore.QStringListModel",
         "QtGui.QStringListModel": "QtCore.QStringListModel",
-        "QtWidgets.QAction": "QtWidgets.QAction", ## @rd@
+        "QtWidgets.QAction": "QtWidgets.QAction",
         "QtCore.Property": "QtCore.Property",
         "QtCore.Signal": "QtCore.Signal",
         "QtCore.Slot": "QtCore.Slot",
@@ -1067,7 +1067,8 @@ _misplaced_members = {
         "QtMultimedia.QSound": "QtMultimedia.QSound",
     },
     "PyQt5": {
-        "QtWidgets.QAction": "QtWidgets.QAction", ## @rd@
+        "QtWidgets.QShortcut": "QtWidgets.QShortcut",
+        "QtWidgets.QAction": "QtWidgets.QAction",
         "QtCore.pyqtProperty": "QtCore.Property",
         "QtCore.pyqtSignal": "QtCore.Signal",
         "QtCore.pyqtSlot": "QtCore.Slot",
@@ -1095,7 +1096,8 @@ _misplaced_members = {
         "QtMultimedia.QSound": "QtMultimedia.QSound",
     },
     "PySide": {
-        "QtWidgets.QAction": "QtWidgets.QAction", ## @rd@
+        "QtWidgets.QShortcut": "QtWidgets.QShortcut",
+        "QtWidgets.QAction": "QtWidgets.QAction",
         "QtGui.QAbstractProxyModel": "QtCore.QAbstractProxyModel",
         "QtGui.QSortFilterProxyModel": "QtCore.QSortFilterProxyModel",
         "QtGui.QStringListModel": "QtCore.QStringListModel",
@@ -1131,7 +1133,8 @@ _misplaced_members = {
         "QtGui.QSound": "QtMultimedia.QSound",
     },
     "PyQt4": {
-        "QtWidgets.QAction": "QtWidgets.QAction", ## @rd@
+        "QtWidgets.QShortcut": "QtWidgets.QShortcut",
+        "QtWidgets.QAction": "QtWidgets.QAction",
         "QtGui.QAbstractProxyModel": "QtCore.QAbstractProxyModel",
         "QtGui.QSortFilterProxyModel": "QtCore.QSortFilterProxyModel",
         "QtGui.QItemSelection": "QtCore.QItemSelection",
