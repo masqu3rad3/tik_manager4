@@ -357,4 +357,4 @@ class Dcc(DccTemplate):
     @staticmethod
     def get_dcc_version():
         """Return the version of the DCC."""
-        return cmds.about(query=True, api=True)
+        return str(cmds.about(query=True, api=True))

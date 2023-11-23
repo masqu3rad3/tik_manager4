@@ -107,6 +107,7 @@ class Category(Entity):
         _work.add_property("creator", self.guard.user)
         _work.add_property("category", self.name)
         _work.add_property("dcc", self.guard.dcc)
+        _work.add_property("dcc_version", _work._dcc_handler.get_dcc_version())
         _work.add_property("versions", [])
         _work.add_property("work_id", _work.generate_id())
         _work.add_property("task_name", self.parent_task.name)

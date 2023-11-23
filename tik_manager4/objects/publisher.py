@@ -99,17 +99,15 @@ class Publisher():
         self._published_object.add_property("elements", [])
 
         self._published_object.apply_settings() # make sure the file is created
+        self._published_object.init_properties() # make sure the properties are initialized
         # add the publish to the work object
         # self._work_object
 
 
     def validate(self):
         """Validate the scene."""
-        print(self._dcc_handler.validations)
-
         for val_name, val_object in self._resolved_validators.items():
             val_object.validate()
-            print(val_object.state)
 
 
     def extract(self):
@@ -117,8 +115,6 @@ class Publisher():
         # first save the scene
         self._dcc_handler.save_scene()
         publish_path = Path(self._work_object.get_abs_project_path("publish", self._work_object.name))
-        print("publish_path", publish_path)
-
         for extract_type_name, extract_object in self._resolved_extractors.items():
             extract_object.category = self._work_object.category # define the category
             extract_object.extract_folder = str(publish_path) # define the extract folder
@@ -129,11 +125,15 @@ class Publisher():
     def publish(self):
         """Finalize the publish by updating the reserved slot."""
         # collect the extracted elements information and add to the publish object
+
+
+
         for extract_type_name, extract_object in self._resolved_extractors.items():
             element = {
                 "type": extract_object.name,
                 # get the relative path to the project
-                "path": Path(extract_object.resolve_output()).relative_to(self._work_object.guard.project_root).as_posix()
+                # "path": Path(extract_object.resolve_output()).relative_to(self._work_object.guard.project_root).as_posix()
+                "path": Path(extract_object.resolve_output()).relative_to(self._published_object.get_abs_project_path()).as_posix()
             }
             self._published_object._elements.append(element)
 

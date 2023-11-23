@@ -24,6 +24,7 @@ class Work(Settings, Entity):
         self._creator = self.guard.user
         self._category = None
         self._dcc = self.guard.dcc
+        self._dcc_version = None
         self._versions = []
         self._work_id = self._id
         self._task_name = None
@@ -55,6 +56,7 @@ class Work(Settings, Entity):
         self._creator = self.get_property("creator", self.guard.user)
         self._category = self.get_property("category", self._category)
         self._dcc = self.get_property("dcc", self.guard.dcc)
+        self._dcc_version = self.get_property("dcc_version", self._dcc_version)
         self._versions = self.get_property("versions", [])
         self._work_id = self.get_property("work_id", self._id)
         self._task_name = self.get_property("task_name", self._task_name)
@@ -73,6 +75,11 @@ class Work(Settings, Entity):
     def dcc(self):
         """Return the dcc of the work."""
         return self._dcc
+
+    @property
+    def dcc_version(self):
+        """Return the dcc version of the work."""
+        return self._dcc_version
 
     @property
     def id(self):
