@@ -48,6 +48,7 @@ class Feedback:
             "yes": "QtWidgets.QMessageBox.Yes",
             "save": "QtWidgets.QMessageBox.Save",
             "ok": "QtWidgets.QMessageBox.Ok",
+            "continue": "QtWidgets.QMessageBox.Yes",
             "no": "QtWidgets.QMessageBox.No",
             "cancel": "QtWidgets.QMessageBox.Cancel",
         }

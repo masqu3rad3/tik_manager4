@@ -29,8 +29,10 @@ class Dcc(DccTemplate):
         Returns:
             (long or int) Memory Adress
         """
-        win = omui.MQtUtil_mainWindow()
-        # dropping the py2 compatibility
+        try:
+            win = omui.MQtUtil_mainWindow()
+        except AttributeError: # Maya 2025 / Qt 6
+            win = omui.MQtUtil.mainWindow()
         ptr = QtCompat.wrapInstance(int(win), QtWidgets.QMainWindow)
         return ptr
 

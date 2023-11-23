@@ -1,7 +1,6 @@
 """Class to control and revert all panel properties"""
 
 from maya import cmds
-import six
 
 class Variable(object):
     def __init__(self, original=None, current=None):
@@ -250,7 +249,7 @@ class PanelManager(object):
     # Model Editors are for panel only properties. They dont need to be stored
 
     def set_editor_variable(self, variable, value):
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             cmd = "cmds.modelEditor(self._panel, e=True, {0}='{1}')".format(variable, value)
         else:
             cmd = "cmds.modelEditor(self._panel, e=True, {0}={1})".format(variable, value)

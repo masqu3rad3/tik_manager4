@@ -198,6 +198,17 @@ class User(object):
             assert (
                 self.common_directory
             ), "Commons Directory must be defined to continue"
+            if not Path(self.common_directory).is_dir():
+                answer = FEED.pop_question(
+                    title="Commons Directory does not exist",
+                    text=f"Defined Commons Directory does not exist. \n{self.common_directory}"
+                         f"Do you want to define a new Commons Directory?",
+                    buttons = ["yes", "cancel"]
+                )
+                if answer == "yes":
+                    self.common_directory = FEED.browse_directory()
+                else:
+                    raise Exception("Commons Directory does not exist. Exiting...")
         self.settings.edit_property("commonFolder", self.common_directory)
         self.settings.apply_settings()
 

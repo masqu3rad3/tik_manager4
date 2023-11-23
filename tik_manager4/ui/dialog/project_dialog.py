@@ -74,12 +74,9 @@ class SetProjectDialog(QtWidgets.QDialog):
         self.source_model.setNameFilterDisables(False)
         self.source_model.setNameFilters(["*"])
         self.source_model.setRootPath(self.main_object.project.folder)
-        self.source_model.setFilter(
-            QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time
-        )
+        self.source_model.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot)
         self.folders_tree.setModel(self.source_model)
         self.set_tree_root(self.main_object.project.folder)
-        # self.folders_tree.setRootIndex(self.source_model.index(self.main_object.project.root))
         self.folders_tree.setColumnWidth(0, 400)
         self.folders_tree.setColumnWidth(1, 0)
         self.folders_tree.setColumnWidth(2, 0)
