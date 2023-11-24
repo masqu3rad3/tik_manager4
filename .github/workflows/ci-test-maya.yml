@@ -1,0 +1,28 @@
+# This workflow will install Python dependencies and run tests
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Test Maya (Linux)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  maya2022:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+    - name: Run Unittests
+      uses: docker://mottosso/maya:2022 # For all available Maya versions, see https://github.com/mottosso/docker-maya
+      with:
+        args: /usr/autodesk/maya/bin/mayapy -m pytest ./tests/maya
+        
+        
+        
+
