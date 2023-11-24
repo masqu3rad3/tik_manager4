@@ -10,7 +10,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  maya2022:
+  maya2023:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -19,7 +19,7 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v2
     - name: Run Unittests
-      uses: docker://mottosso/maya:2022 # For all available Maya versions, see https://github.com/mottosso/docker-maya
+      uses: docker://mottosso/maya:2023 # For all available Maya versions, see https://github.com/mottosso/docker-maya
       with:
         args: /usr/autodesk/maya/bin/mayapy -m pytest ./tests/maya
         
