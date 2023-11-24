@@ -20,6 +20,11 @@ jobs:
       uses: actions/checkout@v2
     - name: Run Unittests
       uses: docker://mottosso/maya:2023 # For all available Maya versions, see https://github.com/mottosso/docker-maya
+    - name: Install dependencies
+      run: |
+          /usr/autodesk/maya/bin/mayapy -m pip install --upgrade pip
+          pip install .
+          pip install -r requirements-dev.txt
       with:
         args: /usr/autodesk/maya/bin/mayapy -m pytest ./tests/maya
         
