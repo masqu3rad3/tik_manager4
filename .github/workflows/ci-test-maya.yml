@@ -12,19 +12,32 @@ on:
 jobs:
   maya2023:
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
 
+    container: mottosso/maya:2023
+
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
-    - name: Deploy Maya
-      uses: docker://mottosso/maya:2023 # For all available Maya versions, see https://github.com/mottosso/docker-maya
-    - name: Install dependencies
-      run: |
-          /usr/autodesk/maya/bin/mayapy -m pip install --upgrade pip
-          pip install .
-          pip install -r requirements-dev.txt
-    - name: Test with pytest
-      run: |
-          /usr/autodesk/maya/bin/mayapy -m pytest ./tests/maya
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: pip install
+        run: |
+          wget https://bootstrap.pypa.io/pip/get-pip.py
+          mayapy get-pip.py --user
+          mayapy -m pip install --user \
+            nose==1.3.7 \
+            nose-exclude==0.5.0 \
+            coverage==5.5 \
+            flaky==3.7.0 \
+            docutils==0.17.1 \
+            sphinx==1.8.5 \
+            sphinxcontrib-napoleon==0.7 \
+            pytest==6.2.4
+      - name: Environment
+        run: |
+          export XDG_RUNTIME_DIR=/var/tmp/runtime-root
+          export MAYA_DISABLE_ADP=1
+      - name: Test with pytest
+        run: |
+          mayapy -m pytest ./tests/maya
