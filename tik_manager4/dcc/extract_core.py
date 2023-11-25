@@ -6,7 +6,7 @@ from tik_manager4.core import filelog
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
-class ExtractCore(object):
+class ExtractCore():
     def __init__(self):
         self._name: str = ""
         self._extension: str = ""

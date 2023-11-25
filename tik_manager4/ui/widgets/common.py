@@ -1,9 +1,8 @@
 """Common usage basic widgets."""
+import math
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui import pick
-
-FONT = QtGui.QFont("Arial", 10)
 
 BUTTON_STYLE = """
 QPushButton
@@ -50,68 +49,82 @@ QPushButton:pressed {
 
 class TikButton(QtWidgets.QPushButton):
     """Unified button class for the whole app."""
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, font_size=10, **kwargs):
         super(TikButton, self).__init__(*args, **kwargs)
         # make sure the button has a font defined for different OS scales
-        self.setFont(FONT)
+        self.set_font_size(font_size)
         self.setStyleSheet(BUTTON_STYLE)
+    def set_font_size(self, font_size):
+        self.setFont(QtGui.QFont("Arial", font_size))
 
 class TikIconButton(QtWidgets.QPushButton):
-    """Button specific for uniform sized icons."""
+    """Button specific for fixed sized icons."""
     style_sheet = """QPushButton[circle=true]
     {{
         color: #b1b1b1;
         background-color: #404040;
-        padding: 7px;
-        font-size: 12x;
         border-radius: {0};
-        border : 2px solid black;
-    }}"""
-    def __init__(self, icon_name=None, circle=True, *args, **kwargs):
+        border-style: solid;
+        border-color: green;
+        border-width: 1px;
+    }}
+    
+    QPushButton:disabled[circle=true] {{
+        color: #101010;
+        background-color: #101010;
+        border-radius: {0};
+        border-style: solid;
+        border-color: black;
+        border-width: 1px;
+    }}
+    
+    """
+    def __init__(self, icon_name=None, circle=True, size=22, *args, **kwargs):
         super(TikIconButton, self).__init__(*args, **kwargs)
-        self.setFont(FONT)
         self.setStyleSheet(BUTTON_STYLE)
         self.circle = circle
-        self.setFixedSize(22, 22)
-        self.setIconSize(QtCore.QSize(12, 12))
+        self.set_size(size)
+
         if icon_name:
             self.set_icon(icon_name)
-        # self.setIconSize(QtCore.QSize(20, 20))
-        # self.setStyleSheet(BUTTON_STYLE)
 
-    # def set_size(self, size):
-    #     self.resize(size, size)
-    #     self.setIconSize(QtCore.QSize(size-10, size-10))
-    #     self.setStyleSheet(BUTTON_STYLE)
     def set_icon(self, icon_name):
         self.setIcon(pick.icon(icon_name))
-        # get the current height of the button
-        # size = self.width() * 0.6
-        # self.setIconSize(QtCore.QSize(size, size))
 
-    def resizeEvent(self, _resize_event):
-        height = self.width()
-        self.setMinimumHeight(int(height))
-        self.setMaximumHeight(int(height))
-        _radius = int(height/2)
+    def set_size(self, size):
+        self.setFixedSize(size, size)
+        _radius = int(size * 0.5)
         if self.circle:
             self.setProperty("circle", True)
             self.setStyleSheet(self.styleSheet() + self.style_sheet.format(_radius))
+            circle_icon_size = int(self.square_to_circle_multiplier(size) * size)
+            self.setIconSize(QtCore.QSize(circle_icon_size, circle_icon_size))
         else:
             self.setProperty("circle", False)
-            # self.setStyleSheet(self.styleSheet()+(f"border-radius : 0px; border : 2px solid black"))
+            self.setFixedSize(size, size)
+            self.setIconSize(QtCore.QSize(size, size))
         self.style().unpolish(self)
         self.style().polish(self)
-        # size = self.width() * 0.6
 
-        # align the icon to center
+    @staticmethod
+    def square_to_circle_multiplier(side_length):
+        diagonal = math.sqrt(2) * side_length
+        radius = diagonal * 0.5
+        multiplier = radius / side_length
+        return multiplier
 
 
 class TikButtonBox(QtWidgets.QDialogButtonBox):
     """Unified button box class for the whole app."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, font_size=10, **kwargs):
         super(TikButtonBox, self).__init__(*args, **kwargs)
+        self.font_size = font_size
+        for button in self.buttons():
+            self.modifyButton(button)
+
+    def set_font_size(self, font_size):
+        self.font_size = font_size
         for button in self.buttons():
             self.modifyButton(button)
 
@@ -122,30 +135,36 @@ class TikButtonBox(QtWidgets.QDialogButtonBox):
         return super(TikButtonBox, self).event(event)
 
     def modifyButton(self, button):
-        button.setFont(FONT)
+        button.setFont(QtGui.QFont("Arial", self.font_size))
         button.setMinimumWidth(100)
         button.setStyleSheet(BUTTON_STYLE)
 
 
 class TikMessageBox(QtWidgets.QMessageBox):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, font_size=10, **kwargs):
         super(TikMessageBox, self).__init__(*args, **kwargs)
-        self.setFont(FONT)
+        self.set_font_size(font_size)
+
+    def set_font_size(self, font_size):
+        self.setFont(QtGui.QFont("Arial", font_size))
 
 
 class HeaderLabel(QtWidgets.QLabel):
     """Label with bold font and indent."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, font_size=10, **kwargs):
         super(HeaderLabel, self).__init__(*args, **kwargs)
         self.setProperty("header", True)
         self.setIndent(10)
         self.setMinimumHeight(30)
-        self.setFont(QtGui.QFont("Arial", 10, QtGui.QFont.Bold))
+        self.set_font_size(font_size)
         self.setFrameShape(QtWidgets.QFrame.Box)
 
         # center text
         self.setAlignment(QtCore.Qt.AlignCenter)
+
+    def set_font_size(self, font_size):
+        self.setFont(QtGui.QFont("Arial", font_size, QtGui.QFont.Bold))
 
     def set_color(self, color):
         self.setStyleSheet("color: {};".format(color))
@@ -154,12 +173,13 @@ class HeaderLabel(QtWidgets.QLabel):
 class ResolvedText(QtWidgets.QLabel):
     """Label for resolved paths, names etc."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, font_size=10, **kwargs):
         super(ResolvedText, self).__init__(*args, **kwargs)
-        self.setFont(QtGui.QFont("Arial", 10, QtGui.QFont.Bold))
-
+        self.set_font_size(font_size)
         # make is selectable
         self.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
+    def set_font_size(self, font_size):
+        self.setFont(QtGui.QFont("Arial", font_size, QtGui.QFont.Bold))
 
     def set_color(self, color):
         self.setStyleSheet("color: {};".format(color))

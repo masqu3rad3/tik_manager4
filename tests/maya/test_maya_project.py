@@ -117,9 +117,9 @@ class TestMayaProject():
             assert work_obj.name == project.publisher._work_object.name
             assert work_obj.id == project.publisher._work_object.id
             assert project.publisher.publish_version == count
-            if category == "Model":
-                assert project.publisher.extract_names == ["scene", "alembic"]
-                assert project.publisher.validation_names == ["unique_names", "forbidden_nodes"]
+            # if category == "Model":
+            #     assert project.publisher.extract_names == ["scene", "alembic"]
+            #     assert project.publisher.validation_names == ["unique_names", "forbidden_nodes"]
             # TODO add the extracts and validations as they are implemented
 
             assert project.publisher.relative_data_path == f"tikDatabase/test_subproject/test_task/{category}/Maya/publish/test_task_{category}_test_cube"

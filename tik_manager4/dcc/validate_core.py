@@ -1,19 +1,20 @@
 """Core class for validations."""
 
 
-class ValidateCore(object):
+class ValidateCore():
     """Core class for validations."""
-
+    name: str = ""
+    nice_name: str = ""
     def __init__(self, *args, **kwargs):
         """Initialize class."""
         self._args = args
         self._kwargs = kwargs
 
-        self.name: str = ""
-
         self.ignorable: bool = True
         self.autofixable: bool = False
         self.selectable: bool = False
+
+        self.collection = []
 
         self._state: str = "idle"
         self._fail_message: str = ""
@@ -42,6 +43,14 @@ class ValidateCore(object):
         else:
             raise ValueError("Validation is not ignorable.")
 
+    def collect(self):
+        """Collect the objects related to the validation.
+
+        collection list needs to be updated on this method.
+        self.collection = [obj1, obj2, ...]
+        """
+        pass
+
     def validate(self):
         """Validate the given arguments."""
         pass
@@ -52,4 +61,8 @@ class ValidateCore(object):
 
     def select(self):
         """Select the objects related to the validation."""
+        pass
+
+    def info(self):
+        """Information about the validation."""
         pass

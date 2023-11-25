@@ -1,7 +1,7 @@
 {
   "Model": {
     "type": "asset",
-    "validations": ["unique_names", "forbidden_nodes"],
+    "validations": ["unique_names", "forbidden_nodes", "overlapping_uvs", "locked_normals"],
     "extracts": ["scene", "alembic"]
   },
   "Assembly": {

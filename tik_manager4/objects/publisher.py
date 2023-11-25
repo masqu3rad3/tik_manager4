@@ -17,7 +17,6 @@ class Publisher():
     def __init__(self, project_object):
         """Initialize the Publisher object."""
         self._project_object = project_object
-        # self._work_object, self._work_version = project_object.get_current_work()
         self._work_object = None
         self._work_version = None
 
@@ -32,6 +31,16 @@ class Publisher():
         # classs variables
 
         self._published_object = None
+
+    @property
+    def validators(self):
+        """Return the validators."""
+        return self._resolved_validators
+
+    @property
+    def extractors(self):
+        """Return the extractors."""
+        return self._resolved_extractors
 
     def resolve(self):
         """Resolve the validations, extracts, variables, etc."""
@@ -145,15 +154,15 @@ class Publisher():
         """Return the resolved publish version."""
         return self._publish_version
 
-    @property
-    def extract_names(self):
-        """Return the resolved extract names."""
-        return list(self._resolved_extractors.keys())
-
-    @property
-    def validation_names(self):
-        """Return the resolved validation names."""
-        return list(self._resolved_validators.keys())
+    # @property
+    # def extract_names(self):
+    #     """Return the resolved extract names."""
+    #     return list(self._resolved_extractors.keys())
+    #
+    # @property
+    # def validation_names(self):
+    #     """Return the resolved validation names."""
+    #     return list(self._resolved_validators.keys())
 
     @property
     def publish_name(self):
