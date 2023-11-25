@@ -432,10 +432,6 @@ class MainUI(QtWidgets.QMainWindow):
         # get the version
         selected_version = self.versions_mcv.get_selected_version()
         selected_work_item.work.import_version(selected_version)
-        print(selected_work_item)
-        print(selected_version)
-        print("Not implemented yet.")
-        # TODO: implement import work
 
     def _ingest_success(self):
         """Callback function for the ingest success event."""

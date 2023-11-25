@@ -314,6 +314,7 @@ class NewVersionDialog(QtWidgets.QDialog):
 
         # Signals
         button_box.accepted.connect(self.on_create_version)
+        button_box.rejected.connect(self.reject)
         self.format_combo.currentTextChanged.connect(self.on_format_changed)
 
     def on_create_version(self):

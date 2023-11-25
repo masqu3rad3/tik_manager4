@@ -173,11 +173,17 @@ class Publisher():
     @property
     def relative_data_path(self):
         """Return the resolved relative path."""
-        return Path(self._abs_publish_data_folder).relative_to(self._work_object.guard.project_root).as_posix()
+        if self._work_object:
+            return Path(self._abs_publish_data_folder).relative_to(self._work_object.guard.project_root).as_posix()
+        else:
+            return None
 
     @property
     def relative_scene_path(self):
         """Return the resolved relative path."""
-        return Path(self._abs_publish_scene_folder).relative_to(self._work_object.guard.project_root).as_posix()
+        if self._work_object:
+            return Path(self._abs_publish_scene_folder).relative_to(self._work_object.guard.project_root).as_posix()
+        else:
+            return None
 
 
