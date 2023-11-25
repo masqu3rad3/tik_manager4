@@ -22,7 +22,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
 
         self.setWindowTitle("Publish Scene")
-        self.resize(800, 600)
+
 
         self.master_layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.master_layout)
@@ -48,40 +48,58 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         # left body widget and layout
         left_body_widget = QtWidgets.QWidget(splitter)
-        # self.left_body_widget.setMinimumSize(500, 500)
         left_body_widget.setMinimumHeight(500)
-        self.left_body_layout = QtWidgets.QVBoxLayout(left_body_widget)
-        self.left_body_layout.setContentsMargins(10, 2, 10, 10)
+        left_body_layout = QtWidgets.QVBoxLayout(left_body_widget)
 
         self.left_body_header_layout = QtWidgets.QVBoxLayout()
-        self.left_body_layout.addLayout(self.left_body_header_layout)
+        left_body_layout.addLayout(self.left_body_header_layout)
 
         # create a scroll area
-        left_body_scroll_area = QtWidgets.QScrollArea()
+        left_body_scroll_area = QtWidgets.QScrollArea(splitter)
         left_body_scroll_area.setFrameShape(QtWidgets.QFrame.NoFrame)
         left_body_scroll_area.setFrameShadow(QtWidgets.QFrame.Sunken)
         left_body_scroll_area.setWidgetResizable(True)
 
-        self.left_body_scroll_area_widget_contents = QtWidgets.QWidget()
-        # self.left_body_scroll_area_widget_contents.setSizePolicy(
-        #     QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
-        # )
+        left_body_scroll_area_widget_contents = QtWidgets.QWidget()
 
         self.left_body_scroll_area_v_lay = QtWidgets.QVBoxLayout(
-            self.left_body_scroll_area_widget_contents
+            left_body_scroll_area_widget_contents
         )
 
 
-        left_body_scroll_area.setWidget(self.left_body_scroll_area_widget_contents)
-        self.left_body_layout.addWidget(left_body_scroll_area)
+        left_body_scroll_area.setWidget(left_body_scroll_area_widget_contents)
+        left_body_layout.addWidget(left_body_scroll_area)
 
 
         # right body widget and layout
         right_body_widget = QtWidgets.QWidget(splitter)
-        self.right_body_layout = QtWidgets.QVBoxLayout(right_body_widget)
-        self.right_body_layout.setContentsMargins(10, 2, 10, 10)
+        right_body_widget.setMinimumHeight(500)
+        right_body_layout = QtWidgets.QVBoxLayout(right_body_widget)
+
+        self.right_body_header_layout = QtWidgets.QVBoxLayout()
+        right_body_layout.addLayout(self.right_body_header_layout)
+
+        # create a scroll area
+        right_body_scroll_area = QtWidgets.QScrollArea(splitter)
+        right_body_scroll_area.setFrameShape(QtWidgets.QFrame.NoFrame)
+        right_body_scroll_area.setFrameShadow(QtWidgets.QFrame.Sunken)
+        right_body_scroll_area.setWidgetResizable(True)
+
+        right_body_scroll_area_widget_contents = QtWidgets.QWidget()
+
+        self.right_body_scroll_area_v_lay = QtWidgets.QVBoxLayout(
+            right_body_scroll_area_widget_contents
+        )
+
+        right_body_scroll_area.setWidget(right_body_scroll_area_widget_contents)
+        right_body_layout.addWidget(right_body_scroll_area)
+
+        # self.right_body_layout = QtWidgets.QVBoxLayout(right_body_widget)
+        # self.right_body_layout.setContentsMargins(10, 2, 10, 10)
 
         self.build_ui()
+
+        self.resize(800, 600)
     def check_eligibility(self):
         """Checks if the current scene is eligible for publishing."""
         if not self.project.publisher._work_object:
@@ -113,9 +131,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
         # validations label
         # validations_label = HeaderLabel("Validations")
         validations_label = QtWidgets.QLabel("Validations")
-        # validations_label.set_color("orange")
         validations_label.setStyleSheet("font-size: 14px; font-weight: bold;")
-        # self.left_body_layout.addWidget(validations_label)
         self.left_body_header_layout.addWidget(validations_label)
         separator = QtWidgets.QLabel()
         separator.setFrameShape(QtWidgets.QFrame.HLine)
@@ -128,28 +144,29 @@ class PublishSceneDialog(QtWidgets.QDialog):
         # -------------------
         for i in range(5):
             validate_row = ValidateRow()
-            # self.left_body_layout.addLayout(validate_row)
             self.left_body_scroll_area_v_lay.addLayout(validate_row)
         # -------------------
         self.left_body_scroll_area_v_lay.addStretch()
 
 
         # left_body_header = TikButton("Left Body Header")
-        # self.left_body_layout.addWidget(left_body_header)
         # right body layout
-        right_body_header = TikButton("Right Body Header")
-        self.right_body_layout.addWidget(right_body_header)
+        extracts_label = QtWidgets.QLabel("Extracts")
+        extracts_label.setStyleSheet("font-size: 14px; font-weight: bold;")
+        self.right_body_header_layout.addWidget(extracts_label)
+        separator = QtWidgets.QLabel()
+        separator.setFrameShape(QtWidgets.QFrame.HLine)
+        separator.setFrameShadow(QtWidgets.QFrame.Sunken)
+        separator.setStyleSheet("background-color: rgb(221, 160, 221);")
+        separator.setFixedHeight(1)
+        self.right_body_header_layout.addWidget(separator)
 
-        # icon_button1 = TikIconButton(icon_name="info.png")
-        # icon_button1.setFixedSize(30, 30)
-        # icon_button2 = TikIconButton(icon_name="select.png")
-        # icon_button2.setFixedSize(30, 30)
-        # icon_button3 = TikIconButton(icon_name="fix.png")
-        # icon_button3.setFixedSize(30, 30)
-        # self.right_body_layout.addWidget(icon_button1)
-        # self.right_body_layout.addWidget(icon_button2)
-        # self.right_body_layout.addWidget(icon_button3)
-        # -- TEST -- [END]
+        # ADD EXTRACTS HERE
+        # -------------------
+        right_body_header = TikButton("Right Body Header")
+        self.right_body_scroll_area_v_lay.addWidget(right_body_header)
+        # -------------------
+        self.right_body_scroll_area_v_lay.addStretch()
 
 
 
