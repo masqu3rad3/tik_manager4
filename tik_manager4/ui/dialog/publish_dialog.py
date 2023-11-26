@@ -1,7 +1,7 @@
 """Dialogs for publishing files."""
-
+from time import time
 from tik_manager4.ui.Qt import QtWidgets, QtCore
-from tik_manager4.ui.widgets.common import HeaderLabel, ResolvedText, TikButtonBox, TikButton, TikIconButton
+from tik_manager4.ui.widgets.common import TikLabel, HeaderLabel, ResolvedText, TikButtonBox, TikButton, TikIconButton
 
 from tik_manager4.ui.dialog.feedback import Feedback
 
@@ -11,6 +11,11 @@ class PublishSceneDialog(QtWidgets.QDialog):
     def __init__(self, project_object, *args, **kwargs):
         """Initialize the PublishSceneDialog."""
         super(PublishSceneDialog, self).__init__(*args, **kwargs)
+
+        # DYNAMIC ATTRIBUTES
+        self._validator_widgets = []
+        self._extractor_widgets = []
+
 
         # instanciate the publisher class
         self.feedback = Feedback(parent=self)
@@ -26,6 +31,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
         self.setLayout(self.master_layout)
 
         self.header_layout = QtWidgets.QVBoxLayout()
+        self.header_layout.setContentsMargins(0, 10, 0, 0)
         self.master_layout.addLayout(self.header_layout)
 
         self.body_layout = QtWidgets.QHBoxLayout()
@@ -38,7 +44,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
         self.master_layout.addLayout(self.buttons_layout)
 
         splitter = QtWidgets.QSplitter(self)
-        splitter.setHandleWidth(3)
+        splitter.setHandleWidth(5)
 
         self.body_layout.addWidget(splitter)
         splitter.setFrameShape(QtWidgets.QFrame.NoFrame)
@@ -97,7 +103,11 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         self.build_ui()
 
-        self.resize(1000, 600)
+        self.resize(800, 600)
+
+        splitter.setSizes([600, 400])
+
+
 
     def check_eligibility(self):
         """Checks if the current scene is eligible for publishing."""
@@ -110,25 +120,29 @@ class PublishSceneDialog(QtWidgets.QDialog):
             return
 
     def build_ui(self):
-        header = HeaderLabel("Publish Scene")
-        header.set_color("orange")
-        self.header_layout.addWidget(header)
+
+        path_layout = QtWidgets.QHBoxLayout()
+        self.header_layout.addLayout(path_layout)
+        name_layout = QtWidgets.QHBoxLayout()
+        self.header_layout.addLayout(name_layout)
+
+        path_header = TikLabel(text="Path: ")
+        path_layout.addWidget(path_header)
+        name_header = TikLabel(text="Name: ")
+        name_layout.addWidget(name_header)
 
         # resolved path
         path = self.project.publisher.relative_scene_path or "Path Not Resolved"
         path_label = ResolvedText(path)
-        self.header_layout.addWidget(path_label)
-        path_label.set_color("gray")
+        path_layout.addWidget(path_label)
+        path_label.set_color("white")
+        path_layout.addStretch()
         name = self.project.publisher.publish_name or "Name Not Resolved"
         name_label = ResolvedText(name)
         name_label.set_color("green")
-        self.header_layout.addWidget(name_label)
+        name_layout.addWidget(name_label)
+        name_layout.addStretch()
 
-        # -- TEST --
-        # put some test buttons inside left and right body layouts
-        # left body layout
-        # validations label
-        # validations_label = HeaderLabel("Validations")
         validations_label = QtWidgets.QLabel("Validations")
         validations_label.setStyleSheet("font-size: 14px; font-weight: bold;")
         self.left_body_header_layout.addWidget(validations_label)
@@ -144,14 +158,10 @@ class PublishSceneDialog(QtWidgets.QDialog):
         for validator_name, validator in self.project.publisher.validators.items():
             validate_row = ValidateRow(validator_object=validator)
             self.left_body_scroll_area_v_lay.addLayout(validate_row)
-        # for i in range(5):
-        #     validate_row = ValidateRow()
-        #     self.left_body_scroll_area_v_lay.addLayout(validate_row)
+            self._validator_widgets.append(validate_row)
         # -------------------
         self.left_body_scroll_area_v_lay.addStretch()
 
-
-        # left_body_header = TikButton("Left Body Header")
         # right body layout
         extracts_label = QtWidgets.QLabel("Extracts")
         extracts_label.setStyleSheet("font-size: 14px; font-weight: bold;")
@@ -165,26 +175,37 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         # ADD EXTRACTS HERE
         # -------------------
-        for i in range(5):
-            extract_row = ExtractRow()
+        for extractor_name, extractor in self.project.publisher.extractors.items():
+            extract_row = ExtractRow(extract_object=extractor)
             self.right_body_scroll_area_v_lay.addLayout(extract_row)
-        # right_body_header = TikButton("Right Body Header")
-        # self.right_body_scroll_area_v_lay.addWidget(right_body_header)
+            self._extractor_widgets.append(extract_row)
         # -------------------
         self.right_body_scroll_area_v_lay.addStretch()
 
-
-
         # buttons layout
-        # self.buttons_layout.addStretch()
         button_box = TikButtonBox()
-        button_box.addButton("Validate", QtWidgets.QDialogButtonBox.YesRole)
-        button_box.addButton("Publish", QtWidgets.QDialogButtonBox.AcceptRole)
+        validate_pb = button_box.addButton("Validate", QtWidgets.QDialogButtonBox.YesRole)
+        publish_pb = button_box.addButton("Publish", QtWidgets.QDialogButtonBox.AcceptRole)
         button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
         self.buttons_layout.addWidget(button_box)
 
         # SIGNALS
         button_box.rejected.connect(self.reject)
+        validate_pb.clicked.connect(self.validate_all)
+        # # connect the publish button to publish the scene
+        # publish_button = button_box.button("Publish")
+        # publish_button.clicked.connect(self.publish)
+
+
+    def validate_all(self):
+        """Validate all the validators."""
+        for validator_widget in self._validator_widgets:
+            # if it is already validated or unchecked skip
+            if validator_widget.validator.state == "passed" or not validator_widget.checkbox.isChecked():
+                continue
+            validator_widget.validate()
+            # keep updating the ui
+            QtWidgets.QApplication.processEvents()
 
 class ValidateRow(QtWidgets.QHBoxLayout):
     """Custom Layout for validation rows."""
@@ -208,7 +229,7 @@ class ValidateRow(QtWidgets.QHBoxLayout):
 
         # checkbox
         self.checkbox = QtWidgets.QCheckBox()
-        self.checkbox.setChecked(True)
+        self.checkbox.setChecked(self.validator.checked_by_default)
         self.addWidget(self.checkbox)
 
         # button
@@ -238,9 +259,12 @@ class ValidateRow(QtWidgets.QHBoxLayout):
 
     def validate(self):
         """Validate the validator."""
-        print("VALIDATING...")
+        start = time()
+        print(f"validating {self.button.text()}...")
         self.validator.validate()
         self.update_state()
+        end = time()
+        print(f"took {end-start} seconds")
 
     def pop_info(self):
         """Pop up an information dialog for informing the user what went wrong."""
@@ -314,7 +338,7 @@ class ValidateRow(QtWidgets.QHBoxLayout):
 
 class ExtractRow(QtWidgets.QHBoxLayout):
     """Custom Layout for extract rows."""
-    def __init__(self, extract_object=None, *args, **kwargs):
+    def __init__(self, extract_object, *args, **kwargs):
         """Initialize the ExtractRow."""
         super(ExtractRow, self).__init__(*args, **kwargs)
         self.extract = extract_object
@@ -332,18 +356,19 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         self.addWidget(self.status_icon)
 
         # checkbox
-        self.checkbox = QtWidgets.QCheckBox()
-        self.addWidget(self.checkbox)
+        # self.checkbox = QtWidgets.QCheckBox()
+        # self.addWidget(self.checkbox)
 
         # button
-        self.label = HeaderLabel(text="Source") # TODO: change this with self.extractor.name
+        self.label = HeaderLabel(text=self.extract.nice_name or self.extract.name)
+        self.label.set_color(self.extract.color)
         # stretch it to the layout
         self.label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.label.setFixedHeight(32)
         self.addWidget(self.label)
 
         # maintenance icons
-        self.info = TikIconButton(icon_name=self.label.text().lower(), circle=True)
+        self.info = TikIconButton(icon_name=self.extract.name, circle=True)
         self.info.set_size(32)
         self.addWidget(self.info)
 

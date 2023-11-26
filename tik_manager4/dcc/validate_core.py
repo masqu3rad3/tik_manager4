@@ -5,6 +5,7 @@ class ValidateCore():
     """Core class for validations."""
     name: str = ""
     nice_name: str = ""
+    checked_by_default: bool = True
     def __init__(self, *args, **kwargs):
         """Initialize class."""
         self._args = args

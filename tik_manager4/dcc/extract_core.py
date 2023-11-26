@@ -7,22 +7,17 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class ExtractCore():
+    name: str = ""
+    nice_name: str = ""
+    color: tuple = (255, 255, 255) # RGB
     def __init__(self):
-        self._name: str = ""
+        # self._name: str = ""
         self._extension: str = ""
         self._extract_folder: str = ""
         self._category: str = ""
         self._status = "idle"
 
         self.category_functions = {}
-
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, name):
-        self._name = name
 
     @property
     def extension(self):

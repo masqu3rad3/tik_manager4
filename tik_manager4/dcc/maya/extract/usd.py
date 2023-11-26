@@ -5,23 +5,23 @@ from maya import OpenMaya as om
 from tik_manager4.dcc.extract_core import ExtractCore
 
 # The Collector will only collect classes inherit ExtractCore
-class Alembic(ExtractCore):
+class Usd(ExtractCore):
     """Extract Alembic from Maya scene"""
-    name = "alembic" # IMPORTANT. Must match to the one in category_definitions.json
-    nice_name = "Alembic"
-    color = (244, 132, 132)
+    name = "usd" # IMPORTANT. Must match to the one in category_definitions.json
+    nice_name = "USD"
+    color = (71, 143, 203)
     def __init__(self):
-        super(Alembic, self).__init__()
-        if not cmds.pluginInfo("AbcExport", loaded=True, query=True):
+        super(Usd, self).__init__()
+        if not cmds.pluginInfo("mayaUsdPlugin", loaded=True, query=True):
             try:
-                cmds.loadPlugin("AbcExport")
+                cmds.loadPlugin("mayaUsdPlugin")
             except Exception as e:
-                om.MGlobal.displayInfo("Alembic Plugin cannot be initialized")
+                om.MGlobal.displayInfo("USD Plugin cannot be initialized")
                 raise e
 
-        om.MGlobal.displayInfo("Alembic Extractor loaded")
+        om.MGlobal.displayInfo("USD Extractor loaded")
 
-        self._extension = ".abc"
+        self._extension = ".usd"
         # Category names must match to the ones in category_definitions.json (case sensitive)
         self.category_functions = {"Model": self._extract_model,
                                    "Animation": self._extract_animation,
@@ -30,9 +30,7 @@ class Alembic(ExtractCore):
     def _extract_model(self):
         """Extract method for model category"""
         _file_path = self.resolve_output()
-        _flags = "-frameRange 0 0 -ro -uvWrite -worldSpace -writeUVSets -writeVisibility -dataFormat ogawa"
-        command = "{0} -file {1}".format(_flags, _file_path)
-        cmds.AbcExport(j=command)
+        cmds.file(_file_path, force=True, type="USD Export", prompt=False, exportAll=True, options=";exportUVs=1;exportSkels=none;exportSkin=none;exportBlendShapes=0;exportDisplayColor=0;;exportColorSets=1;exportComponentTags=1;defaultMeshScheme=catmullClark;animation=0;eulerFilter=0;staticSingleSample=0;startTime=1;endTime=1;frameStride=1;frameSample=0.0;defaultUSDFormat=usdc;parentScope=;shadingMode=useRegistry;convertMaterialsTo=[UsdPreviewSurface,MaterialX];exportInstances=1;exportVisibility=1;mergeTransformAndShape=1;stripNamespaces=0;materialsScopeName=mtl")
 
     def _extract_animation(self):
         """Extract method for animation category"""
