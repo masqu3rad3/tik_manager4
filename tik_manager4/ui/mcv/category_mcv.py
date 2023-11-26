@@ -515,7 +515,9 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
             works = self.task.categories[self._last_category].works
             self.work_tree_view.model.set_works(works.values())
         else:
-            # clear the model view
+            # get the publishes from the works
+            # works = self.task.categories[self._last_category].works
+            # publishes = works.publishes
             self.work_tree_view.model.clear()
             # self.mode_changed.emit("publish")
             pass

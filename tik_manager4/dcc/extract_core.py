@@ -16,8 +16,16 @@ class ExtractCore():
         self._extract_folder: str = ""
         self._category: str = ""
         self._status = "idle"
-
+        self._extract_name = ""
         self.category_functions = {}
+
+    @property
+    def extract_name(self):
+        return self._extract_name
+
+    @extract_name.setter
+    def extract_name(self, name):
+        self._extract_name = name
 
     @property
     def extension(self):
@@ -66,5 +74,5 @@ class ExtractCore():
 
     def resolve_output(self):
         """Resolve the output path"""
-        output_path = Path(self.extract_folder) / f"{self.name}{self.extension}"
+        output_path = Path(self.extract_folder) / f"{self._extract_name}{self.extension}"
         return str(output_path)
