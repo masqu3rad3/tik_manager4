@@ -132,11 +132,15 @@ class Publisher():
 
 
     def publish(self):
-        """Finalize the publish by updating the reserved slot."""
+        """Finalize the publish by updating the reserved slot."""\
+
+        # collect the validation states and log it into the publish object
+        validations = {}
+        for validation_name, validation_object in self._resolved_validators.items():
+            validations[validation_name] = validation_object.state
+        self._published_object.add_property("validations", validations)
+
         # collect the extracted elements information and add to the publish object
-
-
-
         for extract_type_name, extract_object in self._resolved_extractors.items():
             element = {
                 "type": extract_object.name,

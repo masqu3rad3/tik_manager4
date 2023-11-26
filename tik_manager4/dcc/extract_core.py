@@ -66,5 +66,5 @@ class ExtractCore():
 
     def resolve_output(self):
         """Resolve the output path"""
-        output_path = Path(self.extract_folder) / f"{self.extract_name}{self.extension}"
+        output_path = Path(self.extract_folder) / f"{self.name}{self.extension}"
         return str(output_path)

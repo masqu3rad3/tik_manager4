@@ -28,6 +28,11 @@ class ValidateCore():
     def fail_message(self):
         return self._fail_message
 
+    def reset(self):
+        """Reset the validation."""
+        self._state = "idle"
+        self._fail_message = ""
+
     def failed(self, msg: str = ""):
         """Set the validation as failed."""
         self._state = "failed"

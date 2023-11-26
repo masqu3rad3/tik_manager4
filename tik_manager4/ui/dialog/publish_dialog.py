@@ -1,10 +1,12 @@
 """Dialogs for publishing files."""
 from time import time
+import logging
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 from tik_manager4.ui.widgets.common import TikLabel, HeaderLabel, ResolvedText, TikButtonBox, TikButton, TikIconButton
 
 from tik_manager4.ui.dialog.feedback import Feedback
 
+LOG = logging.getLogger(__name__)
 
 class PublishSceneDialog(QtWidgets.QDialog):
     """Publishes the current scene."""
@@ -195,10 +197,12 @@ class PublishSceneDialog(QtWidgets.QDialog):
         # # connect the publish button to publish the scene
         # publish_button = button_box.button("Publish")
         # publish_button.clicked.connect(self.publish)
+        publish_pb.clicked.connect(self.publish)
 
 
     def validate_all(self):
         """Validate all the validators."""
+        self.reset_validators()
         for validator_widget in self._validator_widgets:
             # if it is already validated or unchecked skip
             if validator_widget.validator.state == "passed" or not validator_widget.checkbox.isChecked():
@@ -207,12 +211,70 @@ class PublishSceneDialog(QtWidgets.QDialog):
             # keep updating the ui
             QtWidgets.QApplication.processEvents()
 
+    def reset_validators(self):
+        """If the scene is modified it will reset all the validators."""
+        if self.project.publisher._dcc_handler.is_modified():
+            for validator_widget in self._validator_widgets:
+                validator_widget.reset()
+                validator_widget.update_state()
+
+    def check_validation_state(self):
+        """Check all validations and return current state."""
+        passes = []
+        warnings = []
+        fails = []
+        idle = []
+        for validator_widget in self._validator_widgets:
+            if validator_widget.validator.state != "passed":
+                passes.append(validator_widget.name)
+            if validator_widget.validator.state == "idle":
+                idle.append(validator_widget.name)
+            if validator_widget.validator.state == "failed":
+                if validator_widget.validator.ignorable:
+                    warnings.append(validator_widget.name)
+                else:
+                    fails.append(validator_widget.name)
+        return passes, warnings, fails, idle
+
+    def publish(self):
+        """Command to publish the scene."""
+        self.reset_validators() # only resets if the scene is modified
+        self.validate_all()
+        # check the state of the validations
+        passes, warnings, fails, idle = self.check_validation_state()
+        # if there are fails, pop up a dialog
+        if fails:
+            self.feedback.pop_info(title="Validation Failed", text=f"Validation failed for: \n\n{fails}\n\nPlease fix the validation issues before publishing.")
+            return
+        # if there are warnings, pop up a dialog
+        if warnings:
+            q = self.feedback.pop_question(title="Validation Warnings", text=f"Validation warnings for: \n\n{warnings}\n\nDo you want IGNORE them and continue?", buttons=["continue", "cancel"])
+            if q == "cancel":
+                return
+
+        # reserve the slot
+        self.project.publisher.reserve()
+        # extract the elements
+        self.project.publisher.extract()
+        # finalize publish
+        self.project.publisher.publish()
+        # prepare publish report and feedback
+        if warnings:
+            msg = f"Publish Successful with following warnings:\n\n{warnings}"
+        else:
+            msg = f"Publish Successful"
+        self.feedback.pop_info(title="Publish Successful", text=msg)
+        self.close()
+        self.deleteLater()
+
+
 class ValidateRow(QtWidgets.QHBoxLayout):
     """Custom Layout for validation rows."""
     def __init__(self, validator_object, *args, **kwargs):
         """Initialize the ValidateRow."""
         super(ValidateRow, self).__init__(*args, **kwargs)
         self.validator = validator_object
+        self.name = self.validator.nice_name or self.validator.name
         self.build_widgets()
         self.update_state()
 
@@ -233,7 +295,7 @@ class ValidateRow(QtWidgets.QHBoxLayout):
         self.addWidget(self.checkbox)
 
         # button
-        self.button = TikButton(text=self.validator.nice_name or self.validator.name)
+        self.button = TikButton(text=self.name)
         # stretch it to the layout
         self.button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.button.setFixedHeight(26)
@@ -260,11 +322,11 @@ class ValidateRow(QtWidgets.QHBoxLayout):
     def validate(self):
         """Validate the validator."""
         start = time()
-        print(f"validating {self.button.text()}...")
+        LOG.info(f"validating {self.button.text()}...")
         self.validator.validate()
         self.update_state()
         end = time()
-        print(f"took {end-start} seconds")
+        LOG.info(f"took {end-start} seconds")
 
     def pop_info(self):
         """Pop up an information dialog for informing the user what went wrong."""
@@ -273,18 +335,25 @@ class ValidateRow(QtWidgets.QHBoxLayout):
 
     def fix(self):
         """Auto Fix the scene."""
-        print("FIXING...")
+        start = time()
+        LOG.info(f"fixing {self.button.text()}...")
         self.validator.fix()
         self.validator.validate()
         if self.validator.state != "passed":
             # TODO: dialog or some kind of feedback
             pass
         self.update_state()
+        end = time()
+        LOG.info(f"took {end - start} seconds")
 
     def select(self):
         """Select the objects related to the validator."""
-        print("SELECTING...")
         self.validator.select()
+        self.update_state()
+
+    def reset(self):
+        """Reset the validator."""
+        self.validator.reset()
         self.update_state()
 
     def update_state(self):
