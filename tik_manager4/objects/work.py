@@ -9,6 +9,7 @@ from tik_manager4.core.settings import Settings
 from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.publish import Publish
+from tik_manager4.objects.publish import PublishVersion
 from tik_manager4 import dcc
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
@@ -35,6 +36,9 @@ class Work(Settings, Entity):
         self._state = "working"
 
         self.modified_time = None  # to compare and update if necessary
+
+        self.publish = Publish(self) # publish object does not have a settings file, the publish versions do
+
 
         self._publishes = {}
         # self._publishes = []
@@ -106,11 +110,11 @@ class Work(Settings, Entity):
         """Return the category of the work."""
         return self._category
 
-    @property
-    def publishes(self):
-        """Return the publishes has been made from this work."""
-        self.scan_publishes()
-        return self._publishes
+    # @property
+    # def publishes(self):
+    #     """Return the publishes has been made from this work."""
+    #     self.scan_publishes()
+    #     return self._publishes
 
     @property
     def versions(self):
@@ -138,34 +142,34 @@ class Work(Settings, Entity):
         self.edit_property("state", self._state)
         self.apply_settings()
 
-    def scan_publishes(self):
-        """Scan the publishes from the publish folder."""
-        _search_dir = Path(self.get_abs_database_path("publish", self._name))
-        if not _search_dir.exists():
-            return {}
-        _publish_paths = _search_dir.glob("*.tpub")
-
-        # self._publishes.clear()
-        #
-        # for _publish_path in _publish_paths:
-        #     _publish = Publish(_publish_path)
-        #     self._publishes[_publish_path] = _publish
-
-        # add the file if it is new. if it is not new,
-        # check the modified time and update if necessary
-        for _p_path, _p_data in dict(self._publishes).items():
-            if _p_path not in _publish_paths:
-                self._publishes.pop(_p_path)
-        for _publish_path in _publish_paths:
-            existing_publish = self._publishes.get(_publish_path, None)
-            if not existing_publish:
-                _publish = Publish(_publish_path)
-                self._publishes[_publish_path] = _publish
-            else:
-                if existing_publish.is_modified():
-                    existing_publish.reload()
-
-        return self._publishes
+    # def scan_publishes(self):
+    #     """Scan the publishes from the publish folder."""
+    #     _search_dir = Path(self.get_abs_database_path("publish", self._name))
+    #     if not _search_dir.exists():
+    #         return {}
+    #     _publish_paths = _search_dir.glob("*.tpub")
+    #
+    #     # self._publishes.clear()
+    #     #
+    #     # for _publish_path in _publish_paths:
+    #     #     _publish = Publish(_publish_path)
+    #     #     self._publishes[_publish_path] = _publish
+    #
+    #     # add the file if it is new. if it is not new,
+    #     # check the modified time and update if necessary
+    #     for _p_path, _p_data in dict(self._publishes).items():
+    #         if _p_path not in _publish_paths:
+    #             self._publishes.pop(_p_path)
+    #     for _publish_path in _publish_paths:
+    #         existing_publish = self._publishes.get(_publish_path, None)
+    #         if not existing_publish:
+    #             _publish = PublishVersion(_publish_path)
+    #             self._publishes[_publish_path] = _publish
+    #         else:
+    #             if existing_publish.is_modified():
+    #                 existing_publish.reload()
+    #
+    #     return self._publishes
 
 
 

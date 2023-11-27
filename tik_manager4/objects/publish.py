@@ -1,16 +1,102 @@
 # pylint: disable=super-with-arguments
-# pylint: disable=consider-using-f-string
-import pathlib
+"""Publish object module."""
+
+from pathlib import Path
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.entity import Entity
 from tik_manager4 import dcc
 
 
-class Publish(Settings, Entity):
+class Publish(Entity):
+    """Class to represent a publish.
+
+    This class is not represented by a file. Publish-PublishVersion relationship
+    is opposite of Work-WorkVersion relationship. PublishVersions have database files,
+    Publishes don't.
+    """
+
+    def __init__(self, work_object):
+        """Initialize the publish object."""
+        super(Publish, self).__init__()
+        self._work_object = work_object
+
+        self._publish_versions = {}
+
+    @property
+    def name(self):
+        """Return the name of the publish."""
+        return self._work_object.name
+
+    @property
+    def publish_id(self):
+        """Return the publish id of the publish."""
+        return self._work_object.id
+
+    @property
+    def path(self):
+        """Return the path of the publish."""
+        return Path(self._work_object.path, "publish").as_posix()
+
+    @property
+    def dcc(self):
+        """Return the dcc of the publish."""
+        return self._work_object.dcc
+
+    @property
+    def versions(self):
+        """Return the publish versions of the publish."""
+        self.scan_publish_versions()
+        return self._publish_versions
+
+    @property
+    def version_count(self):
+        """Return the number of publish versions."""
+        return len(list(self.versions.keys()))
+
+    def get_last_version(self):
+        """Return the last publish version."""
+        # find the latest publish version
+        _publish_version_numbers = [data.version for publish_path, data in self.versions.items()]
+        return 0 if not _publish_version_numbers else max(_publish_version_numbers)
+
+    def get_publish_data_folder(self):
+        """Return the publish data folder."""
+        return self._work_object.get_abs_database_path("publish", self._work_object.name)
+
+    def get_publish_scene_folder(self):
+        """Return the publish scene folder."""
+        return self._work_object.get_abs_project_path("publish", self._work_object.name)
+
+    def scan_publish_versions(self):
+        """Get the publish versions in the publish folder."""
+        # search directory is resolved from the work object
+        _search_dir = Path(self.get_publish_data_folder())
+        if not _search_dir.exists():
+            return {}
+        _publish_version_paths = _search_dir.glob("*.tpub")
+
+        for _p_path, _p_data in dict(self._publish_versions).items():
+            if _p_path not in _publish_version_paths:
+                self._publish_versions.pop(_p_path)
+        for _publish_version_path in _publish_version_paths:
+            existing_publish = self._publish_versions.get(_publish_version_path, None)
+            if not existing_publish:
+                _publish = PublishVersion(_publish_version_path)
+                self._publish_versions[_publish_version_path] = _publish
+            else:
+                if existing_publish.is_modified():
+                    existing_publish.reload()
+
+        return self._publish_versions
+
+
+class PublishVersion(Settings, Entity):
+    """PublishVersion object class."""
     _dcc_handler = dcc.Dcc()
 
     def __init__(self, absolute_path, name=None, path=None):
-        super(Publish, self).__init__()
+        """Initialize the publish version object."""
+        super(PublishVersion, self).__init__()
         self.settings_file = absolute_path
 
         self._name = name
@@ -31,7 +117,7 @@ class Publish(Settings, Entity):
         self.init_properties()
 
         # get the current folder path
-        _folder = pathlib.Path(self.settings_file).parent
+        _folder = Path(self.settings_file).parent
         promoted_file = _folder / "promoted.json"
         self._promoted_object = Settings(promoted_file)
 
@@ -49,8 +135,6 @@ class Publish(Settings, Entity):
         self._relative_path = self.get_property("path", self._relative_path)
         self._dcc_version = self.get_property("dcc_version", self._dcc_version)
         self._elements = self.get_property("elements", self._elements)
-
-
 
     @property
     def creator(self):
@@ -121,6 +205,3 @@ class Publish(Settings, Entity):
         }
         self._promoted_object.set_data(_data)
         self._promoted_object.apply_settings()
-
-
-

@@ -51,9 +51,10 @@ class TikWorkItem(QtGui.QStandardItem):
 class TikPublishItem(QtGui.QStandardItem):
     color_dict = {
         # cyan for scene
-        "scene": (0, 255, 255),
+        "publish": (0, 255, 255),
         # magenta for elements
-        "elements": (255, 0, 255),
+        "element": (255, 0, 255),
+        "promoted": (0, 255, 0),
     }
 
     def __init__(self, publish_obj):
@@ -66,8 +67,9 @@ class TikPublishItem(QtGui.QStandardItem):
         self.setEditable(False)
 
         self.setFont(fnt)
-        self.setText(publish_obj.name)
+        self.setText(str(publish_obj.name))
         self.state = None
+        self.setForeground(QtGui.QColor(*self.color_dict["publish"]))
 
 
 class TikCategoryModel(QtGui.QStandardItemModel):
@@ -88,11 +90,37 @@ class TikCategoryModel(QtGui.QStandardItemModel):
         # TODO: validate
         self._works = works_list
         self.populate()
+    def set_publishes(self, publishes_list):
+        self._publishes = publishes_list
+        self.populate(publishes=True)
 
-    def populate(self):
+    def populate(self, publishes=False):
         self.clear()
-        for work in self._works:
-            self.append_work(work)
+        if not publishes:
+            for work in self._works:
+                self.append_work(work)
+        else:
+            for publish in self._publishes:
+                self.append_publish(publish)
+
+    def append_publish(self, publish):
+        """Append a publish to the model."""
+        _item = TikPublishItem(publish)
+        pid = QtGui.QStandardItem(str(publish.publish_id))
+        path = QtGui.QStandardItem(publish.path)
+        creator = QtGui.QStandardItem("NA")
+        dcc = QtGui.QStandardItem(publish.dcc)
+        date = QtGui.QStandardItem("NA")
+        version_count = QtGui.QStandardItem(str(publish.version_count))
+
+        self.appendRow([_item, pid, path, creator, dcc, date, version_count])
+
+        # test
+        test = TikPublishItem(publish)
+        _item.appendRow([test, pid, path, creator, dcc, date, version_count])
+        # test [END]
+
+        return _item
 
     def append_work(self, work):
         """Append a work to the model."""
@@ -511,16 +539,17 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         """Do this when the category tab changes."""
         # get the current tab name
         self._last_category = self.category_tab_widget.tabText(index)
+        works = self.task.categories[self._last_category].works
         if self.mode == 0 and self._last_category:
-            works = self.task.categories[self._last_category].works
             self.work_tree_view.model.set_works(works.values())
         else:
             # get the publishes from the works
-            # works = self.task.categories[self._last_category].works
-            # publishes = works.publishes
-            self.work_tree_view.model.clear()
-            # self.mode_changed.emit("publish")
-            pass
+            _publishes = [work_obj.publish for work_obj in works.values()]
+            self.work_tree_view.model.set_publishes(_publishes)
+            # make the tree view to show the branches
+            self.work_tree_view.setRootIsDecorated(True)
+            # expand all the items
+            self.work_tree_view.expandAll()
 
     def clear(self):
         """Refresh the layout"""

@@ -9,7 +9,7 @@ from tik_manager4.core import filelog
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 from tik_manager4 import dcc
-from tik_manager4.objects.publish import Publish
+from tik_manager4.objects.publish import PublishVersion
 
 class Publisher():
     _dcc_handler = dcc.Dcc()
@@ -66,18 +66,21 @@ class Publisher():
             else:
                 LOG.warning("Validation {0} defined in category settings but it is not available on {1}".format(validation, self._dcc_handler.name))
 
-        # resolve the publish data path
-        _publishes = self._work_object.scan_publishes()
+        latest_publish_version = self._work_object.publish.get_last_version()
+        # # resolve the publish data path
+        # _publishes = self._work_object.scan_publishes()
+        #
+        # # get the latest version of the publish
+        #
+        # # find the latest publish version
+        # _publish_versions = [data.version for publish_path, data in _publishes.items()]
+        #
+        # latest_publish_version = 0 if not _publish_versions else max(_publish_versions)
 
-        # get the latest version of the publish
-
-        # find the latest publish version
-        _publish_versions = [data.version for publish_path, data in _publishes.items()]
-
-        latest_publish_version = 0 if not _publish_versions else max(_publish_versions)
-
-        self._abs_publish_data_folder = self._work_object.get_abs_database_path("publish", self._work_object.name)
-        self._abs_publish_scene_folder = self._work_object.get_abs_project_path("publish", self._work_object.name)
+        # self._abs_publish_data_folder = self._work_object.get_abs_database_path("publish", self._work_object.name)
+        # self._abs_publish_scene_folder = self._work_object.get_abs_project_path("publish", self._work_object.name)
+        self._abs_publish_data_folder = self._work_object.publish.get_publish_data_folder()
+        self._abs_publish_scene_folder = self._work_object.publish.get_publish_scene_folder()
         self._publish_version = latest_publish_version + 1
         self._publish_file_name = f"{self._work_object.name}_v{self._publish_version:03d}.tpub"
         return self._publish_file_name
@@ -92,7 +95,7 @@ class Publisher():
         if _publish_file_path.exists():
             raise ValueError(f"Publish file already exists. {_publish_file_path}")
 
-        self._published_object = Publish(str(_publish_file_path))
+        self._published_object = PublishVersion(str(_publish_file_path))
 
         self._published_object.add_property("name", self._work_object.name)
         self._published_object.add_property("creator", self._work_object.guard.user)

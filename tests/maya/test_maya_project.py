@@ -172,7 +172,7 @@ class TestMayaProject():
         # create a work
         work_obj = self.test_publishing_from_work(project, category="Model")
 
-        for file_path, publish_obj in work_obj.publishes.items():
+        for file_path, publish_obj in work_obj.publish.versions.items():
             assert Path(file_path).exists()
             assert publish_obj.name == work_obj.name
             assert publish_obj.creator == work_obj.creator
@@ -197,7 +197,7 @@ class TestMayaProject():
         # create a work
         work_obj = self.test_publishing_from_work(project, category="Model")
         # promote the first publish
-        for file_path, publish_obj in work_obj.publishes.items():
+        for file_path, publish_obj in work_obj.publish.versions.items():
             assert publish_obj.is_promoted() == False
             publish_obj.promote()
             assert publish_obj.is_promoted() == True

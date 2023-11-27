@@ -11,7 +11,8 @@ from tik_manager4.core import filelog
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
-class Entity(object):
+class Entity():
+    """Base class for all Tik Manager entities."""
     guard = Guard()
 
     def __init__(self, name="", uid=None):
