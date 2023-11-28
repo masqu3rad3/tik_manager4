@@ -5,7 +5,7 @@ from copy import deepcopy
 from tik_manager4.core import io
 
 
-class Settings(object):
+class Settings():
     """
     Generic Settings class to hold read and compare dictionary data
     """
@@ -114,6 +114,10 @@ class Settings(object):
 
     def get_property(self, key, default=None):
         """Returns the value of the property key"""
+        return self._currentValue.get(key, default)
+
+    def get(self, key, default=None):
+        """Duplicate of get_property for situations where it may be present with dict items."""
         return self._currentValue.get(key, default)
 
     def get_sub_property(self, sub_keys):

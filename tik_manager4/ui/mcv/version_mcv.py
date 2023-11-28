@@ -43,6 +43,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.show_preview_btn.setMinimumSize(QtCore.QSize(60, 30))
         version_layout.addWidget(self.show_preview_btn)
 
+        element_layout = QtWidgets.QVBoxLayout()
+        self.addLayout(element_layout)
+        element_lbl = QtWidgets.QLabel("Element: ")
+        element_lbl.setFont(QtGui.QFont("Arial", 10))
+        element_layout.addWidget(element_lbl)
+        self.element_combo = QtWidgets.QComboBox()
+        element_layout.addWidget(self.element_combo)
+
         notes_layout = QtWidgets.QVBoxLayout()
         self.addLayout(notes_layout)
         notes_lbl = QtWidgets.QLabel("Notes: ")
@@ -50,6 +58,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.notes_editor = QtWidgets.QPlainTextEdit()
         notes_layout.addWidget(notes_lbl)
         notes_layout.addWidget(self.notes_editor)
+
 
         self.thumbnail = ImageWidget()
         self.empty_pixmap = pick.pixmap("empty_thumbnail.png")
@@ -72,11 +81,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.version_combo.blockSignals(True)
         if not base:
             self.version_combo.clear()
+            self.element_combo.clear()
             self.notes_editor.clear()
             self.thumbnail.clear()
             return
         self.base = base
-        self.populate_versions(base._versions)
+        # self.populate_versions(base._versions)
+        self.populate_versions(base.versions)
 
         self.version_combo.blockSignals(False)
 
@@ -107,6 +118,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.version_combo.setStyleSheet("")
 
         _version = self.base.get_version(version_number)
+        self.element_combo.clear()
+        if self.base.object_type == "publish":
+            self.element_combo.setEnabled(True)
+            self.element_combo.addItems(_version.element_types)
+        else:
+            # disable
+            self.element_combo.setEnabled(False)
         self.notes_editor.clear()
         self.thumbnail.clear()
         self.notes_editor.setPlainText(_version.get("notes"))

@@ -19,7 +19,7 @@ class TikWorkItem(QtGui.QStandardItem):
     def __init__(self, work_obj):
         super(TikWorkItem, self).__init__()
 
-        self.work = work_obj
+        self.tik_obj = work_obj
         #
         self.fnt = QtGui.QFont("Open Sans", 10)
         self.fnt.setBold(False)
@@ -32,7 +32,7 @@ class TikWorkItem(QtGui.QStandardItem):
         self.refresh()
 
     def refresh(self):
-        self.set_state(self.work.state)
+        self.set_state(self.tik_obj.state)
 
     def set_state(self, state):
         self.state = state
@@ -41,7 +41,7 @@ class TikWorkItem(QtGui.QStandardItem):
         self.fnt.setStrikeOut(state == "omitted")
         self.setFont(self.fnt)
         # if the work not saved with the same dcc of the current dcc, make it italic
-        if self.work.dcc != self.work.guard.dcc:
+        if self.tik_obj.dcc != self.tik_obj.guard.dcc:
             self.fnt.setItalic(True)
             self.setFont(self.fnt)
             _state_color = tuple([int(x * 0.5) for x in _state_color])
@@ -60,7 +60,7 @@ class TikPublishItem(QtGui.QStandardItem):
     def __init__(self, publish_obj):
         super(TikPublishItem, self).__init__()
 
-        self.publish = publish_obj
+        self.tik_obj = publish_obj
 
         fnt = QtGui.QFont("Open Sans", 10)
         fnt.setBold(False)
@@ -116,8 +116,8 @@ class TikCategoryModel(QtGui.QStandardItemModel):
         self.appendRow([_item, pid, path, creator, dcc, date, version_count])
 
         # test
-        test = TikPublishItem(publish)
-        _item.appendRow([test, pid, path, creator, dcc, date, version_count])
+        # test = TikPublishItem(publish)
+        # _item.appendRow([test, pid, path, creator, dcc, date, version_count])
         # test [END]
 
         return _item
@@ -228,7 +228,7 @@ class TikCategoryView(QtWidgets.QTreeView):
 
         self.blockSignals(False)
         if _item:
-            self.item_selected.emit(_item.work)
+            self.item_selected.emit(_item.tik_obj)
         else:
             self.item_selected.emit(None)
 
@@ -357,7 +357,7 @@ class TikCategoryView(QtWidgets.QTreeView):
     def ingest_here(self, item):
         """Send the ingest signal with the given item"""
 
-        dialog = NewVersionDialog(work_object=item.work, parent=self, ingest=True)
+        dialog = NewVersionDialog(work_object=item.tik_obj, parent=self, ingest=True)
         state = dialog.exec_()
         if state:
             # emit a version_created signal to update the main window
@@ -365,24 +365,24 @@ class TikCategoryView(QtWidgets.QTreeView):
 
     def open_database_folder(self, item):
         """Opens the database folder for the given item"""
-        item.work.show_database_folder()
+        item.tik_obj.show_database_folder()
 
     def open_scene_folder(self, item):
         """Opens the scene folder for the given item"""
-        item.work.show_project_folder()
+        item.tik_obj.show_project_folder()
 
     def copy_scene_path(self, item):
         """Copy the absolute path of the scene file to the clipboard"""
-        item.work.copy_path_to_clipboard(item.work.get_abs_project_path())
+        item.tik_obj.copy_path_to_clipboard(item.tik_obj.get_abs_project_path())
 
     def omit_item(self, item):
         """Omits the given item"""
-        item.work.omit_work()
+        item.tik_obj.omit_work()
         item.refresh()
 
     def revive_item(self, item):
         """Revives the given item"""
-        item.work.revive_work()
+        item.tik_obj.revive_work()
         item.refresh()
 
     def delete_item(self, item):
@@ -547,9 +547,9 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
             _publishes = [work_obj.publish for work_obj in works.values()]
             self.work_tree_view.model.set_publishes(_publishes)
             # make the tree view to show the branches
-            self.work_tree_view.setRootIsDecorated(True)
+            # self.work_tree_view.setRootIsDecorated(True)
             # expand all the items
-            self.work_tree_view.expandAll()
+            # self.work_tree_view.expandAll()
 
     def clear(self):
         """Refresh the layout"""

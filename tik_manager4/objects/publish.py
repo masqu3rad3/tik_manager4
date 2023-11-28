@@ -8,6 +8,7 @@ from tik_manager4 import dcc
 
 
 class Publish(Entity):
+    object_type = "publish"
     """Class to represent a publish.
 
     This class is not represented by a file. Publish-PublishVersion relationship
@@ -46,17 +47,19 @@ class Publish(Entity):
     def versions(self):
         """Return the publish versions of the publish."""
         self.scan_publish_versions()
-        return self._publish_versions
+        return list(self._publish_versions.values())
 
     @property
     def version_count(self):
         """Return the number of publish versions."""
-        return len(list(self.versions.keys()))
+        # return len(list(self.versions.keys()))
+        return len(self.versions)
 
     def get_last_version(self):
         """Return the last publish version."""
         # find the latest publish version
-        _publish_version_numbers = [data.version for publish_path, data in self.versions.items()]
+        # _publish_version_numbers = [data.version for publish_path, data in self.versions.items()]
+        _publish_version_numbers = [data.version for data in self.versions]
         return 0 if not _publish_version_numbers else max(_publish_version_numbers)
 
     def get_publish_data_folder(self):
@@ -88,6 +91,13 @@ class Publish(Entity):
                     existing_publish.reload()
 
         return self._publish_versions
+
+    def get_version(self, version_number):
+        """Return the publish version."""
+        for version in self.versions:
+            if version.version == version_number:
+                return version
+        return None
 
 
 class PublishVersion(Settings, Entity):
@@ -128,7 +138,7 @@ class PublishVersion(Settings, Entity):
         self._category = self.get_property("category", self._category)
         self._dcc = self.get_property("dcc", self._dcc)
         self._publish_id = self.get_property("publish_id", self._publish_id)
-        self._version = self.get_property("version", self._version)
+        self._version = self.get_property("version_number", self._version)
         self._work_version = self.get_property("work_version", self._work_version)
         self._task_name = self.get_property("task_name", self._task_name)
         self._task_id = self.get_property("task_id", self._task_id)
@@ -190,6 +200,11 @@ class PublishVersion(Settings, Entity):
     def elements(self):
         """Return the elements of the publish."""
         return self._elements
+
+    @property
+    def element_types(self):
+        """Return the element types of the publish."""
+        return [element["type"] for element in self.elements]
 
     def is_promoted(self):
         """Check the 'promoted' file in the publish folder. If the content is matching with the publish id, return True"""

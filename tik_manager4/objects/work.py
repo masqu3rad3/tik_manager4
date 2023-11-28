@@ -16,6 +16,7 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class Work(Settings, Entity):
     _dcc_handler = dcc.Dcc()
+    object_type = "work"
 
     def __init__(self, absolute_path, name=None, path=None):
         super(Work, self).__init__()
@@ -40,7 +41,7 @@ class Work(Settings, Entity):
         self.publish = Publish(self) # publish object does not have a settings file, the publish versions do
 
 
-        self._publishes = {}
+        # self._publishes = {}
         # self._publishes = []
         # Example:
         # [

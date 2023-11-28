@@ -102,7 +102,7 @@ class Publisher():
         self._published_object.add_property("category", self._work_object.category)
         self._published_object.add_property("dcc", self._work_object.guard.dcc)
         self._published_object.add_property("publish_id", self._published_object.generate_id())
-        self._published_object.add_property("version", self._publish_version)
+        self._published_object.add_property("version_number", self._publish_version)
         self._published_object.add_property("work_version", self._work_version)
         self._published_object.add_property("task_name", self._work_object.task_name)
         self._published_object.add_property("task_id", self._work_object.task_id)
