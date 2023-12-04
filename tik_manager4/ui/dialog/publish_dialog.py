@@ -28,93 +28,40 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         self.setWindowTitle("Publish Scene")
 
+        self.dialog_layout = QtWidgets.QVBoxLayout(self)
 
-        self.master_layout = QtWidgets.QVBoxLayout()
-        self.setLayout(self.master_layout)
+        self.vertical_splitter = None
+        self.horizontal_splitter = None
 
-        self.header_layout = QtWidgets.QVBoxLayout()
-        self.header_layout.setContentsMargins(0, 10, 0, 0)
-        self.master_layout.addLayout(self.header_layout)
+        # layout variables
+        self.header_layout = None
+        self.validation_header_lay = None
+        self.validations_scroll_lay = None
+        self.extract_header_lay = None
+        self.extracts_scroll_lay = None
+        self.bottom_layout = None
 
-        self.body_layout = QtWidgets.QHBoxLayout()
-        self.master_layout.addLayout(self.body_layout)
+        # class widgets
+        self.notes_text = None
 
-        # squish everything to the top
-        self.master_layout.addStretch()
-
-        self.buttons_layout = QtWidgets.QHBoxLayout()
-        self.master_layout.addLayout(self.buttons_layout)
-
-        splitter = QtWidgets.QSplitter(self)
-        splitter.setHandleWidth(5)
-
-        self.body_layout.addWidget(splitter)
-        splitter.setFrameShape(QtWidgets.QFrame.NoFrame)
-        splitter.setOrientation(QtCore.Qt.Horizontal)
-
-        # left body widget and layout
-        left_body_widget = QtWidgets.QWidget(splitter)
-        left_body_widget.setMinimumHeight(500)
-        left_body_layout = QtWidgets.QVBoxLayout(left_body_widget)
-
-        self.left_body_header_layout = QtWidgets.QVBoxLayout()
-        left_body_layout.addLayout(self.left_body_header_layout)
-
-        # create a scroll area
-        left_body_scroll_area = QtWidgets.QScrollArea(splitter)
-        left_body_scroll_area.setFrameShape(QtWidgets.QFrame.NoFrame)
-        left_body_scroll_area.setFrameShadow(QtWidgets.QFrame.Sunken)
-        left_body_scroll_area.setWidgetResizable(True)
-
-        left_body_scroll_area_widget_contents = QtWidgets.QWidget()
-
-        self.left_body_scroll_area_v_lay = QtWidgets.QVBoxLayout(
-            left_body_scroll_area_widget_contents
-        )
-
-
-        left_body_scroll_area.setWidget(left_body_scroll_area_widget_contents)
-        left_body_layout.addWidget(left_body_scroll_area)
-
-
-        # right body widget and layout
-        right_body_widget = QtWidgets.QWidget(splitter)
-        right_body_widget.setMinimumHeight(500)
-        right_body_layout = QtWidgets.QVBoxLayout(right_body_widget)
-
-        self.right_body_header_layout = QtWidgets.QVBoxLayout()
-        right_body_layout.addLayout(self.right_body_header_layout)
-
-        # create a scroll area
-        right_body_scroll_area = QtWidgets.QScrollArea(splitter)
-        right_body_scroll_area.setFrameShape(QtWidgets.QFrame.NoFrame)
-        right_body_scroll_area.setFrameShadow(QtWidgets.QFrame.Sunken)
-        right_body_scroll_area.setWidgetResizable(True)
-
-        right_body_scroll_area_widget_contents = QtWidgets.QWidget()
-
-        self.right_body_scroll_area_v_lay = QtWidgets.QVBoxLayout(
-            right_body_scroll_area_widget_contents
-        )
-
-        right_body_scroll_area.setWidget(right_body_scroll_area_widget_contents)
-        right_body_layout.addWidget(right_body_scroll_area)
-
-        # self.right_body_layout = QtWidgets.QVBoxLayout(right_body_widget)
-        # self.right_body_layout.setContentsMargins(10, 2, 10, 10)
-
+        # build the layouts
         self.build_ui()
 
         self.resize(800, 600)
 
-        splitter.setSizes([600, 400])
+        # self.horizontal_splitter.setSizes([600, 400])
+        # self.vertical_splitter.setSizes([700, 200])
 
-
+        self.horizontal_splitter.setStretchFactor(0, 50)
+        self.horizontal_splitter.setStretchFactor(1, 50)
+        self.vertical_splitter.setStretchFactor(0, 70)
+        self.vertical_splitter.setStretchFactor(1, 30)
 
     def check_eligibility(self):
         """Checks if the current scene is eligible for publishing."""
         if not self.project.publisher._work_object:
-            self.feedback.pop_info(title="Non-valid Scene", text="Current Scene does not belong to a 'Work'. It is required to save scenes as a 'Work' before publishing.")
+            self.feedback.pop_info(title="Non-valid Scene",
+                                   text="Current Scene does not belong to a 'Work'. It is required to save scenes as a 'Work' before publishing.")
             # destroy the dialog. make it dispappear
             self.close()
             self.deleteLater()
@@ -122,7 +69,75 @@ class PublishSceneDialog(QtWidgets.QDialog):
             return
 
     def build_ui(self):
+        """Build the layouts."""
+        master_layout = QtWidgets.QVBoxLayout()
+        self.header_layout = QtWidgets.QVBoxLayout()
+        # set margin to 0
+        self.header_layout.setContentsMargins(10, 10, 10, 10)
 
+        self._build_header()
+
+        master_layout.addLayout(self.header_layout)
+
+        self.vertical_splitter = QtWidgets.QSplitter(self)
+        self.vertical_splitter.setOrientation(QtCore.Qt.Vertical)
+        self.vertical_splitter.setHandleWidth(5)
+        self.vertical_splitter.setProperty("horizontal", True) # the icon is horizontal shaped. IT IS NOT A BUG
+
+        # make it non-collapsible
+        self.vertical_splitter.setChildrenCollapsible(False)
+
+        _body_layout_widget = QtWidgets.QWidget(self.vertical_splitter)
+        body_layout = QtWidgets.QHBoxLayout(_body_layout_widget)
+        body_layout.setContentsMargins(0, 0, 0, 0)
+        self.horizontal_splitter = QtWidgets.QSplitter(_body_layout_widget)
+        self.horizontal_splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.horizontal_splitter.setHandleWidth(5)
+        self.horizontal_splitter.setProperty("vertical", True) # the icon is vertical shaped. IT IS NOT A BUG
+
+        _left_layout_widget = QtWidgets.QWidget(self.horizontal_splitter)
+        left_layout = QtWidgets.QVBoxLayout(_left_layout_widget)
+        left_layout.setContentsMargins(5, 5, 5, 5)
+        self.validation_header_lay = QtWidgets.QVBoxLayout()
+        left_layout.addLayout(self.validation_header_lay)
+
+        scroll_area_left = QtWidgets.QScrollArea(_left_layout_widget)
+        scroll_area_left.setWidgetResizable(True)
+        scroll_area_left_contents = QtWidgets.QWidget()
+        self.validations_scroll_lay = QtWidgets.QVBoxLayout(scroll_area_left_contents)
+
+        self._build_validations()
+
+        scroll_area_left.setWidget(scroll_area_left_contents)
+
+        left_layout.addWidget(scroll_area_left)
+
+        _right_layout_widget = QtWidgets.QWidget(self.horizontal_splitter)
+        right_layout = QtWidgets.QVBoxLayout(_right_layout_widget)
+        right_layout.setContentsMargins(5, 5, 5, 5)
+        self.extract_header_lay = QtWidgets.QVBoxLayout()
+        right_layout.addLayout(self.extract_header_lay)
+
+        scroll_area_right = QtWidgets.QScrollArea(_right_layout_widget)
+        scroll_area_right.setWidgetResizable(True)
+        scroll_area_right_contents = QtWidgets.QWidget()
+        self.extracts_scroll_lay = QtWidgets.QVBoxLayout(scroll_area_right_contents)
+
+        self._build_extractions()
+        scroll_area_right.setWidget(scroll_area_right_contents)
+        right_layout.addWidget(scroll_area_right)
+        body_layout.addWidget(self.horizontal_splitter)
+        _bottom_layout_widget = QtWidgets.QWidget(self.vertical_splitter)
+        self.bottom_layout = QtWidgets.QVBoxLayout(_bottom_layout_widget)
+        self.bottom_layout.setContentsMargins(5, 5, 5, 5)
+
+        self._build_bottom()
+
+        master_layout.addWidget(self.vertical_splitter)
+        self.dialog_layout.addLayout(master_layout)
+
+    def _build_header(self):
+        """Fill the header layout with widgets."""
         path_layout = QtWidgets.QHBoxLayout()
         self.header_layout.addLayout(path_layout)
         name_layout = QtWidgets.QHBoxLayout()
@@ -145,61 +160,81 @@ class PublishSceneDialog(QtWidgets.QDialog):
         name_layout.addWidget(name_label)
         name_layout.addStretch()
 
+    def _build_validations(self):
+        """Build the widgets on validations section."""
         validations_label = QtWidgets.QLabel("Validations")
         validations_label.setStyleSheet("font-size: 14px; font-weight: bold;")
-        self.left_body_header_layout.addWidget(validations_label)
+        self.validation_header_lay.addWidget(validations_label)
         separator = QtWidgets.QLabel()
         separator.setFrameShape(QtWidgets.QFrame.HLine)
         separator.setFrameShadow(QtWidgets.QFrame.Sunken)
         separator.setStyleSheet("background-color: rgb(221, 160, 221);")
         separator.setFixedHeight(1)
-        self.left_body_header_layout.addWidget(separator)
+        self.validation_header_lay.addWidget(separator)
 
         # ADD VALIDATIONS HERE
         # -------------------
         for validator_name, validator in self.project.publisher.validators.items():
             validate_row = ValidateRow(validator_object=validator)
-            self.left_body_scroll_area_v_lay.addLayout(validate_row)
+            self.validations_scroll_lay.addLayout(validate_row)
             self._validator_widgets.append(validate_row)
         # -------------------
-        self.left_body_scroll_area_v_lay.addStretch()
 
-        # right body layout
+        self.validations_scroll_lay.addStretch()
+
+    def _build_extractions(self):
+        """Build the widgets on extractions section."""
         extracts_label = QtWidgets.QLabel("Extracts")
         extracts_label.setStyleSheet("font-size: 14px; font-weight: bold;")
-        self.right_body_header_layout.addWidget(extracts_label)
+        self.extract_header_lay.addWidget(extracts_label)
         separator = QtWidgets.QLabel()
         separator.setFrameShape(QtWidgets.QFrame.HLine)
         separator.setFrameShadow(QtWidgets.QFrame.Sunken)
         separator.setStyleSheet("background-color: rgb(221, 160, 221);")
         separator.setFixedHeight(1)
-        self.right_body_header_layout.addWidget(separator)
+        self.extract_header_lay.addWidget(separator)
 
         # ADD EXTRACTS HERE
         # -------------------
-        for extractor_name, extractor in self.project.publisher.extractors.items():
+        for _extractor_name, extractor in self.project.publisher.extractors.items():
             extract_row = ExtractRow(extract_object=extractor)
-            self.right_body_scroll_area_v_lay.addLayout(extract_row)
+            self.extracts_scroll_lay.addLayout(extract_row)
             self._extractor_widgets.append(extract_row)
         # -------------------
-        self.right_body_scroll_area_v_lay.addStretch()
+
+        self.extracts_scroll_lay.addStretch()
+
+    def _build_bottom(self):
+        """Build the bottom section."""
+
+        # notes layout
+        notes_label = QtWidgets.QLabel("Notes:")
+        self.bottom_layout.addWidget(notes_label)
+        self.notes_text = QtWidgets.QTextEdit()
+        self.bottom_layout.addWidget(self.notes_text)
 
         # buttons layout
         button_box = TikButtonBox()
         validate_pb = button_box.addButton("Validate", QtWidgets.QDialogButtonBox.YesRole)
+        validate_pb.setToolTip("Run all active and available validations checks.")
         publish_pb = button_box.addButton("Publish", QtWidgets.QDialogButtonBox.AcceptRole)
+        publish_pb.setEnabled(False) # disable the publish button by default
+        publish_pb.setToolTip("Extract the elements and publish the scene. Notes are Mandatory.")
         button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
-        self.buttons_layout.addWidget(button_box)
+        self.bottom_layout.addWidget(button_box)
+
+        def _toggle_publish_button():
+            """Enable/Disable the publish button. According to the notes."""
+            if self.notes_text.toPlainText():
+                publish_pb.setEnabled(True)
+            else:
+                publish_pb.setEnabled(False)
 
         # SIGNALS
+        self.notes_text.textChanged.connect(_toggle_publish_button)
         button_box.rejected.connect(self.reject)
         validate_pb.clicked.connect(self.validate_all)
-        # # connect the publish button to publish the scene
-        # publish_button = button_box.button("Publish")
-        # publish_button.clicked.connect(self.publish)
         publish_pb.clicked.connect(self.publish)
-
-
     def validate_all(self):
         """Validate all the validators."""
         self.reset_validators()
@@ -209,6 +244,23 @@ class PublishSceneDialog(QtWidgets.QDialog):
                 continue
             validator_widget.validate()
             # keep updating the ui
+            QtWidgets.QApplication.processEvents()
+
+    def extract_all(self):
+        """Extract all the extractors."""
+        # single extractors are not saving the scene. Make sure the scene saved first
+        self.project.publisher._dcc_handler.save_scene()
+        for extractor_widget in self._extractor_widgets:
+            self.project.publisher.extract_single(extractor_widget.extract)
+            extractor_widget.set_state(extractor_widget.extract.state)
+            if extractor_widget.extract.state == "failed":
+                q = self.feedback.pop_question(title="Extraction Failed", text=f"Extraction failed for: \n\n{extractor_widget.extract.name}\n\nDo you want to continue?", buttons=["continue", "cancel"])
+                if q == "cancel":
+                    self.project.publisher.discard()
+                    self.__init__()
+                    raise Exception("Extraction Failed")
+                if q == "continue":
+                    continue
             QtWidgets.QApplication.processEvents()
 
     def reset_validators(self):
@@ -236,6 +288,22 @@ class PublishSceneDialog(QtWidgets.QDialog):
                     fails.append(validator_widget.name)
         return passes, warnings, fails, idle
 
+    def check_extraction_status(self):
+        """Check all extractions and return current state."""
+        successes = []
+        fails = []
+        idle = []
+
+        for extractor_widget in self._extractor_widgets:
+            if extractor_widget.extract.state == "success":
+                successes.append(extractor_widget.name)
+            if extractor_widget.extract.state == "idle":
+                idle.append(extractor_widget.name)
+            if extractor_widget.extract.state == "failed":
+                fails.append(extractor_widget.name)
+        return successes, fails, idle
+
+
     def publish(self):
         """Command to publish the scene."""
         self.reset_validators() # only resets if the scene is modified
@@ -255,9 +323,10 @@ class PublishSceneDialog(QtWidgets.QDialog):
         # reserve the slot
         self.project.publisher.reserve()
         # extract the elements
-        self.project.publisher.extract()
+        self.extract_all()
+
         # finalize publish
-        self.project.publisher.publish()
+        self.project.publisher.publish(notes=self.notes_text.toPlainText())
         # prepare publish report and feedback
         if warnings:
             msg = f"Publish Successful with following warnings:\n\n{warnings}"
@@ -441,9 +510,17 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         self.info.set_size(32)
         self.addWidget(self.info)
 
-
-
-
+    def set_state(self, state):
+        """Set the state of the extract."""
+        if state == "success":
+            self.status_icon.setStyleSheet("background-color: green;")
+        elif state == "idle":
+            self.status_icon.setStyleSheet("background-color: gray;")
+        elif state == "failed":
+            self.status_icon.setStyleSheet("background-color: red;")
+        else:
+            pass
+        return
 
 
 # test this dialog

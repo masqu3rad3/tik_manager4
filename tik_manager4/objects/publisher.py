@@ -133,8 +133,7 @@ class Publisher():
             extract_object.extract_name = f"{self._work_object.name}_v{self._publish_version:03d}" # define the extract name
             extract_object.extract()
 
-
-    def publish(self):
+    def publish(self, notes=None):
         """Finalize the publish by updating the reserved slot."""\
 
         # collect the validation states and log it into the publish object
@@ -145,6 +144,8 @@ class Publisher():
 
         # collect the extracted elements information and add to the publish object
         for extract_type_name, extract_object in self._resolved_extractors.items():
+            if extract_object.state == "failed":
+                continue
             element = {
                 "type": extract_object.name,
                 # get the relative path to the project
@@ -154,7 +155,29 @@ class Publisher():
             self._published_object._elements.append(element)
 
         self._published_object.edit_property("elements", self._published_object._elements)
+        if not notes:
+            notes = "[Auto Generated]"
+        self._published_object.add_property("notes", notes)
         self._published_object.apply_settings(force=True)
+
+    def discard(self):
+        """Discard the reserved slot."""
+
+        # delete the publish file
+        _publish_file_path = Path(self._abs_publish_data_folder) / self._publish_file_name
+        if _publish_file_path.exists():
+            _publish_file_path.unlink()
+        self._published_object = None
+        LOG.info("Publish discarded.")
+
+
+    def extract_single(self, extract_object):
+        """Does the extract from the given extract object."""
+        publish_path = Path(self._work_object.get_abs_project_path("publish", self._work_object.name))
+        extract_object.category = self._work_object.category  # define the category
+        extract_object.extract_folder = str(publish_path)  # define the extract folder
+        extract_object.extract_name = f"{self._work_object.name}_v{self._publish_version:03d}"  # define the extract name
+        extract_object.extract()
 
     @property
     def publish_version(self):
@@ -201,5 +224,3 @@ class Publisher():
             return Path(self._abs_publish_scene_folder).relative_to(self._work_object.guard.project_root).as_posix()
         else:
             return None
-
-

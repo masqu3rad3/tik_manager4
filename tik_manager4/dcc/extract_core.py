@@ -55,18 +55,18 @@ class ExtractCore():
         self._category = category
 
     @property
-    def status(self):
+    def state(self):
         return self._status
 
     def extract(self):
         func = self.category_functions.get(self.category, self._extract_default)
         try:
             func()
+            self._status = "success"
         except Exception as e:
             LOG.error(e)
             LOG.error(f"Error while extracting {self.name} to {self.extract_folder}")
-            self._status = "error"
-        self._status = "extracted"
+            self._status = "failed"
 
     def _extract_default(self):
         """Extract method for any non-specified category"""

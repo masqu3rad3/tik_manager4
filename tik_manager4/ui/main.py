@@ -86,6 +86,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.central_widget, orientation=QtCore.Qt.Horizontal
         )
         self.splitter.setHandleWidth(5)
+        self.splitter.setProperty("vertical", True)
 
         self.main_layout.addWidget(self.splitter)
 
@@ -261,7 +262,7 @@ class MainUI(QtWidgets.QMainWindow):
                 self.tik.user.last_category = _category_index
                 _work_item = self.categories_mcv.work_tree_view.get_selected_item()
                 if _work_item:
-                    self.tik.user.last_work = _work_item.work.id
+                    self.tik.user.last_work = _work_item.tik_obj.id
                     _version_nmb = self.versions_mcv.get_selected_version()
                     # we can always safely write the version number
                     self.tik.user.last_version = _version_nmb
@@ -415,7 +416,7 @@ class MainUI(QtWidgets.QMainWindow):
         # get the version
         selected_version = self.versions_mcv.get_selected_version()
 
-        selected_work_item.work.load_version(selected_version)
+        selected_work_item.tik_obj.load_version(selected_version)
 
         # TODO: implement load work
 
@@ -431,7 +432,7 @@ class MainUI(QtWidgets.QMainWindow):
             return
         # get the version
         selected_version = self.versions_mcv.get_selected_version()
-        selected_work_item.work.import_version(selected_version)
+        selected_work_item.tik_obj.import_version(selected_version)
 
     def _ingest_success(self):
         """Callback function for the ingest success event."""
@@ -452,7 +453,7 @@ class MainUI(QtWidgets.QMainWindow):
             )
             return
         dialog = NewVersionDialog(
-            work_object=selected_work_item.work, parent=self, ingest=True
+            work_object=selected_work_item.tik_obj, parent=self, ingest=True
         )
         state = dialog.exec_()
         if state:
@@ -625,11 +626,11 @@ class MainUI(QtWidgets.QMainWindow):
         # get the selected work object and the version
         _work_item = self.categories_mcv.work_tree_view.get_selected_item()
         _version_index = self.versions_mcv.get_selected_version()
-        _version = _work_item.work.get_version(_version_index)
+        _version = _work_item.tik_obj.get_version(_version_index)
 
         preview_dict = _version.get("previews")
         if len(preview_dict.values()) == 1:
-            abs_path = _work_item.work.get_abs_project_path(list(preview_dict.values())[0])
+            abs_path = _work_item.tik_obj.get_abs_project_path(list(preview_dict.values())[0])
             utils.execute(abs_path)
             return
         if not preview_dict:
@@ -639,7 +640,7 @@ class MainUI(QtWidgets.QMainWindow):
             tempAction = QtWidgets.QAction(z, self)
             zort_menu.addAction(tempAction)
             ## Take note about the usage of lambda "item=z" makes it possible using the loop, ignore -> for discarding emitted value
-            tempAction.triggered.connect(lambda ignore=z, item=_work_item.work.get_abs_project_path(preview_dict[z]): utils.execute(str(item)))
+            tempAction.triggered.connect(lambda ignore=z, item=_work_item.tik_obj.get_abs_project_path(preview_dict[z]): utils.execute(str(item)))
 
         zort_menu.exec_((QtGui.QCursor.pos()))
 
