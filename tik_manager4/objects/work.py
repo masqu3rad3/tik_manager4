@@ -37,21 +37,7 @@ class Work(Settings, Entity):
         self._state = "working"
 
         self.modified_time = None  # to compare and update if necessary
-
         self.publish = Publish(self) # publish object does not have a settings file, the publish versions do
-
-
-        # self._publishes = {}
-        # self._publishes = []
-        # Example:
-        # [
-        #     <version>: {
-        #         "version": <version>,
-        #         "name": "publish_name",
-        #         "path": "relative_path"
-        #         "publish_id": <publish_id>
-        #     }
-        # ]
 
         self.init_properties()
 
@@ -111,12 +97,6 @@ class Work(Settings, Entity):
         """Return the category of the work."""
         return self._category
 
-    # @property
-    # def publishes(self):
-    #     """Return the publishes has been made from this work."""
-    #     self.scan_publishes()
-    #     return self._publishes
-
     @property
     def versions(self):
         """Return the versions of the work."""
@@ -142,37 +122,6 @@ class Work(Settings, Entity):
         self._state = "working" if not self.publishes else "published"
         self.edit_property("state", self._state)
         self.apply_settings()
-
-    # def scan_publishes(self):
-    #     """Scan the publishes from the publish folder."""
-    #     _search_dir = Path(self.get_abs_database_path("publish", self._name))
-    #     if not _search_dir.exists():
-    #         return {}
-    #     _publish_paths = _search_dir.glob("*.tpub")
-    #
-    #     # self._publishes.clear()
-    #     #
-    #     # for _publish_path in _publish_paths:
-    #     #     _publish = Publish(_publish_path)
-    #     #     self._publishes[_publish_path] = _publish
-    #
-    #     # add the file if it is new. if it is not new,
-    #     # check the modified time and update if necessary
-    #     for _p_path, _p_data in dict(self._publishes).items():
-    #         if _p_path not in _publish_paths:
-    #             self._publishes.pop(_p_path)
-    #     for _publish_path in _publish_paths:
-    #         existing_publish = self._publishes.get(_publish_path, None)
-    #         if not existing_publish:
-    #             _publish = PublishVersion(_publish_path)
-    #             self._publishes[_publish_path] = _publish
-    #         else:
-    #             if existing_publish.is_modified():
-    #                 existing_publish.reload()
-    #
-    #     return self._publishes
-
-
 
     def get_last_version(self):
         """Return the last version of the work."""
@@ -370,13 +319,20 @@ class Work(Settings, Entity):
             abs_path = self.get_abs_project_path(relative_path)
             self._dcc_handler.open(abs_path)
 
-    def import_version(self, version_number):
+    def import_version(self, version_number, element_type=None):
         """Import the given version of the work to the scene."""
+        # work files does not have element types. This is for publish files.
+        _element_type = element_type
         version_obj = self.get_version(version_number)
         if version_obj:
             relative_path = version_obj.get("scene_path")
             abs_path = self.get_abs_project_path(relative_path)
-            self._dcc_handler.import_file(abs_path)
+            _import_obj = self._dcc_handler.ingests["source"]()
+            _import_obj.category = self.category
+            _import_obj.file_path = abs_path
+            _import_obj.bring_in()
+            print("HEDEEEEE")
+            # self._dcc_handler.import_file(abs_path)
 
     def delete_work(self):
         """Delete the work."""

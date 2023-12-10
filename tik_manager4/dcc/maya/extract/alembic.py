@@ -4,18 +4,17 @@ from maya import cmds
 from maya import OpenMaya as om
 from tik_manager4.dcc.extract_core import ExtractCore
 
-# The Collector will only collect classes inherit ExtractCore
 class Alembic(ExtractCore):
-    """Extract Alembic from Maya scene"""
+    """Extract Alembic from Maya scene."""
     name = "alembic" # IMPORTANT. Must match to the one in category_definitions.json
     nice_name = "Alembic"
     color = (244, 132, 132)
     def __init__(self):
-        super(Alembic, self).__init__()
+        super().__init__()
         if not cmds.pluginInfo("AbcExport", loaded=True, query=True):
             try:
                 cmds.loadPlugin("AbcExport")
-            except Exception as e:
+            except Exception as e: # pylint: disable=broad-except
                 om.MGlobal.displayInfo("Alembic Plugin cannot be initialized")
                 raise e
 

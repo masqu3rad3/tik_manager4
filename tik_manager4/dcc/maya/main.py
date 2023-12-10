@@ -12,6 +12,7 @@ from tik_manager4.dcc.main_core import DccTemplate
 from tik_manager4.dcc.maya import panels
 from tik_manager4.dcc.maya import validate
 from tik_manager4.dcc.maya import extract
+from tik_manager4.dcc.maya import ingest
 
 LOG = logging.getLogger(__name__)
 
@@ -21,6 +22,7 @@ class Dcc(DccTemplate):
     preview_enabled = True
     validations = validate.classes
     extracts = extract.classes
+    ingests = ingest.classes
 
     @staticmethod
     def get_main_window():
@@ -247,6 +249,7 @@ class Dcc(DccTemplate):
             percent=100,
         )
         cmds.setAttr("defaultRenderGlobals.imageFormat", store)  # take it back
+        return file_path
 
     @staticmethod
     def get_scene_cameras():

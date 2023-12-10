@@ -9,6 +9,7 @@ from tik_manager4 import dcc
 
 class Publish(Entity):
     object_type = "publish"
+    _dcc_handler = dcc.Dcc()
     """Class to represent a publish.
 
     This class is not represented by a file. Publish-PublishVersion relationship
@@ -98,6 +99,24 @@ class Publish(Entity):
             if version.version == version_number:
                 return version
         return None
+
+    def import_version(self, version_number, element_type=None):
+        """Import the given version of the work to the scene."""
+        if not element_type:
+            raise ValueError("Element type is not given.")
+        version_obj = self.get_version(version_number)
+        if version_obj:
+            relative_path = version_obj.get_element_path(element_type)
+            abs_path = self.get_abs_project_path(relative_path)
+            _func = self._dcc_handler.ingests.get(element_type, None)
+            if not _func:
+                raise ValueError(f"Element type not supported: {element_type}")
+            _import_obj = _func()
+            _import_obj.category = self._work_object.category
+            _import_obj.file_path = abs_path
+            _import_obj.bring_in()
+            # self._dcc_handler.import_file(abs_path)
+
 
 
 class PublishVersion(Settings, Entity):
@@ -220,3 +239,10 @@ class PublishVersion(Settings, Entity):
         }
         self._promoted_object.set_data(_data)
         self._promoted_object.apply_settings()
+
+    def get_element_path(self, element_type):
+        """Return the element path of the given element type."""
+        for element in self.elements:
+            if element["type"] == element_type:
+                return element["path"]
+        return None

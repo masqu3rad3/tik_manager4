@@ -56,6 +56,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         notes_lbl = QtWidgets.QLabel("Notes: ")
         notes_lbl.setFont(QtGui.QFont("Arial", 10))
         self.notes_editor = QtWidgets.QPlainTextEdit()
+        self.notes_editor.setReadOnly(True)
         notes_layout.addWidget(notes_lbl)
         notes_layout.addWidget(self.notes_editor)
 
@@ -145,6 +146,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         version_number = int(self.version_combo.currentText())
         return version_number
         # Following returns the dictionary. We probably won't need it.
+
+    def get_selected_element_type(self):
+        """Return the current element."""
+        if self.element_combo.isEnabled():
+            return self.element_combo.currentText()
+        else:
+            return None
 
     def refresh(self):
         """Refresh the version dropdown."""

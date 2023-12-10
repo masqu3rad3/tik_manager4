@@ -30,7 +30,8 @@ class Usd(ExtractCore):
     def _extract_model(self):
         """Extract method for model category"""
         _file_path = self.resolve_output()
-        cmds.file(_file_path, force=True, type="USD Export", prompt=False, exportAll=True, options=";exportUVs=1;exportSkels=none;exportSkin=none;exportBlendShapes=0;exportDisplayColor=0;;exportColorSets=1;exportComponentTags=1;defaultMeshScheme=catmullClark;animation=0;eulerFilter=0;staticSingleSample=0;startTime=1;endTime=1;frameStride=1;frameSample=0.0;defaultUSDFormat=usdc;parentScope=;shadingMode=useRegistry;convertMaterialsTo=[UsdPreviewSurface,MaterialX];exportInstances=1;exportVisibility=1;mergeTransformAndShape=1;stripNamespaces=0;materialsScopeName=mtl")
+        _options = ";exportUVs=1;exportSkels=none;exportSkin=none;exportBlendShapes=0;exportDisplayColor=0;;exportColorSets=1;exportComponentTags=1;defaultMeshScheme=catmullClark;animation=0;eulerFilter=0;staticSingleSample=0;startTime=1;endTime=1;frameStride=1;frameSample=0.0;defaultUSDFormat=usdc;parentScope=;shadingMode=useRegistry;convertMaterialsTo=[UsdPreviewSurface,MaterialX];exportInstances=1;exportVisibility=1;mergeTransformAndShape=1;stripNamespaces=0;materialsScopeName=mtl"
+        cmds.file(_file_path, force=True, type="USD Export", prompt=False, exportAll=True, options=_options)
 
     def _extract_animation(self):
         """Extract method for animation category"""

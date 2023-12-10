@@ -1,13 +1,12 @@
 """Extract Maya scene."""
 
-import pathlib
 from maya import cmds
 from maya import OpenMaya as om
 from tik_manager4.dcc.extract_core import ExtractCore
 
 # The Collector will only collect classes inherit ExtractCore
 class Source(ExtractCore):
-    """Extract Alembic from Maya scene"""
+    """Extract Source Maya scene"""
     name = "source" # IMPORTANT. Must match to the one in category_definitions.json
     nice_name = "Source Scene"
     color = (255, 255, 255)
@@ -24,5 +23,9 @@ class Source(ExtractCore):
         # file_format = "mayaAscii" if extension == ".ma" else "mayaBinary"
         _original_path = cmds.file(query=True, sceneName=True)
         cmds.file(rename=_file_path)
-        cmds.file(save=True, type="mayaBinary")
-        cmds.file(rename=_original_path)
+        try:
+            cmds.file(save=True, type="mayaBinary")
+        except RuntimeError as e:
+            cmds.file(rename=_original_path)
+            raise RuntimeError(e)
+

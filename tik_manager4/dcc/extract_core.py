@@ -47,6 +47,7 @@ class ExtractCore():
 
     @property
     def category(self):
+        """Return the category which will rules."""
         return self._category
 
     @category.setter
@@ -63,8 +64,8 @@ class ExtractCore():
         try:
             func()
             self._status = "success"
-        except Exception as e:
-            LOG.error(e)
+        except Exception as exc: # pylint: disable=broad-except
+            LOG.error(exc)
             LOG.error(f"Error while extracting {self.name} to {self.extract_folder}")
             self._status = "failed"
 
