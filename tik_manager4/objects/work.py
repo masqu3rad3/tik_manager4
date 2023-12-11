@@ -9,7 +9,7 @@ from tik_manager4.core.settings import Settings
 from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.publish import Publish
-from tik_manager4.objects.publish import PublishVersion
+# from tik_manager4.objects.publish import PublishVersion
 from tik_manager4 import dcc
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
@@ -331,8 +331,19 @@ class Work(Settings, Entity):
             _import_obj.category = self.category
             _import_obj.file_path = abs_path
             _import_obj.bring_in()
-            print("HEDEEEEE")
-            # self._dcc_handler.import_file(abs_path)
+
+    def reference_version(self, version_number, element_type=None):
+        """Reference the given version of the work to the scene."""
+        # work files does not have element types. This is for publish files.
+        _element_type = element_type
+        version_obj = self.get_version(version_number)
+        if version_obj:
+            relative_path = version_obj.get("scene_path")
+            abs_path = self.get_abs_project_path(relative_path)
+            _import_obj = self._dcc_handler.ingests["reference"]()
+            _import_obj.category = self.category
+            _import_obj.file_path = abs_path
+            _import_obj.reference()
 
     def delete_work(self):
         """Delete the work."""

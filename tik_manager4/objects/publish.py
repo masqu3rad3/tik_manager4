@@ -4,7 +4,11 @@
 from pathlib import Path
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.entity import Entity
+from tik_manager4.core import filelog
+
 from tik_manager4 import dcc
+
+LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Publish(Entity):
@@ -100,6 +104,13 @@ class Publish(Entity):
                 return version
         return None
 
+    def load_version(self, version_number):
+        """Laad the publish version."""
+
+        LOG.warning("Load version is not implemented yet.")
+        # TODO: This needs to be safe. The user should not be able to load a published version. OR not be able/save it.
+        # TODO: Iterate a new version from the publish version and load that.
+
     def import_version(self, version_number, element_type=None):
         """Import the given version of the work to the scene."""
         if not element_type:
@@ -115,8 +126,22 @@ class Publish(Entity):
             _import_obj.category = self._work_object.category
             _import_obj.file_path = abs_path
             _import_obj.bring_in()
-            # self._dcc_handler.import_file(abs_path)
 
+    def reference_version(self, version_number, element_type=None):
+        """Reference the given version of the work to the scene."""
+        if not element_type:
+            raise ValueError("Element type is not given.")
+        version_obj = self.get_version(version_number)
+        if version_obj:
+            relative_path = version_obj.get_element_path(element_type)
+            abs_path = self.get_abs_project_path(relative_path)
+            _func = self._dcc_handler.ingests.get(element_type, None)
+            if not _func:
+                raise ValueError(f"Element type not supported: {element_type}")
+            _import_obj = _func()
+            _import_obj.category = self._work_object.category
+            _import_obj.file_path = abs_path
+            _import_obj.reference()
 
 
 class PublishVersion(Settings, Entity):

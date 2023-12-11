@@ -223,7 +223,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.hide_columns(["id", "path"])
         self.category_layout.addLayout(self.categories_mcv)
 
-        self.versions_mcv = TikVersionLayout()
+        self.versions_mcv = TikVersionLayout(parent=self)
         self.version_layout.addLayout(self.versions_mcv)
 
         self.project_mcv.set_project_btn.clicked.connect(self.on_set_project)
@@ -240,9 +240,12 @@ class MainUI(QtWidgets.QMainWindow):
         )
         self.categories_mcv.mode_changed.connect(self.set_buttons_visibility)
         self.categories_mcv.work_tree_view.version_created.connect(self._ingest_success)
-        self.categories_mcv.work_tree_view.doubleClicked.connect(self.load_work)
-        self.categories_mcv.work_tree_view.load_event.connect(self.load_work)
-        self.categories_mcv.work_tree_view.import_event.connect(self.import_work)
+        # self.categories_mcv.work_tree_view.doubleClicked.connect(self.load_work)
+        self.categories_mcv.work_tree_view.doubleClicked.connect(self.versions_mcv.on_load)
+        # self.categories_mcv.work_tree_view.load_event.connect(self.load_work)
+        self.categories_mcv.work_tree_view.load_event.connect(self.versions_mcv.on_load)
+        # self.categories_mcv.work_tree_view.import_event.connect(self.import_work)
+        self.categories_mcv.work_tree_view.import_event.connect(self.versions_mcv.on_import)
         self.versions_mcv.show_preview_btn.clicked.connect(self.on_show_preview)
 
     def set_last_state(self):
@@ -318,32 +321,33 @@ class MainUI(QtWidgets.QMainWindow):
         increment_version_btn.setMinimumSize(150, 40)
         ingest_version_btn = TikButton("Ingest Version")
         ingest_version_btn.setMinimumSize(150, 40)
-        load_btn = TikButton("Load")
-        load_btn.setMinimumSize(150, 40)
-        import_btn = TikButton("Import")
-        import_btn.setMinimumSize(150, 40)
+        publish_scene_btn = TikButton("Publish")
+        # load_btn = TikButton("Load")
+        # load_btn.setMinimumSize(150, 40)
+        # import_btn = TikButton("Import")
+        # import_btn.setMinimumSize(150, 40)
 
         self.work_buttons_layout.addWidget(save_new_work_btn)
         self.work_buttons_layout.addWidget(increment_version_btn)
         self.work_buttons_layout.addWidget(ingest_version_btn)
         self.work_buttons_layout.addStretch(1)
-        self.work_buttons_layout.addWidget(load_btn)
-        self.work_buttons_layout.addWidget(import_btn)
+        # self.work_buttons_layout.addWidget(load_btn)
+        # self.work_buttons_layout.addWidget(import_btn)
 
-        # Publish buttons
-        publish_scene_btn = TikButton("Publish Scene")
-        publish_scene_btn.setMinimumSize(150, 40)
-        reference_btn = TikButton("Reference")
-        reference_btn.setMinimumSize(150, 40)
-
-        self.publish_buttons_layout.addWidget(publish_scene_btn)
-        self.publish_buttons_layout.addStretch(1)
-        self.publish_buttons_layout.addWidget(import_btn)
-        self.publish_buttons_layout.addWidget(reference_btn)
+        # # Publish buttons
+        # publish_scene_btn = TikButton("Publish Scene")
+        # publish_scene_btn.setMinimumSize(150, 40)
+        # reference_btn = TikButton("Reference")
+        # reference_btn.setMinimumSize(150, 40)
+        #
+        # self.publish_buttons_layout.addWidget(publish_scene_btn)
+        # self.publish_buttons_layout.addStretch(1)
+        # self.publish_buttons_layout.addWidget(import_btn)
+        # self.publish_buttons_layout.addWidget(reference_btn)
 
         # SIGNALS
-        load_btn.clicked.connect(self.load_work)
-        import_btn.clicked.connect(self.import_work)
+        # load_btn.clicked.connect(self.load_work)
+        # import_btn.clicked.connect(self.import_work)
         increment_version_btn.clicked.connect(self.on_new_version)
         ingest_version_btn.clicked.connect(self.on_ingest_version)
         save_new_work_btn.clicked.connect(self.on_new_work)
@@ -415,8 +419,10 @@ class MainUI(QtWidgets.QMainWindow):
         increment_version.triggered.connect(self.on_new_version)
         ingest_version.triggered.connect(self.on_ingest_version)
         publish_scene.triggered.connect(self.on_publish_scene)
-        load_item.triggered.connect(self.load_work)
-        import_item.triggered.connect(self.import_work)
+        # load_item.triggered.connect(self.load_work)
+        load_item.triggered.connect(self.versions_mcv.on_load)
+        # import_item.triggered.connect(self.import_work)
+        import_item.triggered.connect(self.versions_mcv.on_import)
 
 
         # check if the tik.main.dcc has a preview method
@@ -435,35 +441,35 @@ class MainUI(QtWidgets.QMainWindow):
         print(self.tasks_mcv.task_view.get_items_count())
         self.tasks_mcv.task_view.select_first_item()
 
-    def load_work(self, event=None):
-        """Load the selected work or publish version."""
-        # get the work item
-        selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
-        if not selected_work_item:
-            self.feedback.pop_info(
-                title="No work selected.",
-                text="Please select a work to load.",
-                critical=True,
-            )
-            return
-        # get the version
-        selected_version = self.versions_mcv.get_selected_version()
-        selected_work_item.tik_obj.load_version(selected_version)
+    # def load_work(self, event=None):
+    #     """Load the selected work or publish version."""
+    #     # get the work item
+    #     selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
+    #     if not selected_work_item:
+    #         self.feedback.pop_info(
+    #             title="No work selected.",
+    #             text="Please select a work to load.",
+    #             critical=True,
+    #         )
+    #         return
+    #     # get the version
+    #     selected_version = self.versions_mcv.get_selected_version()
+    #     selected_work_item.tik_obj.load_version(selected_version)
 
-    def import_work(self):
-        """Import a work into the project."""
-        selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
-        if not selected_work_item:
-            self.feedback.pop_info(
-                title="No work or publish item selected.",
-                text="Please select a work or publish item to import.",
-                critical=True,
-            )
-            return
-        # get the version
-        selected_version = self.versions_mcv.get_selected_version()
-        element_type = self.versions_mcv.get_selected_element_type()
-        selected_work_item.tik_obj.import_version(selected_version, element_type=element_type)
+    # def import_work(self):
+    #     """Import a work into the project."""
+    #     selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
+    #     if not selected_work_item:
+    #         self.feedback.pop_info(
+    #             title="No work or publish item selected.",
+    #             text="Please select a work or publish item to import.",
+    #             critical=True,
+    #         )
+    #         return
+    #     # get the version
+    #     selected_version = self.versions_mcv.get_selected_version()
+    #     element_type = self.versions_mcv.get_selected_element_type()
+    #     selected_work_item.tik_obj.import_version(selected_version, element_type=element_type)
 
     def _ingest_success(self):
         """Callback function for the ingest success event."""

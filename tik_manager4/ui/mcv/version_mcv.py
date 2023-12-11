@@ -2,6 +2,8 @@
 from pathlib import Path
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+from tik_manager4.ui.dialog.feedback import Feedback
+from tik_manager4.ui.widgets.common import TikButton
 from tik_manager4.core import filelog
 from tik_manager4.ui import pick
 
@@ -10,9 +12,15 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class TikVersionLayout(QtWidgets.QVBoxLayout):
     def __init__(self, *args, **kwargs):
-        super(TikVersionLayout, self).__init__(*args, **kwargs)
+        """Initialize the TikVersionLayout."""
+        # self.parent = parent
+        super().__init__()
+        # super(TikVersionLayout, self).__init__(*args, **kwargs)
 
         self.base = None  # this is work or publish object
+        # get the parent widget
+        self.parent = kwargs.get("parent")
+        self.feedback = Feedback(parent=kwargs.get("parent"))
 
         self.label = QtWidgets.QLabel("Versions")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
@@ -74,12 +82,70 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.thumbnail.setAlignment(QtCore.Qt.AlignCenter)
         self.addWidget(self.thumbnail)
 
+        # # buttons
+        self.btn_layout = QtWidgets.QHBoxLayout()
+        self.import_btn = TikButton("Import")
+        self.load_btn = TikButton("Load")
+        self.reference_btn = TikButton("Reference")
+        self.btn_layout.addWidget(self.import_btn)
+        self.btn_layout.addWidget(self.load_btn)
+        self.btn_layout.addWidget(self.reference_btn)
+        self.addLayout(self.btn_layout)
+        self.toggle_buttons(False)
+
         # SIGNALS
         self.version_combo.currentIndexChanged.connect(self.version_changed)
+        self.import_btn.clicked.connect(self.on_import)
+        self.load_btn.clicked.connect(self.on_load)
+        self.reference_btn.clicked.connect(self.on_reference)
+
+    def on_import(self):
+        """Import the current version."""
+        if not self.base:
+            self.feedback.pop_info(
+                    title="No work or publish selected.",
+                    text="Please select a work or publish to import.",
+                    critical=True,
+                )
+            return
+        _version = self.get_selected_version()
+        _element_type = self.get_selected_element_type()
+        self.base.import_version(_version, element_type=_element_type)
+
+    def on_load(self):
+        """Load the current version."""
+        if not self.base:
+            self.feedback.pop_info(
+                    title="No work or publish selected.",
+                    text="Please select a work or publish to load.",
+                    critical=True,
+                )
+            return
+        _version = self.get_selected_version()
+        self.base.load_version(_version)
+
+    def on_reference(self):
+        """Reference the current version."""
+        if not self.base:
+            self.feedback.pop_info(
+                    title="No work or publish selected.",
+                    text="Please select a work or publish to reference.",
+                    critical=True,
+                )
+            return
+        _version = self.get_selected_version()
+        self.base.reference_version(_version)
+
+    def toggle_buttons(self, state):
+        """Toggle the buttons enabled or disabled depending on the base."""
+        self.import_btn.setEnabled(state)
+        self.load_btn.setEnabled(state)
+        self.reference_btn.setEnabled(state)
 
     def set_base(self, base):
-        # self.clear()
+        """Set the base object. This can be work or publish object."""
         self.version_combo.blockSignals(True)
+        self.toggle_buttons(state=bool(base))
         if not base:
             self.version_combo.clear()
             self.element_combo.clear()
@@ -87,9 +153,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.thumbnail.clear()
             return
         self.base = base
-        # self.populate_versions(base._versions)
         self.populate_versions(base.versions)
-
         self.version_combo.blockSignals(False)
 
     def populate_versions(self, versions):
