@@ -2,7 +2,7 @@
 from time import time
 import logging
 from tik_manager4.ui.Qt import QtWidgets, QtCore
-from tik_manager4.ui.widgets.common import TikLabel, HeaderLabel, ResolvedText, TikButtonBox, TikButton, TikIconButton
+from tik_manager4.ui.widgets.common import TikLabel, TikLabelButton, HeaderLabel, ResolvedText, TikButtonBox, TikButton, TikIconButton
 
 from tik_manager4.ui.dialog.feedback import Feedback
 
@@ -47,15 +47,15 @@ class PublishSceneDialog(QtWidgets.QDialog):
         # build the layouts
         self.build_ui()
 
-        self.resize(800, 600)
+        self.resize(1000, 600)
 
-        # self.horizontal_splitter.setSizes([600, 400])
-        # self.vertical_splitter.setSizes([700, 200])
+        self.horizontal_splitter.setSizes([500, 500])
+        self.vertical_splitter.setSizes([800, 200])
 
-        self.horizontal_splitter.setStretchFactor(0, 50)
-        self.horizontal_splitter.setStretchFactor(1, 50)
-        self.vertical_splitter.setStretchFactor(0, 70)
-        self.vertical_splitter.setStretchFactor(1, 30)
+        # self.horizontal_splitter.setStretchFactor(0, 50)
+        # self.horizontal_splitter.setStretchFactor(1, 50)
+        # self.vertical_splitter.setStretchFactor(0, 70)
+        # self.vertical_splitter.setStretchFactor(1, 30)
 
     def check_eligibility(self):
         """Checks if the current scene is eligible for publishing."""
@@ -497,18 +497,46 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         # self.checkbox = QtWidgets.QCheckBox()
         # self.addWidget(self.checkbox)
 
-        # button
+        # main
+        main_layout = QtWidgets.QVBoxLayout()
+        self.addLayout(main_layout)
+        header_layout = QtWidgets.QHBoxLayout()
+        header_layout.setSpacing(0)
+        main_layout.addLayout(header_layout)
+
+        self.settings_btn = TikLabelButton()
+        self.settings_btn.setFixedSize(32, 32)
+        self.settings_btn.set_color(self.extract.color)
+        header_layout.addWidget(self.settings_btn)
         self.label = HeaderLabel(text=self.extract.nice_name or self.extract.name)
+        header_layout.addWidget(self.label)
         self.label.set_color(self.extract.color)
-        # stretch it to the layout
         self.label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.label.setFixedHeight(32)
-        self.addWidget(self.label)
+
+        settings_frame = QtWidgets.QFrame()
+        settings_frame.hide()
+        main_layout.addWidget(settings_frame)
+        settings_layout = QtWidgets.QFormLayout()
+        settings_frame.setLayout(settings_layout)
+        # add couple of test rows. Some checkboxes and some text edits
+        settings_layout.addRow("Test", QtWidgets.QCheckBox())
+        settings_layout.addRow("Test", QtWidgets.QCheckBox())
+        settings_layout.addRow("Test", QtWidgets.QLineEdit())
 
         # maintenance icons
         self.info = TikIconButton(icon_name=self.extract.name, circle=True)
         self.info.set_size(32)
         self.addWidget(self.info)
+        def toggle_settings_visibility(state):
+            if state:
+                settings_frame.show()
+            else:
+                settings_frame.hide()
+
+
+        self.settings_btn.toggled.connect(toggle_settings_visibility)
+
 
     def set_state(self, state):
         """Set the state of the extract."""

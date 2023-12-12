@@ -6,7 +6,7 @@ from maya import OpenMaya as om
 from tik_manager4.dcc.ingest_core import IngestCore
 
 class Alembic(IngestCore):
-    """Ingest Source Maya Scene."""
+    """Ingest Alembic."""
     name = "alembic"
     nice_name =  "Ingest Alembic"
     valid_extensions = [".abc"]
@@ -16,9 +16,9 @@ class Alembic(IngestCore):
         if not cmds.pluginInfo("AbcImport", loaded=True, query=True):
             try:
                 cmds.loadPlugin("AbcImport")
-            except Exception as e:
+            except Exception as exc:
                 om.MGlobal.displayInfo("Alembic Import Plugin cannot be initialized")
-                raise e
+                raise exc
 
         self.category_functions = {"Model": self._bring_in_model,
                                    "Animation": self._bring_in_animation}

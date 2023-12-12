@@ -117,20 +117,20 @@ class MainUI(QtWidgets.QMainWindow):
         self.work_buttons_layout.setContentsMargins(0, 0, 0, 0)
         self.work_buttons_frame.setLayout(self.work_buttons_layout)
 
-        self.publish_buttons_frame = QtWidgets.QFrame()
-        self.publish_buttons_frame.setMaximumHeight(50)
-
-        self.publish_buttons_layout = QtWidgets.QHBoxLayout()
-        self.publish_buttons_layout.setContentsMargins(0, 0, 0, 0)
-        self.publish_buttons_frame.setLayout(self.publish_buttons_layout)
-        self.publish_buttons_frame.hide()
+        # self.publish_buttons_frame = QtWidgets.QFrame()
+        # self.publish_buttons_frame.setMaximumHeight(50)
+        #
+        # self.publish_buttons_layout = QtWidgets.QHBoxLayout()
+        # self.publish_buttons_layout.setContentsMargins(0, 0, 0, 0)
+        # self.publish_buttons_frame.setLayout(self.publish_buttons_layout)
+        # self.publish_buttons_frame.hide()
 
         self.master_layout.addLayout(self.title_layout)
         self.master_layout.addLayout(project_user_layout)
         self.master_layout.addLayout(self.main_layout)
 
         self.master_layout.addWidget(self.work_buttons_frame)
-        self.master_layout.addWidget(self.publish_buttons_frame)
+        # self.master_layout.addWidget(self.publish_buttons_frame)
 
         #####################
 
@@ -322,6 +322,7 @@ class MainUI(QtWidgets.QMainWindow):
         ingest_version_btn = TikButton("Ingest Version")
         ingest_version_btn.setMinimumSize(150, 40)
         publish_scene_btn = TikButton("Publish")
+        publish_scene_btn.setMinimumSize(150, 40)
         # load_btn = TikButton("Load")
         # load_btn.setMinimumSize(150, 40)
         # import_btn = TikButton("Import")
@@ -330,6 +331,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.work_buttons_layout.addWidget(save_new_work_btn)
         self.work_buttons_layout.addWidget(increment_version_btn)
         self.work_buttons_layout.addWidget(ingest_version_btn)
+        self.work_buttons_layout.addWidget(publish_scene_btn)
         self.work_buttons_layout.addStretch(1)
         # self.work_buttons_layout.addWidget(load_btn)
         # self.work_buttons_layout.addWidget(import_btn)

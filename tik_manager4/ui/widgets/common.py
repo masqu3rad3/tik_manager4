@@ -56,6 +56,7 @@ class TikButton(QtWidgets.QPushButton):
         # make sure the button has a font defined for different OS scales
         self.set_font_size(font_size)
         self.setStyleSheet(BUTTON_STYLE)
+
     def set_font_size(self, font_size):
         self.setFont(QtGui.QFont(FONT, font_size))
 
@@ -166,6 +167,46 @@ class TikLabel(QtWidgets.QLabel):
             color = "rgb({},{},{})".format(color[0], color[1], color[2])
         self.setStyleSheet("color: {};".format(color))
 
+class TikLabelButton(TikButton):
+    """Customize the button to be used next to the header."""
+    style_sheet = """
+    QPushButton
+    {{
+        color: {0};
+        background-color: #404040;
+        border-width: 1px;
+        border-color: {0};
+        border-style: solid;
+        padding: 5px;
+        font-size: 12x;
+        border-radius: 0px;
+    }}"""
+    def __init__(self, *args, color=(255, 255, 255), **kwargs):
+        super(TikLabelButton, self).__init__(*args, **kwargs)
+        self.normal_text = kwargs.get("text", ">")
+        self.clicked_text = "˅"
+        self.setText(self.normal_text)
+        # make the button checkable
+        self.setCheckable(True)
+        self.setProperty("label", True)
+        self.set_color(color)
+        self.toggled.connect(self.set_state_text)
+
+    # override the checked state
+    def set_state_text(self, checked):
+        if checked:
+            self.setText(self.clicked_text)
+        else:
+            self.setText(self.normal_text)
+
+    def set_color(self, color):
+        if isinstance(color, (tuple, list)):
+            color = "rgb({},{},{})".format(color[0], color[1], color[2])
+        self.setStyleSheet(self.styleSheet() + self.style_sheet.format(color))
+        self.style().unpolish(self)
+        self.style().polish(self)
+
+
 class HeaderLabel(TikLabel):
     """Label with bold font and indent."""
 
@@ -179,6 +220,8 @@ class HeaderLabel(TikLabel):
         self.setAlignment(QtCore.Qt.AlignCenter)
     def set_font_size(self, font_size):
         self.setFont(QtGui.QFont(FONT, font_size, QtGui.QFont.Bold))
+
+
     
 
 # class HeaderLabel(QtWidgets.QLabel):
