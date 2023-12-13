@@ -25,14 +25,17 @@ class Alembic(IngestCore):
 
     def _bring_in_model(self, file_path):
         """Import Alembic File."""
+        om.MGlobal.displayInfo("Bringing in Alembic Model")
         cmds.AbcImport(file_path, mode="import", fitTimeRange=False, setToStartFrame=False)
 
     def _bring_in_animation(self, file_path):
         """Import Alembic File."""
+        om.MGlobal.displayInfo("Bringing in Alembic Animation")
         cmds.AbcImport(file_path, mode="import", fitTimeRange=True, setToStartFrame=True)
 
     def _bring_in_default(self, file_path):
         """Import Alembic File."""
+        om.MGlobal.displayInfo("Bringing in Alembic with default settings")
         cmds.AbcImport(file_path)
 
     def reference(self, file_path, namespace=None):

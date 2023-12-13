@@ -2,6 +2,37 @@
 from functools import wraps
 from maya import cmds
 
+
+def get_ranges():
+    """
+    Get the viewport ranges.
+    Returns: (list) [<absolute range start>, <user range start>, <user range end>,
+    <absolute range end>
+    """
+    r_ast = cmds.playbackOptions(query=True, animationStartTime=True)
+    r_min = cmds.playbackOptions(query=True, minTime=True)
+    r_max = cmds.playbackOptions(query=True, maxTime=True)
+    r_aet = cmds.playbackOptions(query=True, animationEndTime=True)
+    return [r_ast, r_min, r_max, r_aet]
+
+def set_ranges(range_list):
+    """
+    Set the timeline ranges.
+
+    Args:
+        range_list: list of ranges as [<animation start>, <user min>, <user max>,
+                                        <animation end>]
+
+    Returns: None
+
+    """
+    cmds.playbackOptions(
+        animationStartTime=range_list[0],
+        minTime=range_list[1],
+        maxTime=range_list[2],
+        animationEndTime=range_list[3],
+    )
+
 # decorator to keep the current selection
 def keepselection(func):
     """Decorator method to keep the current selection. Useful where

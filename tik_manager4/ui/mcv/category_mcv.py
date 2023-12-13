@@ -537,6 +537,8 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 
     def on_category_change(self, index):
         """Do this when the category tab changes."""
+        if not self.task:
+            return
         # get the current tab name
         self._last_category = self.category_tab_widget.tabText(index)
         works = self.task.categories[self._last_category].works

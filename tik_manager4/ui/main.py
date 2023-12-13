@@ -238,7 +238,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.item_selected.connect(
             self.versions_mcv.set_base
         )
-        self.categories_mcv.mode_changed.connect(self.set_buttons_visibility)
+        # self.categories_mcv.mode_changed.connect(self.set_buttons_visibility)
         self.categories_mcv.work_tree_view.version_created.connect(self._ingest_success)
         # self.categories_mcv.work_tree_view.doubleClicked.connect(self.load_work)
         self.categories_mcv.work_tree_view.doubleClicked.connect(self.versions_mcv.on_load)
@@ -301,15 +301,15 @@ class MainUI(QtWidgets.QMainWindow):
         _ = QtWidgets.QApplication.allWidgets()
         event.accept()
 
-    def set_buttons_visibility(self, mode):
-        """Set the visibility of the buttons layout based on the mode."""
-
-        if mode == 0:
-            self.work_buttons_frame.show()
-            self.publish_buttons_frame.hide()
-        else:
-            self.work_buttons_frame.hide()
-            self.publish_buttons_frame.show()
+    # def set_buttons_visibility(self, mode):
+    #     """Set the visibility of the buttons layout based on the mode."""
+    #
+    #     if mode == 0:
+    #         self.work_buttons_frame.show()
+    #         self.publish_buttons_frame.hide()
+    #     else:
+    #         self.work_buttons_frame.hide()
+    #         self.publish_buttons_frame.show()
 
     def build_buttons(self):
         "Build the buttons"

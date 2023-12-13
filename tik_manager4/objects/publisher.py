@@ -57,6 +57,7 @@ class Publisher():
         for extract in extracts:
             if extract in list(self._dcc_handler.extracts.keys()):
                 self._resolved_extractors[extract] = self._dcc_handler.extracts[extract]()
+                self._resolved_extractors[extract].category = self._work_object.category # define the category
             else:
                 LOG.warning("Extract {0} defined in category settings but it is not available on {1}".format(extract, self._dcc_handler.name))
         for validation in validations:
@@ -116,7 +117,7 @@ class Publisher():
         self._dcc_handler.save_scene()
         publish_path = Path(self._work_object.get_abs_project_path("publish", self._work_object.name))
         for extract_type_name, extract_object in self._resolved_extractors.items():
-            extract_object.category = self._work_object.category # define the category
+            # extract_object.category = self._work_object.category # define the category #
             extract_object.extract_folder = str(publish_path) # define the extract folder
             extract_object.extract_name = f"{self._work_object.name}_v{self._publish_version:03d}" # define the extract name
             extract_object.extract()

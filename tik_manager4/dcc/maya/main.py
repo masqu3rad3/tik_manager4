@@ -9,6 +9,7 @@ from tik_manager4.ui.Qt import QtWidgets, QtCompat
 from maya import OpenMayaUI as omui
 
 from tik_manager4.dcc.main_core import DccTemplate
+from tik_manager4.dcc.maya import utils
 from tik_manager4.dcc.maya import panels
 from tik_manager4.dcc.maya import validate
 from tik_manager4.dcc.maya import extract
@@ -136,35 +137,13 @@ class Dcc(DccTemplate):
 
     @staticmethod
     def get_ranges():
-        """
-        Get the viewport ranges.
-        Returns: (list) [<absolute range start>, <user range start>, <user range end>,
-        <absolute range end>
-        """
-        r_ast = cmds.playbackOptions(query=True, animationStartTime=True)
-        r_min = cmds.playbackOptions(query=True, minTime=True)
-        r_max = cmds.playbackOptions(query=True, maxTime=True)
-        r_aet = cmds.playbackOptions(query=True, animationEndTime=True)
-        return [r_ast, r_min, r_max, r_aet]
+        """Get the viewport ranges."""
+        utils.get_ranges()
 
     @staticmethod
     def set_ranges(range_list):
-        """
-        Set the timeline ranges.
-
-        Args:
-            range_list: list of ranges as [<animation start>, <user min>, <user max>,
-                                            <animation end>]
-
-        Returns: None
-
-        """
-        cmds.playbackOptions(
-            animationStartTime=range_list[0],
-            minTime=range_list[1],
-            maxTime=range_list[2],
-            animationEndTime=range_list[3],
-        )
+        """Set the timeline ranges."""
+        utils.set_ranges(range_list)
 
     @staticmethod
     def set_project(file_path):

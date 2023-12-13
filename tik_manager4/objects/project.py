@@ -211,6 +211,7 @@ class Project(Subproject):
             for nmb, version in enumerate(_work.versions):
                 if version.get("scene_path") == base_name:
                     return _work, version.get("version_number", nmb)
+        return None, None
 
     def get_current_work(self):
         """Get the current work object AND version by resolving the current scene.

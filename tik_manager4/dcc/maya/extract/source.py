@@ -28,4 +28,6 @@ class Source(ExtractCore):
         except RuntimeError as e:
             cmds.file(rename=_original_path)
             raise RuntimeError(e)
+        finally:
+            cmds.file(rename=_original_path)
 

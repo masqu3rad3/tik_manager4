@@ -2,6 +2,8 @@
 # import os
 from pathlib import Path
 from tik_manager4.core import filelog
+from tik_manager4.core.settings import Settings
+
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -10,6 +12,7 @@ class ExtractCore():
     name: str = ""
     nice_name: str = ""
     color: tuple = (255, 255, 255) # RGB
+    default_settings: dict = {}
     def __init__(self):
         # self._name: str = ""
         self._extension: str = ""
@@ -18,6 +21,11 @@ class ExtractCore():
         self._status = "idle"
         self._extract_name = ""
         self.category_functions = {}
+        self.settings = {}
+        for key, value in self.default_settings.items():
+            _settings = Settings()
+            _settings.set_data(value)
+            self.settings[key] = _settings
 
     @property
     def extract_name(self):

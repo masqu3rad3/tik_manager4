@@ -298,7 +298,7 @@ class NewProjectDialog(EditSubprojectDialog):
         # get the name ValidatedString widget and connect it to the ok button
         _name_line_edit = self.primary_content.find("project_name")
         _name_line_edit.add_connected_widget(
-            self.button_box.label(QtWidgets.QDialogButtonBox.Ok)
+            self.button_box.button(QtWidgets.QDialogButtonBox.Ok)
         )
         template_widget = self.primary_content.find("structure_template")
 
