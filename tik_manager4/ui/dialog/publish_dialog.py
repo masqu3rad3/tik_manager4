@@ -254,10 +254,6 @@ class PublishSceneDialog(QtWidgets.QDialog):
         for extractor_widget in self._extractor_widgets:
             self.project.publisher.extract_single(extractor_widget.extract)
             extractor_widget.set_state(extractor_widget.extract.state)
-            print("compare_pre", extractor_widget.extract.settings)
-            if extractor_widget.settings_data:
-                print("compare_pre_fr", extractor_widget.settings_data.get_property("frame_range"))
-                print("compare_pre_fr", extractor_widget.settings_data.get_property("step"))
             if extractor_widget.extract.state == "failed":
                 q = self.feedback.pop_question(title="Extraction Failed", text=f"Extraction failed for: \n\n{extractor_widget.extract.name}\n\nDo you want to continue?", buttons=["continue", "cancel"])
                 if q == "cancel":
@@ -524,23 +520,10 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         main_layout.addWidget(settings_frame)
 
         self.settings_data = self.extract.settings.get(self.extract.category, None)
-        print("settings_data_compare1", self.settings_data)
-
-        print("category", self.extract.category)
-        print("extract.settings", self.extract.settings)
-        # print("settings_data", settings_data)
-        # import pdb
-        # pdb.set_trace()
         if self.settings_data:
-            print("frame_rangeeee")
-            print(self.settings_data.get_property("frame_range"))
             settings_ui = convert_to_ui_definition(self.settings_data)
-            # settings_data = settings.Settings()
-            # settings_data.set_data(settings_ui)
-            # settings_layout = SettingsLayout(settings_ui, settings_data)
             settings_layout = SettingsLayout(settings_ui, self.settings_data)
             settings_frame.setLayout(settings_layout)
-            print("settings_data_compare2", self.settings_data)
 
         # maintenance icons
         self.info = TikIconButton(icon_name=self.extract.name, circle=True)

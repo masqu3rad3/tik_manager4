@@ -70,7 +70,6 @@ def convert_to_ui_definition(settings_data):
     for key, data in source_dict.items():
         # guess the type of the data
         data_type = guess_data_type(data)
-        print("data_type", data_type)
         if data_type == "multi":
             value = convert_to_ui_definition(data)
         else:

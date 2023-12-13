@@ -52,8 +52,6 @@ class Alembic(ExtractCore):
         settings = self.settings.get("Animation", {})
         _file_path = self.resolve_output()
         frame_range = settings.get_property("frame_range")
-        print("frame_range", frame_range)
-        print("settings_data_compare3", settings)
         step = settings.get_property("step")
         _flags = f"-frameRange {frame_range[0]} {frame_range[1]} -step {step} -uvWrite -worldSpace -writeUVSets -renderableOnly -writeVisibility -dataFormat ogawa"
         command = f"{_flags} -file {_file_path}"
