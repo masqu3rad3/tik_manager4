@@ -167,20 +167,9 @@ class User(object):
         _user_dir = Path(_user_root, "TikManager4")
         _user_dir.mkdir(exist_ok=True)
         self.user_directory = str(_user_dir)
-        # self.user_directory = os.path.normpath(os.path.join(_user_root, "TikManager4"))
-        # if not os.path.isdir(os.path.normpath(self.user_directory)):
-        #     os.makedirs(os.path.normpath(self.user_directory))
         self.settings.settings_file = str(Path(self.user_directory, "userSettings.json"))
-        # self.settings.settings_file = os.path.join(
-        #     self.user_directory, "userSettings.json"
-        # )
         self.bookmarks.settings_file = str(Path(self.user_directory, "bookmarks.json"))
-        # self.bookmarks.settings_file = os.path.join(
-        #     self.user_directory, "bookmarks.json"
-        # )
         self.resume.settings_file = str(Path(self.user_directory, "resume.json"))
-        # self.resume.settings_file = os.path.join(self.user_directory, "resume.json")
-
         # Check if the common folder defined in the user settings
         self.common_directory = self.common_directory or self.settings.get_property(
             "commonFolder"

@@ -6,37 +6,37 @@
   },
   "Assembly": {
     "type": "asset",
-    "validations": [],
+    "validations": ["forbidden_nodes", "locked_normals", "ngons", "overlapping_uvs", "shape_names", "turtle"],
     "extracts": ["source"]
   },
   "LookDev": {
     "type": "asset",
-    "validations": [],
+    "validations": ["forbidden_nodes", "turtle"],
     "extracts": ["source"]
   },
   "Rig": {
     "type": "asset",
-    "validations": [],
+    "validations": ["forbidden_nodes", "turtle"],
     "extracts": ["source"]
   },
   "Animation": {
         "type": "shot",
-        "validations": [],
+        "validations": ["forbidden_nodes", "turtle"],
         "extracts": ["source", "alembic"]
     },
   "Layout": {
         "type": "shot",
-        "validations": [],
+        "validations": ["forbidden_nodes", "turtle"],
         "extracts": ["source"]
     },
   "Lighting": {
         "type": "shot",
-        "validations": [],
+        "validations": ["forbidden_nodes", "turtle"],
         "extracts": ["source"]
     },
   "Fx": {
         "type": "shot",
-        "validations": [],
+        "validations": ["forbidden_nodes", "turtle"],
         "extracts": ["source", "alembic"]
     },
   "Comp": {

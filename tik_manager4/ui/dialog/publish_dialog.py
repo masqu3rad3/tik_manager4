@@ -481,7 +481,17 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         """Initialize the ExtractRow."""
         super(ExtractRow, self).__init__(*args, **kwargs)
         self.extract = extract_object
+
+        self.status_icon = None
+        self.label = None
+        self.settings_btn = None
+        self.settings_frame = None
+        self.settings_data = None
+        self.info = None
+
         self.build_widgets()
+
+
 
     def build_widgets(self):
         """Build the widgets."""
@@ -505,38 +515,58 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         header_layout.setSpacing(0)
         main_layout.addLayout(header_layout)
 
-        self.settings_btn = TikLabelButton()
-        self.settings_btn.setFixedSize(32, 32)
-        self.settings_btn.set_color(self.extract.color)
-        header_layout.addWidget(self.settings_btn)
+
+
+
+
+        # header_layout.addWidget(self.settings_btn)
         self.label = HeaderLabel(text=self.extract.nice_name or self.extract.name)
-        header_layout.addWidget(self.label)
+        # header_layout.addWidget(self.label)
         self.label.set_color(self.extract.color)
         self.label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.label.setFixedHeight(32)
 
-        settings_frame = QtWidgets.QFrame()
-        settings_frame.hide()
-        main_layout.addWidget(settings_frame)
-
         self.settings_data = self.extract.settings.get(self.extract.category, None)
+
         if self.settings_data:
+            self.settings_btn = TikLabelButton()
+            self.settings_btn.setFixedSize(32, 32)
+            self.settings_btn.set_color(self.extract.color)
+            self.settings_frame = QtWidgets.QWidget()  # contents_widget
+            settings_layout = QtWidgets.QVBoxLayout()
+            main_layout.addWidget(self.settings_frame)
+            self.settings_frame.setLayout(settings_layout)
+
             settings_ui = convert_to_ui_definition(self.settings_data)
-            settings_layout = SettingsLayout(settings_ui, self.settings_data)
-            settings_frame.setLayout(settings_layout)
+            settings_formlayout = SettingsLayout(settings_ui, self.settings_data)
+            settings_layout.addLayout(settings_formlayout)
+            # settings_frame.setLayout(settings_layout)
+
+            settings_layout.addStretch()
+
+            header_layout.addWidget(self.settings_btn)
+
+            self.settings_btn.toggled.connect(self.toggle_settings_visibility)
+
+            # get the settings_formlayout height
+            settings_formlayout_height = settings_formlayout.sizeHint().height()
+            self.settings_frame.setFixedHeight(settings_formlayout_height+20)
+
+            self.settings_frame.hide()
+
+        header_layout.addWidget(self.label)
 
         # maintenance icons
         self.info = TikIconButton(icon_name=self.extract.name, circle=True)
         self.info.set_size(32)
         self.addWidget(self.info)
-        def toggle_settings_visibility(state):
-            if state:
-                settings_frame.show()
-            else:
-                settings_frame.hide()
 
-
-        self.settings_btn.toggled.connect(toggle_settings_visibility)
+    def toggle_settings_visibility(self, state):
+        """Toggle the visibility of the settings frame."""
+        if state:
+            self.settings_frame.show()
+        else:
+            self.settings_frame.hide()
 
 
     def set_state(self, state):

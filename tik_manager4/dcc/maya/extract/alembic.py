@@ -3,10 +3,8 @@
 from maya import cmds
 from maya import OpenMaya as om
 
-from tik_manager4.core import settings
 from tik_manager4.dcc.extract_core import ExtractCore
 from tik_manager4.dcc.maya import utils
-from tik_manager4.core.settings import Settings
 
 
 
@@ -19,7 +17,7 @@ class Alembic(ExtractCore):
     default_settings = {
         "Animation": {
             "frame_range": [_ranges[0], _ranges[3]],
-            "step": 1.0
+            "step": 1.0,
         }
     }
     def __init__(self):
