@@ -545,13 +545,9 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         if self.mode == 0 and self._last_category:
             self.work_tree_view.model.set_works(works.values())
         else:
-            # get the publishes from the works
-            _publishes = [work_obj.publish for work_obj in works.values()]
+            _publishes = [work_obj.publish for work_obj in works.values() if work_obj.publish.versions]
             self.work_tree_view.model.set_publishes(_publishes)
-            # make the tree view to show the branches
-            # self.work_tree_view.setRootIsDecorated(True)
-            # expand all the items
-            # self.work_tree_view.expandAll()
+
 
     def clear(self):
         """Refresh the layout"""

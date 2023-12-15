@@ -8,12 +8,16 @@ from tik_manager4.core import filelog
 
 from tik_manager4 import dcc
 
+
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Publish(Entity):
     object_type = "publish"
-    _dcc_handler = dcc.Dcc()
+    try:
+        _dcc_handler = dcc.Dcc()
+    except:
+        _dcc_handler = None
     """Class to represent a publish.
 
     This class is not represented by a file. Publish-PublishVersion relationship
@@ -147,6 +151,7 @@ class Publish(Entity):
 class PublishVersion(Settings, Entity):
     """PublishVersion object class."""
     _dcc_handler = dcc.Dcc()
+
 
     def __init__(self, absolute_path, name=None, path=None):
         """Initialize the publish version object."""

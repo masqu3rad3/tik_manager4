@@ -1,9 +1,13 @@
 """Module for picking stuff."""
+import sys
 from pathlib import Path
 
 from tik_manager4.ui.Qt import QtCore, QtGui
 
-DIRECTORY = Path(__file__).parent
+# if it is frozen,
+_FROZEN = getattr(sys, 'frozen', False)
+# DIRECTORY = Path(__file__).parent if not _FROZEN else Path(sys._MEIPASS)
+DIRECTORY = Path(__file__).parent if not _FROZEN else Path(sys.executable).parent
 IMAGES_FOLDER = DIRECTORY / "images"
 THEME_FOLDER = DIRECTORY / "theme"
 ICON_FOLDER = DIRECTORY / "icons"
@@ -25,4 +29,7 @@ def style_file():
     QtCore.QDir.addSearchPath("rc", str(RC_FOLDER))
     style_qfile = QtCore.QFile("css:tikManager.qss")
     style_qfile.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
+    print("DIRECTORY", DIRECTORY)
+    print("THEME_FOLDER", THEME_FOLDER)
+    print("RC_FOLDER", RC_FOLDER)
     return style_qfile
