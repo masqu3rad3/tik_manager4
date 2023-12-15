@@ -15,7 +15,6 @@ class Project(Subproject):
         self.structure = Settings()
         self.settings = Settings()
         self.category_definitions = Settings()
-        self.category_definitions = Settings()
         self.metadata_definitions = Settings()
         self._path = path
         self._database_path = None

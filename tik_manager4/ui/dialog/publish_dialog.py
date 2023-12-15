@@ -2,7 +2,6 @@
 from time import time
 import logging
 from tik_manager4.ui.Qt import QtWidgets, QtCore
-from tik_manager4.core import settings
 from tik_manager4.ui.widgets.common import TikLabel, TikLabelButton, HeaderLabel, ResolvedText, TikButtonBox, TikButton, TikIconButton
 from tik_manager4.ui.layouts.settings_layout import SettingsLayout, convert_to_ui_definition
 from tik_manager4.ui.dialog.feedback import Feedback
@@ -504,10 +503,6 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         self.status_icon.setFixedWidth(10)
         self.addWidget(self.status_icon)
 
-        # checkbox
-        # self.checkbox = QtWidgets.QCheckBox()
-        # self.addWidget(self.checkbox)
-
         # main
         main_layout = QtWidgets.QVBoxLayout()
         self.addLayout(main_layout)
@@ -515,13 +510,7 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         header_layout.setSpacing(0)
         main_layout.addLayout(header_layout)
 
-
-
-
-
-        # header_layout.addWidget(self.settings_btn)
         self.label = HeaderLabel(text=self.extract.nice_name or self.extract.name)
-        # header_layout.addWidget(self.label)
         self.label.set_color(self.extract.color)
         self.label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.label.setFixedHeight(32)
@@ -540,7 +529,6 @@ class ExtractRow(QtWidgets.QHBoxLayout):
             settings_ui = convert_to_ui_definition(self.settings_data)
             settings_formlayout = SettingsLayout(settings_ui, self.settings_data)
             settings_layout.addLayout(settings_formlayout)
-            # settings_frame.setLayout(settings_layout)
 
             settings_layout.addStretch()
 

@@ -6,8 +6,7 @@ from tik_manager4.ui.Qt import QtCore, QtGui
 
 # if it is frozen,
 _FROZEN = getattr(sys, 'frozen', False)
-# DIRECTORY = Path(__file__).parent if not _FROZEN else Path(sys._MEIPASS)
-DIRECTORY = Path(__file__).parent if not _FROZEN else Path(sys.executable).parent
+DIRECTORY = Path(__file__).parent if not _FROZEN else Path(sys.executable).parent / "ui"
 IMAGES_FOLDER = DIRECTORY / "images"
 THEME_FOLDER = DIRECTORY / "theme"
 ICON_FOLDER = DIRECTORY / "icons"
@@ -29,7 +28,4 @@ def style_file():
     QtCore.QDir.addSearchPath("rc", str(RC_FOLDER))
     style_qfile = QtCore.QFile("css:tikManager.qss")
     style_qfile.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
-    print("DIRECTORY", DIRECTORY)
-    print("THEME_FOLDER", THEME_FOLDER)
-    print("RC_FOLDER", RC_FOLDER)
     return style_qfile
