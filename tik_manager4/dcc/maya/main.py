@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import logging
 import platform
 
@@ -82,7 +82,7 @@ class Dcc(DccTemplate):
         Returns:
 
         """
-        extension = os.path.splitext(file_path)[1]
+        extension = Path(file_path).suffix
         file_format = "mayaAscii" if extension == ".ma" else "mayaBinary"
         cmds.file(rename=file_path)
         cmds.file(save=True, type=file_format)
@@ -174,7 +174,7 @@ class Dcc(DccTemplate):
         untitled_file_name = mel.eval("untitledFileName()")
         path = om.MFileIO.currentFile()
 
-        file_name = os.path.basename(path)
+        file_name = Path(path).name
         # Don't just use cmds.file(q=1, sceneName=1)
         # because it was sometimes returning an empty string,
         # even when there was a valid file
@@ -318,7 +318,7 @@ class Dcc(DccTemplate):
 
         _output = cmds.playblast(format=output_format,
                                       # sequenceTime=sequenceTime,
-                                      filename=os.path.join(folder, name),
+                                      filename=str(Path(folder) / name),
                                       widthHeight=resolution,
                                       percent=settings.get("Percent", 100),
                                       quality=settings.get("Quality", 100),
@@ -334,7 +334,7 @@ class Dcc(DccTemplate):
                                       endTime=range[1]
                                       )
 
-        final_clip = "{0}.{1}".format(_output, extension)
+        final_clip = f"{_output}.{extension}"
         pb_panel.kill()
         return final_clip
 

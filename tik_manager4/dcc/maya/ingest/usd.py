@@ -26,3 +26,7 @@ class USD(IngestCore):
     def _bring_in_model(self, file_path):
         """Import USD File."""
         cmds.mayaUSDImport(file_path, shadingMode="none")
+
+    def _bring_in_animation(self, file_path):
+        """Import USD File."""
+        cmds.mayaUSDImport(file_path, preferredMaterial="usdPreviewSurface", readAnimData=1)

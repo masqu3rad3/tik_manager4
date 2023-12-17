@@ -109,11 +109,19 @@ class Publish(Entity):
         return None
 
     def load_version(self, version_number):
-        """Laad the publish version."""
-
-        LOG.warning("Load version is not implemented yet.")
-        # TODO: This needs to be safe. The user should not be able to load a published version. OR not be able/save it.
-        # TODO: Iterate a new version from the publish version and load that.
+        """Load the publish version."""
+        # loading published files is not safe, therefore we are loading the file and immediately save it
+        # as a new working version.
+        version_obj = self.get_version(version_number)
+        if version_obj:
+            if "source" in version_obj.element_types:
+                relative_path = version_obj.get_element_path("source")
+                abs_path = self.get_abs_project_path(relative_path)
+                suffix = Path(abs_path).suffix
+                self._dcc_handler.open(abs_path)
+                self._work_object.new_version(notes=f"Auto Saved from publish version {version_obj.version}", file_format=suffix)
+            else:
+                raise ValueError("Source element is not found in the publish version.")
 
     def import_version(self, version_number, element_type=None):
         """Import the given version of the work to the scene."""

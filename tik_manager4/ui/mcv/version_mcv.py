@@ -122,6 +122,26 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 )
             return
         _version = self.get_selected_version()
+        if self.base.object_type == "publish":
+            _publish_version = self.base.get_version(_version)
+            if "source" not in _publish_version.element_types:
+                msg = "This publish version does not have a source element. Only publish versions with source element can be loaded."
+                self.feedback.pop_info(
+                    title="No source element.",
+                    text=msg,
+                    critical=True,
+                )
+                return
+            else:
+                question = "Publish versions are protected. The file will be loaded and saved as a new WORK version immediately.\n Do you want to continue?"
+                state = self.feedback.pop_question(
+                    title="Load publish version?",
+                    text=question,
+                    buttons=["yes", "cancel"],
+                )
+                if state == "Cancel":
+                    return
+
         self.base.load_version(_version)
 
     def on_reference(self):
