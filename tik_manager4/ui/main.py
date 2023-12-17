@@ -1,4 +1,25 @@
-"""Main UI for Tik Manager 4."""
+"""Main UI for Tik Manager 4.
+
+Maya test:
+
+from importlib import reload
+import sys
+p_path = "D:\\dev\\tik_manager4\\"
+if p_path not in sys.path:
+    sys.path.append(p_path)
+
+kill_list = []
+for name, _module in sys.modules.items():
+    if name.startswith("tik_manager4"):
+        kill_list.append(name)
+for x in kill_list:
+    sys.modules.pop(x)
+
+# from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+from tik_manager4.ui import main
+reload(main)
+main.launch(dcc="Maya")
+"""
 import logging
 
 from tik_manager4.core import utils

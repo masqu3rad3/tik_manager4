@@ -1,4 +1,45 @@
-"""Dialogs for publishing files."""
+"""Dialogs for publishing files.
+
+Maya test example:
+
+from importlib import reload
+import sys
+p_path = "D:\\dev\\tik_manager4\\"
+if p_path not in sys.path:
+    sys.path.append(p_path)
+
+kill_list = []
+for name, _module in sys.modules.items():
+    if name.startswith("tik_manager4"):
+        kill_list.append(name)
+for x in kill_list:
+    sys.modules.pop(x)
+
+
+from maya import cmds
+
+file_path = "C:\\Users\\kutlu\\t4_maya_test_project_DO_NOT_USE\\test_subproject\\test_task\\Model\\Maya\\test_task_Model_test_cube_v003.ma"
+cmds.file(file_path, open=True, force=True)
+
+import tik_manager4
+tik = tik_manager4.initialize("Maya")
+
+from tik_manager4.dcc.maya.main import Dcc as maya_dcc
+parent = maya_dcc().get_main_window()
+# reload(tik_manager4)
+from tik_manager4.objects import publisher
+reload(publisher)
+from tik_manager4.ui.dialog import publish_dialog
+reload(publish_dialog)
+from tik_manager4.ui import pick
+_style_file = pick.style_file()
+
+dialog = publish_dialog.PublishSceneDialog(tik.project, styleSheet=str(_style_file.readAll(), "utf-8"), parent=parent)
+dialog.show()
+
+"""
+
+
 from time import time
 import logging
 from tik_manager4.ui.Qt import QtWidgets, QtCore
