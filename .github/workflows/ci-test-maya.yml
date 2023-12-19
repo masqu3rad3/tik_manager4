@@ -12,7 +12,6 @@ on:
 jobs:
   maya2023:
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
 
@@ -33,4 +32,4 @@ jobs:
             pytest==6.2.4
       - name: Test with pytest
         run: |
-          mayapy -m pytest ./tests/maya
+          mayapy pytest ./tests/maya
