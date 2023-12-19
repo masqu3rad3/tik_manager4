@@ -1,19 +1,25 @@
 """Example of a validation class for Maya."""
 
-import maya.cmds as cmds
+from maya import cmds
 from tik_manager4.dcc.validate_core import ValidateCore
 
 class Example(ValidateCore):
     """Example validation for Maya"""
 
     # Name of the validation
-    name = "Example"
+    name = "example"
+    nice_name = "Example"
 
     def __init__(self):
         super(Example, self).__init__()
         self.autofixable = True
         self.ignorable = True
         self.selectable = True
+
+    def collect(self):
+        """Dummy collect. Which does nothing."""
+        # do something to collect the scene
+        pass
 
     def validate(self):
         """Dummy validation. Which always fails."""

@@ -2,6 +2,8 @@
 from pathlib import Path
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+from tik_manager4.ui.dialog.feedback import Feedback
+from tik_manager4.ui.widgets.common import TikButton
 from tik_manager4.core import filelog
 from tik_manager4.ui import pick
 
@@ -10,9 +12,15 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class TikVersionLayout(QtWidgets.QVBoxLayout):
     def __init__(self, *args, **kwargs):
-        super(TikVersionLayout, self).__init__(*args, **kwargs)
+        """Initialize the TikVersionLayout."""
+        # self.parent = parent
+        super().__init__()
+        # super(TikVersionLayout, self).__init__(*args, **kwargs)
 
         self.base = None  # this is work or publish object
+        # get the parent widget
+        self.parent = kwargs.get("parent")
+        self.feedback = Feedback(parent=kwargs.get("parent"))
 
         self.label = QtWidgets.QLabel("Versions")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
@@ -43,13 +51,23 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.show_preview_btn.setMinimumSize(QtCore.QSize(60, 30))
         version_layout.addWidget(self.show_preview_btn)
 
+        element_layout = QtWidgets.QVBoxLayout()
+        self.addLayout(element_layout)
+        element_lbl = QtWidgets.QLabel("Element: ")
+        element_lbl.setFont(QtGui.QFont("Arial", 10))
+        element_layout.addWidget(element_lbl)
+        self.element_combo = QtWidgets.QComboBox()
+        element_layout.addWidget(self.element_combo)
+
         notes_layout = QtWidgets.QVBoxLayout()
         self.addLayout(notes_layout)
         notes_lbl = QtWidgets.QLabel("Notes: ")
         notes_lbl.setFont(QtGui.QFont("Arial", 10))
         self.notes_editor = QtWidgets.QPlainTextEdit()
+        self.notes_editor.setReadOnly(True)
         notes_layout.addWidget(notes_lbl)
         notes_layout.addWidget(self.notes_editor)
+
 
         self.thumbnail = ImageWidget()
         self.empty_pixmap = pick.pixmap("empty_thumbnail.png")
@@ -64,20 +82,105 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.thumbnail.setAlignment(QtCore.Qt.AlignCenter)
         self.addWidget(self.thumbnail)
 
+        # # buttons
+        self.btn_layout = QtWidgets.QHBoxLayout()
+        self.import_btn = TikButton("Import")
+        self.load_btn = TikButton("Load")
+        self.reference_btn = TikButton("Reference")
+        self.btn_layout.addWidget(self.import_btn)
+        self.btn_layout.addWidget(self.load_btn)
+        self.btn_layout.addWidget(self.reference_btn)
+        self.addLayout(self.btn_layout)
+        self.toggle_buttons(False)
+
         # SIGNALS
         self.version_combo.currentIndexChanged.connect(self.version_changed)
+        self.import_btn.clicked.connect(self.on_import)
+        self.load_btn.clicked.connect(self.on_load)
+        self.reference_btn.clicked.connect(self.on_reference)
+
+    def on_import(self):
+        """Import the current version."""
+        if not self.base:
+            self.feedback.pop_info(
+                    title="No work or publish selected.",
+                    text="Please select a work or publish to import.",
+                    critical=True,
+                )
+            return
+        _version = self.get_selected_version()
+        _element_type = self.get_selected_element_type()
+        self.base.import_version(_version, element_type=_element_type)
+
+    def on_load(self):
+        """Load the current version."""
+        if not self.base:
+            self.feedback.pop_info(
+                    title="No work or publish selected.",
+                    text="Please select a work or publish to load.",
+                    critical=True,
+                )
+            return
+        _version = self.get_selected_version()
+        if self.base.object_type == "publish":
+            _publish_version = self.base.get_version(_version)
+            if "source" not in _publish_version.element_types:
+                msg = "This publish version does not have a source element. Only publish versions with source element can be loaded."
+                self.feedback.pop_info(
+                    title="No source element.",
+                    text=msg,
+                    critical=True,
+                )
+                return
+            else:
+                question = "Publish versions are protected. The file will be loaded and saved as a new WORK version immediately.\n Do you want to continue?"
+                state = self.feedback.pop_question(
+                    title="Load publish version?",
+                    text=question,
+                    buttons=["yes", "cancel"],
+                )
+                if state == "cancel":
+                    return
+
+        self.base.load_version(_version)
+
+    def on_reference(self):
+        """Reference the current version."""
+        if not self.base:
+            self.feedback.pop_info(
+                    title="No work or publish selected.",
+                    text="Please select a work or publish to reference.",
+                    critical=True,
+                )
+            return
+        if self.base.object_type == "work":
+            state = self.feedback.pop_question(title="Referencing WORK version", text="WORK versions are not meant to be referenced as they are not protected.\n Do you want to continue?", buttons=["yes", "cancel"])
+            if state == "cancel":
+                return
+
+        _version = self.get_selected_version()
+        # if self.base.object_type == "publish":
+        _element_type = self.get_selected_element_type()
+        self.base.reference_version(_version, element_type=_element_type)
+
+    def toggle_buttons(self, state):
+        """Toggle the buttons enabled or disabled depending on the base."""
+        self.import_btn.setEnabled(state)
+        self.load_btn.setEnabled(state)
+        self.reference_btn.setEnabled(state)
 
     def set_base(self, base):
-        # self.clear()
+        """Set the base object. This can be work or publish object."""
         self.version_combo.blockSignals(True)
+        self.toggle_buttons(state=bool(base))
         if not base:
             self.version_combo.clear()
+            self.element_combo.clear()
             self.notes_editor.clear()
             self.thumbnail.clear()
             return
         self.base = base
-        self.populate_versions(base._versions)
-
+        self.populate_versions(base.versions)
         self.version_combo.blockSignals(False)
 
     def populate_versions(self, versions):
@@ -107,6 +210,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.version_combo.setStyleSheet("")
 
         _version = self.base.get_version(version_number)
+        self.element_combo.clear()
+        if self.base.object_type == "publish":
+            self.element_combo.setEnabled(True)
+            self.element_combo.addItems(_version.element_types)
+        else:
+            # disable
+            self.element_combo.setEnabled(False)
         self.notes_editor.clear()
         self.thumbnail.clear()
         self.notes_editor.setPlainText(_version.get("notes"))
@@ -127,6 +237,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         version_number = int(self.version_combo.currentText())
         return version_number
         # Following returns the dictionary. We probably won't need it.
+
+    def get_selected_element_type(self):
+        """Return the current element."""
+        if self.element_combo.isEnabled():
+            return self.element_combo.currentText()
+        else:
+            return None
 
     def refresh(self):
         """Refresh the version dropdown."""

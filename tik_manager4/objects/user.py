@@ -167,20 +167,9 @@ class User(object):
         _user_dir = Path(_user_root, "TikManager4")
         _user_dir.mkdir(exist_ok=True)
         self.user_directory = str(_user_dir)
-        # self.user_directory = os.path.normpath(os.path.join(_user_root, "TikManager4"))
-        # if not os.path.isdir(os.path.normpath(self.user_directory)):
-        #     os.makedirs(os.path.normpath(self.user_directory))
         self.settings.settings_file = str(Path(self.user_directory, "userSettings.json"))
-        # self.settings.settings_file = os.path.join(
-        #     self.user_directory, "userSettings.json"
-        # )
         self.bookmarks.settings_file = str(Path(self.user_directory, "bookmarks.json"))
-        # self.bookmarks.settings_file = os.path.join(
-        #     self.user_directory, "bookmarks.json"
-        # )
         self.resume.settings_file = str(Path(self.user_directory, "resume.json"))
-        # self.resume.settings_file = os.path.join(self.user_directory, "resume.json")
-
         # Check if the common folder defined in the user settings
         self.common_directory = self.common_directory or self.settings.get_property(
             "commonFolder"
@@ -198,6 +187,17 @@ class User(object):
             assert (
                 self.common_directory
             ), "Commons Directory must be defined to continue"
+            if not Path(self.common_directory).is_dir():
+                answer = FEED.pop_question(
+                    title="Commons Directory does not exist",
+                    text=f"Defined Commons Directory does not exist. \n{self.common_directory}"
+                         f"Do you want to define a new Commons Directory?",
+                    buttons = ["yes", "cancel"]
+                )
+                if answer == "yes":
+                    self.common_directory = FEED.browse_directory()
+                else:
+                    raise Exception("Commons Directory does not exist. Exiting...")
         self.settings.edit_property("commonFolder", self.common_directory)
         self.settings.apply_settings()
 

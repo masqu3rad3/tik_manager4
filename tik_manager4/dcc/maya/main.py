@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import logging
 import platform
 
@@ -9,9 +9,11 @@ from tik_manager4.ui.Qt import QtWidgets, QtCompat
 from maya import OpenMayaUI as omui
 
 from tik_manager4.dcc.main_core import DccTemplate
+from tik_manager4.dcc.maya import utils
 from tik_manager4.dcc.maya import panels
 from tik_manager4.dcc.maya import validate
 from tik_manager4.dcc.maya import extract
+from tik_manager4.dcc.maya import ingest
 
 LOG = logging.getLogger(__name__)
 
@@ -21,6 +23,7 @@ class Dcc(DccTemplate):
     preview_enabled = True
     validations = validate.classes
     extracts = extract.classes
+    ingests = ingest.classes
 
     @staticmethod
     def get_main_window():
@@ -29,8 +32,10 @@ class Dcc(DccTemplate):
         Returns:
             (long or int) Memory Adress
         """
-        win = omui.MQtUtil_mainWindow()
-        # dropping the py2 compatibility
+        try:
+            win = omui.MQtUtil_mainWindow()
+        except AttributeError: # Maya 2025 / Qt 6
+            win = omui.MQtUtil.mainWindow()
         ptr = QtCompat.wrapInstance(int(win), QtWidgets.QMainWindow)
         return ptr
 
@@ -77,7 +82,7 @@ class Dcc(DccTemplate):
         Returns:
 
         """
-        extension = os.path.splitext(file_path)[1]
+        extension = Path(file_path).suffix
         file_format = "mayaAscii" if extension == ".ma" else "mayaBinary"
         cmds.file(rename=file_path)
         cmds.file(save=True, type=file_format)
@@ -132,35 +137,13 @@ class Dcc(DccTemplate):
 
     @staticmethod
     def get_ranges():
-        """
-        Get the viewport ranges.
-        Returns: (list) [<absolute range start>, <user range start>, <user range end>,
-        <absolute range end>
-        """
-        r_ast = cmds.playbackOptions(query=True, animationStartTime=True)
-        r_min = cmds.playbackOptions(query=True, minTime=True)
-        r_max = cmds.playbackOptions(query=True, maxTime=True)
-        r_aet = cmds.playbackOptions(query=True, animationEndTime=True)
-        return [r_ast, r_min, r_max, r_aet]
+        """Get the viewport ranges."""
+        utils.get_ranges()
 
     @staticmethod
     def set_ranges(range_list):
-        """
-        Set the timeline ranges.
-
-        Args:
-            range_list: list of ranges as [<animation start>, <user min>, <user max>,
-                                            <animation end>]
-
-        Returns: None
-
-        """
-        cmds.playbackOptions(
-            animationStartTime=range_list[0],
-            minTime=range_list[1],
-            maxTime=range_list[2],
-            animationEndTime=range_list[3],
-        )
+        """Set the timeline ranges."""
+        utils.set_ranges(range_list)
 
     @staticmethod
     def set_project(file_path):
@@ -191,7 +174,7 @@ class Dcc(DccTemplate):
         untitled_file_name = mel.eval("untitledFileName()")
         path = om.MFileIO.currentFile()
 
-        file_name = os.path.basename(path)
+        file_name = Path(path).name
         # Don't just use cmds.file(q=1, sceneName=1)
         # because it was sometimes returning an empty string,
         # even when there was a valid file
@@ -245,6 +228,7 @@ class Dcc(DccTemplate):
             percent=100,
         )
         cmds.setAttr("defaultRenderGlobals.imageFormat", store)  # take it back
+        return file_path
 
     @staticmethod
     def get_scene_cameras():
@@ -334,7 +318,7 @@ class Dcc(DccTemplate):
 
         _output = cmds.playblast(format=output_format,
                                       # sequenceTime=sequenceTime,
-                                      filename=os.path.join(folder, name),
+                                      filename=str(Path(folder) / name),
                                       widthHeight=resolution,
                                       percent=settings.get("Percent", 100),
                                       quality=settings.get("Quality", 100),
@@ -350,7 +334,7 @@ class Dcc(DccTemplate):
                                       endTime=range[1]
                                       )
 
-        final_clip = "{0}.{1}".format(_output, extension)
+        final_clip = f"{_output}.{extension}"
         pb_panel.kill()
         return final_clip
 

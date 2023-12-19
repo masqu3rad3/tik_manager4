@@ -1,9 +1,31 @@
-"""Main UI for Tik Manager 4."""
+"""Main UI for Tik Manager 4.
+
+Maya test:
+
+from importlib import reload
+import sys
+p_path = "D:\\dev\\tik_manager4\\"
+if p_path not in sys.path:
+    sys.path.append(p_path)
+
+kill_list = []
+for name, _module in sys.modules.items():
+    if name.startswith("tik_manager4"):
+        kill_list.append(name)
+for x in kill_list:
+    sys.modules.pop(x)
+
+# from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+from tik_manager4.ui import main
+reload(main)
+main.launch(dcc="Maya")
+"""
 import logging
 
 from tik_manager4.core import utils
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 
+from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
 from tik_manager4.ui.mcv.user_mcv import TikUserLayout
 from tik_manager4.ui.mcv.project_mcv import TikProjectLayout
 from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
@@ -86,6 +108,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.central_widget, orientation=QtCore.Qt.Horizontal
         )
         self.splitter.setHandleWidth(5)
+        self.splitter.setProperty("vertical", True)
 
         self.main_layout.addWidget(self.splitter)
 
@@ -115,20 +138,20 @@ class MainUI(QtWidgets.QMainWindow):
         self.work_buttons_layout.setContentsMargins(0, 0, 0, 0)
         self.work_buttons_frame.setLayout(self.work_buttons_layout)
 
-        self.publish_buttons_frame = QtWidgets.QFrame()
-        self.publish_buttons_frame.setMaximumHeight(50)
-
-        self.publish_buttons_layout = QtWidgets.QHBoxLayout()
-        self.publish_buttons_layout.setContentsMargins(0, 0, 0, 0)
-        self.publish_buttons_frame.setLayout(self.publish_buttons_layout)
-        self.publish_buttons_frame.hide()
+        # self.publish_buttons_frame = QtWidgets.QFrame()
+        # self.publish_buttons_frame.setMaximumHeight(50)
+        #
+        # self.publish_buttons_layout = QtWidgets.QHBoxLayout()
+        # self.publish_buttons_layout.setContentsMargins(0, 0, 0, 0)
+        # self.publish_buttons_frame.setLayout(self.publish_buttons_layout)
+        # self.publish_buttons_frame.hide()
 
         self.master_layout.addLayout(self.title_layout)
         self.master_layout.addLayout(project_user_layout)
         self.master_layout.addLayout(self.main_layout)
 
         self.master_layout.addWidget(self.work_buttons_frame)
-        self.master_layout.addWidget(self.publish_buttons_frame)
+        # self.master_layout.addWidget(self.publish_buttons_frame)
 
         #####################
 
@@ -203,6 +226,7 @@ class MainUI(QtWidgets.QMainWindow):
         )
 
     def initialize_mcv(self):
+        """Initialize the model-control-views."""
         self.project_mcv = TikProjectLayout(self.tik.project)
         self.project_layout.addLayout(self.project_mcv)
 
@@ -220,7 +244,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.hide_columns(["id", "path"])
         self.category_layout.addLayout(self.categories_mcv)
 
-        self.versions_mcv = TikVersionLayout()
+        self.versions_mcv = TikVersionLayout(parent=self)
         self.version_layout.addLayout(self.versions_mcv)
 
         self.project_mcv.set_project_btn.clicked.connect(self.on_set_project)
@@ -235,13 +259,15 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.item_selected.connect(
             self.versions_mcv.set_base
         )
-        self.categories_mcv.mode_changed.connect(self.set_buttons_visibility)
+        # self.categories_mcv.mode_changed.connect(self.set_buttons_visibility)
         self.categories_mcv.work_tree_view.version_created.connect(self._ingest_success)
-        self.categories_mcv.work_tree_view.doubleClicked.connect(self.load_work)
-        self.categories_mcv.work_tree_view.load_event.connect(self.load_work)
-        self.categories_mcv.work_tree_view.import_event.connect(self.import_work)
+        # self.categories_mcv.work_tree_view.doubleClicked.connect(self.load_work)
+        self.categories_mcv.work_tree_view.doubleClicked.connect(self.versions_mcv.on_load)
+        # self.categories_mcv.work_tree_view.load_event.connect(self.load_work)
+        self.categories_mcv.work_tree_view.load_event.connect(self.versions_mcv.on_load)
+        # self.categories_mcv.work_tree_view.import_event.connect(self.import_work)
+        self.categories_mcv.work_tree_view.import_event.connect(self.versions_mcv.on_import)
         self.versions_mcv.show_preview_btn.clicked.connect(self.on_show_preview)
-
 
     def set_last_state(self):
         """Set the last selections for the user"""
@@ -261,7 +287,7 @@ class MainUI(QtWidgets.QMainWindow):
                 self.tik.user.last_category = _category_index
                 _work_item = self.categories_mcv.work_tree_view.get_selected_item()
                 if _work_item:
-                    self.tik.user.last_work = _work_item.work.id
+                    self.tik.user.last_work = _work_item.tik_obj.id
                     _version_nmb = self.versions_mcv.get_selected_version()
                     # we can always safely write the version number
                     self.tik.user.last_version = _version_nmb
@@ -278,6 +304,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     # override the closeEvent to save the window state
     def closeEvent(self, event):
+        """Override the close event to save the window state."""
         self.tik.user.last_subproject = None
         self.tik.user.last_task = None
         self.tik.user.last_category = None
@@ -295,15 +322,15 @@ class MainUI(QtWidgets.QMainWindow):
         _ = QtWidgets.QApplication.allWidgets()
         event.accept()
 
-    def set_buttons_visibility(self, mode):
-        """Set the visibility of the buttons layout based on the mode."""
-
-        if mode == 0:
-            self.work_buttons_frame.show()
-            self.publish_buttons_frame.hide()
-        else:
-            self.work_buttons_frame.hide()
-            self.publish_buttons_frame.show()
+    # def set_buttons_visibility(self, mode):
+    #     """Set the visibility of the buttons layout based on the mode."""
+    #
+    #     if mode == 0:
+    #         self.work_buttons_frame.show()
+    #         self.publish_buttons_frame.hide()
+    #     else:
+    #         self.work_buttons_frame.hide()
+    #         self.publish_buttons_frame.show()
 
     def build_buttons(self):
         "Build the buttons"
@@ -315,27 +342,39 @@ class MainUI(QtWidgets.QMainWindow):
         increment_version_btn.setMinimumSize(150, 40)
         ingest_version_btn = TikButton("Ingest Version")
         ingest_version_btn.setMinimumSize(150, 40)
-        load_btn = TikButton("Load")
-        load_btn.setMinimumSize(150, 40)
+        publish_scene_btn = TikButton("Publish")
+        publish_scene_btn.setMinimumSize(150, 40)
+        # load_btn = TikButton("Load")
+        # load_btn.setMinimumSize(150, 40)
+        # import_btn = TikButton("Import")
+        # import_btn.setMinimumSize(150, 40)
 
         self.work_buttons_layout.addWidget(save_new_work_btn)
         self.work_buttons_layout.addWidget(increment_version_btn)
         self.work_buttons_layout.addWidget(ingest_version_btn)
+        self.work_buttons_layout.addWidget(publish_scene_btn)
         self.work_buttons_layout.addStretch(1)
-        self.work_buttons_layout.addWidget(load_btn)
+        # self.work_buttons_layout.addWidget(load_btn)
+        # self.work_buttons_layout.addWidget(import_btn)
 
-        # Publish buttons
-        reference_btn = TikButton("Reference")
-        reference_btn.setMinimumSize(150, 40)
-
-        self.publish_buttons_layout.addStretch(1)
-        self.publish_buttons_layout.addWidget(reference_btn)
+        # # Publish buttons
+        # publish_scene_btn = TikButton("Publish Scene")
+        # publish_scene_btn.setMinimumSize(150, 40)
+        # reference_btn = TikButton("Reference")
+        # reference_btn.setMinimumSize(150, 40)
+        #
+        # self.publish_buttons_layout.addWidget(publish_scene_btn)
+        # self.publish_buttons_layout.addStretch(1)
+        # self.publish_buttons_layout.addWidget(import_btn)
+        # self.publish_buttons_layout.addWidget(reference_btn)
 
         # SIGNALS
-        load_btn.clicked.connect(self.load_work)
+        # load_btn.clicked.connect(self.load_work)
+        # import_btn.clicked.connect(self.import_work)
         increment_version_btn.clicked.connect(self.on_new_version)
         ingest_version_btn.clicked.connect(self.on_ingest_version)
         save_new_work_btn.clicked.connect(self.on_new_work)
+        publish_scene_btn.clicked.connect(self.on_publish_scene)
 
     def build_bars(self):
         """Build the menu bar."""
@@ -355,6 +394,20 @@ class MainUI(QtWidgets.QMainWindow):
         file_menu.addAction(new_user)
         users_manager = QtWidgets.QAction("&Users Manager", self)
         file_menu.addAction(users_manager)
+        file_menu.addSeparator()
+        save_new_work = QtWidgets.QAction("&Save New Work", self)
+        file_menu.addAction(save_new_work)
+        increment_version = QtWidgets.QAction("&Increment Version", self)
+        file_menu.addAction(increment_version)
+        ingest_version = QtWidgets.QAction("&Ingest Version", self)
+        file_menu.addAction(ingest_version)
+        publish_scene = QtWidgets.QAction("&Publish Scene", self)
+        file_menu.addAction(publish_scene)
+        file_menu.addSeparator()
+        load_item = QtWidgets.QAction("&Load Item", self)
+        file_menu.addAction(load_item)
+        import_item = QtWidgets.QAction("&Import Item", self)
+        file_menu.addAction(import_item)
         file_menu.addSeparator()
         user_login = QtWidgets.QAction("&User Login", self)
         file_menu.addAction(user_login)
@@ -385,6 +438,16 @@ class MainUI(QtWidgets.QMainWindow):
         set_project.triggered.connect(self.on_set_project)
         exit_action.triggered.connect(self.close)
 
+        save_new_work.triggered.connect(self.on_new_work)
+        increment_version.triggered.connect(self.on_new_version)
+        ingest_version.triggered.connect(self.on_ingest_version)
+        publish_scene.triggered.connect(self.on_publish_scene)
+        # load_item.triggered.connect(self.load_work)
+        load_item.triggered.connect(self.versions_mcv.on_load)
+        # import_item.triggered.connect(self.import_work)
+        import_item.triggered.connect(self.versions_mcv.on_import)
+
+
         # check if the tik.main.dcc has a preview method
         if self.tik.dcc.preview_enabled:
             create_preview = QtWidgets.QAction("&Create Preview", self)
@@ -401,46 +464,45 @@ class MainUI(QtWidgets.QMainWindow):
         print(self.tasks_mcv.task_view.get_items_count())
         self.tasks_mcv.task_view.select_first_item()
 
-    def load_work(self, event=None):
-        """Load the selected work or publish version."""
-        # get the work item
-        selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
-        if not selected_work_item:
-            self.feedback.pop_info(
-                title="No work selected.",
-                text="Please select a work to load.",
-                critical=True,
-            )
-            return
-        # get the version
-        selected_version = self.versions_mcv.get_selected_version()
+    # def load_work(self, event=None):
+    #     """Load the selected work or publish version."""
+    #     # get the work item
+    #     selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
+    #     if not selected_work_item:
+    #         self.feedback.pop_info(
+    #             title="No work selected.",
+    #             text="Please select a work to load.",
+    #             critical=True,
+    #         )
+    #         return
+    #     # get the version
+    #     selected_version = self.versions_mcv.get_selected_version()
+    #     selected_work_item.tik_obj.load_version(selected_version)
 
-        selected_work_item.work.load_version(selected_version)
-
-        # TODO: implement load work
-
-    def import_work(self):
-        """Import a work into the project."""
-        selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
-        if not selected_work_item:
-            self.feedback.pop_info(
-                title="No work selected.",
-                text="Please select a work to import.",
-                critical=True,
-            )
-            return
-        # get the version
-        selected_version = self.versions_mcv.get_selected_version()
-        selected_work_item.work.import_version(selected_version)
-        print(selected_work_item)
-        print(selected_version)
-        print("Not implemented yet.")
-        # TODO: implement import work
+    # def import_work(self):
+    #     """Import a work into the project."""
+    #     selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
+    #     if not selected_work_item:
+    #         self.feedback.pop_info(
+    #             title="No work or publish item selected.",
+    #             text="Please select a work or publish item to import.",
+    #             critical=True,
+    #         )
+    #         return
+    #     # get the version
+    #     selected_version = self.versions_mcv.get_selected_version()
+    #     element_type = self.versions_mcv.get_selected_element_type()
+    #     selected_work_item.tik_obj.import_version(selected_version, element_type=element_type)
 
     def _ingest_success(self):
         """Callback function for the ingest success event."""
         self.refresh_versions()
         self.status_bar.showMessage("New version ingested successfully.", 5000)
+
+    def on_publish_scene(self):
+        """Bring up the publish scene dialog."""
+        publish_dialog = PublishSceneDialog(self.tik.project, parent=self)
+        publish_dialog.show()
 
     def on_ingest_version(self):
         """Iterate a version over the selected work in the ui."""
@@ -456,7 +518,7 @@ class MainUI(QtWidgets.QMainWindow):
             )
             return
         dialog = NewVersionDialog(
-            work_object=selected_work_item.work, parent=self, ingest=True
+            work_object=selected_work_item.tik_obj, parent=self, ingest=True
         )
         state = dialog.exec_()
         if state:
@@ -629,11 +691,11 @@ class MainUI(QtWidgets.QMainWindow):
         # get the selected work object and the version
         _work_item = self.categories_mcv.work_tree_view.get_selected_item()
         _version_index = self.versions_mcv.get_selected_version()
-        _version = _work_item.work.get_version(_version_index)
+        _version = _work_item.tik_obj.get_version(_version_index)
 
         preview_dict = _version.get("previews")
         if len(preview_dict.values()) == 1:
-            abs_path = _work_item.work.get_abs_project_path(list(preview_dict.values())[0])
+            abs_path = _work_item.tik_obj.get_abs_project_path(list(preview_dict.values())[0])
             utils.execute(abs_path)
             return
         if not preview_dict:
@@ -643,10 +705,9 @@ class MainUI(QtWidgets.QMainWindow):
             tempAction = QtWidgets.QAction(z, self)
             zort_menu.addAction(tempAction)
             ## Take note about the usage of lambda "item=z" makes it possible using the loop, ignore -> for discarding emitted value
-            tempAction.triggered.connect(lambda ignore=z, item=_work_item.work.get_abs_project_path(preview_dict[z]): utils.execute(str(item)))
+            tempAction.triggered.connect(lambda ignore=z, item=_work_item.tik_obj.get_abs_project_path(preview_dict[z]): utils.execute(str(item)))
 
         zort_menu.exec_((QtGui.QCursor.pos()))
-
 
     def _pre_check(self, level):
         """Check for permissions before drawing the dialog."""

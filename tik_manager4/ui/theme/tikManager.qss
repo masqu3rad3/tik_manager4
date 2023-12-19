@@ -1562,7 +1562,14 @@ QSplitter::separator {
   margin: 0px;
 }
 
-QSplitter::handle {
+QSplitter::handle[horizontal="true"] {
+  image: url("rc:splitter_horizontal.png");
+  spacing: 0px;
+  margin: 0px;
+  padding: 0px;
+}
+
+QSplitter::handle[vertical="true"] {
   image: url("rc:splitter_vertical.png");
   spacing: 0px;
   margin: 0px;

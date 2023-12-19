@@ -94,7 +94,7 @@ class SpinnerFloat(QtWidgets.QDoubleSpinBox):
         self,
         name,
         object_name=None,
-        value=0,
+        value=0.0,
         minimum=-99999.9,
         maximum=99999.9,
         disables=None,
@@ -107,7 +107,7 @@ class SpinnerFloat(QtWidgets.QDoubleSpinBox):
         self.setMinimum(minimum)
         self.setMaximum(maximum)
         self.setValue(value)
-        self.valueChanged.connect(self.com.valueChangeEvent)
+        self.valueChanged.connect(self.value_change_event)
         self.disables = disables or []
 
     def value_change_event(self, e):

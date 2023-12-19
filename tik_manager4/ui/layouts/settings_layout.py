@@ -9,7 +9,7 @@ Supported types:
 
 
 """
-
+import re
 from tik_manager4.core.settings import Settings
 
 from tik_manager4.ui.widgets import value_widgets
@@ -20,6 +20,68 @@ import tik_manager4.ui.widgets.path_browser
 from tik_manager4.ui.widgets.validated_string import ValidatedString
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 
+
+def get_nice_name(input_str):
+    """Convert camel case or snake case to nice name."""
+    # Use regular expression to split the string at camel case boundaries
+    words = re.findall(r"[A-Z][a-z]*|[a-z]+", input_str)
+    # Capitalize the first letter of each word and join them with a space
+    nice_name = " ".join(word.capitalize() for word in words)
+    return nice_name
+def guess_data_type(data):
+    """Guess the type of the data to be used as ui definition."""
+    if isinstance(data, bool):
+        return "boolean"
+    elif isinstance(data, str):
+        return "string"
+    elif isinstance(data, int):
+        return "integer"
+    elif isinstance(data, float):
+        return "float"
+    elif isinstance(data, dict):
+        return "multi"
+    elif isinstance(data, (list, tuple)):
+        if len(data) == 2:
+            # if all integers, it is a vector2Int
+            if all(isinstance(item, int) for item in data):
+                return "vector2Int"
+            # if ANY floats, it is a vector2Float
+            elif any(isinstance(item, float) for item in data):
+                return "vector2Float"
+        elif len(data) == 3:
+            # if all integers, it is a vector3Int
+            if all(isinstance(item, int) for item in data):
+                return "vector3Int"
+            # if ANY floats, it is a vector3Float
+            elif any(isinstance(item, float) for item in data):
+                return "vector3Float"
+        else:
+            return "combo"
+    else:
+        return None
+def convert_to_ui_definition(settings_data):
+    """Converts the settings data to ui definition"""
+    if isinstance(settings_data, Settings):
+        source_dict = settings_data.get_data()
+    else:
+        source_dict = settings_data
+
+    ui_definition = {}
+    for key, data in source_dict.items():
+        # guess the type of the data
+        data_type = guess_data_type(data)
+        if data_type == "multi":
+            value = convert_to_ui_definition(data)
+        else:
+            value = data
+        ui_definition[key] = {
+            "display_name": get_nice_name(key),
+            "tooltip": "",
+            "type": data_type,
+            "value": value,
+            "disables": [],
+        }
+    return ui_definition
 
 class SettingsLayout(QtWidgets.QFormLayout):
     """Visualizes and edits Setting objects in a vertical layout"""

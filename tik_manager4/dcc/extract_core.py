@@ -2,27 +2,38 @@
 # import os
 from pathlib import Path
 from tik_manager4.core import filelog
+from tik_manager4.core.settings import Settings
+
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
-class ExtractCore(object):
+class ExtractCore():
+    name: str = ""
+    nice_name: str = ""
+    color: tuple = (255, 255, 255) # RGB
+    default_settings: dict = {}
     def __init__(self):
-        self._name: str = ""
+        # self._name: str = ""
         self._extension: str = ""
         self._extract_folder: str = ""
         self._category: str = ""
         self._status = "idle"
-
+        self._extract_name = ""
         self.category_functions = {}
+        self.settings = {}
+        for key, value in self.default_settings.items():
+            _settings = Settings()
+            _settings.set_data(value)
+            self.settings[key] = _settings
 
     @property
-    def name(self):
-        return self._name
+    def extract_name(self):
+        return self._extract_name
 
-    @name.setter
-    def name(self, name):
-        self._name = name
+    @extract_name.setter
+    def extract_name(self, name):
+        self._extract_name = name
 
     @property
     def extension(self):
@@ -44,6 +55,7 @@ class ExtractCore(object):
 
     @property
     def category(self):
+        """Return the category which will rules."""
         return self._category
 
     @category.setter
@@ -52,18 +64,18 @@ class ExtractCore(object):
         self._category = category
 
     @property
-    def status(self):
+    def state(self):
         return self._status
 
     def extract(self):
         func = self.category_functions.get(self.category, self._extract_default)
         try:
             func()
-        except Exception as e:
-            LOG.error(e)
+            self._status = "success"
+        except Exception as exc: # pylint: disable=broad-except
+            LOG.error(exc)
             LOG.error(f"Error while extracting {self.name} to {self.extract_folder}")
-            self._status = "error"
-        self._status = "extracted"
+            self._status = "failed"
 
     def _extract_default(self):
         """Extract method for any non-specified category"""
@@ -71,5 +83,5 @@ class ExtractCore(object):
 
     def resolve_output(self):
         """Resolve the output path"""
-        output_path = Path(self.extract_folder) / f"{self.extract_name}{self.extension}"
+        output_path = Path(self.extract_folder) / f"{self._extract_name}{self.extension}"
         return str(output_path)

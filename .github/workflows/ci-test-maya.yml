@@ -1,0 +1,41 @@
+# This workflow will install Python dependencies and run tests
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Test Maya (Linux)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  maya2023:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+    container: mottosso/maya:2023
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: pip install
+        run: |
+          wget https://bootstrap.pypa.io/pip/get-pip.py
+          mayapy get-pip.py --user
+          mayapy -m pip install --user \
+            coverage==5.5 \
+            flaky==3.7.0 \
+            docutils==0.17.1 \
+            sphinx==1.8.5 \
+            sphinxcontrib-napoleon==0.7 \
+            pytest==6.2.4
+      - name: Environment
+        run: |
+          export XDG_RUNTIME_DIR=/var/tmp/runtime-root
+          export MAYA_DISABLE_ADP=1
+      - name: Test with pytest
+        run: |
+          mayapy -m pytest ./tests/maya

@@ -8,6 +8,7 @@ class UniqueNames(ValidateCore):
     """Validate class for Maya"""
 
     name = "unique_names"
+    nice_name = "Unique Names"
 
     def __init__(self):
         super(UniqueNames, self).__init__()
@@ -16,18 +17,32 @@ class UniqueNames(ValidateCore):
         self.ignorable = True
         self.selectable = True
 
+        # dynamic variables
+        self.non_unique_nodes = []
+
+    def collect(self):
+        """Collect data"""
+        self.collection = cmds.ls() # everything in the scene
+
     def validate(self):
         """Validate unique names in Maya scene."""
-        collection = []
-        for obj in cmds.ls():
-            pathway = obj.split("|")
-            if len(pathway) > 1:
-                self.unique_name(pathway[-1])
-                collection.append(obj)
-        if collection:
+        self.non_unique_nodes = []
+        self.collect()
+        self._get_non_unique_names()
+        if self.non_unique_nodes:
             self.failed()
         else:
             self.passed()
+
+    def _get_non_unique_names(self):
+        """Returns the non-unique names in the scene"""
+        self.non_unique_nodes = []
+        for obj in self.collection:
+            pathway = obj.split("|")
+            if len(pathway) > 1:
+                self.unique_name(pathway[-1])
+                self.non_unique_nodes.append(obj)
+        return self.non_unique_nodes
 
     def fix(self):
         """Auto fix the validation."""
@@ -35,7 +50,7 @@ class UniqueNames(ValidateCore):
 
     def select(self):
         """Selects the objects with non-unique names"""
-        # TODO
+        cmds.select(self.non_unique_nodes)
         pass
 
     @staticmethod
@@ -81,7 +96,7 @@ class UniqueNames(ValidateCore):
         """
 
         collection = []
-        for obj in cmds.ls():
+        for obj in self.collection:
             pathway = obj.split("|")
             if len(pathway) > 1:
                 self.unique_name(pathway[-1])

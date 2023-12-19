@@ -1,58 +1,58 @@
 {
   "Model": {
     "type": "asset",
-    "validations": ["unique_names", "forbidden_nodes"],
-    "extracts": ["scene", "alembic"]
+    "validations": ["forbidden_nodes", "locked_normals", "ngons", "overlapping_uvs", "shape_names", "turtle", "unique_names"],
+    "extracts": ["source", "alembic", "usd"]
   },
   "Assembly": {
     "type": "asset",
-    "validations": [],
-    "extracts": ["scene"]
+    "validations": ["forbidden_nodes", "locked_normals", "ngons", "overlapping_uvs", "shape_names", "turtle"],
+    "extracts": ["source"]
   },
   "LookDev": {
     "type": "asset",
-    "validations": [],
-    "extracts": ["scene"]
+    "validations": ["forbidden_nodes", "turtle"],
+    "extracts": ["source"]
   },
   "Rig": {
     "type": "asset",
-    "validations": [],
-    "extracts": ["scene"]
+    "validations": ["forbidden_nodes", "turtle"],
+    "extracts": ["source"]
   },
   "Animation": {
         "type": "shot",
-        "validations": [],
-        "extracts": ["scene", "alembic"]
+        "validations": ["forbidden_nodes", "turtle"],
+        "extracts": ["source", "alembic"]
     },
   "Layout": {
         "type": "shot",
-        "validations": [],
-        "extracts": ["scene"]
+        "validations": ["forbidden_nodes", "turtle"],
+        "extracts": ["source"]
     },
   "Lighting": {
         "type": "shot",
-        "validations": [],
-        "extracts": ["scene"]
+        "validations": ["forbidden_nodes", "turtle"],
+        "extracts": ["source"]
     },
   "Fx": {
         "type": "shot",
-        "validations": [],
-        "extracts": ["scene", "alembic"]
+        "validations": ["forbidden_nodes", "turtle"],
+        "extracts": ["source", "alembic"]
     },
   "Comp": {
         "type": "shot",
         "validations": [],
-        "extracts": ["scene"]
+        "extracts": ["source"]
     },
   "Temp": {
         "type": "",
         "validations": [],
-        "extracts": ["scene"]
+        "extracts": ["source"]
     },
   "Garbage": {
         "type": "",
         "validations": [],
-        "extracts": ["scene"],
+        "extracts": ["source"],
         "archived": true
     }
 }

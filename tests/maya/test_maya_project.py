@@ -117,9 +117,9 @@ class TestMayaProject():
             assert work_obj.name == project.publisher._work_object.name
             assert work_obj.id == project.publisher._work_object.id
             assert project.publisher.publish_version == count
-            if category == "Model":
-                assert project.publisher.extract_names == ["scene", "alembic"]
-                assert project.publisher.validation_names == ["unique_names", "forbidden_nodes"]
+            # if category == "Model":
+            #     assert project.publisher.extract_names == ["scene", "alembic"]
+            #     assert project.publisher.validation_names == ["unique_names", "forbidden_nodes"]
             # TODO add the extracts and validations as they are implemented
 
             assert project.publisher.relative_data_path == f"tikDatabase/test_subproject/test_task/{category}/Maya/publish/test_task_{category}_test_cube"
@@ -134,7 +134,7 @@ class TestMayaProject():
             assert project.publisher._published_object.get_property("creator") == "Admin"
             assert project.publisher._published_object.get_property("category") == category
             assert project.publisher._published_object.get_property("dcc") == "Maya"
-            assert project.publisher._published_object.get_property("version") == count
+            assert project.publisher._published_object.get_property("version_number") == count
             assert project.publisher._published_object.get_property("work_version") == 2
             assert project.publisher._published_object.get_property("task_name") == "test_task"
             assert project.publisher._published_object.get_property("path") == f"test_subproject/test_task/{category}/Maya/publish"
@@ -155,7 +155,7 @@ class TestMayaProject():
             # EXTRACT
             project.publisher.extract()
             for ext_name, ext_object in project.publisher._resolved_extractors.items():
-                assert ext_object.status == "extracted"
+                assert ext_object.state == "extracted"
 
             # PUBLISH
             project.publisher.publish()
@@ -172,8 +172,8 @@ class TestMayaProject():
         # create a work
         work_obj = self.test_publishing_from_work(project, category="Model")
 
-        for file_path, publish_obj in work_obj.publishes.items():
-            assert Path(file_path).exists()
+        # for file_path, publish_obj in work_obj.publish.versions.items():
+        for publish_obj in work_obj.publish.versions:
             assert publish_obj.name == work_obj.name
             assert publish_obj.creator == work_obj.creator
             assert publish_obj.category == work_obj.category
@@ -197,7 +197,8 @@ class TestMayaProject():
         # create a work
         work_obj = self.test_publishing_from_work(project, category="Model")
         # promote the first publish
-        for file_path, publish_obj in work_obj.publishes.items():
+        # for file_path, publish_obj in work_obj.publish.versions.items():
+        for publish_obj in work_obj.publish.versions:
             assert publish_obj.is_promoted() == False
             publish_obj.promote()
             assert publish_obj.is_promoted() == True

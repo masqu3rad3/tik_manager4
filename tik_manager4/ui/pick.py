@@ -1,9 +1,12 @@
 """Module for picking stuff."""
+import sys
 from pathlib import Path
 
 from tik_manager4.ui.Qt import QtCore, QtGui
 
-DIRECTORY = Path(__file__).parent
+# if it is frozen,
+_FROZEN = getattr(sys, 'frozen', False)
+DIRECTORY = Path(__file__).parent if not _FROZEN else Path(sys.executable).parent / "ui"
 IMAGES_FOLDER = DIRECTORY / "images"
 THEME_FOLDER = DIRECTORY / "theme"
 ICON_FOLDER = DIRECTORY / "icons"

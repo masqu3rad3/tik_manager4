@@ -267,10 +267,10 @@ class DccTemplate():
             width: (Int) Width of the thumbnail
             height: (Int) Height of the thumbnail
 
-        Returns: None
+        Returns: (String) File path of the thumbnail (None if not supported)
 
         """
-        pass
+        return None
 
     @staticmethod
     def generate_preview(name, folder, camera=None, resolution=None, settings_file=None):

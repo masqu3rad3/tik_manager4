@@ -14,6 +14,7 @@ class Project(Subproject):
         self.publisher = Publisher(self)
         self.structure = Settings()
         self.settings = Settings()
+        self.category_definitions = Settings()
         self.metadata_definitions = Settings()
         self._path = path
         self._database_path = None
@@ -62,27 +63,20 @@ class Project(Subproject):
         _database_path_obj = _absolute_path_obj / "tikDatabase"
         _database_path_obj.mkdir(parents=True, exist_ok=True)
         self._database_path = str(_database_path_obj)
-        # self._database_path = self.structure._io.folder_check(
-        #     os.path.join(absolute_path, "tikDatabase")
-        # )
         self.structure.settings_file = str(_database_path_obj / "project_structure.json")
-        # self.structure.settings_file = os.path.join(
-        #     self._database_path, "project_structure.json"
-        # )
         self.set_sub_tree(self.structure.properties)
         self.guard.set_project_root(self.absolute_path)
         self.guard.set_database_root(self.database_path)
         # get project settings
         self.settings.settings_file = str(_database_path_obj / "project_settings.json")
-        # self.settings.settings_file = os.path.join(
-        #     self._database_path, "project_settings.json"
-        # )
         self.settings.set_fallback(self.guard.commons.project_settings.settings_file)
         self.guard.set_project_settings(self.settings)
+        # get category definitions
+        self.category_definitions.settings_file = str(_database_path_obj / "category_definitions.json")
+        self.category_definitions.set_fallback(self.guard.commons.category_definitions.settings_file)
+        self.guard.set_category_definitions(self.category_definitions)
+
         self.metadata_definitions.settings_file = str(_database_path_obj / "project_metadata.json")
-        # self.metadata_definitions.settings_file = os.path.join(
-        #     self._database_path, "project_metadata.json"
-        # )
         self.metadata_definitions.set_fallback(
             self.guard.commons.metadata.settings_file
         )
@@ -211,6 +205,7 @@ class Project(Subproject):
             for nmb, version in enumerate(_work.versions):
                 if version.get("scene_path") == base_name:
                     return _work, version.get("version_number", nmb)
+        return None, None
 
     def get_current_work(self):
         """Get the current work object AND version by resolving the current scene.

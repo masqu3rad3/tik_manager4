@@ -1,12 +1,14 @@
 """Validation for unique names in Maya scene"""
 
-import maya.cmds as cmds
+from maya import cmds
+from maya import mel
 from tik_manager4.dcc.validate_core import ValidateCore
 
 class ForbiddenNodes(ValidateCore):
     """Validate class for Maya"""
 
     name = "forbidden_nodes"
+    nice_name = "Forbidden Nodes"
     forbiddenNodeTypes = ["polyBlindData", "unknown", "blindDataTemplate"]
 
     def __init__(self):
@@ -14,6 +16,10 @@ class ForbiddenNodes(ValidateCore):
         self.autofixable = True
         self.ignorable = True
         self.selectable = True
+
+    def collect(self):
+        """Collect data"""
+        pass # no need to collect data
 
     def validate(self):
         """Validate unique names in Maya scene."""
