@@ -31,4 +31,4 @@ jobs:
           export MAYA_DISABLE_ADP=1
       - name: Test with pytest
         shell: bash
-        run: mayapy -m ./tests/maya/invoke.py
+        run: mayapy ./tests/maya/invoke.py
