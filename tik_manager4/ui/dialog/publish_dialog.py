@@ -105,17 +105,12 @@ class PublishSceneDialog(QtWidgets.QDialog):
         self.horizontal_splitter.setSizes([500, 500])
         self.vertical_splitter.setSizes([800, 200])
 
-        # self.horizontal_splitter.setStretchFactor(0, 50)
-        # self.horizontal_splitter.setStretchFactor(1, 50)
-        # self.vertical_splitter.setStretchFactor(0, 70)
-        # self.vertical_splitter.setStretchFactor(1, 30)
-
     def check_eligibility(self):
         """Checks if the current scene is eligible for publishing."""
         if not self.project.publisher._work_object:
             self.feedback.pop_info(
                 title="Non-valid Scene",
-                text="Current Scene does not belong to a 'Work'. It is required to save scenes as a 'Work' before publishing.",
+                text="Current Scene does not belong to a 'Work' in this project. Please save scene as a 'Work' before publishing or switch to the correct project.",
             )
             # destroy the dialog. make it dispappear
             self.close()

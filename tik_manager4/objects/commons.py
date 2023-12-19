@@ -31,12 +31,6 @@ class Commons(object):
             if not _common_file_path.is_file():
                 shutil.copy(default_file, str(_common_file_path))
 
-        self.exportSettings = Settings(
-            file_path=str(Path(self._folder_path, "exportSettings.json"))
-        )
-        self.importSettings = Settings(
-            file_path=str(Path(self._folder_path, "importSettings.json"))
-        )
         self.category_definitions = Settings(
             file_path=str(Path(self._folder_path, "category_definitions.json"))
         )

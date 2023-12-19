@@ -197,7 +197,11 @@ class Project(Subproject):
         parent_path = _file_path_obj.parent
         # get the base name with extension
         base_name = _file_path_obj.name
-        relative_path = parent_path.relative_to(self.absolute_path)
+        try:
+            relative_path = parent_path.relative_to(self.absolute_path)
+        except ValueError:
+            self.log.error("File path is not under the project root")
+            return None, None
         database_path = Path(self.get_abs_database_path(str(relative_path)))
         work_files = database_path.glob("*.twork")
         for work_file in work_files:
