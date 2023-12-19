@@ -11,7 +11,8 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 from tik_manager4 import dcc
 from tik_manager4.objects.publish import PublishVersion
 
-class Publisher():
+
+class Publisher:
     _dcc_handler = dcc.Dcc()
 
     def __init__(self, project_object):
@@ -19,6 +20,8 @@ class Publisher():
         self._project_object = project_object
         self._work_object = None
         self._work_version = None
+        self._task_object = None
+        self._metadata = None
 
         # resolved variables
         self._resolved_extractors = {}
@@ -50,28 +53,58 @@ class Publisher():
             LOG.warning("No work object found. Aborting.")
             return False
 
+        # get the task object
+        self._task_object = self._project_object.find_task_by_id(
+            self._work_object.task_id
+        )
+        self._metadata = self._task_object.parent_sub.metadata
+
         _category_definitons = self._work_object.guard.category_definitions
-        extracts = _category_definitons.properties.get(self._work_object.category, {}).get("extracts", [])
-        validations = _category_definitons.properties.get(self._work_object.category, {}).get("validations", [])
+        extracts = _category_definitons.properties.get(
+            self._work_object.category, {}
+        ).get("extracts", [])
+        validations = _category_definitons.properties.get(
+            self._work_object.category, {}
+        ).get("validations", [])
         # collect the matching extracts and validations from the dcc_handler.
         for extract in extracts:
             if extract in list(self._dcc_handler.extracts.keys()):
-                self._resolved_extractors[extract] = self._dcc_handler.extracts[extract]()
-                self._resolved_extractors[extract].category = self._work_object.category # define the category
+                self._resolved_extractors[extract] = self._dcc_handler.extracts[
+                    extract
+                ]()
+                self._resolved_extractors[
+                    extract
+                ].category = self._work_object.category  # define the category
             else:
-                LOG.warning("Extract {0} defined in category settings but it is not available on {1}".format(extract, self._dcc_handler.name))
+                LOG.warning(
+                    "Extract {0} defined in category settings but it is not available on {1}".format(
+                        extract, self._dcc_handler.name
+                    )
+                )
         for validation in validations:
             if validation in list(self._dcc_handler.validations.keys()):
-                self._resolved_validators[validation] = self._dcc_handler.validations[validation]()
+                self._resolved_validators[validation] = self._dcc_handler.validations[
+                    validation
+                ]()
             else:
-                LOG.warning("Validation {0} defined in category settings but it is not available on {1}".format(validation, self._dcc_handler.name))
+                LOG.warning(
+                    "Validation {0} defined in category settings but it is not available on {1}".format(
+                        validation, self._dcc_handler.name
+                    )
+                )
 
         latest_publish_version = self._work_object.publish.get_last_version()
 
-        self._abs_publish_data_folder = self._work_object.publish.get_publish_data_folder()
-        self._abs_publish_scene_folder = self._work_object.publish.get_publish_scene_folder()
+        self._abs_publish_data_folder = (
+            self._work_object.publish.get_publish_data_folder()
+        )
+        self._abs_publish_scene_folder = (
+            self._work_object.publish.get_publish_scene_folder()
+        )
         self._publish_version = latest_publish_version + 1
-        self._publish_file_name = f"{self._work_object.name}_v{self._publish_version:03d}.tpub"
+        self._publish_file_name = (
+            f"{self._work_object.name}_v{self._publish_version:03d}.tpub"
+        )
         return self._publish_file_name
 
     def reserve(self):
@@ -80,7 +113,9 @@ class Publisher():
         Makes sure that the publish is not overriden by other users during the process.
         """
         # make sure the publish file is not already exists
-        _publish_file_path = Path(self._abs_publish_data_folder) / self._publish_file_name
+        _publish_file_path = (
+            Path(self._abs_publish_data_folder) / self._publish_file_name
+        )
         if _publish_file_path.exists():
             raise ValueError(f"Publish file already exists. {_publish_file_path}")
 
@@ -90,41 +125,48 @@ class Publisher():
         self._published_object.add_property("creator", self._work_object.guard.user)
         self._published_object.add_property("category", self._work_object.category)
         self._published_object.add_property("dcc", self._work_object.guard.dcc)
-        self._published_object.add_property("publish_id", self._published_object.generate_id())
+        self._published_object.add_property(
+            "publish_id", self._published_object.generate_id()
+        )
         self._published_object.add_property("version_number", self._publish_version)
         self._published_object.add_property("work_version", self._work_version)
         self._published_object.add_property("task_name", self._work_object.task_name)
         self._published_object.add_property("task_id", self._work_object.task_id)
-        self._published_object.add_property("path", Path(self._work_object.path, "publish").as_posix())
-        self._published_object.add_property("dcc_version", self._dcc_handler.get_dcc_version())
+        self._published_object.add_property(
+            "path", Path(self._work_object.path, "publish").as_posix()
+        )
+        self._published_object.add_property(
+            "dcc_version", self._dcc_handler.get_dcc_version()
+        )
         self._published_object.add_property("elements", [])
 
-        self._published_object.apply_settings() # make sure the file is created
-        self._published_object.init_properties() # make sure the properties are initialized
+        self._published_object.apply_settings()  # make sure the file is created
+        self._published_object.init_properties()  # make sure the properties are initialized
         # add the publish to the work object
         # self._work_object
-
 
     def validate(self):
         """Validate the scene."""
         for val_name, val_object in self._resolved_validators.items():
             val_object.validate()
 
-
     def extract(self):
         """Extract the elements."""
         # first save the scene
         self._dcc_handler.save_scene()
-        publish_path = Path(self._work_object.get_abs_project_path("publish", self._work_object.name))
+        publish_path = Path(
+            self._work_object.get_abs_project_path("publish", self._work_object.name)
+        )
         for extract_type_name, extract_object in self._resolved_extractors.items():
             # extract_object.category = self._work_object.category # define the category #
-            extract_object.extract_folder = str(publish_path) # define the extract folder
-            extract_object.extract_name = f"{self._work_object.name}_v{self._publish_version:03d}" # define the extract name
+            extract_object.extract_folder = str(
+                publish_path
+            )  # define the extract folder
+            extract_object.extract_name = f"{self._work_object.name}_v{self._publish_version:03d}"  # define the extract name
             extract_object.extract()
 
     def publish(self, notes=None):
-        """Finalize the publish by updating the reserved slot."""\
-
+        """Finalize the publish by updating the reserved slot."""
         # collect the validation states and log it into the publish object
         validations = {}
         for validation_name, validation_object in self._resolved_validators.items():
@@ -139,21 +181,29 @@ class Publisher():
                 "type": extract_object.name,
                 # get the relative path to the project
                 # "path": Path(extract_object.resolve_output()).relative_to(self._work_object.guard.project_root).as_posix()
-                "path": Path(extract_object.resolve_output()).relative_to(self._published_object.get_abs_project_path()).as_posix()
+                "path": Path(extract_object.resolve_output())
+                .relative_to(self._published_object.get_abs_project_path())
+                .as_posix(),
             }
             self._published_object._elements.append(element)
 
-        self._published_object.edit_property("elements", self._published_object._elements)
+        self._published_object.edit_property(
+            "elements", self._published_object._elements
+        )
         if not notes:
             notes = "[Auto Generated]"
         self._published_object.add_property("notes", notes)
 
         # generate the thumbnail
         thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.png"
-        thumbnail_path = self._published_object.get_abs_database_path("thumbnails", thumbnail_name)
+        thumbnail_path = self._published_object.get_abs_database_path(
+            "thumbnails", thumbnail_name
+        )
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
         self._dcc_handler.generate_thumbnail(thumbnail_path, 100, 100)
-        self._published_object.add_property("thumbnail", Path("thumbnails", thumbnail_name).as_posix())
+        self._published_object.add_property(
+            "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
+        )
 
         self._published_object.apply_settings(force=True)
 
@@ -161,20 +211,28 @@ class Publisher():
         """Discard the reserved slot."""
 
         # delete the publish file
-        _publish_file_path = Path(self._abs_publish_data_folder) / self._publish_file_name
+        _publish_file_path = (
+            Path(self._abs_publish_data_folder) / self._publish_file_name
+        )
         if _publish_file_path.exists():
             _publish_file_path.unlink()
         self._published_object = None
         LOG.info("Publish discarded.")
 
-
     def extract_single(self, extract_object):
         """Does the extract from the given extract object."""
-        publish_path = Path(self._work_object.get_abs_project_path("publish", self._work_object.name))
+        publish_path = Path(
+            self._work_object.get_abs_project_path("publish", self._work_object.name)
+        )
         extract_object.category = self._work_object.category  # define the category
         extract_object.extract_folder = str(publish_path)  # define the extract folder
         extract_object.extract_name = f"{self._work_object.name}_v{self._publish_version:03d}"  # define the extract name
         extract_object.extract()
+
+    @property
+    def metadata(self):
+        """Return the metadata as DICTIONARY."""
+        return dict(self._metadata.get_all_items())
 
     @property
     def publish_version(self):
@@ -210,7 +268,11 @@ class Publisher():
     def relative_data_path(self):
         """Return the resolved relative path."""
         if self._work_object:
-            return Path(self._abs_publish_data_folder).relative_to(self._work_object.guard.project_root).as_posix()
+            return (
+                Path(self._abs_publish_data_folder)
+                .relative_to(self._work_object.guard.project_root)
+                .as_posix()
+            )
         else:
             return None
 
@@ -218,6 +280,10 @@ class Publisher():
     def relative_scene_path(self):
         """Return the resolved relative path."""
         if self._work_object:
-            return Path(self._abs_publish_scene_folder).relative_to(self._work_object.guard.project_root).as_posix()
+            return (
+                Path(self._abs_publish_scene_folder)
+                .relative_to(self._work_object.guard.project_root)
+                .as_posix()
+            )
         else:
             return None

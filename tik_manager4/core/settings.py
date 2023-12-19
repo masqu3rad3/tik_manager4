@@ -72,6 +72,13 @@ class Settings():
         self._originalValue.update(data)
         self._currentValue.update(data)
 
+    def update(self, data, dont_add_new_keys=True):
+        """Updates the settings data"""
+        if dont_add_new_keys:
+            self._currentValue.update((k, data[k]) for k in self._currentValue.keys() & data.keys())
+        else:
+            self._currentValue.update(data)
+
     def is_settings_changed(self):
         """Checks if the settings changed since initialization"""
         return not (self._currentValue == self._originalValue)

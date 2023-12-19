@@ -327,10 +327,10 @@ class Work(Settings, Entity):
         if version_obj:
             relative_path = version_obj.get("scene_path")
             abs_path = self.get_abs_project_path(relative_path)
-            _import_obj = self._dcc_handler.ingests["source"]()
-            _import_obj.category = self.category
-            _import_obj.file_path = abs_path
-            _import_obj.bring_in()
+            _ingest_obj = self._dcc_handler.ingests["source"]()
+            _ingest_obj.category = self.category
+            _ingest_obj.file_path = abs_path
+            _ingest_obj.bring_in()
 
     def reference_version(self, version_number, element_type=None):
         """Reference the given version of the work to the scene."""
@@ -340,10 +340,10 @@ class Work(Settings, Entity):
         if version_obj:
             relative_path = version_obj.get("scene_path")
             abs_path = self.get_abs_project_path(relative_path)
-            _import_obj = self._dcc_handler.ingests["reference"]()
-            _import_obj.category = self.category
-            _import_obj.file_path = abs_path
-            _import_obj.reference()
+            _ingest_obj = self._dcc_handler.ingests["source"]()
+            _ingest_obj.category = self.category
+            _ingest_obj.file_path = abs_path
+            _ingest_obj.reference()
 
     def delete_work(self):
         """Delete the work."""

@@ -139,7 +139,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                     text=question,
                     buttons=["yes", "cancel"],
                 )
-                if state == "Cancel":
+                if state == "cancel":
                     return
 
         self.base.load_version(_version)
@@ -153,8 +153,15 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                     critical=True,
                 )
             return
+        if self.base.object_type == "work":
+            state = self.feedback.pop_question(title="Referencing WORK version", text="WORK versions are not meant to be referenced as they are not protected.\n Do you want to continue?", buttons=["yes", "cancel"])
+            if state == "cancel":
+                return
+
         _version = self.get_selected_version()
-        self.base.reference_version(_version)
+        # if self.base.object_type == "publish":
+        _element_type = self.get_selected_element_type()
+        self.base.reference_version(_version, element_type=_element_type)
 
     def toggle_buttons(self, state):
         """Toggle the buttons enabled or disabled depending on the base."""

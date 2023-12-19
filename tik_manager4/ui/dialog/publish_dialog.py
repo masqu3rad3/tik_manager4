@@ -43,14 +43,27 @@ dialog.show()
 from time import time
 import logging
 from tik_manager4.ui.Qt import QtWidgets, QtCore
-from tik_manager4.ui.widgets.common import TikLabel, TikLabelButton, HeaderLabel, ResolvedText, TikButtonBox, TikButton, TikIconButton
-from tik_manager4.ui.layouts.settings_layout import SettingsLayout, convert_to_ui_definition
+from tik_manager4.ui.widgets.common import (
+    TikLabel,
+    TikLabelButton,
+    HeaderLabel,
+    ResolvedText,
+    TikButtonBox,
+    TikButton,
+    TikIconButton,
+)
+from tik_manager4.ui.layouts.settings_layout import (
+    SettingsLayout,
+    convert_to_ui_definition,
+)
 from tik_manager4.ui.dialog.feedback import Feedback
 
 LOG = logging.getLogger(__name__)
 
+
 class PublishSceneDialog(QtWidgets.QDialog):
     """Publishes the current scene."""
+
     def __init__(self, project_object, *args, **kwargs):
         """Initialize the PublishSceneDialog."""
         super(PublishSceneDialog, self).__init__(*args, **kwargs)
@@ -58,7 +71,6 @@ class PublishSceneDialog(QtWidgets.QDialog):
         # DYNAMIC ATTRIBUTES
         self._validator_widgets = []
         self._extractor_widgets = []
-
 
         # instanciate the publisher class
         self.feedback = Feedback(parent=self)
@@ -101,8 +113,10 @@ class PublishSceneDialog(QtWidgets.QDialog):
     def check_eligibility(self):
         """Checks if the current scene is eligible for publishing."""
         if not self.project.publisher._work_object:
-            self.feedback.pop_info(title="Non-valid Scene",
-                                   text="Current Scene does not belong to a 'Work'. It is required to save scenes as a 'Work' before publishing.")
+            self.feedback.pop_info(
+                title="Non-valid Scene",
+                text="Current Scene does not belong to a 'Work'. It is required to save scenes as a 'Work' before publishing.",
+            )
             # destroy the dialog. make it dispappear
             self.close()
             self.deleteLater()
@@ -123,7 +137,9 @@ class PublishSceneDialog(QtWidgets.QDialog):
         self.vertical_splitter = QtWidgets.QSplitter(self)
         self.vertical_splitter.setOrientation(QtCore.Qt.Vertical)
         self.vertical_splitter.setHandleWidth(5)
-        self.vertical_splitter.setProperty("horizontal", True) # the icon is horizontal shaped. IT IS NOT A BUG
+        self.vertical_splitter.setProperty(
+            "horizontal", True
+        )  # the icon is horizontal shaped. IT IS NOT A BUG
 
         # make it non-collapsible
         self.vertical_splitter.setChildrenCollapsible(False)
@@ -134,7 +150,9 @@ class PublishSceneDialog(QtWidgets.QDialog):
         self.horizontal_splitter = QtWidgets.QSplitter(_body_layout_widget)
         self.horizontal_splitter.setOrientation(QtCore.Qt.Horizontal)
         self.horizontal_splitter.setHandleWidth(5)
-        self.horizontal_splitter.setProperty("vertical", True) # the icon is vertical shaped. IT IS NOT A BUG
+        self.horizontal_splitter.setProperty(
+            "vertical", True
+        )  # the icon is vertical shaped. IT IS NOT A BUG
 
         _left_layout_widget = QtWidgets.QWidget(self.horizontal_splitter)
         left_layout = QtWidgets.QVBoxLayout(_left_layout_widget)
@@ -238,7 +256,9 @@ class PublishSceneDialog(QtWidgets.QDialog):
         # ADD EXTRACTS HERE
         # -------------------
         for _extractor_name, extractor in self.project.publisher.extractors.items():
-            extract_row = ExtractRow(extract_object=extractor)
+            # get the metadata for the extractor
+            LOG.info(self.project.publisher.metadata)
+            extract_row = ExtractRow(extract_object=extractor, override_data=self.project.publisher.metadata)
             self.extracts_scroll_lay.addLayout(extract_row)
             self._extractor_widgets.append(extract_row)
         # -------------------
@@ -256,11 +276,17 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         # buttons layout
         button_box = TikButtonBox()
-        validate_pb = button_box.addButton("Validate", QtWidgets.QDialogButtonBox.YesRole)
+        validate_pb = button_box.addButton(
+            "Validate", QtWidgets.QDialogButtonBox.YesRole
+        )
         validate_pb.setToolTip("Run all active and available validations checks.")
-        publish_pb = button_box.addButton("Publish", QtWidgets.QDialogButtonBox.AcceptRole)
-        publish_pb.setEnabled(False) # disable the publish button by default
-        publish_pb.setToolTip("Extract the elements and publish the scene. Notes are Mandatory.")
+        publish_pb = button_box.addButton(
+            "Publish", QtWidgets.QDialogButtonBox.AcceptRole
+        )
+        publish_pb.setEnabled(False)  # disable the publish button by default
+        publish_pb.setToolTip(
+            "Extract the elements and publish the scene. Notes are Mandatory."
+        )
         button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
         self.bottom_layout.addWidget(button_box)
 
@@ -276,12 +302,16 @@ class PublishSceneDialog(QtWidgets.QDialog):
         button_box.rejected.connect(self.reject)
         validate_pb.clicked.connect(self.validate_all)
         publish_pb.clicked.connect(self.publish)
+
     def validate_all(self):
         """Validate all the validators."""
         self.reset_validators()
         for validator_widget in self._validator_widgets:
             # if it is already validated or unchecked skip
-            if validator_widget.validator.state == "passed" or not validator_widget.checkbox.isChecked():
+            if (
+                validator_widget.validator.state == "passed"
+                or not validator_widget.checkbox.isChecked()
+            ):
                 continue
             validator_widget.validate()
             # keep updating the ui
@@ -295,7 +325,11 @@ class PublishSceneDialog(QtWidgets.QDialog):
             self.project.publisher.extract_single(extractor_widget.extract)
             extractor_widget.set_state(extractor_widget.extract.state)
             if extractor_widget.extract.state == "failed":
-                q = self.feedback.pop_question(title="Extraction Failed", text=f"Extraction failed for: \n\n{extractor_widget.extract.name}\n\nDo you want to continue?", buttons=["continue", "cancel"])
+                q = self.feedback.pop_question(
+                    title="Extraction Failed",
+                    text=f"Extraction failed for: \n\n{extractor_widget.extract.name}\n\nDo you want to continue?",
+                    buttons=["continue", "cancel"],
+                )
                 if q == "cancel":
                     self.project.publisher.discard()
                     self.__init__()
@@ -344,20 +378,26 @@ class PublishSceneDialog(QtWidgets.QDialog):
                 fails.append(extractor_widget.name)
         return successes, fails, idle
 
-
     def publish(self):
         """Command to publish the scene."""
-        self.reset_validators() # only resets if the scene is modified
+        self.reset_validators()  # only resets if the scene is modified
         self.validate_all()
         # check the state of the validations
         passes, warnings, fails, idle = self.check_validation_state()
         # if there are fails, pop up a dialog
         if fails:
-            self.feedback.pop_info(title="Validation Failed", text=f"Validation failed for: \n\n{fails}\n\nPlease fix the validation issues before publishing.")
+            self.feedback.pop_info(
+                title="Validation Failed",
+                text=f"Validation failed for: \n\n{fails}\n\nPlease fix the validation issues before publishing.",
+            )
             return
         # if there are warnings, pop up a dialog
         if warnings:
-            q = self.feedback.pop_question(title="Validation Warnings", text=f"Validation warnings for: \n\n{warnings}\n\nDo you want IGNORE them and continue?", buttons=["continue", "cancel"])
+            q = self.feedback.pop_question(
+                title="Validation Warnings",
+                text=f"Validation warnings for: \n\n{warnings}\n\nDo you want IGNORE them and continue?",
+                buttons=["continue", "cancel"],
+            )
             if q == "cancel":
                 return
 
@@ -380,6 +420,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
 class ValidateRow(QtWidgets.QHBoxLayout):
     """Custom Layout for validation rows."""
+
     def __init__(self, validator_object, *args, **kwargs):
         """Initialize the ValidateRow."""
         super(ValidateRow, self).__init__(*args, **kwargs)
@@ -407,7 +448,9 @@ class ValidateRow(QtWidgets.QHBoxLayout):
         # button
         self.button = TikButton(text=self.name)
         # stretch it to the layout
-        self.button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.button.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         self.button.setFixedHeight(26)
         self.addWidget(self.button)
 
@@ -517,10 +560,12 @@ class ValidateRow(QtWidgets.QHBoxLayout):
 
 class ExtractRow(QtWidgets.QHBoxLayout):
     """Custom Layout for extract rows."""
-    def __init__(self, extract_object, *args, **kwargs):
+
+    def __init__(self, extract_object, override_data=None, *args, **kwargs):
         """Initialize the ExtractRow."""
         super(ExtractRow, self).__init__(*args, **kwargs)
         self.extract = extract_object
+        self.override_data = override_data  # this dict can be the entire metadata or just the picked settings.
 
         self.status_icon = None
         self.label = None
@@ -530,8 +575,6 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         self.info = None
 
         self.build_widgets()
-
-
 
     def build_widgets(self):
         """Build the widgets."""
@@ -553,12 +596,16 @@ class ExtractRow(QtWidgets.QHBoxLayout):
 
         self.label = HeaderLabel(text=self.extract.nice_name or self.extract.name)
         self.label.set_color(self.extract.color)
-        self.label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.label.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         self.label.setFixedHeight(32)
 
         self.settings_data = self.extract.settings.get(self.extract.category, None)
 
         if self.settings_data:
+            # update exposed setting defaults with the metadata (if exists)
+            self.settings_data.update(self.override_data or {})
             self.settings_btn = TikLabelButton()
             self.settings_btn.setFixedSize(32, 32)
             self.settings_btn.set_color(self.extract.color)
@@ -578,8 +625,8 @@ class ExtractRow(QtWidgets.QHBoxLayout):
             self.settings_btn.toggled.connect(self.toggle_settings_visibility)
 
             # get the settings_formlayout height
-            settings_formlayout_height = settings_formlayout.sizeHint().height()
-            self.settings_frame.setFixedHeight(settings_formlayout_height+20)
+            # settings_formlayout_height = settings_formlayout.sizeHint().height()
+            # self.settings_frame.setFixedHeight(settings_formlayout_height + 20)
 
             self.settings_frame.hide()
 
@@ -596,7 +643,6 @@ class ExtractRow(QtWidgets.QHBoxLayout):
             self.settings_frame.show()
         else:
             self.settings_frame.hide()
-
 
     def set_state(self, state):
         """Set the state of the extract."""
@@ -616,15 +662,15 @@ if __name__ == "__main__":
     import sys
     import tik_manager4
     from tik_manager4.ui import pick
+
     tik = tik_manager4.initialize("Standalone")
-
-
 
     app = QtWidgets.QApplication(sys.argv)
 
     _style_file = pick.style_file()
-    dialog = PublishSceneDialog(tik.project, styleSheet=str(_style_file.readAll(), "utf-8"))
-
+    dialog = PublishSceneDialog(
+        tik.project, styleSheet=str(_style_file.readAll(), "utf-8")
+    )
 
     dialog.show()
 

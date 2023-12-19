@@ -6,10 +6,12 @@ from maya import OpenMaya as om
 from tik_manager4.dcc.maya import fbx_utility as fbxu
 from tik_manager4.dcc.ingest_core import IngestCore
 
-class Alembic(IngestCore):
+
+class Fbx(IngestCore):
     """Ingest Source Maya Scene."""
+
     name = "fbx"
-    nice_name =  "Ingest fbx"
+    nice_name = "Ingest fbx"
     valid_extensions = [".fbx"]
 
     def __init__(self):
@@ -21,26 +23,55 @@ class Alembic(IngestCore):
                 om.MGlobal.displayInfo("FBX Plugin cannot be initialized")
                 raise e
 
-        self.category_functions = {"Model": self._bring_in_default,
-                                   "Animation": self._bring_in_default}
+        self.category_functions = {
+            "Model": self._bring_in_model,
+            "Rig": self._bring_in_default,
+            "Layout": self._bring_in_layout,
+            "Animation": self._bring_in_animation,
+            "Fx": self._bring_in_fx,
+            "Lighting": self._bring_in_lighting,
+        }
 
-    def _bring_in_model(self, file_path):
+    def _bring_in_model(self):
         """Import FBX file."""
-        fbxu.load(file_path, merge_mode="add", animation=False)
+        om.MGlobal.displayInfo("Bringing in FBX Model")
+        fbxu.load(self.file_path, merge_mode="add", animation=False)
 
-    def _bring_in_animation(self, file_path):
+    def _bring_in_animation(self):
         """Import FBX file."""
-        fbxu.load(file_path, merge_mode="merge", animation=True)
+        om.MGlobal.displayInfo("Bringing in FBX Animation")
+        fbxu.load(self.file_path, merge_mode="merge", animation=True)
 
-    def _bring_in_default(self, file_path):
+    def _bring_in_layout(self):
         """Import FBX file."""
-        fbxu.load(file_path)
+        om.MGlobal.displayInfo("Bringing in FBX Layout")
+        # identical to animation
+        self._bring_in_animation()
 
-    def reference(self, file_path, namespace=None):
-        """Create a GPU Cache for alembics instead of reference."""
-        # Create Cache Node
+    def _bring_in_fx(self):
+        """Import FBX file."""
+        om.MGlobal.displayInfo("Bringing in FBX FX")
+        # identical to animation
+        self._bring_in_animation()
+
+    def _bring_in_lighting(self):
+        """Import FBX file."""
+        om.MGlobal.displayInfo("Bringing in FBX Lighting")
+        # identical to animation
+        self._bring_in_animation()
+
+    def _bring_in_default(self):
+        """Import FBX file."""
+        om.MGlobal.displayInfo("Bringing in FBX with default settings")
+        fbxu.load(self.file_path)
+
+    def _reference_default(self):
+        """Reference the FBX file."""
+
+        # this method will be used for all categories
+        namespace = self.namespace or Path(self.file_path).stem
         ref = cmds.file(
-            file_path,
+            self.file_path,
             reference=True,
             groupLocator=True,
             mergeNamespacesOnClash=False,

@@ -14,15 +14,38 @@ class Usd(ExtractCore):
     nice_name = "USD"
     color = (71, 143, 203)
     _ranges = utils.get_ranges()
+
+    # these are the exposed settings in the UI
+    # WARNING: Caution removing keys from this dict! It will likely throw a KeyError on the _extract_* methods
     default_settings = {
         "Animation": {
-            "startTime": _ranges[0],
-            "endTime": _ranges[3],
-            "frameStride": 1.0,
-            "frameSample": 0.0,
-            "eulerFilter": 0,
-            "staticSingleSample": 0,
-        }
+            "start_frame": _ranges[0],
+            "end_frame": _ranges[3],
+            "sub_steps": 1,
+            "euler_filter": False,
+            "static_single_sample": False,
+        },
+        "Layout": {
+            "start_frame": _ranges[0],
+            "end_frame": _ranges[3],
+            "sub_steps": 1,
+            "euler_filter": False,
+            "static_single_sample": False,
+        },
+        "Fx": {
+            "start_frame": _ranges[0],
+            "end_frame": _ranges[3],
+            "sub_steps": 1,
+            "euler_filter": False,
+            "static_single_sample": False,
+        },
+        "Lighting": {
+            "start_frame": _ranges[0],
+            "end_frame": _ranges[3],
+            "sub_steps": 1,
+            "euler_filter": False,
+            "static_single_sample": False,
+        },
     }
 
     def __init__(self):
@@ -40,65 +63,79 @@ class Usd(ExtractCore):
         # Category names must match to the ones in category_definitions.json (case sensitive)
         self.category_functions = {
             "Model": self._extract_model,
-            "LookDev": self._extract_model,
+            "LookDev": self._extract_lookdev,
+            "Assembly": self._extract_assembly,
             "Layout": self._extract_layout,
-            "Assembly": self._extract_model,
             "Animation": self._extract_animation,
             "Fx": self._extract_fx,
             "Lighting": self._extract_lighting,
-
         }
 
     def _extract_model(self):
         """Extract method for model category"""
         _file_path = self.resolve_output()
-        settings = self.settings.get("Animation", {})
-        _options = ";exportUVs=1;exportSkels=none;exportSkin=none;exportBlendShapes=0;exportDisplayColor=0;;exportColorSets=1;exportComponentTags=1;defaultMeshScheme=catmullClark;animation=0;eulerFilter=0;staticSingleSample=0;startTime=1;endTime=1;frameStride=1;frameSample=0.0;defaultUSDFormat=usdc;parentScope=;shadingMode=useRegistry;convertMaterialsTo=[UsdPreviewSurface,MaterialX];exportInstances=1;exportVisibility=1;mergeTransformAndShape=1;stripNamespaces=0;materialsScopeName=mtl"
-        cmds.file(
-            _file_path,
-            force=True,
-            type="USD Export",
-            prompt=False,
-            exportAll=True,
-            options=_options,
+        settings = self.settings.get("Model", {})
+        cmds.mayaUSDExport(
+            file=_file_path,
+            exportBlendShapes=False,
+            exportSkels=None,
+            exportSkin=None,
+            exportMaterialCollections=False,
+            eulerFilter=settings.get_property("euler_filter"),
+            frameRange=[1, 1],
+            ignoreWarnings=True,
+            renderableOnly=True,
+            selection=False,
         )
+
+    def _extract_lookdev(self):
+        """Extract method for lookdev category"""
+        # identical to model
+        self._extract_model()
+
+    def _extract_assembly(self):
+        """Extract method for assembly category"""
+        # identical to model
+        self._extract_model()
 
     def _extract_animation(self):
         """Extract method for animation category"""
         _file_path = self.resolve_output()
         settings = self.settings.get("Animation", {})
-        start_time = settings.get_property("startTime")
-        end_time = settings.get_property("endTime")
-        frame_stride = settings.get_property("frameStride")
-        frame_sample = settings.get_property("frameSample")
-        euler_filter = settings.get_property("eulerFilter")
-        static_single_sample = settings.get_property("staticSingleSample")
-        _options = f";exportUVs=1;exportSkels=none;exportSkin=none;exportBlendShapes=0;exportDisplayColor=0;;exportColorSets=1;exportComponentTags=1;defaultMeshScheme=catmullClark;animation=1;eulerFilter={euler_filter};staticSingleSample={static_single_sample};startTime={start_time};endTime={end_time};frameStride={frame_stride};frameSample={frame_sample};defaultUSDFormat=usdc;parentScope=;shadingMode=useRegistry;convertMaterialsTo=[UsdPreviewSurface,MaterialX];exportInstances=1;exportVisibility=1;mergeTransformAndShape=1;stripNamespaces=0;materialsScopeName=mtl"
-        cmds.file(
-            _file_path,
-            force=True,
-            type="USD Export",
-            prompt=False,
-            exportAll=True,
-            options=_options,
+        _start_frame = settings.get("start_frame")
+        _end_frame = settings.get("end_frame")
+        _frame_stride = float(1.0 / settings.get("sub_steps"))
+        cmds.mayaUSDExport(
+            file=_file_path,
+            exportBlendShapes=False,
+            exportSkels=None,
+            exportSkin=None,
+            exportMaterialCollections=False,
+            eulerFilter=settings.get_property("euler_filter"),
+            frameRange=[_start_frame, _end_frame],
+            frameStride=_frame_stride,
+            ignoreWarnings=True,
+            renderableOnly=False,
+            selection=False,
+            staticSingleSample=settings.get_property("static_single_sample"),
         )
 
     def _extract_fx(self):
         """Extract method for fx category"""
-        om.MGlobal.displayWarning("Fx category is not implemented yet")
-        pass
+        # identical to animation
+        self._extract_animation()
 
     def _extract_lighting(self):
         """Extract method for lighting category"""
-        om.MGlobal.displayWarning("Lighting category is not implemented yet")
-        pass
+        # identical to animation
+        self._extract_animation()
 
     def _extract_layout(self):
         """Extract method for layout category"""
-        om.MGlobal.displayWarning("Layout category is not implemented yet")
-        pass
+        # identical to animation
+        self._extract_animation()
 
     def _extract_default(self):
         """Extract method for any non-specified category"""
-        om.MGlobal.displayWarning("Default category is not implemented yet")
-        pass
+        _file_path = self.resolve_output()
+        cmds.mayaUSDExport(file=_file_path)

@@ -1,5 +1,7 @@
 """Ingest USD."""
 
+from pathlib import Path
+
 import logging
 
 from maya import cmds
@@ -24,21 +26,62 @@ class USD(IngestCore):
                 raise exc
 
         self.category_functions = {"Model": self._bring_in_model,
+                                   "LookDev": self._bring_in_lookdev,
+                                   "Assembly": self._bring_in_assembly,
+                                   "Layout": self._bring_in_layout,
                                    "Animation": self._bring_in_animation,
                                    "Fx": self._bring_in_fx,
-                                   "LookDev": self._bring_in_lookdev,
-                                   "Layout": self._bring_in_layout,
-                                   "Assembly": self._bring_in_assembly,
+                                   "Lighting": self._bring_in_lighting,
                                    }
 
-    def _bring_in_model(self, file_path):
-        """Import USD File."""
-        LOG.warning("USD importer for model category is not implemented yet.")
+    def _bring_in_default(self):
+        """Import USD File with default settings."""
+        cmds.mayaUSDImport(file=self.file_path, primPath="/")
 
-    def _bring_in_animation(self, file_path):
-        """Import USD File."""
-        LOG.warning("USD importer for animation category is not implemented yet.")
+    def _bring_in_model(self):
+        """Import USD File for model category."""
+        cmds.mayaUSDImport(file=self.file_path, readAnimData=False, useAsAnimationCache=False, primPath="/")
 
-    def _bring_in_fx(self, file_path):
+    def _bring_in_lookdev(self):
+        """Import USD File for lookdev category."""
+        # identical to model
+        self._bring_in_model()
+
+    def _bring_in_assembly(self):
+        """Import USD File for assembly category."""
+        # identical to model
+        self._bring_in_model()
+
+    def _bring_in_layout(self):
+        """Import USD File for layout category."""
+        # identical to animation
+        self._bring_in_animation()
+
+    def _bring_in_animation(self):
         """Import USD File."""
-        LOG.warning("USD importer for fx category is not implemented yet.")
+        cmds.mayaUSDImport(file=self.file_path, readAnimData=1, useAsAnimationCache=True, primPath="/")
+
+    def _bring_in_fx(self):
+        """Import USD File."""
+        # identical to animation
+        self._bring_in_animation()
+
+    def _bring_in_lighting(self):
+        """Import USD File."""
+        # identical to animation
+        self._bring_in_animation()
+
+    def _reference_default(self):
+        """Reference USD File with default settings."""
+
+        # this method will be used for all categories
+        namespace = self.namespace or Path(self.file_path).stem
+        ref = cmds.file(
+            self.file_path,
+            reference=True,
+            groupLocator=True,
+            mergeNamespacesOnClash=False,
+            namespace=namespace,
+            returnNewNodes=True,
+        )
+        return ref
