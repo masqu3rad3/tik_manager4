@@ -4,12 +4,12 @@ import shutil
 import pytest
 from pathlib import Path
 from tik_manager4.core import utils
-from maya import cmds
+# from maya import cmds
 # try to import the cmds module from maya. If it fails, skip the tests.
-# try:
-#     from maya import cmds
-# except ImportError:
-#     pytest.skip('Maya is not installed.', allow_module_level=True)
+try:
+    from maya import cmds
+except ImportError:
+    pytest.skip('Maya is not installed.', allow_module_level=True)
 
 class TestMayaProject():
     """Maya Project related tests."""
