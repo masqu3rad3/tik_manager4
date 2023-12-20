@@ -35,4 +35,4 @@ jobs:
           export MAYA_DISABLE_ADP=1
       - name: Test with pytest
         run: |
-          mayapy -m pytest ./tests/maya --suppress-tests-failed-exit-code
+          mayapy ./tests/maya/invoke.py
