@@ -3,7 +3,7 @@ name = "tik_manager4"
 version = "4.0.0"
 license = {file = "LICENSE"}
 authors =[{name="Arda Kutlu", email="ardakutlu@gmail.com"},]
-description="A program to manage pipelines"
+description="Multi Platform and Multi DCC Python based Pipeline Toolkit."
 readme = "README.md"
 requires-python = "> 3.9"
 classifiers = [
