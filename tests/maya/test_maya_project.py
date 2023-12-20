@@ -28,15 +28,36 @@ class TestMayaProject():
         tik.create_project(str(project_path), structure_template="empty")
         return tik.project
 
+    def _create_subproject(self, project):
+        """Create a subproject."""
+        sub_project = project.create_sub_project("test_subproject", parent_path="")
+        return sub_project
+
+    def _create_task(self, project):
+        """Create a task."""
+        sub_project = self._create_subproject(project)
+        task = project.create_task("test_task", categories=["Model", "Rig", "LookDev"],
+                                       parent_uid=sub_project.id)
+        return task
+
+    def _create_work(self, project, category="Model"):
+        """Create a work."""
+        test_task = self._create_task(project)
+        cmds.file(new=True, force=True)
+        # create a cube and save it as a work with binary format
+        test_cube = cmds.polyCube(name="test_cube")
+        work_obj = test_task.categories[category].create_work("test_cube", file_format=".mb", notes="This is the test cube.")
+        return work_obj, test_task
+
     def test_create_a_sub_project(self, project):
         """Test to create a subproject."""
-        sub_project = project.create_sub_project("test_subproject", parent_path="")
+        sub_project = self._create_subproject(project)
         assert sub_project != -1
         assert sub_project.path == "test_subproject"
 
     def test_delete_a_sub_project(self, project):
         """Test to delete a subproject."""
-        self.test_create_a_sub_project(project)
+        self._create_subproject(project)
         # try to delete a non existing sub-project
         assert project.delete_sub_project(path="non_existing_subproject") == -1
         # delete an existing one
@@ -44,23 +65,16 @@ class TestMayaProject():
 
     def test_create_a_task(self, project):
         """Test to create a task"""
-        self.test_create_a_sub_project(project)
-        task = project.create_task("test_task", categories=["Model", "Rig", "LookDev"],
-                                       parent_path="test_subproject")
-        assert task.name == "test_task"
-        assert task.creator == "Admin"
-        assert list(task.categories.keys()) == ["Model", "Rig", "LookDev"]
-        assert task.path == "test_subproject"
-        return task
+        test_task = self._create_task(project)
+        assert test_task.name == "test_task"
+        assert test_task.creator == "Admin"
+        assert list(test_task.categories.keys()) == ["Model", "Rig", "LookDev"]
+        assert test_task.path == "test_subproject"
 
     # @pytest.mark.parametrize("category", ["Model", "Rig", "LookDev"])
     def test_create_a_work(self, project, category="Model"):
         """Tests creating a work"""
-        test_task = self.test_create_a_task(project)
-        cmds.file(new=True, force=True)
-        # create a cube and save it as a work with binary format
-        test_cube = cmds.polyCube(name="test_cube")
-        work_obj = test_task.categories[category].create_work("test_cube", file_format=".mb", notes="This is the test cube.")
+        work_obj, test_task = self._create_work(project, category=category)
 
         assert work_obj.name == f"test_task_{category}_test_cube"
         assert work_obj.creator == "Admin"
@@ -80,12 +94,11 @@ class TestMayaProject():
         cmds.setAttr("test_cube.scale", 4, 4, 4)
         work_obj = test_task.categories[category].create_work("test_cube", notes="Scaled the cube.")
         assert len(work_obj.versions) == 3
-        return work_obj
 
     def test_getting_current_work(self, project):
         """Test for getting work object from the scene."""
 
-        _compare_work_obj = self.test_create_a_work(project)
+        _compare_work_obj = self._create_work(project, category="Model")[0]
 
         # reset the scene
         cmds.file(new=True, force=True)
@@ -93,7 +106,7 @@ class TestMayaProject():
         assert project.get_current_work() == (None, None)
 
         # open the scene and get the work object
-        _compare_work_obj.load_version(2)
+        _compare_work_obj.load_version(1)
         test_work, version = project.get_current_work()
         assert test_work.name == _compare_work_obj.name
         assert test_work.id == _compare_work_obj.id
@@ -102,12 +115,12 @@ class TestMayaProject():
     def test_publishing_from_work(self, project, category):
         """Test to publish a work."""
         # create works for each category
-        work_obj = self.test_create_a_work(project, category=category)
+        work_obj = self._create_work(project, category=category)[0]
         # attempt to resolve a work with an empty scene
         cmds.file(new=True, force=True)
         assert project.publisher.resolve() == False
 
-        work_obj.load_version(2)
+        work_obj.load_version(1)
 
         # publish the same work 3 times
         for count in range(1, 4):
@@ -135,7 +148,7 @@ class TestMayaProject():
             assert project.publisher._published_object.get_property("category") == category
             assert project.publisher._published_object.get_property("dcc") == "Maya"
             assert project.publisher._published_object.get_property("version_number") == count
-            assert project.publisher._published_object.get_property("work_version") == 2
+            assert project.publisher._published_object.get_property("work_version") == 1
             assert project.publisher._published_object.get_property("task_name") == "test_task"
             assert project.publisher._published_object.get_property("path") == f"test_subproject/test_task/{category}/Maya/publish"
 
@@ -155,8 +168,8 @@ class TestMayaProject():
             # EXTRACT
             project.publisher.extract()
             for ext_name, ext_object in project.publisher._resolved_extractors.items():
-                # assert ext_object.state == "success"
-                assert ext_object.state == "idle"
+                assert ext_object.state == "success"
+                # assert ext_object.state == "idle"
 
             # PUBLISH
             project.publisher.publish()
@@ -166,12 +179,11 @@ class TestMayaProject():
                 element_path = Path(project.publisher._published_object.get_abs_project_path(), element["path"])
                 assert Path(element_path).exists()
 
-        return work_obj
 
     def test_scanning_publishes(self, project):
         """Test to scan the publishes."""
         # create a work
-        work_obj = self.test_publishing_from_work(project, category="Model")
+        work_obj = self._create_work(project, category="Model")[0]
 
         # for file_path, publish_obj in work_obj.publish.versions.items():
         for publish_obj in work_obj.publish.versions:
@@ -196,7 +208,7 @@ class TestMayaProject():
     def test_promoting_publish(self, project):
         """Test to promote a publish."""
         # create a work
-        work_obj = self.test_publishing_from_work(project, category="Model")
+        work_obj = self._create_work(project, category="Model")[0]
         # promote the first publish
         # for file_path, publish_obj in work_obj.publish.versions.items():
         for publish_obj in work_obj.publish.versions:
