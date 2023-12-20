@@ -1,7 +1,5 @@
 """Ingest source scene."""
 
-from pathlib import Path
-
 import pymxs
 from pymxs import runtime as rt
 from tik_manager4.dcc.ingest_core import IngestCore
