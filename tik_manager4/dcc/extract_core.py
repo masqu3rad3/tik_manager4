@@ -8,11 +8,12 @@ from tik_manager4.core.settings import Settings
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
-class ExtractCore():
+class ExtractCore:
     name: str = ""
     nice_name: str = ""
-    color: tuple = (255, 255, 255) # RGB
+    color: tuple = (255, 255, 255)  # RGB
     default_settings: dict = {}
+
     def __init__(self):
         # self._name: str = ""
         self._extension: str = ""
@@ -72,7 +73,7 @@ class ExtractCore():
         try:
             func()
             self._status = "success"
-        except Exception as exc: # pylint: disable=broad-except
+        except Exception as exc:  # pylint: disable=broad-except
             LOG.error(exc)
             LOG.error(f"Error while extracting {self.name} to {self.extract_folder}")
             self._status = "failed"
@@ -83,5 +84,7 @@ class ExtractCore():
 
     def resolve_output(self):
         """Resolve the output path"""
-        output_path = Path(self.extract_folder) / f"{self._extract_name}{self.extension}"
+        output_path = (
+            Path(self.extract_folder) / f"{self._extract_name}{self.extension}"
+        )
         return str(output_path)

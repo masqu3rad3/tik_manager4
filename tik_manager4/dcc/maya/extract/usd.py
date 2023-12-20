@@ -81,7 +81,6 @@ class Usd(ExtractCore):
             exportSkels=None,
             exportSkin=None,
             exportMaterialCollections=False,
-            eulerFilter=settings.get_property("euler_filter"),
             frameRange=[1, 1],
             ignoreWarnings=True,
             renderableOnly=True,
