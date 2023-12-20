@@ -27,8 +27,7 @@ jobs:
           mayapy get-pip.py --user
           mayapy -m pip install --user \
             coverage==5.5 \
-            pytest==6.2.4 \
-            pytest-custom_exit_code \
+            -r requirements-dev.txt \
       - name: Environment
         run: |
           export XDG_RUNTIME_DIR=/var/tmp/runtime-root
