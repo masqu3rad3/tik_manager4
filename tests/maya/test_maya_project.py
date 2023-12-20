@@ -46,7 +46,7 @@ class TestMayaProject():
         cmds.file(new=True, force=True)
         # create a cube and save it as a work with binary format
         test_cube = cmds.polyCube(name="test_cube")
-        work_obj = test_task.categories[category].create_work("test_cube", file_format=".mb", notes="This is the test cube.")
+        work_obj = test_task.categories[category].create_work("test_cube", file_format=".ma", notes="This is the test cube.")
         return work_obj, test_task
 
     def test_create_a_sub_project(self, project):
