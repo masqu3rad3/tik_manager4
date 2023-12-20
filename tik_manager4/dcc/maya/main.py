@@ -8,7 +8,7 @@ import maya.OpenMaya as om
 from tik_manager4.ui.Qt import QtWidgets, QtCompat
 from maya import OpenMayaUI as omui
 
-from tik_manager4.dcc.main_core import DccTemplate
+from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.dcc.maya import utils
 from tik_manager4.dcc.maya import panels
 from tik_manager4.dcc.maya import validate
@@ -17,10 +17,10 @@ from tik_manager4.dcc.maya import ingest
 
 LOG = logging.getLogger(__name__)
 
-class Dcc(DccTemplate):
+class Dcc(MainCore):
     name = "Maya"
     formats = [".ma", ".mb"]
-    preview_enabled = True
+    preview_enabled = True # Whether or not to enable the preview in the UI
     validations = validate.classes
     extracts = extract.classes
     ingests = ingest.classes
@@ -39,33 +39,6 @@ class Dcc(DccTemplate):
         ptr = QtCompat.wrapInstance(int(win), QtWidgets.QMainWindow)
         return ptr
 
-    def new_scene(self, force=True, fps=None):
-        """
-        Opens a new scene
-
-        Args:
-            force: (Bool) If true, any unsaved changes will be lost. Else throw an error
-            fps: (Int) Accepts integer fps values.
-
-        Returns: None
-
-        """
-        cmds.file(newFile=True, force=force)
-        if fps:
-            fps_dict = {
-                15: "game",
-                24: "film",
-                25: "pal",
-                30: "ntsc",
-                48: "show",
-                50: "palf",
-                60: "ntscf",
-            }
-            ranges = self.get_ranges()
-            cmds.currentUnit(time=fps_dict[fps])
-            self.set_ranges(ranges)
-            cmds.currentTime(1)
-
     @staticmethod
     def save_scene():
         """Saves the current file"""
@@ -77,7 +50,6 @@ class Dcc(DccTemplate):
         Saves the file to the given path
         Args:
             file_path: (String) File path that will be written
-            file_format: (String) File format
 
         Returns:
 
@@ -100,40 +72,6 @@ class Dcc(DccTemplate):
 
         """
         cmds.file(file_path, open=True, force=force)
-
-    @staticmethod
-    def reference(file_path, namespace):
-        """
-        References a file
-        Args:
-            file_path: (String) the file path to be referenced
-            namespace: (String) namespace for uniqueness
-
-        Returns: (List) Referenced nodes
-
-        """
-        cmds.file(
-            Dcc._normalize_file_path(file_path),
-            reference=True,
-            groupLocator=True,
-            mergeNamespacesOnClash=False,
-            namespace=namespace,
-        )
-        # TODO return referenced nodes
-
-    @staticmethod
-    def import_file(file_path, **extra_arguments):
-        """
-        Imports the given file to the current scene
-        Args:
-            file_path: (String) File path to be imported
-            **extra_arguments: Compatibility arguments
-
-        Returns: (List) Imported nodes
-
-        """
-        cmds.file(file_path, i=True)
-        # TODO return imported nodes
 
     @staticmethod
     def get_ranges():
@@ -164,10 +102,7 @@ class Dcc(DccTemplate):
 
     @staticmethod
     def get_scene_file():
-        """
-        Returns the path to the current scene.
-        :return: str
-        """
+        """Get the current scene file."""
         # This logic is borrowed from the pymel implementation of sceneName().
 
         # Get the name for untitled files in Maya.
@@ -340,5 +275,5 @@ class Dcc(DccTemplate):
 
     @staticmethod
     def get_dcc_version():
-        """Return the version of the DCC."""
+        """Return the DCC major version."""
         return str(cmds.about(query=True, api=True))

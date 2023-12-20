@@ -145,15 +145,6 @@ class Work(Settings, Entity):
             return -1
 
         # validate file format
-        print("formats:", self._dcc_handler.formats)
-        print("formats:", self._dcc_handler.formats)
-        print("formats:", self._dcc_handler.formats)
-        print("formats:", self._dcc_handler.formats)
-        print("file_format:", file_format)
-        print("file_format:", file_format)
-        print("file_format:", file_format)
-        print("file_format:", file_format)
-
         file_format = file_format or self._dcc_handler.formats[0]
         if file_format not in self._dcc_handler.formats:
             raise ValueError("File format is not valid.")
@@ -171,7 +162,7 @@ class Work(Settings, Entity):
         # generate thumbnail
         # create the thumbnail folder if it doesn't exist
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
-        self._dcc_handler.generate_thumbnail(thumbnail_path, 100, 100)
+        self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
 
         # add it to the versions
         version = {

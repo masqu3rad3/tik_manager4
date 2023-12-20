@@ -68,7 +68,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         notes_layout.addWidget(notes_lbl)
         notes_layout.addWidget(self.notes_editor)
 
-
         self.thumbnail = ImageWidget()
         self.empty_pixmap = pick.pixmap("empty_thumbnail.png")
         # self.empty_pixmap = QtGui.QPixmap(":/images/CSS/rc/empty_thumbnail.png")
@@ -91,7 +90,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.btn_layout.addWidget(self.load_btn)
         self.btn_layout.addWidget(self.reference_btn)
         self.addLayout(self.btn_layout)
-        self.toggle_buttons(False)
+        self.import_btn.setEnabled(False)
+        self.load_btn.setEnabled(False)
+        self.reference_btn.setEnabled(False)
 
         # SIGNALS
         self.version_combo.currentIndexChanged.connect(self.version_changed)
@@ -103,10 +104,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         """Import the current version."""
         if not self.base:
             self.feedback.pop_info(
-                    title="No work or publish selected.",
-                    text="Please select a work or publish to import.",
-                    critical=True,
-                )
+                title="No work or publish selected.",
+                text="Please select a work or publish to import.",
+                critical=True,
+            )
             return
         _version = self.get_selected_version()
         _element_type = self.get_selected_element_type()
@@ -116,10 +117,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         """Load the current version."""
         if not self.base:
             self.feedback.pop_info(
-                    title="No work or publish selected.",
-                    text="Please select a work or publish to load.",
-                    critical=True,
-                )
+                title="No work or publish selected.",
+                text="Please select a work or publish to load.",
+                critical=True,
+            )
             return
         _version = self.get_selected_version()
         if self.base.object_type == "publish":
@@ -148,13 +149,17 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         """Reference the current version."""
         if not self.base:
             self.feedback.pop_info(
-                    title="No work or publish selected.",
-                    text="Please select a work or publish to reference.",
-                    critical=True,
-                )
+                title="No work or publish selected.",
+                text="Please select a work or publish to reference.",
+                critical=True,
+            )
             return
         if self.base.object_type == "work":
-            state = self.feedback.pop_question(title="Referencing WORK version", text="WORK versions are not meant to be referenced as they are not protected.\n Do you want to continue?", buttons=["yes", "cancel"])
+            state = self.feedback.pop_question(
+                title="Referencing WORK version",
+                text="WORK versions are not meant to be referenced as they are not protected.\n Do you want to continue?",
+                buttons=["yes", "cancel"],
+            )
             if state == "cancel":
                 return
 
@@ -163,16 +168,27 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         _element_type = self.get_selected_element_type()
         self.base.reference_version(_version, element_type=_element_type)
 
-    def toggle_buttons(self, state):
-        """Toggle the buttons enabled or disabled depending on the base."""
-        self.import_btn.setEnabled(state)
-        self.load_btn.setEnabled(state)
-        self.reference_btn.setEnabled(state)
+    def button_states(self, base):
+        """Toggle the buttons depending on the base status."""
+        if not base:
+            self.load_btn.setEnabled(False)
+            self.import_btn.setEnabled(False)
+            self.reference_btn.setEnabled(False)
+            return
+        if not base._dcc_handler.ingests.get("source", None):
+            self.load_btn.setEnabled(True)
+            self.import_btn.setEnabled(False)
+            self.reference_btn.setEnabled(False)
+            return
+        self.load_btn.setEnabled(True)
+        self.import_btn.setEnabled(True)
+        self.reference_btn.setEnabled(True)
 
     def set_base(self, base):
         """Set the base object. This can be work or publish object."""
         self.version_combo.blockSignals(True)
-        self.toggle_buttons(state=bool(base))
+        # self.button_states(state=bool(base))
+        self.button_states(base)
         if not base:
             self.version_combo.clear()
             self.element_combo.clear()

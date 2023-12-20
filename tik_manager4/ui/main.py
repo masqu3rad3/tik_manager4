@@ -262,11 +262,15 @@ class MainUI(QtWidgets.QMainWindow):
         # self.categories_mcv.mode_changed.connect(self.set_buttons_visibility)
         self.categories_mcv.work_tree_view.version_created.connect(self._ingest_success)
         # self.categories_mcv.work_tree_view.doubleClicked.connect(self.load_work)
-        self.categories_mcv.work_tree_view.doubleClicked.connect(self.versions_mcv.on_load)
+        self.categories_mcv.work_tree_view.doubleClicked.connect(
+            self.versions_mcv.on_load
+        )
         # self.categories_mcv.work_tree_view.load_event.connect(self.load_work)
         self.categories_mcv.work_tree_view.load_event.connect(self.versions_mcv.on_load)
         # self.categories_mcv.work_tree_view.import_event.connect(self.import_work)
-        self.categories_mcv.work_tree_view.import_event.connect(self.versions_mcv.on_import)
+        self.categories_mcv.work_tree_view.import_event.connect(
+            self.versions_mcv.on_import
+        )
         self.versions_mcv.show_preview_btn.clicked.connect(self.on_show_preview)
 
     def set_last_state(self):
@@ -414,8 +418,6 @@ class MainUI(QtWidgets.QMainWindow):
         exit_action = QtWidgets.QAction("&Exit", self)
         file_menu.addAction(exit_action)
 
-
-
         # Tools Menu
 
         # Help Menu
@@ -447,13 +449,11 @@ class MainUI(QtWidgets.QMainWindow):
         # import_item.triggered.connect(self.import_work)
         import_item.triggered.connect(self.versions_mcv.on_import)
 
-
         # check if the tik.main.dcc has a preview method
         if self.tik.dcc.preview_enabled:
             create_preview = QtWidgets.QAction("&Create Preview", self)
             tools_menu.addAction(create_preview)
             create_preview.triggered.connect(self.on_create_preview)
-
 
     def test(self):
         """Test function."""
@@ -566,8 +566,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(
                 title="Scene file cannot be found.",
                 text="Scene file cannot be found. "
-                     "Please either save your scene by creating a new work or "
-                     "ingest it into an existing one.",
+                "Please either save your scene by creating a new work or "
+                "ingest it into an existing one.",
                 critical=True,
             )
             return
@@ -577,8 +577,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(
                 title="Work object cannot be found.",
                 text="Work cannot be found. Versions can only saved on work objects.\n"
-                     "If there is no work associated with current scene either create a work "
-                     "or use the ingest method to save it into an existing work",
+                "If there is no work associated with current scene either create a work "
+                "or use the ingest method to save it into an existing work",
                 critical=True,
             )
             return
@@ -587,7 +587,7 @@ class MainUI(QtWidgets.QMainWindow):
         state = dialog.exec_()
         if state:
             self.set_last_state()
-            self.refresh_tasks()
+            self.refresh_versions()
             self.status_bar.showMessage("New version created successfully.", 5000)
             self.resume_last_state()
 
@@ -658,8 +658,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(
                 title="Scene file cannot be found.",
                 text="Scene file cannot be found. "
-                     "Please either save your scene by creating a new work or "
-                     "ingest it into an existing one.",
+                "Please either save your scene by creating a new work or "
+                "ingest it into an existing one.",
                 critical=True,
             )
             return
@@ -668,8 +668,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(
                 title="Work object cannot be found.",
                 text="Work cannot be found. Versions can only saved on work objects.\n"
-                     "If there is no work associated with current scene either create a work "
-                     "or use the ingest method to save it into an existing work",
+                "If there is no work associated with current scene either create a work "
+                "or use the ingest method to save it into an existing work",
                 critical=True,
             )
             return
@@ -677,12 +677,24 @@ class MainUI(QtWidgets.QMainWindow):
         # find the task from the work
         _task = self.tik.project.find_task_by_id(_work.task_id)
         # get the resolution from the task (if any)
-        _resolution = _task.parent_sub.metadata.get_value("resolution", fallback_value=None)
-        _range_start = _task.parent_sub.metadata.get_value("start_frame", fallback_value=None)
-        _range_end = _task.parent_sub.metadata.get_value("end_frame", fallback_value=None)
+        _resolution = _task.parent_sub.metadata.get_value(
+            "resolution", fallback_value=None
+        )
+        _range_start = _task.parent_sub.metadata.get_value(
+            "start_frame", fallback_value=None
+        )
+        _range_end = _task.parent_sub.metadata.get_value(
+            "end_frame", fallback_value=None
+        )
         _range = [_range_start, _range_end]
 
-        dialog = PreviewDialog(work_object=_work, version=_version, resolution=_resolution, range=_range, parent=self)
+        dialog = PreviewDialog(
+            work_object=_work,
+            version=_version,
+            resolution=_resolution,
+            range=_range,
+            parent=self,
+        )
         dialog.show()
 
     def on_show_preview(self):
@@ -695,7 +707,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         preview_dict = _version.get("previews")
         if len(preview_dict.values()) == 1:
-            abs_path = _work_item.tik_obj.get_abs_project_path(list(preview_dict.values())[0])
+            abs_path = _work_item.tik_obj.get_abs_project_path(
+                list(preview_dict.values())[0]
+            )
             utils.execute(abs_path)
             return
         if not preview_dict:
@@ -705,7 +719,11 @@ class MainUI(QtWidgets.QMainWindow):
             tempAction = QtWidgets.QAction(z, self)
             zort_menu.addAction(tempAction)
             ## Take note about the usage of lambda "item=z" makes it possible using the loop, ignore -> for discarding emitted value
-            tempAction.triggered.connect(lambda ignore=z, item=_work_item.tik_obj.get_abs_project_path(preview_dict[z]): utils.execute(str(item)))
+            tempAction.triggered.connect(
+                lambda ignore=z, item=_work_item.tik_obj.get_abs_project_path(
+                    preview_dict[z]
+                ): utils.execute(str(item))
+            )
 
         zort_menu.exec_((QtGui.QCursor.pos()))
 

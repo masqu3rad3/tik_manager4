@@ -90,6 +90,7 @@ class TikCategoryModel(QtGui.QStandardItemModel):
         # TODO: validate
         self._works = works_list
         self.populate()
+
     def set_publishes(self, publishes_list):
         self._publishes = publishes_list
         self.populate(publishes=True)
@@ -334,7 +335,9 @@ class TikCategoryView(QtWidgets.QTreeView):
         )
         # separator
         right_click_menu.addSeparator()
-        copy_scene_path_act = right_click_menu.addAction(self.tr("Copy Scene Directory to Clipboard"))
+        copy_scene_path_act = right_click_menu.addAction(
+            self.tr("Copy Scene Directory to Clipboard")
+        )
         copy_scene_path_act.triggered.connect(
             lambda _=None, x=item: self.copy_scene_path(item)
         )
@@ -520,7 +523,6 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
             self.pre_tab = QtWidgets.QWidget()
             self.pre_tab.setObjectName(key)
             self.category_tab_widget.addTab(self.pre_tab, key)
-            # self.append_category(category)
         self.category_tab_widget.blockSignals(False)
 
     def on_mode_change(self, _event):
@@ -545,9 +547,12 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         if self.mode == 0 and self._last_category:
             self.work_tree_view.model.set_works(works.values())
         else:
-            _publishes = [work_obj.publish for work_obj in works.values() if work_obj.publish.versions]
+            _publishes = [
+                work_obj.publish
+                for work_obj in works.values()
+                if work_obj.publish.versions
+            ]
             self.work_tree_view.model.set_publishes(_publishes)
-
 
     def clear(self):
         """Refresh the layout"""
