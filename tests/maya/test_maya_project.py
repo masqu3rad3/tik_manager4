@@ -150,8 +150,7 @@ class TestMayaProject():
             # VALIDATE
             project.publisher.validate()
             for val_name, val_object in project.publisher._resolved_validators.items():
-                # assert val_object.state == "passed"
-                assert val_object.state == "idle"
+                assert val_object.state == "passed"
 
             # EXTRACT
             project.publisher.extract()
