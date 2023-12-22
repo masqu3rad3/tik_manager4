@@ -8,8 +8,6 @@ from tik_manager4.dcc.validate_core import ValidateCore
 class ShapeNames(ValidateCore):
     """Validate the shape names"""
 
-    # Name of the validation
-    name = "shape_names"
     nice_name = "Shape Names"
 
     def __init__(self):

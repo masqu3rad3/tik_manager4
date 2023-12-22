@@ -8,7 +8,6 @@ from tik_manager4.dcc.ingest_core import IngestCore
 class Source(IngestCore):
     """Ingest Source Maya Scene."""
 
-    name = "source"
     nice_name = "Ingest Source Scene"
     valid_extensions = [".max"]
 

@@ -9,8 +9,6 @@ from tik_manager4.dcc.maya import utils
 class OverlappingUvs(ValidateCore):
     """Example validation for Maya"""
 
-    # Name of the validation
-    name = "overlapping_uvs"
     nice_name = "Overlapping UVs"
 
     def __init__(self):

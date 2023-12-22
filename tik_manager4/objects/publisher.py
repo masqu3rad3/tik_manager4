@@ -81,6 +81,7 @@ class Publisher:
                         extract, self._dcc_handler.name
                     )
                 )
+
         for validation in validations:
             if validation in list(self._dcc_handler.validations.keys()):
                 self._resolved_validators[validation] = self._dcc_handler.validations[

@@ -7,7 +7,7 @@ from tik_manager4.dcc.ingest_core import IngestCore
 
 class Alembic(IngestCore):
     """Ingest Alembic."""
-    name = "alembic"
+
     nice_name =  "Ingest Alembic"
     valid_extensions = [".abc"]
 

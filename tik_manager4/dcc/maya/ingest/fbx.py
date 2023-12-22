@@ -10,7 +10,6 @@ from tik_manager4.dcc.ingest_core import IngestCore
 class Fbx(IngestCore):
     """Ingest Source Maya Scene."""
 
-    name = "fbx"
     nice_name = "Ingest fbx"
     valid_extensions = [".fbx"]
 

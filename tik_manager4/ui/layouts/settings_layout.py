@@ -59,8 +59,13 @@ def guess_data_type(data):
             return "combo"
     else:
         return None
-def convert_to_ui_definition(settings_data):
-    """Converts the settings data to ui definition"""
+def convert_to_ui_definition(settings_data, override_data=None):
+    """Converts the settings data to ui definition.
+
+    Args:
+        settings_data (Settings or dict): Settings object or dictionary data
+        override_data (dict, optional): Override the settings data with this dictionary. Defaults to None.
+    """
     if isinstance(settings_data, Settings):
         source_dict = settings_data.get_data()
     else:
@@ -151,6 +156,30 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 # align the contents to the left
                 _layout.setAlignment(QtCore.Qt.AlignLeft)
                 for key, data in multi_properties.items():
+                    _type = data.get("type", None)
+                    _widget_class = self.widget_dict.get(_type)
+                    if not _widget_class:
+                        continue
+                    _widget = _widget_class(key, **data)
+                    _layout.addWidget(_widget)
+                    _widget.com.valueChanged.connect(lambda x, k=key: self._test(k, x))
+                    _widgets.append(_widget)
+                self.addRow(_label, _layout)
+            elif _type == "group":
+                # if it is a group, add a new row as a separator with the name
+                _group_label = QtWidgets.QLabel(text=_display_name)
+                _group_label.setStyleSheet("font-weight: bold;")
+                # self.addRow(_group_label, _group_label)
+
+                #override the _label with an empty label
+                # _label.setText("")
+
+                group_properties = properties.get("value", {})
+                _layout = QtWidgets.QVBoxLayout()
+                _layout.setContentsMargins(0, 0, 0, 0)
+                # align the contents to the left
+                _layout.setAlignment(QtCore.Qt.AlignLeft)
+                for key, data in group_properties.items():
                     _type = data.get("type", None)
                     _widget_class = self.widget_dict.get(_type)
                     if not _widget_class:

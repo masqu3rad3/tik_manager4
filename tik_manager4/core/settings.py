@@ -69,8 +69,9 @@ class Settings():
         data = data or {}
         self._originalValue = {}
         self._currentValue = {}
-        self._originalValue.update(data)
+        # self._originalValue.update(data)
         self._currentValue.update(data)
+        self._originalValue = deepcopy(self._currentValue)
 
     def update(self, data, dont_add_new_keys=True):
         """Updates the settings data"""
