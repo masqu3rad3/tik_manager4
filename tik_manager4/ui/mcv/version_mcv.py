@@ -46,7 +46,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.version_combo.setMinimumSize(QtCore.QSize(60, 30))
         version_layout.addWidget(self.version_combo)
 
-        self.show_preview_btn = QtWidgets.QPushButton()
+        self.show_preview_btn = TikButton()
         self.show_preview_btn.setText("Show Preview")
         self.show_preview_btn.setMinimumSize(QtCore.QSize(60, 30))
         version_layout.addWidget(self.show_preview_btn)

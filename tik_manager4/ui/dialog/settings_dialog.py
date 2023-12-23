@@ -27,8 +27,8 @@ LOG = logging.getLogger(__name__)
 class SettingsDialog(QtWidgets.QDialog):
     """Settings dialog."""
 
-    def __init__(self, main_object):
-        super(SettingsDialog, self).__init__()
+    def __init__(self, main_object, *args, **kwargs):
+        super(SettingsDialog, self).__init__(*args, **kwargs)
 
         self.main_object = main_object
 
@@ -64,19 +64,19 @@ class SettingsDialog(QtWidgets.QDialog):
         self.left_vlay.setContentsMargins(0, 0, 0, 0)
 
         right_widget = QtWidgets.QWidget(self.splitter)
-        right_vlayout = QtWidgets.QVBoxLayout(right_widget)
-        right_vlayout.setContentsMargins(0, 0, 0, 0)
-        right_scroll_area = QtWidgets.QScrollArea(right_widget)
-        right_scroll_area.setWidgetResizable(True)
-        right_scroll_area_contents_widget = QtWidgets.QWidget()
-        right_scroll_area_contents_widget.setGeometry(QtCore.QRect(0, 0, 104, 345))
+        self.right_vlayout = QtWidgets.QVBoxLayout(right_widget)
+        self.right_vlayout.setContentsMargins(0, 0, 0, 0)
+        # right_scroll_area = QtWidgets.QScrollArea(right_widget)
+        # right_scroll_area.setWidgetResizable(True)
+        # right_scroll_area_contents_widget = QtWidgets.QWidget()
+        # right_scroll_area_contents_widget.setGeometry(QtCore.QRect(0, 0, 104, 345))
 
-        self.right_contents_lay = QtWidgets.QVBoxLayout(
-            right_scroll_area_contents_widget
-        )
+        # self.right_contents_lay = QtWidgets.QVBoxLayout(
+        #     right_scroll_area_contents_widget
+        # )
 
-        right_scroll_area.setWidget(right_scroll_area_contents_widget)
-        right_vlayout.addWidget(right_scroll_area)
+        # right_scroll_area.setWidget(right_scroll_area_contents_widget)
+        # self.right_vlayout.addWidget(right_scroll_area)
 
         main_layout.addWidget(self.splitter)
 
@@ -165,8 +165,11 @@ class SettingsDialog(QtWidgets.QDialog):
         availability_dict = self._gather_validations_and_extracts()
         self.settings_list.append(settings_data)
 
-        project_category_definitions_widget = CategoryDefinitions(settings_data, availability_dict)
-        self.right_contents_lay.addWidget(project_category_definitions_widget)
+        project_category_definitions_widget = CategoryDefinitions(
+            settings_data, availability_dict
+        )
+        # self.right_contents_lay.addWidget(project_category_definitions_widget)
+        self.right_vlayout.addWidget(project_category_definitions_widget)
 
         tik_button_box = TikButtonBox(parent=self)
         self.button_box_lay.addWidget(tik_button_box)
@@ -207,13 +210,35 @@ class CategoryDefinitions(QtWidgets.QWidget):
 
     modified = QtCore.Signal(bool)
 
-    def __init__(self, settings_data, availability_dict, *args, **kwargs):
+    def __init__(self, settings_data, availability_dict, title="TEST", *args, **kwargs):
         super(CategoryDefinitions, self).__init__(*args, **kwargs)
         self.availability_dict = availability_dict
         self._definitions_layout = QtWidgets.QVBoxLayout(self)
 
+        # add the title
+        title_label = HeaderLabel(title)
+        self._definitions_layout.addWidget(title_label)
+
+        add_button = TikButton("Add New Definition", parent=self)
+        add_button.set_color(background_color="#405040")
+        self._definitions_layout.addWidget(add_button)
+
+        # make a scroll area for the category definitions
+        scroll_area = QtWidgets.QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area_contents_widget = QtWidgets.QWidget()
+        scroll_area_contents_widget.setGeometry(QtCore.QRect(0, 0, 104, 345))
+        scroll_area.setWidget(scroll_area_contents_widget)
+        self._definitions_layout.addWidget(scroll_area)
+        self.scroll_layout = QtWidgets.QVBoxLayout(scroll_area_contents_widget)
+        self.scroll_layout.setContentsMargins(0, 0, 0, 0)
+
         for category_key, data in settings_data.properties.items():
             self.add_category_definition(category_key, data)
+
+    def add_dialog(self):
+        """Dialog to add a new category definition."""
+        pass
 
     def _add_item(self, model, list_data, list_type):
         """Pops up a mini dialog to add the item to the list view."""
@@ -222,7 +247,9 @@ class CategoryDefinitions(QtWidgets.QWidget):
         dialog.setWindowTitle("Add Item")
         dialog_layout = QtWidgets.QVBoxLayout(dialog)
         list_widget = QtWidgets.QListWidget()
-        available_items = [x for x in self.availability_dict[list_type] if x not in list_data]
+        available_items = [
+            x for x in self.availability_dict[list_type] if x not in list_data
+        ]
         list_widget.addItems(available_items)
         # make it multi selection
         list_widget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -236,9 +263,7 @@ class CategoryDefinitions(QtWidgets.QWidget):
         def add():
             for item in list_widget.selectedItems():
                 model.insertRow(model.rowCount())
-                model.setData(
-                    model.index(model.rowCount() - 1), item.text()
-                )
+                model.setData(model.index(model.rowCount() - 1), item.text())
                 list_data.append(item.text())
                 self.modified.emit(True)
             dialog.accept()
@@ -272,10 +297,23 @@ class CategoryDefinitions(QtWidgets.QWidget):
             list_data[idx] = item
         self.modified.emit(True)
 
+    def delete_category_definition(self, name, data):
+        """Removes the category definition from the layout and tags it as archived."""
+        # delete the definition group object
+        definition_group = self.findChild(QtWidgets.QGroupBox, f"{name}_group")
+        definition_group.deleteLater()
+        # delete the definition from the settings
+        data["archived"] = True
+        self.modified.emit(True)
+
     def add_category_definition(self, name, data):
         """Adds a new category definition to the layout."""
 
+        if data.get("archived"):
+            return
+
         definition_group = QtWidgets.QGroupBox(name)
+        definition_group.setObjectName(f"{name}_group")
         #
         # make it bold and bigger
         title_font = definition_group.font()
@@ -294,7 +332,8 @@ class CategoryDefinitions(QtWidgets.QWidget):
         content_font.setBold(False)
         intermediate_widget.setFont(content_font)
 
-        self._definitions_layout.addWidget(definition_group)
+        # self._definitions_layout.addWidget(definition_group)
+        self.scroll_layout.addWidget(definition_group)
         # make it flat
         definition_group.setFlat(True)
         _group_layout = QtWidgets.QFormLayout()
@@ -329,12 +368,12 @@ class CategoryDefinitions(QtWidgets.QWidget):
         # add the buttons
         _validations_buttons_layout = QtWidgets.QVBoxLayout()
         _validations_layout.addLayout(_validations_buttons_layout)
-        add_validation_button = QtWidgets.QPushButton("+")
-        add_validation_button.setFixedSize(30, 40)
+        add_validation_button = TikIconButton(icon_name="plus", size=32, background_color="#405040", parent=self)
         _validations_buttons_layout.addWidget(add_validation_button)
-        remove_validation_button = QtWidgets.QPushButton("-")
-        remove_validation_button.setFixedSize(30, 40)
-        # remove_validation_button.setFixedWidth(30)
+        remove_validation_button = TikIconButton(
+            icon_name="minus", size=32, parent=self, background_color="#504040"
+        )
+
         _validations_buttons_layout.addWidget(remove_validation_button)
 
         _group_layout.addRow(validations_label, _validations_layout)
@@ -353,14 +392,19 @@ class CategoryDefinitions(QtWidgets.QWidget):
         # add the buttons
         _extracts_buttons_layout = QtWidgets.QVBoxLayout()
         _extracts_layout.addLayout(_extracts_buttons_layout)
-        add_extract_button = QtWidgets.QPushButton("+")
-        add_extract_button.setFixedSize(30, 40)
+        add_extract_button = TikIconButton(icon_name="plus", size=32, background_color="#405040", parent=self)
         _extracts_buttons_layout.addWidget(add_extract_button)
-        remove_extract_button = QtWidgets.QPushButton("-")
-        remove_extract_button.setFixedSize(30, 40)
+        remove_extract_button = TikIconButton(
+            icon_name="minus", size=32, parent=self, background_color="#504040"
+        )
         _extracts_buttons_layout.addWidget(remove_extract_button)
 
         _group_layout.addRow(extracts_label, _extracts_layout)
+
+        # add the delete button
+        delete_button = TikButton("Delete Definition", parent=self)
+        delete_button.set_color(background_color="#504040")
+        intermediate_layout.addWidget(delete_button)
 
         # SIGNALS
         type_combo.currentTextChanged.connect(lambda text: data.update({"type": text}))
@@ -377,7 +421,9 @@ class CategoryDefinitions(QtWidgets.QWidget):
             )
         )
         add_validation_button.clicked.connect(
-            lambda: self._add_item(validations_model, data["validations"], "validations")
+            lambda: self._add_item(
+                validations_model, data["validations"], "validations"
+            )
         )
         # add_extract_button.clicked.connect(test_print)
         extracts_list.model().rowsMoved.connect(
@@ -387,7 +433,11 @@ class CategoryDefinitions(QtWidgets.QWidget):
             lambda: self._remove_item(extracts_model, extracts_list, data["extracts"])
         )
         add_extract_button.clicked.connect(
-            lambda: self._add_item(extracts_model, data["extracts"],"extracts")
+            lambda: self._add_item(extracts_model, data["extracts"], "extracts")
+        )
+
+        delete_button.clicked.connect(
+            lambda: self.delete_category_definition(name, data)
         )
 
         return definition_group
@@ -421,10 +471,13 @@ class ReorderListModel(QtCore.QStringListModel):
 if __name__ == "__main__":
     import sys
     import tik_manager4
+    from tik_manager4.ui import pick
 
     app = QtWidgets.QApplication(sys.argv)
 
     tik = tik_manager4.initialize("Standalone")
-    dialog = SettingsDialog(tik)
+    _style_file = pick.style_file()
+
+    dialog = SettingsDialog(tik, styleSheet=str(_style_file.readAll(), "utf-8"))
     dialog.show()
     sys.exit(app.exec_())
