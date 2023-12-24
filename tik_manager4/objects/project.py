@@ -55,6 +55,7 @@ class Project(Subproject):
         self.structure.apply_settings()
 
     def _set(self, absolute_path):
+        self.__init__()
         _absolute_path_obj = Path(absolute_path)
 
         self._absolute_path = absolute_path
@@ -64,6 +65,7 @@ class Project(Subproject):
         _database_path_obj.mkdir(parents=True, exist_ok=True)
         self._database_path = str(_database_path_obj)
         self.structure.settings_file = str(_database_path_obj / "project_structure.json")
+        # self.structure = Settings(file_path=str(_database_path_obj / "project_structure.json"))
         self.set_sub_tree(self.structure.properties)
         self.guard.set_project_root(self.absolute_path)
         self.guard.set_database_root(self.database_path)

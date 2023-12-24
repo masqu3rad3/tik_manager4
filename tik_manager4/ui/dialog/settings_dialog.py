@@ -6,6 +6,7 @@ import logging
 from tik_manager4.core import settings
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.widgets import value_widgets
+from tik_manager4.ui.widgets.switch_tree import SwitchTreeWidget, SwitchTreeItem
 from tik_manager4.ui.widgets.common import (
     TikLabel,
     TikLabelButton,
@@ -18,6 +19,7 @@ from tik_manager4.ui.widgets.common import (
 from tik_manager4.ui.layouts.settings_layout import (
     SettingsLayout,
     convert_to_ui_definition,
+    guess_data_type
 )
 from tik_manager4.ui.dialog.feedback import Feedback
 
@@ -261,13 +263,18 @@ class SettingsDialog(QtWidgets.QDialog):
 
         _ui_definitions = convert_to_ui_definition(settings_data.properties)
         metadata_widget = QtWidgets.QWidget()
-        metadata_layout = SettingsLayout(_ui_definitions, settings_data, parent=self)
-        metadata_widget.setLayout(metadata_layout)
+        _header_label = HeaderLabel("Metadata Definitions And Default Values")
+        metadata_widget_layout = QtWidgets.QVBoxLayout(metadata_widget)
+        metadata_widget_layout.addWidget(_header_label)
+        metadata_settings_layout = SettingsLayout(_ui_definitions, settings_data, parent=self)
+        metadata_widget_layout.addLayout(metadata_settings_layout)
+        metadata_widget.setLayout(metadata_widget_layout)
+        metadata_widget_layout.addStretch()
         metadata_widget.setVisible(False)
         self.right_vlayout.addWidget(metadata_widget)
 
         # SIGNALS
-        metadata_layout.modified.connect(self.check_changes)
+        metadata_settings_layout.modified.connect(self.check_changes)
         return metadata_widget
 
     def common_category_definitions_content(self):
@@ -306,35 +313,6 @@ class SettingsDialog(QtWidgets.QDialog):
                 self.apply_button.setEnabled(True)
                 return
         self.apply_button.setEnabled(False)
-
-
-class SwitchTreeItem(QtWidgets.QTreeWidgetItem):
-    """Custom QTreeWidgetItem which holds and switch visibility of the content widgets."""
-
-    def __init__(self, *args, **kwargs):
-        super(SwitchTreeItem, self).__init__(*args, **kwargs)
-        self.content = None
-
-
-class SwitchTreeWidget(QtWidgets.QTreeWidget):
-    """Custom QtreeWidget which holds and switch visibility of the content widgets."""
-
-    def __init__(self, *args, **kwargs):
-        super(SwitchTreeWidget, self).__init__(*args, **kwargs)
-        self._current_item = None
-        # self.itemClicked.connect(self.switch_content)
-        # make it work when programmatically changed too
-        self.currentItemChanged.connect(self.switch_content)
-
-    def switch_content(self, item):
-        """Switch the content widget."""
-        if self._current_item:
-            if self._current_item.content:
-                self._current_item.content.setVisible(False)
-            # self._current_item.content.setVisible(False)
-        if item.content:
-            item.content.setVisible(True)
-        self._current_item = item
 
 
 class CategoryDefinitions(QtWidgets.QWidget):
@@ -578,6 +556,60 @@ class CategoryDefinitions(QtWidgets.QWidget):
 
         return definition_group
 
+
+class MetadataDefinitions(QtWidgets.QWidget):
+    """Widget for metadata definitions management."""
+    modified = QtCore.Signal(bool)
+
+    def __init__(self, settings_data, title="", *args, **kwargs):
+        super(MetadataDefinitions, self).__init__(*args, **kwargs)
+        self._definitions_layout = QtWidgets.QVBoxLayout(self)
+
+        self.settings_data = settings_data
+        # add the title
+        title_label = HeaderLabel(title)
+        self._definitions_layout.addWidget(title_label)
+
+        self.switch_tree_widget = SwitchTreeWidget()
+
+        self.value_widgets = {
+            "boolean": value_widgets.Boolean,
+            "string": value_widgets.String,
+            "integer": value_widgets.Integer,
+            "float": value_widgets.Float,
+            "vector2Int": value_widgets.Vector2Int,
+            "vector2Float": value_widgets.Vector2Float,
+            "vector3Int": value_widgets.Vector3Int,
+            "vector3Float": value_widgets.Vector3Float,
+            "combo": value_widgets.Combo
+        }
+
+
+
+    def build_widgets(self):
+        """Build the widgets."""
+        for metadata_key, data in self.settings_data.properties.items():
+            # first create the widget item
+            widget_item = SwitchTreeItem([metadata_key])
+            self.switch_tree_widget.addTopLevelItem(widget_item)
+
+            # create the content widget
+            content_widget = QtWidgets.QWidget()
+            content_layout = QtWidgets.QVBoxLayout(content_widget)
+            # content_layout.setContentsMargins(0, 0, 0, 0)
+            # content_layout.setSpacing(0)
+            content_widget.setLayout(content_layout)
+
+            # guess the data type from its default value
+            # if there is an enum list, that means it is a combo box
+            data_type = data.get("data_type", guess_data_type(data["default"]))
+            if data.get("enum"):
+                data_type = "combo"
+            else:
+                data_type = guess_data_type(data["default_value"])
+
+
+            widget_item.content = content_widget
 
 class ReorderListModel(QtCore.QStringListModel):
     """Custom QStringListModel that disables the overwrite when reordering items by drag and drop."""
