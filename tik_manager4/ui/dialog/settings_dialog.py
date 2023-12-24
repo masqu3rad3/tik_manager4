@@ -259,22 +259,15 @@ class SettingsDialog(QtWidgets.QDialog):
     def metadata_content(self):
         """Create the metadata content."""
         settings_data = self.main_object.project.metadata_definitions
+        # add it to the global settings list so it can be checked globally.
         self.settings_list.append(settings_data)
 
-        _ui_definitions = convert_to_ui_definition(settings_data.properties)
-        metadata_widget = QtWidgets.QWidget()
-        _header_label = HeaderLabel("Metadata Definitions And Default Values")
-        metadata_widget_layout = QtWidgets.QVBoxLayout(metadata_widget)
-        metadata_widget_layout.addWidget(_header_label)
-        metadata_settings_layout = SettingsLayout(_ui_definitions, settings_data, parent=self)
-        metadata_widget_layout.addLayout(metadata_settings_layout)
-        metadata_widget.setLayout(metadata_widget_layout)
-        metadata_widget_layout.addStretch()
+        metadata_widget = MetadataDefinitions(settings_data, title="Metadata Definitions", parent=self)
         metadata_widget.setVisible(False)
         self.right_vlayout.addWidget(metadata_widget)
 
         # SIGNALS
-        metadata_settings_layout.modified.connect(self.check_changes)
+        metadata_widget.modified.connect(self.check_changes)
         return metadata_widget
 
     def common_category_definitions_content(self):
@@ -563,14 +556,32 @@ class MetadataDefinitions(QtWidgets.QWidget):
 
     def __init__(self, settings_data, title="", *args, **kwargs):
         super(MetadataDefinitions, self).__init__(*args, **kwargs)
-        self._definitions_layout = QtWidgets.QVBoxLayout(self)
+        self.main_layout = QtWidgets.QVBoxLayout(self)
 
         self.settings_data = settings_data
         # add the title
         title_label = HeaderLabel(title)
-        self._definitions_layout.addWidget(title_label)
+        title_label.setMaximumHeight(30)
+        self.main_layout.addWidget(title_label)
+
+        splitter = QtWidgets.QSplitter(self)
+
+        left_widget = QtWidgets.QWidget(splitter)
+        self.left_vlay = QtWidgets.QVBoxLayout(left_widget)
+        self.left_vlay.setContentsMargins(0, 0, 0, 0)
+
+        right_widget = QtWidgets.QWidget(splitter)
+        self.right_vlay = QtWidgets.QVBoxLayout(right_widget)
+        self.right_vlay.setContentsMargins(0, 0, 0, 0)
+
+        self.main_layout.addWidget(splitter)
+
 
         self.switch_tree_widget = SwitchTreeWidget()
+        self.switch_tree_widget.setRootIsDecorated(False)
+        self.switch_tree_widget.setHeaderHidden(True)
+        self.switch_tree_widget.header().setVisible(False)
+        self.left_vlay.addWidget(self.switch_tree_widget)
 
         self.value_widgets = {
             "boolean": value_widgets.Boolean,
@@ -584,10 +595,15 @@ class MetadataDefinitions(QtWidgets.QWidget):
             "combo": value_widgets.Combo
         }
 
+        self.build_value_widgets()
+
+        splitter.setSizes([500, 500])
 
 
-    def build_widgets(self):
+
+    def build_value_widgets(self):
         """Build the widgets."""
+        _valid_types = list(self.value_widgets.keys())
         for metadata_key, data in self.settings_data.properties.items():
             # first create the widget item
             widget_item = SwitchTreeItem([metadata_key])
@@ -595,21 +611,44 @@ class MetadataDefinitions(QtWidgets.QWidget):
 
             # create the content widget
             content_widget = QtWidgets.QWidget()
-            content_layout = QtWidgets.QVBoxLayout(content_widget)
+            content_layout = QtWidgets.QVBoxLayout()
             # content_layout.setContentsMargins(0, 0, 0, 0)
             # content_layout.setSpacing(0)
             content_widget.setLayout(content_layout)
 
             # guess the data type from its default value
             # if there is an enum list, that means it is a combo box
-            data_type = data.get("data_type", guess_data_type(data["default"]))
-            if data.get("enum"):
-                data_type = "combo"
-            else:
-                data_type = guess_data_type(data["default_value"])
+            data_type = data.get("type", guess_data_type(data["default"]))
 
+            # type combo
+            form_layout = QtWidgets.QFormLayout()
+            content_layout.addLayout(form_layout)
 
+            type_label = QtWidgets.QLabel("Type: ")
+            type_combo = value_widgets.Combo(name="type", value=data_type, items=_valid_types)
+            form_layout.addRow(type_label, type_combo)
+            type_combo.currentTextChanged.connect(lambda text: data.update({"type": text}))
+            type_combo.currentTextChanged.connect(lambda text: self.modified.emit(True))
+
+            # default value
+            default_value_label = QtWidgets.QLabel("Default Value: ")
+            default_value_widget = self.value_widgets[data_type](name="default_value", value=data["default"])
+            form_layout.addRow(default_value_label, default_value_widget)
+            default_value_widget.com.valueChanged.connect(lambda value: data.update({"default": value}))
+            default_value_widget.com.valueChanged.connect(lambda value: self.modified.emit(True))
+
+            # create an additional list widget for combo items
+            if data_type == "combo":
+                combo_items_label = QtWidgets.QLabel("Combo Items: ")
+                combo_items_widget = value_widgets.List(name="enum", value=data["enum"])
+                form_layout.addRow(combo_items_label, combo_items_widget)
+                combo_items_widget.com.valueChanged.connect(lambda value: data.update({"enum": value}))
+                combo_items_widget.com.valueChanged.connect(lambda value: self.modified.emit(True))
+
+            content_widget.setVisible(False)
+            self.right_vlay.addWidget(content_widget)
             widget_item.content = content_widget
+
 
 class ReorderListModel(QtCore.QStringListModel):
     """Custom QStringListModel that disables the overwrite when reordering items by drag and drop."""

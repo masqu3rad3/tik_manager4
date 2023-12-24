@@ -22,19 +22,19 @@
   },
   "start_frame": {
     "default": 1001,
-    "type": "int"
+    "type": "integer"
   },
   "end_frame": {
     "default": 1100,
-    "type": "int"
+    "type": "integer"
   },
   "pre_roll": {
     "default": 30,
-    "type": "int"
+    "type": "integer"
   },
   "post_roll": {
     "default": 2,
-    "type": "int"
+    "type": "integer"
   },
   "lens": {
     "default": 50.0,
@@ -50,6 +50,6 @@
   },
   "sub_steps": {
     "default": 1,
-    "type": "int"
+    "type": "integer"
   }
 }
