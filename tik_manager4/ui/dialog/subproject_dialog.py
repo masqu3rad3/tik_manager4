@@ -14,12 +14,6 @@ class EditSubprojectDialog(QtWidgets.QDialog):
         self.feedback = Feedback(parent=self)
         self.tik_project = project_object
         self._parent_sub = parent_sub or project_object
-        print(self._parent_sub.metadata.keys())
-        print(self._parent_sub.id)
-        print(self._parent_sub.name)
-        print(self._parent_sub.path)
-        print("-------------------\n")
-
 
         self.parent = parent
 
