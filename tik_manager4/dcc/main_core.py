@@ -6,8 +6,9 @@ import pathlib
 class MainCore():
     name = ""
     preview_enabled = True
-    validations = []
-    extracts = []
+    validations = {}
+    extracts = {}
+    ingests = {}
     @staticmethod
     def get_main_window():
         """Returns the main window of the DCC"""

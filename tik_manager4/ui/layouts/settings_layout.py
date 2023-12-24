@@ -90,6 +90,7 @@ def convert_to_ui_definition(settings_data, override_data=None):
 
 class SettingsLayout(QtWidgets.QFormLayout):
     """Visualizes and edits Setting objects in a vertical layout"""
+    modified = QtCore.Signal(bool)
 
     widget_dict = {
         "boolean": value_widgets.Boolean,
@@ -162,7 +163,7 @@ class SettingsLayout(QtWidgets.QFormLayout):
                         continue
                     _widget = _widget_class(key, **data)
                     _layout.addWidget(_widget)
-                    _widget.com.valueChanged.connect(lambda x, k=key: self._test(k, x))
+                    _widget.com.valueChanged.connect(lambda x, k=key: self._setting_data_modified(k, x))
                     _widgets.append(_widget)
                 self.addRow(_label, _layout)
             elif _type == "group":
@@ -186,7 +187,7 @@ class SettingsLayout(QtWidgets.QFormLayout):
                         continue
                     _widget = _widget_class(key, **data)
                     _layout.addWidget(_widget)
-                    _widget.com.valueChanged.connect(lambda x, k=key: self._test(k, x))
+                    _widget.com.valueChanged.connect(lambda x, k=key: self._setting_data_modified(k, x))
                     _widgets.append(_widget)
                 self.addRow(_label, _layout)
             else:
@@ -194,14 +195,15 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 if not _widget_class:
                     continue
                 _widget = _widget_class(name, **properties)
-                _widget.com.valueChanged.connect(lambda x, n=name: self._test(n, x))
+                _widget.com.valueChanged.connect(lambda x, n=name: self._setting_data_modified(n, x))
                 self.addRow(_label, _widget)
                 _widgets.append(_widget)
 
         return _widgets
 
-    def _test(self, key, value):
+    def _setting_data_modified(self, key, value):
         self.settings_data.edit_property(key, value)
+        self.modified.emit(True)
 
     def signal_connections(self, widget_list):
         """Create the enable/disable logic between widgets. This needs to be done

@@ -43,9 +43,16 @@ class SettingsDialog(QtWidgets.QDialog):
         self.right_contents_lay = None
         self.button_box_lay = None
         self.menu_tree_widget = None
+        self._validations_and_extracts = (
+            None  # for caching the validations and extracts
+        )
+        self._setting_widgets = []
 
+        # Execution
         self.build_layouts()
-        self.create_widgets()
+        self.build_static_widgets()
+        self.create_content()
+        # self.create_widgets()
 
         self.resize(960, 630)
 
@@ -66,54 +73,120 @@ class SettingsDialog(QtWidgets.QDialog):
         right_widget = QtWidgets.QWidget(self.splitter)
         self.right_vlayout = QtWidgets.QVBoxLayout(right_widget)
         self.right_vlayout.setContentsMargins(0, 0, 0, 0)
-        # right_scroll_area = QtWidgets.QScrollArea(right_widget)
-        # right_scroll_area.setWidgetResizable(True)
-        # right_scroll_area_contents_widget = QtWidgets.QWidget()
-        # right_scroll_area_contents_widget.setGeometry(QtCore.QRect(0, 0, 104, 345))
-
-        # self.right_contents_lay = QtWidgets.QVBoxLayout(
-        #     right_scroll_area_contents_widget
-        # )
-
-        # right_scroll_area.setWidget(right_scroll_area_contents_widget)
-        # self.right_vlayout.addWidget(right_scroll_area)
 
         main_layout.addWidget(self.splitter)
 
         self.button_box_lay = QtWidgets.QHBoxLayout()
         main_layout.addLayout(self.button_box_lay)
 
-    def create_setting_categories(self):
-        """Create the setting categories."""
-        self.menu_tree_widget = QtWidgets.QTreeWidget()
+    def build_static_widgets(self):
+        """Build static widgets."""
+        # self.menu_tree_widget = QtWidgets.QTreeWidget()
+        self.menu_tree_widget = SwitchTreeWidget()
         self.menu_tree_widget.setRootIsDecorated(True)
         self.menu_tree_widget.setHeaderHidden(True)
         self.menu_tree_widget.header().setVisible(False)
         self.left_vlay.addWidget(self.menu_tree_widget)
 
-        # first create the Top Level categories which are 'User', 'Project' and 'Common'.
+        tik_button_box = TikButtonBox(parent=self)
+        self.button_box_lay.addWidget(tik_button_box)
+        self.apply_button = tik_button_box.addButton("Apply", tik_button_box.ApplyRole)
+        self.apply_button.setEnabled(False)
+        cancel_button = tik_button_box.addButton("Cancel", tik_button_box.RejectRole)
+        ok_button = tik_button_box.addButton("Ok", tik_button_box.AcceptRole)
+
+        # SIGNALS
+        self.apply_button.clicked.connect(self.apply_settings)
+        cancel_button.clicked.connect(self.close)
+        ok_button.clicked.connect(lambda: self.apply_settings(close_dialog=True))
+
+        self.button_box_lay.addWidget(tik_button_box)
+
+    def create_content(self):
+        """Create the content."""
         self.menu_tree_widget.clear()
-        user_widget_item = QtWidgets.QTreeWidgetItem(["User"])
-        self.menu_tree_widget.addTopLevelItem(user_widget_item)
-        project_widget_item = QtWidgets.QTreeWidgetItem(["Project"])
-        self.menu_tree_widget.addTopLevelItem(project_widget_item)
-        common_widget_item = QtWidgets.QTreeWidgetItem(["Common"])
+        self._user_settings()
+        self._project_settings()
+        self._common_settings()
+
+        self.__create_content_links()
+
+    def _user_settings(self):
+        """Create the user settings."""
+        # create the menu items
+        self.user_widget_item = SwitchTreeItem(["User"])
+        self.menu_tree_widget.addTopLevelItem(self.user_widget_item)
+
+        # create sub-branches
+
+
+    def _project_settings(self):
+        """Create the project settings."""
+        # create the menu items
+        self.project_widget_item = SwitchTreeItem(["Project"])
+        self.menu_tree_widget.addTopLevelItem(self.project_widget_item)
+
+        # create sub-branches
+        preview_settings = SwitchTreeItem(["Preview Settings"])
+        self.project_widget_item.addChild(preview_settings)
+        preview_settings.content = self.preview_settings_content()
+
+        category_definitions = SwitchTreeItem(["Category Definitions"])
+        self.project_widget_item.addChild(category_definitions)
+        category_definitions.content = self.project_category_definitions_content()
+
+        metadata = SwitchTreeItem(["Metadata"])
+        self.project_widget_item.addChild(metadata)
+        metadata.content = self.metadata_content()
+
+        # self.__project_settings_contents()
+
+    def _common_settings(self):
+        """Create the common settings."""
+        # create the menu items
+        common_widget_item = SwitchTreeItem(["Common"])
         self.menu_tree_widget.addTopLevelItem(common_widget_item)
 
-        # sub-categories for 'User'
-
-        # sub-categories for 'Project'
-        project_category_definitions = QtWidgets.QTreeWidgetItem(
-            ["Category Definitions"]
+        # create sub-branches
+        category_definitions = QtWidgets.QTreeWidgetItem(
+            ["Category Definitions (Common)"]
         )
-        project_widget_item.addChild(project_category_definitions)
-        # self.create_project_category_definitions()
+        common_widget_item.addChild(category_definitions)
+        category_definitions.content = self.common_category_definitions_content()
 
-        # sub-categories for 'Common'
+
+    def __create_content_links(self):
+        """Create content widgets for all top level items."""
+        # collect all root items
+        _root_items = [self.menu_tree_widget.topLevelItem(x) for x in range(self.menu_tree_widget.topLevelItemCount())]
+
+        for _root_item in _root_items:
+            # create a content widget
+            _content_widget = QtWidgets.QWidget()
+            _content_widget.setVisible(False)
+            _content_layout = QtWidgets.QVBoxLayout(_content_widget)
+
+            # get all children of the root item
+            _children = [_root_item.child(x) for x in range(_root_item.childCount())]
+            for _child in _children:
+                # create a QCommandLinkButton for each child
+                _button = QtWidgets.QCommandLinkButton(_child.text(0))
+                _button.clicked.connect(lambda _, x=_child: self.menu_tree_widget.setCurrentItem(x))
+                _content_layout.addWidget(_button)
+
+            _content_layout.addStretch()
+
+
+            self.right_vlayout.addWidget(_content_widget)
+
+            # add it to the item
+            _root_item.content = _content_widget
+
 
     def _gather_validations_and_extracts(self):
         """Collect the available validations and extracts."""
-
+        if self._validations_and_extracts:
+            return self._validations_and_extracts
         # we cannot simply rely on the collected validators and extractors due to it will
         # differ from Dcc to Dcc. So we need to collect them from the directories.
         # This method is not the best way to do it but it is the most reliable way.
@@ -148,44 +221,74 @@ class SettingsDialog(QtWidgets.QDialog):
                     if not x.stem.startswith("_")
                 }
             )
+        self._validations_and_extracts = {
+            "validations": validations,
+            "extracts": extracts,
+        }
+        return self._validations_and_extracts
 
-        return {"validations": validations, "extracts": extracts}
+    def preview_settings_content(self):
+        """Create the content for preview settings."""
+        LOG.warning("Preview settings are not implemented yet.")
+        return QtWidgets.QWidget()
 
-    def create_widgets(self):
-        """Create widgets."""
+    def project_category_definitions_content(self):
+        """Create the project category definitions."""
 
-        # left menu
-        self.create_setting_categories()
-
-        # right contents
-
-        # TEMPORARY
-        temp_path = "D:\\dev\\tik_manager4\\tik_manager4\\defaults\\temp_category_definitions.json"
-        settings_data = settings.Settings(temp_path)
+        settings_data = self.main_object.project.guard.category_definitions
         availability_dict = self._gather_validations_and_extracts()
         self.settings_list.append(settings_data)
 
         project_category_definitions_widget = CategoryDefinitions(
-            settings_data, availability_dict
+            settings_data,
+            availability_dict,
+            title="Category Definitions (Project)",
+            parent=self,
         )
-        # self.right_contents_lay.addWidget(project_category_definitions_widget)
+
+        # hide by default
+        project_category_definitions_widget.setVisible(False)
         self.right_vlayout.addWidget(project_category_definitions_widget)
 
-        tik_button_box = TikButtonBox(parent=self)
-        self.button_box_lay.addWidget(tik_button_box)
-        self.apply_button = tik_button_box.addButton("Apply", tik_button_box.ApplyRole)
-        self.apply_button.setEnabled(False)
-        cancel_button = tik_button_box.addButton("Cancel", tik_button_box.RejectRole)
-        ok_button = tik_button_box.addButton("Ok", tik_button_box.AcceptRole)
+        # SIGNALS
+        project_category_definitions_widget.modified.connect(self.check_changes)
+        return project_category_definitions_widget
+
+    def metadata_content(self):
+        """Create the metadata content."""
+        settings_data = self.main_object.project.metadata_definitions
+        self.settings_list.append(settings_data)
+
+        _ui_definitions = convert_to_ui_definition(settings_data.properties)
+        metadata_widget = QtWidgets.QWidget()
+        metadata_layout = SettingsLayout(_ui_definitions, settings_data, parent=self)
+        metadata_widget.setLayout(metadata_layout)
+        metadata_widget.setVisible(False)
+        self.right_vlayout.addWidget(metadata_widget)
 
         # SIGNALS
-        self.apply_button.clicked.connect(self.apply_settings)
-        cancel_button.clicked.connect(self.close)
-        ok_button.clicked.connect(lambda: self.apply_settings(close_dialog=True))
+        metadata_layout.modified.connect(self.check_changes)
+        return metadata_widget
 
-        project_category_definitions_widget.modified.connect(self.check_changes)
+    def common_category_definitions_content(self):
+        """Create the common category definitions."""
+        settings_data = self.main_object.user.commons.category_definitions
+        availability_dict = self._gather_validations_and_extracts()
+        self.settings_list.append(settings_data)
 
-        self.button_box_lay.addWidget(tik_button_box)
+        common_category_definitions_widget = CategoryDefinitions(
+            settings_data,
+            availability_dict,
+            title="Category Definitions (Common)",
+            parent=self,
+        )
+        # self.right_contents_lay.addWidget(common_category_definitions_widget)
+        common_category_definitions_widget.setVisible(False)
+        self.right_vlayout.addWidget(common_category_definitions_widget)
+
+        # SIGNALS
+        common_category_definitions_widget.modified.connect(self.check_changes)
+        return common_category_definitions_widget
 
     def apply_settings(self, close_dialog=False):
         """Apply the settings."""
@@ -205,12 +308,41 @@ class SettingsDialog(QtWidgets.QDialog):
         self.apply_button.setEnabled(False)
 
 
+class SwitchTreeItem(QtWidgets.QTreeWidgetItem):
+    """Custom QTreeWidgetItem which holds and switch visibility of the content widgets."""
+
+    def __init__(self, *args, **kwargs):
+        super(SwitchTreeItem, self).__init__(*args, **kwargs)
+        self.content = None
+
+
+class SwitchTreeWidget(QtWidgets.QTreeWidget):
+    """Custom QtreeWidget which holds and switch visibility of the content widgets."""
+
+    def __init__(self, *args, **kwargs):
+        super(SwitchTreeWidget, self).__init__(*args, **kwargs)
+        self._current_item = None
+        # self.itemClicked.connect(self.switch_content)
+        # make it work when programmatically changed too
+        self.currentItemChanged.connect(self.switch_content)
+
+    def switch_content(self, item):
+        """Switch the content widget."""
+        if self._current_item:
+            if self._current_item.content:
+                self._current_item.content.setVisible(False)
+            # self._current_item.content.setVisible(False)
+        if item.content:
+            item.content.setVisible(True)
+        self._current_item = item
+
+
 class CategoryDefinitions(QtWidgets.QWidget):
     """Widget for category definitions."""
 
     modified = QtCore.Signal(bool)
 
-    def __init__(self, settings_data, availability_dict, title="TEST", *args, **kwargs):
+    def __init__(self, settings_data, availability_dict, title="", *args, **kwargs):
         super(CategoryDefinitions, self).__init__(*args, **kwargs)
         self.availability_dict = availability_dict
         self._definitions_layout = QtWidgets.QVBoxLayout(self)
@@ -368,7 +500,9 @@ class CategoryDefinitions(QtWidgets.QWidget):
         # add the buttons
         _validations_buttons_layout = QtWidgets.QVBoxLayout()
         _validations_layout.addLayout(_validations_buttons_layout)
-        add_validation_button = TikIconButton(icon_name="plus", size=32, background_color="#405040", parent=self)
+        add_validation_button = TikIconButton(
+            icon_name="plus", size=32, background_color="#405040", parent=self
+        )
         _validations_buttons_layout.addWidget(add_validation_button)
         remove_validation_button = TikIconButton(
             icon_name="minus", size=32, parent=self, background_color="#504040"
@@ -392,7 +526,9 @@ class CategoryDefinitions(QtWidgets.QWidget):
         # add the buttons
         _extracts_buttons_layout = QtWidgets.QVBoxLayout()
         _extracts_layout.addLayout(_extracts_buttons_layout)
-        add_extract_button = TikIconButton(icon_name="plus", size=32, background_color="#405040", parent=self)
+        add_extract_button = TikIconButton(
+            icon_name="plus", size=32, background_color="#405040", parent=self
+        )
         _extracts_buttons_layout.addWidget(add_extract_button)
         remove_extract_button = TikIconButton(
             icon_name="minus", size=32, parent=self, background_color="#504040"
@@ -479,5 +615,6 @@ if __name__ == "__main__":
     _style_file = pick.style_file()
 
     dialog = SettingsDialog(tik, styleSheet=str(_style_file.readAll(), "utf-8"))
+    # dialog = SettingsDialog(tik)
     dialog.show()
     sys.exit(app.exec_())

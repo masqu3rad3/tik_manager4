@@ -19,7 +19,6 @@ class EditSubprojectDialog(QtWidgets.QDialog):
         self.setWindowTitle("Edit Subproject")
         self.setModal(True)
 
-        # self.metadata_definitions = guard.Guard.commons.metadata
         self.metadata_definitions = self.tik_project.metadata_definitions
 
         self.primary_definition = self.define_primary_ui()
@@ -42,6 +41,8 @@ class EditSubprojectDialog(QtWidgets.QDialog):
         self.button_box_layout = None  # an empty layout to hold the button box
 
         self.build_ui()
+
+        self.resize(400, 600)
 
     def build_ui(self):
         """Initialize the UI."""
