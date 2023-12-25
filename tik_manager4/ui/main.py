@@ -36,6 +36,7 @@ from tik_manager4.ui.dialog.project_dialog import NewProjectDialog, SetProjectDi
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
 from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog
 from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
+from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator
 from tik_manager4.ui import pick
@@ -130,20 +131,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.work_buttons_layout.setContentsMargins(0, 0, 0, 0)
         self.work_buttons_frame.setLayout(self.work_buttons_layout)
 
-        # self.publish_buttons_frame = QtWidgets.QFrame()
-        # self.publish_buttons_frame.setMaximumHeight(50)
-        #
-        # self.publish_buttons_layout = QtWidgets.QHBoxLayout()
-        # self.publish_buttons_layout.setContentsMargins(0, 0, 0, 0)
-        # self.publish_buttons_frame.setLayout(self.publish_buttons_layout)
-        # self.publish_buttons_frame.hide()
-
         self.master_layout.addLayout(self.title_layout)
         self.master_layout.addLayout(project_user_layout)
         self.master_layout.addLayout(self.main_layout)
 
         self.master_layout.addWidget(self.work_buttons_frame)
-        # self.master_layout.addWidget(self.publish_buttons_frame)
 
         #####################
 
@@ -318,16 +310,6 @@ class MainUI(QtWidgets.QMainWindow):
         _ = QtWidgets.QApplication.allWidgets()
         event.accept()
 
-    # def set_buttons_visibility(self, mode):
-    #     """Set the visibility of the buttons layout based on the mode."""
-    #
-    #     if mode == 0:
-    #         self.work_buttons_frame.show()
-    #         self.publish_buttons_frame.hide()
-    #     else:
-    #         self.work_buttons_frame.hide()
-    #         self.publish_buttons_frame.show()
-
     def build_buttons(self):
         "Build the buttons"
 
@@ -340,33 +322,12 @@ class MainUI(QtWidgets.QMainWindow):
         ingest_version_btn.setMinimumSize(150, 40)
         publish_scene_btn = TikButton("Publish")
         publish_scene_btn.setMinimumSize(150, 40)
-        # load_btn = TikButton("Load")
-        # load_btn.setMinimumSize(150, 40)
-        # import_btn = TikButton("Import")
-        # import_btn.setMinimumSize(150, 40)
 
         self.work_buttons_layout.addWidget(save_new_work_btn)
         self.work_buttons_layout.addWidget(increment_version_btn)
         self.work_buttons_layout.addWidget(ingest_version_btn)
         self.work_buttons_layout.addWidget(publish_scene_btn)
         self.work_buttons_layout.addStretch(1)
-        # self.work_buttons_layout.addWidget(load_btn)
-        # self.work_buttons_layout.addWidget(import_btn)
-
-        # # Publish buttons
-        # publish_scene_btn = TikButton("Publish Scene")
-        # publish_scene_btn.setMinimumSize(150, 40)
-        # reference_btn = TikButton("Reference")
-        # reference_btn.setMinimumSize(150, 40)
-        #
-        # self.publish_buttons_layout.addWidget(publish_scene_btn)
-        # self.publish_buttons_layout.addStretch(1)
-        # self.publish_buttons_layout.addWidget(import_btn)
-        # self.publish_buttons_layout.addWidget(reference_btn)
-
-        # SIGNALS
-        # load_btn.clicked.connect(self.load_work)
-        # import_btn.clicked.connect(self.import_work)
         increment_version_btn.clicked.connect(self.on_new_version)
         ingest_version_btn.clicked.connect(self.on_ingest_version)
         save_new_work_btn.clicked.connect(self.on_new_work)
@@ -374,7 +335,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def build_bars(self):
         """Build the menu bar."""
-        menu_bar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 1680, 18))
+        menu_bar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 680, 18))
         self.setMenuBar(menu_bar)
         file_menu = menu_bar.addMenu("File")
         tools_menu = menu_bar.addMenu("Tools")
@@ -386,12 +347,10 @@ class MainUI(QtWidgets.QMainWindow):
         set_project = QtWidgets.QAction("&Set Project", self)
         file_menu.addAction(set_project)
         file_menu.addSeparator()
-        new_user = QtWidgets.QAction("&Add New User", self)
+        new_user = QtWidgets.QAction(pick.icon("user"), "&Add New User", self)
         file_menu.addAction(new_user)
-        users_manager = QtWidgets.QAction("&Users Manager", self)
-        file_menu.addAction(users_manager)
         file_menu.addSeparator()
-        save_new_work = QtWidgets.QAction("&Save New Work", self)
+        save_new_work = QtWidgets.QAction(pick.icon("save"), "&Save New Work", self)
         file_menu.addAction(save_new_work)
         increment_version = QtWidgets.QAction("&Increment Version", self)
         file_menu.addAction(increment_version)
@@ -405,11 +364,15 @@ class MainUI(QtWidgets.QMainWindow):
         import_item = QtWidgets.QAction("&Import Item", self)
         file_menu.addAction(import_item)
         file_menu.addSeparator()
-        user_login = QtWidgets.QAction("&User Login", self)
+        settings_item = QtWidgets.QAction(pick.icon("settings"), "&Settings                    ", self)
+        file_menu.addAction(settings_item)
+        file_menu.addSeparator()
+        user_login = QtWidgets.QAction(pick.icon("user"), "&User Login", self)
         file_menu.addAction(user_login)
         exit_action = QtWidgets.QAction("&Exit", self)
         file_menu.addAction(exit_action)
 
+        # make the menu bar items wide enough to show the icons and all text
         # Tools Menu
 
         # Help Menu
@@ -429,6 +392,7 @@ class MainUI(QtWidgets.QMainWindow):
         create_project.triggered.connect(self.on_create_new_project)
         new_user.triggered.connect(self.on_add_new_user)
         user_login.triggered.connect(self.on_login)
+        settings_item.triggered.connect(self.on_settings)
         set_project.triggered.connect(self.on_set_project)
         exit_action.triggered.connect(self.close)
 
@@ -443,9 +407,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         # check if the tik.main.dcc has a preview method
         if self.tik.dcc.preview_enabled:
-            create_preview = QtWidgets.QAction("&Create Preview", self)
+            create_preview = QtWidgets.QAction(pick.icon("camera"), "&Create Preview", self)
             tools_menu.addAction(create_preview)
             create_preview.triggered.connect(self.on_create_preview)
+
+        menu_bar.setMinimumWidth(menu_bar.sizeHint().width())
 
     def test(self):
         """Test function."""
@@ -456,40 +422,15 @@ class MainUI(QtWidgets.QMainWindow):
         print(self.tasks_mcv.task_view.get_items_count())
         self.tasks_mcv.task_view.select_first_item()
 
-    # def load_work(self, event=None):
-    #     """Load the selected work or publish version."""
-    #     # get the work item
-    #     selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
-    #     if not selected_work_item:
-    #         self.feedback.pop_info(
-    #             title="No work selected.",
-    #             text="Please select a work to load.",
-    #             critical=True,
-    #         )
-    #         return
-    #     # get the version
-    #     selected_version = self.versions_mcv.get_selected_version()
-    #     selected_work_item.tik_obj.load_version(selected_version)
-
-    # def import_work(self):
-    #     """Import a work into the project."""
-    #     selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
-    #     if not selected_work_item:
-    #         self.feedback.pop_info(
-    #             title="No work or publish item selected.",
-    #             text="Please select a work or publish item to import.",
-    #             critical=True,
-    #         )
-    #         return
-    #     # get the version
-    #     selected_version = self.versions_mcv.get_selected_version()
-    #     element_type = self.versions_mcv.get_selected_element_type()
-    #     selected_work_item.tik_obj.import_version(selected_version, element_type=element_type)
-
     def _ingest_success(self):
         """Callback function for the ingest success event."""
         self.refresh_versions()
         self.status_bar.showMessage("New version ingested successfully.", 5000)
+
+    def on_settings(self):
+        """Launch the settings dialog."""
+        dialog = SettingsDialog(self.tik, parent=self)
+        dialog.show()
 
     def on_publish_scene(self):
         """Bring up the publish scene dialog."""

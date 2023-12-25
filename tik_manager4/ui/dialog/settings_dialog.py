@@ -21,7 +21,6 @@ from tik_manager4.ui.layouts.settings_layout import (
     convert_to_ui_definition,
     guess_data_type,
 )
-from tik_manager4.ui.dialog.feedback import Feedback
 
 LOG = logging.getLogger(__name__)
 
@@ -30,14 +29,20 @@ class SettingsDialog(QtWidgets.QDialog):
     """Settings dialog."""
 
     def __init__(self, main_object, *args, **kwargs):
+        """Initiate the class."""
         super(SettingsDialog, self).__init__(*args, **kwargs)
+
+        # DYNAMIC VARIABLES
+        self._setting_widgets = []
+        self.settings_list = []  # list of settings objects
 
         self.main_object = main_object
 
-        self.settings_list = []  # list of settings objects
-
         self.setWindowTitle("Settings")
-        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+
+        self.dialog_layout = QtWidgets.QVBoxLayout(self)
+        self.dialog_layout.setContentsMargins(10, 10, 10, 10)
+        # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
         # variables
         self.splitter = None
@@ -47,15 +52,14 @@ class SettingsDialog(QtWidgets.QDialog):
         self._validations_and_extracts = (
             None  # for caching the validations and extracts
         )
-        self._setting_widgets = []
 
-        # Execution
+        # # Execution
         self.build_layouts()
         self.build_static_widgets()
         self.create_content()
         # self.create_widgets()
-
-        # set the first item on menu tree as current
+        #
+        # # set the first item on menu tree as current
         self.menu_tree_widget.setCurrentItem(self.menu_tree_widget.topLevelItem(0))
 
         self.resize(960, 630)
@@ -64,9 +68,6 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def build_layouts(self):
         """Build layouts."""
-
-        main_layout = QtWidgets.QVBoxLayout(self)
-        main_layout.setContentsMargins(10, 10, 10, 10)
 
         self.splitter = QtWidgets.QSplitter(self)
 
@@ -78,10 +79,10 @@ class SettingsDialog(QtWidgets.QDialog):
         self.right_vlayout = QtWidgets.QVBoxLayout(right_widget)
         self.right_vlayout.setContentsMargins(0, 0, 0, 0)
 
-        main_layout.addWidget(self.splitter)
+        self.dialog_layout.addWidget(self.splitter)
 
         self.button_box_lay = QtWidgets.QHBoxLayout()
-        main_layout.addLayout(self.button_box_lay)
+        self.dialog_layout.addLayout(self.button_box_lay)
 
     def build_static_widgets(self):
         """Build static widgets."""
