@@ -59,7 +59,7 @@ def guess_data_type(data):
             return "combo"
     else:
         return None
-def convert_to_ui_definition(settings_data, override_data=None):
+def convert_to_ui_definition(settings_data):
     """Converts the settings data to ui definition.
 
     Args:

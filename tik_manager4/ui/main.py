@@ -37,7 +37,7 @@ from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
 from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog
 from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
 from tik_manager4.ui.dialog.feedback import Feedback
-from tik_manager4.ui.widgets.common import TikButton
+from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator
 from tik_manager4.ui import pick
 import tik_manager4._version as version
 import tik_manager4
@@ -90,15 +90,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.user_layout = QtWidgets.QHBoxLayout()
 
         project_user_layout.addLayout(self.project_layout)
-        # add a horizontal separator line
-        line = QtWidgets.QLabel()
-        pixmap = QtGui.QPixmap(2, 100)
-        pixmap.fill(QtGui.QColor(100, 100, 100))
-        line.setPixmap(pixmap)
-        line.setFixedHeight(25)
-        line.setFixedWidth(20)
-        # align to the center
-        line.setAlignment(QtCore.Qt.AlignCenter)
+        line = HorizontalSeparator()
         project_user_layout.addWidget(line)
 
         project_user_layout.addLayout(self.user_layout)

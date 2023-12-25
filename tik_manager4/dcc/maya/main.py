@@ -76,7 +76,7 @@ class Dcc(MainCore):
     @staticmethod
     def get_ranges():
         """Get the viewport ranges."""
-        utils.get_ranges()
+        return utils.get_ranges()
 
     @staticmethod
     def set_ranges(range_list):

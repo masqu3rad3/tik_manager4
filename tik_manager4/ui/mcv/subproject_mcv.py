@@ -1,6 +1,7 @@
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 import tik_manager4.ui.dialog.subproject_dialog
 import tik_manager4.ui.dialog.task_dialog
+from tik_manager4.ui.widgets.common import VerticalSeparator
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.objects import guard
 import tik_manager4
@@ -677,14 +678,7 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
         self.label = QtWidgets.QLabel("Sub-Projects")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
         self.addWidget(self.label)
-        # create a separator label
-        self.separator = QtWidgets.QLabel()
-        self.separator.setFrameShape(QtWidgets.QFrame.HLine)
-        self.separator.setFrameShadow(QtWidgets.QFrame.Sunken)
-        # make it violet
-        self.separator.setStyleSheet("background-color: rgb(221, 160, 221);")
-        self.separator.setFixedHeight(1)
-        self.addWidget(self.separator)
+        self.addWidget(VerticalSeparator(color=(221, 160, 221)))
 
         # add a checkbox for recursive search
         if recursive_enabled:

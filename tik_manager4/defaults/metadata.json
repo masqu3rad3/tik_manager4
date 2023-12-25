@@ -1,6 +1,6 @@
 {
   "mode": {
-    "default": "",
+    "default": "global",
     "enum": ["global", "asset", "shot"],
     "type": "combo"
   },

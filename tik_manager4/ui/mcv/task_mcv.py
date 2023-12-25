@@ -2,6 +2,7 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.core import filelog
 from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4.ui.dialog.task_dialog
+from tik_manager4.ui.widgets.common import VerticalSeparator
 
 from tik_manager4.ui import pick
 
@@ -340,13 +341,7 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
         self.label = QtWidgets.QLabel("Tasks")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
         self.addWidget(self.label)
-        # create a separator label
-        self.separator = QtWidgets.QLabel()
-        self.separator.setFrameShape(QtWidgets.QFrame.HLine)
-        self.separator.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.separator.setStyleSheet("background-color: rgb(0, 255, 255);")
-        self.separator.setFixedHeight(1)
-        self.addWidget(self.separator)
+        self.addWidget(VerticalSeparator(color=(0, 255, 255)))
 
         self.task_view = TikTaskView()
         self.addWidget(self.task_view)

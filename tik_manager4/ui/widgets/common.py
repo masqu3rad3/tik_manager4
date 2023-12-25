@@ -345,3 +345,31 @@ class ResolvedText(TikLabel):
     def set_font_size(self, font_size, bold=True):
         super(ResolvedText, self).set_font_size(font_size, bold)
         # self.setFont(QtGui.QFont(FONT, font_size, QtGui.QFont.Bold))
+
+class HorizontalSeparator(QtWidgets.QLabel):
+    """Simple horizontal separator."""
+    def __init__(self, color=(100, 100, 100), height=25, width=20):
+        super(HorizontalSeparator, self).__init__()
+        self._pixmap = QtGui.QPixmap(2, 100)
+        self.set_color(color)
+        self.setPixmap(self._pixmap)
+        self.setFixedHeight(height)
+        self.setFixedWidth(width)
+        self.setAlignment(QtCore.Qt.AlignCenter)
+    def set_color(self, color):
+        self._pixmap.fill(QtGui.QColor(*color))
+
+class VerticalSeparator(QtWidgets.QLabel):
+    """Simple vertical separator."""
+    def __init__(self, color=(100, 100, 100), height=1, width=None):
+        super(VerticalSeparator, self).__init__()
+        self.set_color(color)
+        self.setFrameShape(QtWidgets.QFrame.HLine)
+        self.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.setFixedHeight(height)
+        if width:
+            self.setFixedWidth(width)
+    def set_color(self, color):
+        if isinstance(color, (tuple, list)):
+            color = f"rgb({color[0]}, {color[1]}, {color[2]});"
+        self.setStyleSheet(f"background-color: {color};")

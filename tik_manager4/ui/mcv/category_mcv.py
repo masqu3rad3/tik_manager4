@@ -6,6 +6,7 @@ from datetime import datetime
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.work_dialog import NewVersionDialog
+from tik_manager4.ui.widgets.common import VerticalSeparator
 
 
 class TikWorkItem(QtGui.QStandardItem):
@@ -412,13 +413,7 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.label = QtWidgets.QLabel("Works")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
         self.addWidget(self.label)
-        # create a separator label
-        self.separator = QtWidgets.QLabel()
-        self.separator.setFrameShape(QtWidgets.QFrame.HLine)
-        self.separator.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.separator.setStyleSheet("background-color: rgb(174, 215, 91);")
-        self.separator.setFixedHeight(1)
-        self.addWidget(self.separator)
+        self.addWidget(VerticalSeparator(color=(174, 215, 91)))
 
         # create two radio buttons one for work and one for publish
         self.work_radio_button = QtWidgets.QRadioButton("Work")

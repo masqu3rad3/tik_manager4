@@ -3,7 +3,7 @@ from pathlib import Path
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
-from tik_manager4.ui.widgets.common import TikButton
+from tik_manager4.ui.widgets.common import TikButton, VerticalSeparator
 from tik_manager4.core import filelog
 from tik_manager4.ui import pick
 
@@ -25,13 +25,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.label = QtWidgets.QLabel("Versions")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
         self.addWidget(self.label)
-        # create a separator label
-        self.separator = QtWidgets.QLabel()
-        self.separator.setFrameShape(QtWidgets.QFrame.HLine)
-        self.separator.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.separator.setStyleSheet("background-color: rgb(255, 180, 60);")
-        self.separator.setFixedHeight(1)
-        self.addWidget(self.separator)
+        self.addWidget(VerticalSeparator(color=(255, 180, 60)))
 
         version_layout = QtWidgets.QHBoxLayout()
         self.addLayout(version_layout)

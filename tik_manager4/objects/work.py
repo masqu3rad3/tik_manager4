@@ -9,10 +9,12 @@ from tik_manager4.core.settings import Settings
 from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.publish import Publish
+
 # from tik_manager4.objects.publish import PublishVersion
 from tik_manager4 import dcc
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
+
 
 class Work(Settings, Entity):
     _dcc_handler = dcc.Dcc()
@@ -37,7 +39,9 @@ class Work(Settings, Entity):
         self._state = "working"
 
         self.modified_time = None  # to compare and update if necessary
-        self.publish = Publish(self) # publish object does not have a settings file, the publish versions do
+        self.publish = Publish(
+            self
+        )  # publish object does not have a settings file, the publish versions do
 
         self.init_properties()
 
@@ -55,7 +59,6 @@ class Work(Settings, Entity):
         self._relative_path = self.get_property("path", self._relative_path)
         self._software_version = self.get_property("softwareVersion")
         self._state = self.get_property("state", self._state)
-
 
     @property
     def state(self):
@@ -174,14 +177,16 @@ class Work(Settings, Entity):
             "user": self.guard.user,
             "previews": {},
             "file_format": file_format,
-            "dcc_version": self._dcc_handler.get_dcc_version()
+            "dcc_version": self._dcc_handler.get_dcc_version(),
         }
         self._versions.append(version)
         self.edit_property("versions", self._versions)
         self.apply_settings(force=True)
         return version
 
-    def make_preview(self, version_number, camera, resolution, frame_range, label=None, settings=None):
+    def make_preview(
+        self, version_number, camera, resolution, frame_range, label=None, settings=None
+    ):
         """Initiate a playblast for the given version.
 
         Args:
@@ -198,24 +203,31 @@ class Work(Settings, Entity):
         preview_folder = self.get_abs_project_path("previews")
         Path(preview_folder).mkdir(parents=True, exist_ok=True)
 
-        nice_name, full_name = self.resolve_preview_names(version_number, camera, label=label)
+        nice_name, full_name = self.resolve_preview_names(
+            version_number, camera, label=label
+        )
 
-        preview_file_abs_path = self._dcc_handler.generate_preview(full_name, preview_folder, camera=camera,
-                                                                   resolution=resolution, range=frame_range,
-                                                                   settings=preview_settings)
+        preview_file_abs_path = self._dcc_handler.generate_preview(
+            full_name,
+            preview_folder,
+            camera=camera,
+            resolution=resolution,
+            range=frame_range,
+            settings=preview_settings,
+        )
         if preview_file_abs_path:
             if settings.get("PostConversion", False):
                 ffmpeg = self._check_ffmpeg()
                 if ffmpeg:
-                    preview_file_abs_path = self._convert_preview(preview_file_abs_path, ffmpeg, overwrite=True)
+                    preview_file_abs_path = self._convert_preview(
+                        preview_file_abs_path, ffmpeg, overwrite=True
+                    )
                 else:
                     LOG.warning("FFMPEG not found. Skipping conversion.")
 
-            relative_path = Path("previews") / preview_file_abs_path.name
+            relative_path = Path("previews") / Path(preview_file_abs_path).name
             version = self.get_version(version_number)
-            new_preview_data = {
-                nice_name: relative_path
-            }
+            new_preview_data = {nice_name: str(relative_path)}
 
             if "previews" in version.keys():
                 version["previews"].update(new_preview_data)
@@ -238,12 +250,14 @@ class Work(Settings, Entity):
             "foolproof": "-vf scale=ceil(iw/2)*2:ceil(ih/2)*2",
             "speed": "-preset ultrafast",
             "resolution": "",
-            "audioCodec": "-c:a aac"
+            "audioCodec": "-c:a aac",
         }
 
         # set output file
-        base, ext = preview_file_abs_path.stem, preview_file_abs_path.suffix
-        output_file = f"{base}.mp4"
+        _file_path = Path(preview_file_abs_path)
+        # change the extension to mp4
+        output_file = _file_path.with_suffix(".mp4")
+
         # deal with the existing output
         if output_file.exists():
             if overwrite:
@@ -251,22 +265,24 @@ class Work(Settings, Entity):
             else:
                 return
 
-        flagStart = [ffmpeg, "-i", str(preview_file_abs_path)]
+        flag_start = [ffmpeg, "-i", str(_file_path)]
 
-        fullFlagList = flagStart + \
-                       presetLUT["videoCodec"].split() + \
-                       presetLUT["compression"].split() + \
-                       presetLUT["audioCodec"].split() + \
-                       presetLUT["resolution"].split() + \
-                       presetLUT["foolproof"].split() + \
-                       [str(output_file)]
+        full_flag_list = (
+            flag_start
+            + presetLUT["videoCodec"].split()
+            + presetLUT["compression"].split()
+            + presetLUT["audioCodec"].split()
+            + presetLUT["resolution"].split()
+            + presetLUT["foolproof"].split()
+            + [str(output_file)]
+        )
 
         if platform.system() == "Windows":
-            subprocess.check_call(fullFlagList, shell=False)
+            subprocess.check_call(full_flag_list, shell=False)
         else:
-            subprocess.check_call(fullFlagList)
-        preview_file_abs_path.unlink()
-        return output_file
+            subprocess.check_call(full_flag_list)
+        _file_path.unlink()
+        return str(output_file)
 
     def _check_ffmpeg(self):
         """Checks if the FFMPEG present in the system"""
@@ -281,7 +297,11 @@ class Work(Settings, Entity):
                 return ffmpeg
         else:
             try:
-                v = subprocess.call(["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                v = subprocess.call(
+                    ["ffmpeg", "-version"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
                 return "ffmpeg"
             except OSError:
                 return False
