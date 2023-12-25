@@ -3,8 +3,7 @@
 from pathlib import Path
 import logging
 
-from tik_manager4.core import settings
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+from tik_manager4.ui.Qt import QtWidgets, QtCore
 from tik_manager4.ui.widgets import value_widgets
 from tik_manager4.ui.widgets.switch_tree import SwitchTreeWidget, SwitchTreeItem
 from tik_manager4.ui.widgets.common import (
@@ -43,7 +42,6 @@ class SettingsDialog(QtWidgets.QDialog):
         # variables
         self.splitter = None
         self.left_vlay = None
-        self.right_contents_lay = None
         self.button_box_lay = None
         self.menu_tree_widget = None
         self._validations_and_extracts = (
@@ -56,6 +54,9 @@ class SettingsDialog(QtWidgets.QDialog):
         self.build_static_widgets()
         self.create_content()
         # self.create_widgets()
+
+        # set the first item on menu tree as current
+        self.menu_tree_widget.setCurrentItem(self.menu_tree_widget.topLevelItem(0))
 
         self.resize(960, 630)
 
@@ -84,8 +85,8 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def build_static_widgets(self):
         """Build static widgets."""
-        # self.menu_tree_widget = QtWidgets.QTreeWidget()
-        self.menu_tree_widget = SwitchTreeWidget()
+
+        self.menu_tree_widget = SwitchTreeWidget(user=self.main_object.user)
         self.menu_tree_widget.setRootIsDecorated(True)
         self.menu_tree_widget.setHeaderHidden(True)
         self.menu_tree_widget.header().setVisible(False)
@@ -117,7 +118,7 @@ class SettingsDialog(QtWidgets.QDialog):
     def _user_settings(self):
         """Create the user settings."""
         # create the menu items
-        self.user_widget_item = SwitchTreeItem(["User"])
+        self.user_widget_item = SwitchTreeItem(["User"], permission_level=0)
         self.menu_tree_widget.addTopLevelItem(self.user_widget_item)
 
         # create sub-branches
@@ -125,19 +126,19 @@ class SettingsDialog(QtWidgets.QDialog):
     def _project_settings(self):
         """Create the project settings."""
         # create the menu items
-        self.project_widget_item = SwitchTreeItem(["Project"])
+        self.project_widget_item = SwitchTreeItem(["Project"], permission_level=3)
         self.menu_tree_widget.addTopLevelItem(self.project_widget_item)
 
         # create sub-branches
-        preview_settings = SwitchTreeItem(["Preview Settings"])
+        preview_settings = SwitchTreeItem(["Preview Settings"], permission_level=3)
         self.project_widget_item.addChild(preview_settings)
         preview_settings.content = self.preview_settings_content()
 
-        category_definitions = SwitchTreeItem(["Category Definitions"])
+        category_definitions = SwitchTreeItem(["Category Definitions"], permission_level=3)
         self.project_widget_item.addChild(category_definitions)
         category_definitions.content = self.project_category_definitions_content()
 
-        metadata = SwitchTreeItem(["Metadata"])
+        metadata = SwitchTreeItem(["Metadata"], permission_level=3)
         self.project_widget_item.addChild(metadata)
         metadata.content = self.metadata_content()
 
@@ -146,20 +147,17 @@ class SettingsDialog(QtWidgets.QDialog):
     def _common_settings(self):
         """Create the common settings."""
         # create the menu items
-        common_widget_item = SwitchTreeItem(["Common"])
+        common_widget_item = SwitchTreeItem(["Common"], permission_level=3)
         self.menu_tree_widget.addTopLevelItem(common_widget_item)
 
         # create sub-branches
-        category_definitions = QtWidgets.QTreeWidgetItem(
-            ["Category Definitions (Common)"]
-        )
+        category_definitions = SwitchTreeItem(["Category Definitions (Common)"], permission_level=3)
         common_widget_item.addChild(category_definitions)
         category_definitions.content = self.common_category_definitions_content()
 
-        metadata = QtWidgets.QTreeWidgetItem(["Metadata (Common)"])
+        metadata = SwitchTreeItem(["Metadata (Common)"], permission_level=3)
         common_widget_item.addChild(metadata)
         metadata.content = self.common_metadata_content()
-
 
     def __create_content_links(self):
         """Create content widgets for all top level items."""
@@ -238,8 +236,45 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def preview_settings_content(self):
         """Create the content for preview settings."""
-        LOG.warning("Preview settings are not implemented yet.")
-        return QtWidgets.QWidget()
+        # flat hierarchy settings files with static amount of keys are easy to create
+        # with the settings layout. So we will use it here.
+        content_widget = QtWidgets.QWidget()
+        self.right_vlayout.addWidget(content_widget)
+
+        preview_settings_vlay = QtWidgets.QVBoxLayout(content_widget)
+
+        header_layout = QtWidgets.QVBoxLayout()
+        header_layout.setSpacing(13)
+        preview_settings_vlay.addLayout(header_layout)
+
+        # add the title
+        title_label = HeaderLabel("Preview Settings")
+        header_layout.addWidget(title_label)
+
+        # add a label to show the path of the settings file
+        path_label = ResolvedText(self.main_object.project.guard.preview_settings.settings_file)
+        header_layout.addWidget(path_label)
+
+        header_layout.addWidget(VerticalSeparator(color=(255, 141, 28),height=1))
+
+        # make a scroll area for the main content
+        scroll_area = QtWidgets.QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area_contents_widget = QtWidgets.QWidget()
+        scroll_area_contents_widget.setGeometry(QtCore.QRect(0, 0, 104, 345))
+        scroll_area.setWidget(scroll_area_contents_widget)
+        preview_settings_vlay.addWidget(scroll_area)
+        scroll_layout = QtWidgets.QVBoxLayout(scroll_area_contents_widget)
+        scroll_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Actual content creation begins here..
+        settings_data = self.main_object.project.guard.preview_settings
+        ui_definition = convert_to_ui_definition(settings_data.properties)
+        settings_layout = SettingsLayout(ui_definition, settings_data, parent=self)
+        scroll_layout.addLayout(settings_layout)
+
+        content_widget.setVisible(False)
+        return content_widget
 
     def project_category_definitions_content(self):
         """Create the project category definitions."""
@@ -307,7 +342,6 @@ class SettingsDialog(QtWidgets.QDialog):
             title="Category Definitions (Common)",
             parent=self,
         )
-        # self.right_contents_lay.addWidget(common_category_definitions_widget)
         common_category_definitions_widget.setVisible(False)
         self.right_vlayout.addWidget(common_category_definitions_widget)
 
@@ -818,49 +852,6 @@ class MetadataDefinitions(QtWidgets.QWidget):
         _valid_types = list(self.value_widgets.keys())
         for metadata_key, data in self.settings_data.properties.items():
             self._add_value_widget(metadata_key, data)
-            # first create the widget item
-            # widget_item = SwitchTreeItem([metadata_key])
-            # self.switch_tree_widget.addTopLevelItem(widget_item)
-            #
-            # # create the content widget
-            # content_widget = QtWidgets.QWidget()
-            # content_layout = QtWidgets.QVBoxLayout()
-            # # content_layout.setContentsMargins(0, 0, 0, 0)
-            # # content_layout.setSpacing(0)
-            # content_widget.setLayout(content_layout)
-            #
-            # # guess the data type from its default value
-            # # if there is an enum list, that means it is a combo box
-            # data_type = data.get("type", guess_data_type(data["default"]))
-            #
-            # # type combo
-            # form_layout = QtWidgets.QFormLayout()
-            # content_layout.addLayout(form_layout)
-            #
-            # type_label = QtWidgets.QLabel("Type: ")
-            # type_combo = value_widgets.Combo(name="type", value=data_type, items=_valid_types)
-            # form_layout.addRow(type_label, type_combo)
-            # type_combo.currentTextChanged.connect(lambda text: data.update({"type": text}))
-            # type_combo.currentTextChanged.connect(lambda text: self.modified.emit(True))
-            #
-            # # default value
-            # default_value_label = QtWidgets.QLabel("Default Value: ")
-            # default_value_widget = self.value_widgets[data_type](name="default_value", value=data["default"])
-            # form_layout.addRow(default_value_label, default_value_widget)
-            # default_value_widget.com.valueChanged.connect(lambda value: data.update({"default": value}))
-            # default_value_widget.com.valueChanged.connect(lambda value: self.modified.emit(True))
-            #
-            # # create an additional list widget for combo items
-            # if data_type == "combo":
-            #     combo_items_label = QtWidgets.QLabel("Combo Items: ")
-            #     combo_items_widget = value_widgets.List(name="enum", value=data["enum"])
-            #     form_layout.addRow(combo_items_label, combo_items_widget)
-            #     combo_items_widget.com.valueChanged.connect(lambda value: data.update({"enum": value}))
-            #     combo_items_widget.com.valueChanged.connect(lambda value: self.modified.emit(True))
-            #
-            # content_widget.setVisible(False)
-            # self.right_vlay.addWidget(content_widget)
-            # widget_item.content = content_widget
 
 
 class ReorderListModel(QtCore.QStringListModel):

@@ -14,6 +14,7 @@ class Project(Subproject):
         self.publisher = Publisher(self)
         self.structure = Settings()
         self.settings = Settings()
+        self.preview_settings = Settings()
         self.category_definitions = Settings()
         self.metadata_definitions = Settings()
         self._path = path
@@ -73,6 +74,11 @@ class Project(Subproject):
         self.settings.settings_file = str(_database_path_obj / "project_settings.json")
         self.settings.set_fallback(self.guard.commons.project_settings.settings_file)
         self.guard.set_project_settings(self.settings)
+        # get preview settings
+        self.preview_settings.settings_file = str(_database_path_obj / "preview_settings.json")
+        self.preview_settings.set_fallback(self.guard.commons.preview_settings.settings_file)
+        self.guard.set_preview_settings(self.preview_settings)
+
         # get category definitions
         self.category_definitions.settings_file = str(_database_path_obj / "category_definitions.json")
         self.category_definitions.set_fallback(self.guard.commons.category_definitions.settings_file)

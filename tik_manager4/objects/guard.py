@@ -15,6 +15,7 @@ class Guard(object):
     _shot_categories = []
     _null_categories = []
     project_settings = None
+    preview_settings = None
     commons = None
 
     @classmethod
@@ -26,6 +27,11 @@ class Guard(object):
     def set_project_settings(cls, project_settings):
         """Set the project settings object"""
         cls.project_settings = project_settings
+
+    @classmethod
+    def set_preview_settings(cls, preview_settings):
+        """Set the preview settings object"""
+        cls.preview_settings = preview_settings
 
     @classmethod
     def set_dcc(cls, dcc_name):

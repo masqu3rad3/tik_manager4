@@ -40,6 +40,9 @@ class Commons(object):
         self.project_settings = Settings(
             file_path=str(Path(self._folder_path, "project_settings.json"))
         )
+        self.preview_settings = Settings(
+            file_path=str(Path(self._folder_path, "preview_settings.json"))
+        )
         self.users = Settings(
             file_path=str(Path(self._folder_path, "users.json"))
         )

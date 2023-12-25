@@ -7,7 +7,7 @@ from tik_manager4.objects.commons import Commons
 from tik_manager4.objects.guard import Guard
 from tik_manager4.ui.dialog import feedback
 
-log = filelog.Filelog(logname=__name__, filename="tik_manager4")
+LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 FEED = feedback.Feedback()
 
@@ -36,6 +36,17 @@ class User(object):
     @property
     def permission_level(self):
         return self._guard.permission_level
+
+    def check_permissions(self, level):
+        """Checks the user permissions for project actions."""
+        if self.permission_level < level:
+            LOG.warning("This user does not have permissions for this action")
+            return -1
+
+        if not self.is_authenticated:
+            LOG.warning("User is not authenticated")
+            return -1
+        return 1
 
     @property
     def bookmark_names(self):
@@ -243,7 +254,7 @@ class User(object):
                 if self.check_password(user_name, password):
                     self.__set_authentication_status(True)
                 else:
-                    return -1, log.warning(
+                    return -1, LOG.warning(
                         "Wrong password provided for user %s" % user_name
                     )
             elif self.resume.get_property("user_dhash") == self.__hash_pass(
@@ -278,7 +289,7 @@ class User(object):
             )
             return user_name, "Success"
         else:
-            return -1, log.warning(
+            return -1, LOG.warning(
                 "User %s cannot set because it does not exist in commons database"
             )
 
@@ -288,7 +299,7 @@ class User(object):
             return 1, "Success"
         else:
             self.__set_authentication_status(False)
-            return -1, log.warning(
+            return -1, LOG.warning(
                 "Wrong password provided for user %s" % self._active_user
             )
 
@@ -304,7 +315,7 @@ class User(object):
 
         # first check the permissions of active user
         if self.permission_level < 3:
-            return -1, log.warning(
+            return -1, LOG.warning(
                 "User %s has no permission to create new users" % self._active_user
             )
 
@@ -314,12 +325,12 @@ class User(object):
             self.authenticate(active_user_password)
 
         if not self.is_authenticated:
-            return -1, log.warning(
+            return -1, LOG.warning(
                 "Active user is not authenticated or the password is wrong"
             )
 
         if new_user_name in self.commons.users.keys:
-            return -1, log.error("User %s already exists. Aborting" % new_user_name)
+            return -1, LOG.error("User %s already exists. Aborting" % new_user_name)
         user_data = {
             "initials": new_user_initials,
             "pass": self.__hash_pass(new_user_password),
@@ -333,7 +344,7 @@ class User(object):
         """Removes the user from database"""
         # first check the permissions of active user
         if self.permission_level < 3:
-            return -1, log.warning(
+            return -1, LOG.warning(
                 "User %s has no permission to delete users" % self._active_user
             )
 
@@ -341,17 +352,17 @@ class User(object):
         if active_user_password:
             self.authenticate(active_user_password)
         if not self.is_authenticated:
-            return -1, log.warning(
+            return -1, LOG.warning(
                 "Active user is not authenticated or the password is wrong"
             )
 
         if user_name == "Admin":
-            return -1, log.warning("Admin User cannot be deleted")
+            return -1, LOG.warning("Admin User cannot be deleted")
         if user_name == "Generic":
-            return -1, log.warning("Generic User cannot be deleted")
+            return -1, LOG.warning("Generic User cannot be deleted")
 
         if user_name not in self.commons.users.keys:
-            return -1, log.error("User %s does not exist. Aborting" % user_name)
+            return -1, LOG.error("User %s does not exist. Aborting" % user_name)
         self.commons.users.delete_property(user_name)
         self.commons.users.apply_settings()
         return 1, "Success"
@@ -368,22 +379,22 @@ class User(object):
                 "User %s has no permission to change permission level of other users"
                 % self._active_user
             )
-            return -1, log.warning(msg)
+            return -1, LOG.warning(msg)
             # Don't allow non-authenticated users to go further
         if active_user_password:
             self.authenticate(active_user_password)
         if not self.is_authenticated:
-            return -1, log.warning(
+            return -1, LOG.warning(
                 "Active user is not authenticated or the password is wrong"
             )
 
         if user_name == "Admin":
-            return -1, log.warning("Admin permission levels cannot be altered")
+            return -1, LOG.warning("Admin permission levels cannot be altered")
         if user_name == "Generic":
-            return -1, log.warning("Generic User permission levels cannot be altered")
+            return -1, LOG.warning("Generic User permission levels cannot be altered")
 
         if user_name not in self.commons.users.keys:
-            return -1, log.error("User %s does not exist. Aborting" % user_name)
+            return -1, LOG.error("User %s does not exist. Aborting" % user_name)
 
         user_data = self.commons.users.get_property(user_name)
         user_data["permissionLevel"] = self.__clamp_level(new_level)
@@ -404,7 +415,7 @@ class User(object):
             self.commons.users.apply_settings()
             return 1, "Success"
         else:
-            return -1, log.error("Old password for %s does not match" % user_name)
+            return -1, LOG.error("Old password for %s does not match" % user_name)
 
     def check_password(self, user_name, password):
         """checks the given password against the hashed password"""
@@ -431,7 +442,7 @@ class User(object):
             self.bookmarks.apply_settings()
             return 1
         else:
-            log.warning("Project %s already exists in bookmarks" % project_path)
+            LOG.warning("Project %s already exists in bookmarks" % project_path)
             return -1
 
     def delete_project_bookmark(self, project_path):
@@ -442,7 +453,7 @@ class User(object):
             self.bookmarks.apply_settings()
             return 1
         else:
-            log.warning("Project %s doesn't exist in bookmarks" % project_path)
+            LOG.warning("Project %s doesn't exist in bookmarks" % project_path)
             return -1
 
     def add_recent_project(self, path):
