@@ -1,11 +1,9 @@
 from pathlib import Path
 import logging
-import platform
 
 from pymxs import runtime as rt
 import qtmax
 
-# from tik_manager4.ui.Qt import QtWidgets
 
 from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.dcc.max import validate
@@ -13,7 +11,7 @@ from tik_manager4.dcc.max import extract
 from tik_manager4.dcc.max import ingest
 
 
-NAME = "Max"
+LOG = logging.getLogger(__name__)
 
 
 class Dcc(MainCore):
@@ -143,16 +141,14 @@ class Dcc(MainCore):
 
     @staticmethod
     def get_scene_cameras():
-        """
-        Return all the cameras in the scene.
-        Returns: (list) List of camera names
-        """
+        """Return NAMES of all the cameras in the scene."""
         # Get all nodes in the scene
         all_nodes = rt.rootNode.children
         # Filter nodes to get only cameras
         cameras = [node for node in all_nodes if rt.isKindOf(node, rt.camera)]
-
-        return cameras
+        camera_names = [camera.name for camera in cameras]
+        print(cameras, camera_names)
+        return camera_names
 
     @staticmethod
     def generate_preview(name, folder, camera, resolution, range, settings=None):
@@ -228,9 +224,8 @@ class Dcc(MainCore):
             rt.clearSelection()
 
         file_path = Path(folder) / f"{name}.{extension}"
-
         rt.createPreview(
-            filename=file_path,
+            filename=str(file_path),
             percentSize=percent_size,
             dspGeometry=display_geometry,
             dspShapes=display_shapes,
@@ -242,6 +237,7 @@ class Dcc(MainCore):
             dspGrid=display_grid,
             dspFrameNums=display_frame_nums,
             rndLevel=render_level,
+            autoPlay=False,
         )
 
         # restore the original values
