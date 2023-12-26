@@ -42,8 +42,7 @@ class Category(Entity):
         """Scan the category folder and return the works"""
         # get all files recursively, regardless of the dcc
         _search_dir = self.get_abs_database_path()
-        _work_paths = Path(_search_dir).rglob("**/*.twork")
-
+        _work_paths = list(Path(_search_dir).rglob("**/*.twork"))
 
         # add the file if it is new. if it is not new,
         # check the modified time and update if necessary
