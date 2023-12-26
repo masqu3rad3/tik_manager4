@@ -14,12 +14,12 @@ class EditSubprojectDialog(QtWidgets.QDialog):
         self.feedback = Feedback(parent=self)
         self.tik_project = project_object
         self._parent_sub = parent_sub or project_object
+
         self.parent = parent
 
         self.setWindowTitle("Edit Subproject")
         self.setModal(True)
 
-        # self.metadata_definitions = guard.Guard.commons.metadata
         self.metadata_definitions = self.tik_project.metadata_definitions
 
         self.primary_definition = self.define_primary_ui()
@@ -42,6 +42,10 @@ class EditSubprojectDialog(QtWidgets.QDialog):
         self.button_box_layout = None  # an empty layout to hold the button box
 
         self.build_ui()
+
+        self.resize(400, 600)
+
+        # print(self.secondary_data.properties)
 
     def build_ui(self):
         """Initialize the UI."""
@@ -80,9 +84,14 @@ class EditSubprojectDialog(QtWidgets.QDialog):
             self.primary_definition, self.primary_data, parent=self
         )
         self.primary_layout.contents_layout.addLayout(self.primary_content)
+        # print("before", self.secondary_data.properties)
+        # print(self.secondary_definition)
         self.secondary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
             self.secondary_definition, self.secondary_data, parent=self
         )
+        # print("after", self.secondary_data.properties)
+        # print(self.secondary_definition)
+        self.secondary_definition
         self.secondary_layout.contents_layout.addLayout(self.secondary_content)
         self.tertiary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
             self.tertiary_definition, self.tertiary_data, parent=self
@@ -333,6 +342,7 @@ class FilteredData(dict):
                 self[key] = value
             else:
                 if settings_data.get_property(_override_key):
+                    print(key, value)
                     self[key] = value
 
     def update_new_data(self, settings_data):

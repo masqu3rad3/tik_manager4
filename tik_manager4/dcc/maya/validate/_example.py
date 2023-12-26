@@ -6,8 +6,6 @@ from tik_manager4.dcc.validate_core import ValidateCore
 class Example(ValidateCore):
     """Example validation for Maya"""
 
-    # Name of the validation
-    name = "example"
     nice_name = "Example"
 
     def __init__(self):

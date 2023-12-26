@@ -7,8 +7,6 @@ from tik_manager4.dcc.validate_core import ValidateCore
 class LockedNormals(ValidateCore):
     """Validation for Locked Normals"""
 
-    # Name of the validation
-    name = "locked_normals"
     nice_name = "Locked Normals"
 
     def __init__(self):

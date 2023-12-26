@@ -1,6 +1,0 @@
-{
-    "templateFolder": "", 
-    "projectName": "<brandName>_<projectName>_<clientName>_<yy><mm><dd>",
-    "warningSizeLimit": 200, 
-    "fileName": "<baseName>_<categoryName>_<userInitials>"
-}

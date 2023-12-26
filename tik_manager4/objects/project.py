@@ -14,6 +14,7 @@ class Project(Subproject):
         self.publisher = Publisher(self)
         self.structure = Settings()
         self.settings = Settings()
+        self.preview_settings = Settings()
         self.category_definitions = Settings()
         self.metadata_definitions = Settings()
         self._path = path
@@ -55,6 +56,7 @@ class Project(Subproject):
         self.structure.apply_settings()
 
     def _set(self, absolute_path):
+        self.__init__()
         _absolute_path_obj = Path(absolute_path)
 
         self._absolute_path = absolute_path
@@ -64,6 +66,7 @@ class Project(Subproject):
         _database_path_obj.mkdir(parents=True, exist_ok=True)
         self._database_path = str(_database_path_obj)
         self.structure.settings_file = str(_database_path_obj / "project_structure.json")
+        # self.structure = Settings(file_path=str(_database_path_obj / "project_structure.json"))
         self.set_sub_tree(self.structure.properties)
         self.guard.set_project_root(self.absolute_path)
         self.guard.set_database_root(self.database_path)
@@ -71,6 +74,11 @@ class Project(Subproject):
         self.settings.settings_file = str(_database_path_obj / "project_settings.json")
         self.settings.set_fallback(self.guard.commons.project_settings.settings_file)
         self.guard.set_project_settings(self.settings)
+        # get preview settings
+        self.preview_settings.settings_file = str(_database_path_obj / "preview_settings.json")
+        self.preview_settings.set_fallback(self.guard.commons.preview_settings.settings_file)
+        self.guard.set_preview_settings(self.preview_settings)
+
         # get category definitions
         self.category_definitions.settings_file = str(_database_path_obj / "category_definitions.json")
         self.category_definitions.set_fallback(self.guard.commons.category_definitions.settings_file)
@@ -197,7 +205,11 @@ class Project(Subproject):
         parent_path = _file_path_obj.parent
         # get the base name with extension
         base_name = _file_path_obj.name
-        relative_path = parent_path.relative_to(self.absolute_path)
+        try:
+            relative_path = parent_path.relative_to(self.absolute_path)
+        except ValueError:
+            self.log.error("File path is not under the project root")
+            return None, None
         database_path = Path(self.get_abs_database_path(str(relative_path)))
         work_files = database_path.glob("*.twork")
         for work_file in work_files:

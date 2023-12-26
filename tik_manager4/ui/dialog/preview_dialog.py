@@ -98,7 +98,7 @@ class PreviewDialog(QtWidgets.QDialog):
         _camera = self.cameras_combo.currentText()
         _resolution = [self.resolution_x_sp.value(), self.resolution_y_sp.value()]
         _range = [self.range_start_sp.value(), self.range_end_sp.value()]
-        state = self.work.make_preview(self.version, _camera, _resolution, _range, label=_name, settings=self.work.guard.project_settings.get_property("previewSettings", {}))
+        state = self.work.make_preview(self.version, _camera, _resolution, _range, label=_name, settings=self.work.guard.preview_settings.properties)
         if state:
             self.close()
         else:

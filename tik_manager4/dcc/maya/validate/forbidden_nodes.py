@@ -7,7 +7,6 @@ from tik_manager4.dcc.validate_core import ValidateCore
 class ForbiddenNodes(ValidateCore):
     """Validate class for Maya"""
 
-    name = "forbidden_nodes"
     nice_name = "Forbidden Nodes"
     forbiddenNodeTypes = ["polyBlindData", "unknown", "blindDataTemplate"]
 

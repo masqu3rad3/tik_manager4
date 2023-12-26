@@ -2,7 +2,7 @@ import os
 import glob
 import importlib
 import inspect
-from tik_manager4.dcc.extract_core import ExtractCore
+from tik_manager4.dcc.ingest_core import IngestCore
 
 classes = {}
 modules = glob.glob(os.path.join(os.path.dirname(__file__), "*.py"))
@@ -17,6 +17,5 @@ for mod in modules:
         module = importlib.import_module(f"{__name__}.{module_name}")
 
         for name, obj in inspect.getmembers(module):
-            if inspect.isclass(obj) and issubclass(obj, ExtractCore) and obj != ExtractCore:
-                classes[module_name] = obj
-
+            if inspect.isclass(obj) and issubclass(obj, IngestCore) and obj != IngestCore:
+                classes[obj.name] = obj

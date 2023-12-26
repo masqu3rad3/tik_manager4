@@ -81,6 +81,7 @@ class Publisher:
                         extract, self._dcc_handler.name
                     )
                 )
+
         for validation in validations:
             if validation in list(self._dcc_handler.validations.keys()):
                 self._resolved_validators[validation] = self._dcc_handler.validations[
@@ -159,6 +160,7 @@ class Publisher:
         )
         for extract_type_name, extract_object in self._resolved_extractors.items():
             # extract_object.category = self._work_object.category # define the category #
+            extract_object.category = self._work_object.category
             extract_object.extract_folder = str(
                 publish_path
             )  # define the extract folder

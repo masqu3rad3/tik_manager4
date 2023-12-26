@@ -3,28 +3,15 @@ These commands will be overriden in DCCs.
 """
 import pathlib
 
-class DccTemplate():
+class MainCore():
     name = ""
     preview_enabled = True
-    validations = []
-    extracts = []
+    validations = {}
+    extracts = {}
+    ingests = {}
     @staticmethod
     def get_main_window():
         """Returns the main window of the DCC"""
-        pass
-
-    @staticmethod
-    def new_scene(force=True, fps=None):
-        """
-        Opens a new scene
-
-        Args:
-            force: (Bool) If true, any unsaved changes will be lost. Else throw an error
-            fps: (Int) Accepts integer fps values.
-
-        Returns: None
-
-        """
         pass
 
     @staticmethod
@@ -250,13 +237,6 @@ class DccTemplate():
         Returns: (list) List of camera names
         """
         pass
-
-    @staticmethod
-    def _normalize_file_path(file_path):
-        """Returns the normalized path"""
-        # normalize the path using pathlib
-        file_path = pathlib.Path(file_path)
-        return file_path.as_posix()
 
     @staticmethod
     def generate_thumbnail(file_path, width, height):

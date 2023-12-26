@@ -51,11 +51,13 @@ from tik_manager4.ui.widgets.common import (
     TikButtonBox,
     TikButton,
     TikIconButton,
+    # ExpandableLayout,
 )
 from tik_manager4.ui.layouts.settings_layout import (
     SettingsLayout,
     convert_to_ui_definition,
 )
+from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
 from tik_manager4.ui.dialog.feedback import Feedback
 
 LOG = logging.getLogger(__name__)
@@ -105,17 +107,12 @@ class PublishSceneDialog(QtWidgets.QDialog):
         self.horizontal_splitter.setSizes([500, 500])
         self.vertical_splitter.setSizes([800, 200])
 
-        # self.horizontal_splitter.setStretchFactor(0, 50)
-        # self.horizontal_splitter.setStretchFactor(1, 50)
-        # self.vertical_splitter.setStretchFactor(0, 70)
-        # self.vertical_splitter.setStretchFactor(1, 30)
-
     def check_eligibility(self):
         """Checks if the current scene is eligible for publishing."""
         if not self.project.publisher._work_object:
             self.feedback.pop_info(
                 title="Non-valid Scene",
-                text="Current Scene does not belong to a 'Work'. It is required to save scenes as a 'Work' before publishing.",
+                text="Current Scene does not belong to a 'Work' in this project. Please save scene as a 'Work' before publishing or switch to the correct project.",
             )
             # destroy the dialog. make it dispappear
             self.close()
@@ -258,7 +255,9 @@ class PublishSceneDialog(QtWidgets.QDialog):
         for _extractor_name, extractor in self.project.publisher.extractors.items():
             # get the metadata for the extractor
             LOG.info(self.project.publisher.metadata)
-            extract_row = ExtractRow(extract_object=extractor, override_data=self.project.publisher.metadata)
+            extract_row = ExtractRow(
+                extract_object=extractor, override_data=self.project.publisher.metadata
+            )
             self.extracts_scroll_lay.addLayout(extract_row)
             self._extractor_widgets.append(extract_row)
         # -------------------
@@ -594,43 +593,25 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         header_layout.setSpacing(0)
         main_layout.addLayout(header_layout)
 
-        self.label = HeaderLabel(text=self.extract.nice_name or self.extract.name)
-        self.label.set_color(self.extract.color)
-        self.label.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        self.collapsible_layout = CollapsibleLayout(
+            text=self.extract.nice_name or self.extract.name
         )
-        self.label.setFixedHeight(32)
+        self.collapsible_layout.set_color(
+            text_color=self.extract.color, border_color=self.extract.color
+        )
+        self.collapsible_layout.label.set_font_size(10, bold=True)
+        header_layout.addLayout(self.collapsible_layout)
 
         self.settings_data = self.extract.settings.get(self.extract.category, None)
-
         if self.settings_data:
             # update exposed setting defaults with the metadata (if exists)
             self.settings_data.update(self.override_data or {})
-            self.settings_btn = TikLabelButton()
-            self.settings_btn.setFixedSize(32, 32)
-            self.settings_btn.set_color(self.extract.color)
-            self.settings_frame = QtWidgets.QWidget()  # contents_widget
-            settings_layout = QtWidgets.QVBoxLayout()
-            main_layout.addWidget(self.settings_frame)
-            self.settings_frame.setLayout(settings_layout)
-
             settings_ui = convert_to_ui_definition(self.settings_data)
             settings_formlayout = SettingsLayout(settings_ui, self.settings_data)
-            settings_layout.addLayout(settings_formlayout)
+            self.collapsible_layout.contents_layout.addLayout(settings_formlayout)
 
-            settings_layout.addStretch()
-
-            header_layout.addWidget(self.settings_btn)
-
-            self.settings_btn.toggled.connect(self.toggle_settings_visibility)
-
-            # get the settings_formlayout height
-            # settings_formlayout_height = settings_formlayout.sizeHint().height()
-            # self.settings_frame.setFixedHeight(settings_formlayout_height + 20)
-
-            self.settings_frame.hide()
-
-        header_layout.addWidget(self.label)
+        else:
+            self.collapsible_layout.expand_button.hide()
 
         # maintenance icons
         self.info = TikIconButton(icon_name=self.extract.name, circle=True)

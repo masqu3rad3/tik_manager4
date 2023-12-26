@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 import pytest
 
-IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
+# IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
 @pytest.fixture(scope='session', autouse=True)
 def initialize():
@@ -46,7 +46,7 @@ def tik(tmp_path):
     shutil.copytree(str(tmp_path / "user_backup"), str(user_path))
 
 
-@pytest.fixture(autouse=True)
-def skip_github():
-    if IN_GITHUB_ACTIONS:
-        pytest.skip('Skipping Maya tests in GitHub Actions.')
+# @pytest.fixture(autouse=True)
+# def skip_github():
+#     if IN_GITHUB_ACTIONS:
+#         pytest.skip('Skipping Maya tests in GitHub Actions.')

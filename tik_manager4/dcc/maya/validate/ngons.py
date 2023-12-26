@@ -7,8 +7,6 @@ from tik_manager4.dcc.maya import utils
 class Ngons(ValidateCore):
     """Example validation for Maya"""
 
-    # Name of the validation
-    name = "ngons"
     nice_name = "Ngons"
 
     def __init__(self):

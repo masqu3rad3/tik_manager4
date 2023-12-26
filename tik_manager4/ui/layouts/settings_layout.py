@@ -10,6 +10,7 @@ Supported types:
 
 """
 import re
+from pathlib import Path
 from tik_manager4.core.settings import Settings
 
 from tik_manager4.ui.widgets import value_widgets
@@ -33,6 +34,8 @@ def guess_data_type(data):
     if isinstance(data, bool):
         return "boolean"
     elif isinstance(data, str):
+        if Path(data).exists() and data != "":
+            return "pathBrowser"
         return "string"
     elif isinstance(data, int):
         return "integer"
@@ -60,7 +63,12 @@ def guess_data_type(data):
     else:
         return None
 def convert_to_ui_definition(settings_data):
-    """Converts the settings data to ui definition"""
+    """Converts the settings data to ui definition.
+
+    Args:
+        settings_data (Settings or dict): Settings object or dictionary data
+        override_data (dict, optional): Override the settings data with this dictionary. Defaults to None.
+    """
     if isinstance(settings_data, Settings):
         source_dict = settings_data.get_data()
     else:
@@ -85,6 +93,7 @@ def convert_to_ui_definition(settings_data):
 
 class SettingsLayout(QtWidgets.QFormLayout):
     """Visualizes and edits Setting objects in a vertical layout"""
+    modified = QtCore.Signal(bool)
 
     widget_dict = {
         "boolean": value_widgets.Boolean,
@@ -157,7 +166,31 @@ class SettingsLayout(QtWidgets.QFormLayout):
                         continue
                     _widget = _widget_class(key, **data)
                     _layout.addWidget(_widget)
-                    _widget.com.valueChanged.connect(lambda x, k=key: self._test(k, x))
+                    _widget.com.valueChanged.connect(lambda x, k=key: self._setting_data_modified(k, x))
+                    _widgets.append(_widget)
+                self.addRow(_label, _layout)
+            elif _type == "group":
+                # if it is a group, add a new row as a separator with the name
+                _group_label = QtWidgets.QLabel(text=_display_name)
+                _group_label.setStyleSheet("font-weight: bold;")
+                # self.addRow(_group_label, _group_label)
+
+                #override the _label with an empty label
+                # _label.setText("")
+
+                group_properties = properties.get("value", {})
+                _layout = QtWidgets.QVBoxLayout()
+                _layout.setContentsMargins(0, 0, 0, 0)
+                # align the contents to the left
+                _layout.setAlignment(QtCore.Qt.AlignLeft)
+                for key, data in group_properties.items():
+                    _type = data.get("type", None)
+                    _widget_class = self.widget_dict.get(_type)
+                    if not _widget_class:
+                        continue
+                    _widget = _widget_class(key, **data)
+                    _layout.addWidget(_widget)
+                    _widget.com.valueChanged.connect(lambda x, k=key: self._setting_data_modified(k, x))
                     _widgets.append(_widget)
                 self.addRow(_label, _layout)
             else:
@@ -165,14 +198,15 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 if not _widget_class:
                     continue
                 _widget = _widget_class(name, **properties)
-                _widget.com.valueChanged.connect(lambda x, n=name: self._test(n, x))
+                _widget.com.valueChanged.connect(lambda x, n=name: self._setting_data_modified(n, x))
                 self.addRow(_label, _widget)
                 _widgets.append(_widget)
 
         return _widgets
 
-    def _test(self, key, value):
+    def _setting_data_modified(self, key, value):
         self.settings_data.edit_property(key, value)
+        self.modified.emit(True)
 
     def signal_connections(self, widget_list):
         """Create the enable/disable logic between widgets. This needs to be done

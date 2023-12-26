@@ -1,42 +1,55 @@
 {
   "mode": {
-    "default": "",
-    "enum": ["global", "asset", "shot"]
+    "default": "global",
+    "enum": ["global", "asset", "shot"],
+    "type": "combo"
   },
   "colorspace": {
-    "default": "linear"
+    "default": "linear",
+    "type": "string"
   },
   "resolution": {
-    "default": [1920, 1080]
+    "default": [1920, 1080],
+    "type": "vector2Int"
   },
   "pixel_aspect": {
-    "default": 1.0
+    "default": 1.0,
+    "type": "float"
   },
   "fps": {
-    "default": 24.0
+    "default": 24.0,
+    "type": "float"
   },
   "start_frame": {
-    "default": 1001
+    "default": 1001,
+    "type": "integer"
   },
   "end_frame": {
-    "default": 1100
+    "default": 1100,
+    "type": "integer"
   },
   "pre_roll": {
-    "default": 30
+    "default": 30,
+    "type": "integer"
   },
   "post_roll": {
-    "default": 2
+    "default": 2,
+    "type": "integer"
   },
   "lens": {
-    "default": 50.0
+    "default": 50.0,
+    "type": "float"
   },
   "camera": {
-    "default": "generic"
+    "default": "generic",
+    "type": "string"
   },
   "exposure": {
-    "default": 0.0
+    "default": 0.0,
+    "type": "float"
   },
   "sub_steps": {
-    "default": 1
+    "default": 1,
+    "type": "integer"
   }
 }

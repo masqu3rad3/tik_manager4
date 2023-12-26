@@ -10,7 +10,7 @@ from tik_manager4.dcc.maya import utils
 
 class Alembic(ExtractCore):
     """Extract Alembic from Maya scene."""
-    name = "alembic"  # IMPORTANT. Must match to the one in category_definitions.json
+
     nice_name = "Alembic"
     color = (244, 132, 132)
     _ranges = utils.get_ranges()

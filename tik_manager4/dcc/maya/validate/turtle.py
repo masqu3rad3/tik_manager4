@@ -6,8 +6,6 @@ from tik_manager4.dcc.validate_core import ValidateCore
 class Turtle(ValidateCore):
     """Turtle nodes validation class for Maya"""
 
-    # Name of the validation
-    name = "turtle"
     nice_name = "Turtle Nodes"
 
     turtle_nodes = ["TurtleDefaultBakeLayer", "TurtleBakeLayerManager", "TurtleRenderOptions", "TurtleUIOptions"]

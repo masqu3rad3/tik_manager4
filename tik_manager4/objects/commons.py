@@ -8,7 +8,7 @@ from tik_manager4 import defaults
 class Commons(object):
     exportSettings = None
     importSettings = None
-    user_settings = None
+    user_defaults = None
     project_settings = None
     users = None
     template = None
@@ -31,20 +31,17 @@ class Commons(object):
             if not _common_file_path.is_file():
                 shutil.copy(default_file, str(_common_file_path))
 
-        self.exportSettings = Settings(
-            file_path=str(Path(self._folder_path, "exportSettings.json"))
-        )
-        self.importSettings = Settings(
-            file_path=str(Path(self._folder_path, "importSettings.json"))
-        )
         self.category_definitions = Settings(
             file_path=str(Path(self._folder_path, "category_definitions.json"))
         )
-        self.user_settings = Settings(
-            file_path=str(Path(self._folder_path, "user_settings.json"))
+        self.user_defaults = Settings(
+            file_path=str(Path(self._folder_path, "user_defaults.json"))
         )
         self.project_settings = Settings(
             file_path=str(Path(self._folder_path, "project_settings.json"))
+        )
+        self.preview_settings = Settings(
+            file_path=str(Path(self._folder_path, "preview_settings.json"))
         )
         self.users = Settings(
             file_path=str(Path(self._folder_path, "users.json"))

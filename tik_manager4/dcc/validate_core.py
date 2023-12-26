@@ -1,13 +1,18 @@
 """Core class for validations."""
 
+import importlib
+from pathlib import Path
 
-class ValidateCore():
+
+class ValidateCore:
     """Core class for validations."""
-    name: str = ""
+
     nice_name: str = ""
     checked_by_default: bool = True
+
     def __init__(self, *args, **kwargs):
         """Initialize class."""
+        self.name = str(Path(__file__).stem)
         self._args = args
         self._kwargs = kwargs
 
@@ -19,6 +24,15 @@ class ValidateCore():
 
         self._state: str = "idle"
         self._fail_message: str = ""
+
+    def __init_subclass__(cls, **kwargs):
+        # Get the base name of the file without the extension using pathlib
+        module = importlib.import_module(cls.__module__)
+        module_file_path = Path(module.__file__).resolve()
+        module_name = module_file_path.stem
+        # Set the 'name' variable in the subclass
+        cls.name = module_name
+        super().__init_subclass__(**kwargs)
 
     @property
     def state(self):

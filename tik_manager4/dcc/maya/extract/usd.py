@@ -10,7 +10,6 @@ from tik_manager4.dcc.maya import utils
 class Usd(ExtractCore):
     """Extract Alembic from Maya scene"""
 
-    name = "usd"  # IMPORTANT. Must match to the one in category_definitions.json
     nice_name = "USD"
     color = (71, 143, 203)
     _ranges = utils.get_ranges()
@@ -81,7 +80,6 @@ class Usd(ExtractCore):
             exportSkels=None,
             exportSkin=None,
             exportMaterialCollections=False,
-            eulerFilter=settings.get_property("euler_filter"),
             frameRange=[1, 1],
             ignoreWarnings=True,
             renderableOnly=True,

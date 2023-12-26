@@ -18,4 +18,4 @@ for mod in modules:
 
         for name, obj in inspect.getmembers(module):
             if inspect.isclass(obj) and issubclass(obj, IngestCore) and obj != IngestCore:
-                classes[obj.name] = obj
+                classes[module_name] = obj

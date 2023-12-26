@@ -12,7 +12,7 @@ LOG = logging.getLogger(__name__)
 
 class USD(IngestCore):
     """Ingest USD."""
-    name = "usd"
+
     nice_name =  "Ingest USD"
     valid_extensions = [".usd", ".usda", ".usdc"]
 

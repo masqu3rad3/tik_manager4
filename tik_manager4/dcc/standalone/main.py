@@ -1,8 +1,8 @@
-from tik_manager4.dcc.main_core import DccTemplate
+from tik_manager4.dcc.main_core import MainCore
 import subprocess
 
 
-class Dcc(DccTemplate):
+class Dcc(MainCore):
     formats = [".txt", ".log"]
     preview_enabled = False
 

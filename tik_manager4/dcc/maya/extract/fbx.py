@@ -10,7 +10,6 @@ from tik_manager4.dcc.maya import utils
 class Fbx(ExtractCore):
     """Extract FBX from Maya scene."""
 
-    name = "fbx"  # IMPORTANT. Must match to the one in category_definitions.json
     nice_name = "FBX"
     color = (255, 255, 0)
     _ranges = utils.get_ranges()
