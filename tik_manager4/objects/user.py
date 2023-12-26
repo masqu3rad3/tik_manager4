@@ -178,7 +178,7 @@ class User(object):
         _user_dir = Path(_user_root, "TikManager4")
         _user_dir.mkdir(exist_ok=True)
         self.user_directory = str(_user_dir)
-        self.settings.settings_file = str(Path(self.user_directory, "userSettings.json"))
+        self.settings.settings_file = str(Path(self.user_directory, "user_settings.json"))
         self.bookmarks.settings_file = str(Path(self.user_directory, "bookmarks.json"))
         self.resume.settings_file = str(Path(self.user_directory, "resume.json"))
         # Check if the common folder defined in the user settings
@@ -215,19 +215,12 @@ class User(object):
         self.commons = Commons(self.common_directory)
         self.__set_category_definitions(self.commons.category_definitions)
 
-        # set the default keys for missing ones
-        for key, val in self.commons.user_settings.get_property(
-            "userPreferences"
-        ).items():
-            if not self.settings.get_property(key=key):
-                self.settings.add_property(key=key, val=val)
-
-        for key, val in self.commons.user_settings.get_property("bookmarks").items():
+        for key, val in self.commons.user_defaults.get_property("bookmarks").items():
             if not self.bookmarks.get_property(key=key):
                 self.bookmarks.add_property(key=key, val=val)
 
 
-        for key, val in self.commons.user_settings.get_property("resume").items():
+        for key, val in self.commons.user_defaults.get_property("resume").items():
             if not self.resume.get_property(key=key):
                 self.resume.add_property(key=key, val=val)
 

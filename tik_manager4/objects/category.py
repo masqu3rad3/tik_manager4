@@ -38,28 +38,8 @@ class Category(Entity):
                 matched_items.append(work)
         return matched_items
 
-    # @property
-    # def publishes(self):
-    #     self.scan_publishes()
-    #     return self._publishes
-
-    # def scan_publishes(self):
-    #     pass
-
     def scan_works(self, all_dcc=False):
-        # if self.guard.dcc == "Standalone":
-        #     all_dcc = True
-        #
-        # # get all the files in directory with .twork extension
-        # if not all_dcc:
-        #     _search_dir = self.get_abs_database_path(self.guard.dcc)
-        #     _work_paths = Path(_search_dir).glob("*.twork")
-        #
-        # # get all the files in a directory recursively with .twork extension
-        # else:
-        #     _search_dir = self.get_abs_database_path()
-        #     _work_paths = Path(_search_dir).rglob("**/*.twork")
-
+        """Scan the category folder and return the works"""
         # get all files recursively, regardless of the dcc
         _search_dir = self.get_abs_database_path()
         _work_paths = Path(_search_dir).rglob("**/*.twork")

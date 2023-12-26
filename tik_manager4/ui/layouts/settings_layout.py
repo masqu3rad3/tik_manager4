@@ -10,6 +10,7 @@ Supported types:
 
 """
 import re
+from pathlib import Path
 from tik_manager4.core.settings import Settings
 
 from tik_manager4.ui.widgets import value_widgets
@@ -33,6 +34,8 @@ def guess_data_type(data):
     if isinstance(data, bool):
         return "boolean"
     elif isinstance(data, str):
+        if Path(data).exists() and data != "":
+            return "pathBrowser"
         return "string"
     elif isinstance(data, int):
         return "integer"

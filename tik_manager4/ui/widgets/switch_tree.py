@@ -29,8 +29,9 @@ class SwitchTreeWidget(QtWidgets.QTreeWidget):
         # make it work when programmatically changed too
         # set the current item to the first item
 
-        # self.currentItemChanged.connect(self.switch_content)
-        self.itemClicked.connect(self.switch_content)
+        # currentItemChanged is not setting back the current item
+        # like the itemClicked does. However it has better interaction.
+        self.currentItemChanged.connect(self.switch_content)
 
     def switch_content(self, item):
         """Switch the content widget."""

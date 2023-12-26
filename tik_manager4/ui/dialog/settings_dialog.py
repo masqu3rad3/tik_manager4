@@ -110,42 +110,48 @@ class SettingsDialog(QtWidgets.QDialog):
     def create_content(self):
         """Create the content."""
         self.menu_tree_widget.clear()
-        self._user_settings()
-        self._project_settings()
-        self._common_settings()
+        self.user_settings()
+        self.project_settings()
+        self.common_settings()
 
-        self.__create_content_links()
+        self.create_content_links()
 
-    def _user_settings(self):
+    def user_settings(self):
         """Create the user settings."""
         # create the menu items
         self.user_widget_item = SwitchTreeItem(["User"], permission_level=0)
         self.menu_tree_widget.addTopLevelItem(self.user_widget_item)
 
-        # create sub-branches
+        # we dont need to add sub-branches for user settings. All can be in root for now.
+        content_widget = self.__create_generic_settings_layout(
+            settings_data=self.main_object.user.settings,
+            title="User Settings",
+        )
+        self.user_widget_item.content = content_widget
 
-    def _project_settings(self):
+    def project_settings(self):
         """Create the project settings."""
         # create the menu items
         self.project_widget_item = SwitchTreeItem(["Project"], permission_level=3)
         self.menu_tree_widget.addTopLevelItem(self.project_widget_item)
 
         # create sub-branches
-        preview_settings = SwitchTreeItem(["Preview Settings"], permission_level=3)
-        self.project_widget_item.addChild(preview_settings)
-        preview_settings.content = self.preview_settings_content()
+        preview_settings_item = SwitchTreeItem(["Preview Settings"], permission_level=3)
+        self.project_widget_item.addChild(preview_settings_item)
+        preview_settings_item.content = self.__create_generic_settings_layout(
+            settings_data=self.main_object.user.settings,
+            title="User Settings",
+        )
 
         category_definitions = SwitchTreeItem(["Category Definitions"], permission_level=3)
         self.project_widget_item.addChild(category_definitions)
-        category_definitions.content = self.project_category_definitions_content()
+        category_definitions.content = self._project_category_definitions_content()
 
         metadata = SwitchTreeItem(["Metadata"], permission_level=3)
         self.project_widget_item.addChild(metadata)
-        metadata.content = self.metadata_content()
+        metadata.content = self._metadata_content()
 
-        # self.__project_settings_contents()
-
-    def _common_settings(self):
+    def common_settings(self):
         """Create the common settings."""
         # create the menu items
         common_widget_item = SwitchTreeItem(["Common"], permission_level=3)
@@ -154,13 +160,13 @@ class SettingsDialog(QtWidgets.QDialog):
         # create sub-branches
         category_definitions = SwitchTreeItem(["Category Definitions (Common)"], permission_level=3)
         common_widget_item.addChild(category_definitions)
-        category_definitions.content = self.common_category_definitions_content()
+        category_definitions.content = self._common_category_definitions_content()
 
         metadata = SwitchTreeItem(["Metadata (Common)"], permission_level=3)
         common_widget_item.addChild(metadata)
-        metadata.content = self.common_metadata_content()
+        metadata.content = self._common_metadata_content()
 
-    def __create_content_links(self):
+    def create_content_links(self):
         """Create content widgets for all top level items."""
         # collect all root items
         _root_items = [
@@ -170,9 +176,14 @@ class SettingsDialog(QtWidgets.QDialog):
 
         for _root_item in _root_items:
             # create a content widget
-            _content_widget = QtWidgets.QWidget()
-            _content_widget.setVisible(False)
-            _content_layout = QtWidgets.QVBoxLayout(_content_widget)
+            if not _root_item.content:
+                _content_widget = QtWidgets.QWidget()
+                _content_widget.setVisible(False)
+                _content_layout = QtWidgets.QVBoxLayout(_content_widget)
+
+            else:
+                _content_widget = _root_item.content
+                _content_layout = _content_widget.layout()
 
             # get all children of the root item
             _children = [_root_item.child(x) for x in range(_root_item.childCount())]
@@ -190,6 +201,23 @@ class SettingsDialog(QtWidgets.QDialog):
 
             # add it to the item
             _root_item.content = _content_widget
+
+    def apply_settings(self, close_dialog=False):
+        """Apply the settings."""
+        for settings_object in self.settings_list:
+            settings_object.apply_settings()
+            self.check_changes()
+        if close_dialog:
+            self.close()
+
+    def check_changes(self):
+        """Check if there are changes in the settings and enable the apply button."""
+
+        for settings_object in self.settings_list:
+            if settings_object.is_settings_changed():
+                self.apply_button.setEnabled(True)
+                return
+        self.apply_button.setEnabled(False)
 
     def _gather_validations_and_extracts(self):
         """Collect the available validations and extracts."""
@@ -235,25 +263,23 @@ class SettingsDialog(QtWidgets.QDialog):
         }
         return self._validations_and_extracts
 
-    def preview_settings_content(self):
-        """Create the content for preview settings."""
-        # flat hierarchy settings files with static amount of keys are easy to create
-        # with the settings layout. So we will use it here.
+    def __create_generic_settings_layout(self, settings_data, title="", ui_definition=None):
+        """Create a generic settings layout."""
         content_widget = QtWidgets.QWidget()
         self.right_vlayout.addWidget(content_widget)
 
-        preview_settings_vlay = QtWidgets.QVBoxLayout(content_widget)
+        settings_vlay = QtWidgets.QVBoxLayout(content_widget)
 
         header_layout = QtWidgets.QVBoxLayout()
         header_layout.setSpacing(13)
-        preview_settings_vlay.addLayout(header_layout)
+        settings_vlay.addLayout(header_layout)
 
         # add the title
-        title_label = HeaderLabel("Preview Settings")
+        title_label = HeaderLabel(title)
         header_layout.addWidget(title_label)
 
         # add a label to show the path of the settings file
-        path_label = ResolvedText(self.main_object.project.guard.preview_settings.settings_file)
+        path_label = ResolvedText(settings_data.settings_file)
         header_layout.addWidget(path_label)
 
         header_layout.addWidget(VerticalSeparator(color=(255, 141, 28),height=1))
@@ -264,20 +290,23 @@ class SettingsDialog(QtWidgets.QDialog):
         scroll_area_contents_widget = QtWidgets.QWidget()
         scroll_area_contents_widget.setGeometry(QtCore.QRect(0, 0, 104, 345))
         scroll_area.setWidget(scroll_area_contents_widget)
-        preview_settings_vlay.addWidget(scroll_area)
+        settings_vlay.addWidget(scroll_area)
         scroll_layout = QtWidgets.QVBoxLayout(scroll_area_contents_widget)
         scroll_layout.setContentsMargins(0, 0, 0, 0)
 
         # Actual content creation begins here..
-        settings_data = self.main_object.project.guard.preview_settings
-        ui_definition = convert_to_ui_definition(settings_data.properties)
+        self.settings_list.append(settings_data)
+        ui_definition = ui_definition or convert_to_ui_definition(settings_data.properties)
         settings_layout = SettingsLayout(ui_definition, settings_data, parent=self)
         scroll_layout.addLayout(settings_layout)
+
+        # SIGNALS
+        settings_layout.modified.connect(self.check_changes)
 
         content_widget.setVisible(False)
         return content_widget
 
-    def project_category_definitions_content(self):
+    def _project_category_definitions_content(self):
         """Create the project category definitions."""
 
         settings_data = self.main_object.project.guard.category_definitions
@@ -299,7 +328,7 @@ class SettingsDialog(QtWidgets.QDialog):
         project_category_definitions_widget.modified.connect(self.check_changes)
         return project_category_definitions_widget
 
-    def metadata_content(self):
+    def _metadata_content(self):
         """Create the metadata content."""
         settings_data = self.main_object.project.metadata_definitions
         # add it to the global settings list so it can be checked globally.
@@ -315,7 +344,7 @@ class SettingsDialog(QtWidgets.QDialog):
         metadata_widget.modified.connect(self.check_changes)
         return metadata_widget
 
-    def common_metadata_content(self):
+    def _common_metadata_content(self):
         """Create the common metadata content."""
         settings_data = self.main_object.user.commons.metadata
         # add it to the global settings list so it can be checked globally.
@@ -331,7 +360,7 @@ class SettingsDialog(QtWidgets.QDialog):
         common_metadata_widget.modified.connect(self.check_changes)
         return common_metadata_widget
 
-    def common_category_definitions_content(self):
+    def _common_category_definitions_content(self):
         """Create the common category definitions."""
         settings_data = self.main_object.user.commons.category_definitions
         availability_dict = self._gather_validations_and_extracts()
@@ -350,22 +379,7 @@ class SettingsDialog(QtWidgets.QDialog):
         common_category_definitions_widget.modified.connect(self.check_changes)
         return common_category_definitions_widget
 
-    def apply_settings(self, close_dialog=False):
-        """Apply the settings."""
-        for settings_object in self.settings_list:
-            settings_object.apply_settings()
-            self.check_changes()
-        if close_dialog:
-            self.close()
 
-    def check_changes(self):
-        """Check if there are changes in the settings and enable the apply button."""
-
-        for settings_object in self.settings_list:
-            if settings_object.is_settings_changed():
-                self.apply_button.setEnabled(True)
-                return
-        self.apply_button.setEnabled(False)
 
 
 class CategoryDefinitions(QtWidgets.QWidget):
