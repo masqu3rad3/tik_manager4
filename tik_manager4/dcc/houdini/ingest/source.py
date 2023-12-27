@@ -1,8 +1,11 @@
 """Ingest source scene."""
 
+import logging
+
 import hou
 from tik_manager4.dcc.ingest_core import IngestCore
 
+LOG = logging.getLogger(__name__)
 
 class Source(IngestCore):
     """Ingest Source Maya Scene."""
@@ -15,12 +18,12 @@ class Source(IngestCore):
 
     def _bring_in_default(self):
         """Import the Maya scene."""
-        hou.ui.displayMessage("Bringing in Source Scene")
+        # LOG.info("Bringing in Source Scene")
         hou.hipFile.merge(self.file_path, node_pattern="*", overwrite_on_conflict=False, ignore_load_warnings=False)
 
     def _reference_default(self):
         """Reference the Maya scene."""
 
         # this method will be used for all categories
-        hou.ui.displayMessage("Bringing in Source Scene (No referencing in Houdini")
+        # LOG.info("Bringing in Source Scene (No referencing in Houdini")
         self._bring_in_default()

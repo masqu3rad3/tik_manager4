@@ -89,6 +89,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.reference_btn.setEnabled(False)
 
         # SIGNALS
+        self.element_combo.currentIndexChanged.connect(lambda x: self.button_states(self.base))
         self.version_combo.currentIndexChanged.connect(self.version_changed)
         self.import_btn.clicked.connect(self.on_import)
         self.load_btn.clicked.connect(self.on_load)
@@ -169,8 +170,21 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.import_btn.setEnabled(False)
             self.reference_btn.setEnabled(False)
             return
+        # if the base is a work type
+        if base.object_type == "work":
+            # if the dcc of the work is not the same as the current dcc
+            if base.dcc != base.guard.dcc:
+                self.load_btn.setEnabled(False)
+                self.import_btn.setEnabled(False)
+                self.reference_btn.setEnabled(False)
+                return
         if not base._dcc_handler.ingests.get("source", None):
             # if the work not saved with the same dcc of the current dcc, make it italic
+            self.load_btn.setEnabled(base.dcc == base.guard.dcc)
+            self.import_btn.setEnabled(False)
+            self.reference_btn.setEnabled(False)
+            return
+        if self.get_selected_element_type() not in base._dcc_handler.ingests.keys():
             self.load_btn.setEnabled(base.dcc == base.guard.dcc)
             self.import_btn.setEnabled(False)
             self.reference_btn.setEnabled(False)

@@ -11,6 +11,7 @@ from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.dcc.houdini import validate
 from tik_manager4.dcc.houdini import extract
 from tik_manager4.dcc.houdini import ingest
+from tik_manager4.dcc.houdini import utils
 
 
 LOG = logging.getLogger(__name__)
@@ -64,31 +65,28 @@ class Dcc(MainCore):
         hou.hipFile.load(
             file_path, suppress_save_prompt=force, ignore_load_warnings=False
         )
-        self._set_env_variable("HIP", str(Path(file_path).parent))
+        utils.set_environment_variable("HIP", str(Path(file_path).parent))
 
     @staticmethod
     def get_ranges():
-        """Get the viewport ranges."""
-        r_ast = int(hou.playbar.frameRange()[0])
-        r_min = int(hou.playbar.playbackRange()[0])
-        r_max = int(hou.playbar.playbackRange()[1])
-        r_aet = int(hou.playbar.frameRange()[1])
-        return [r_ast, r_min, r_max, r_aet]
+        """Shortcut to get timeline ranges."""
+        return utils.get_ranges()
 
     @staticmethod
     def set_ranges(range_list):
-        """
-        Set the timeline ranges.
+        """Shortcut to set the timeline ranges."""
+        utils.set_ranges(range_list)
 
+    def set_project(self, file_path):
+        """
+        Sets the project to the given path
         Args:
-            range_list: list of ranges as [<animation start>, <user min>, <user max>,
-                                            <animation end>]
+            file_path: (String) Path to the project folder
 
         Returns: None
 
         """
-        hou.playbar.setFrameRange(range_list[0], range_list[3])
-        hou.playbar.setPlaybackRange(range_list[1], range_list[2])
+        utils.set_environment_variable("JOB", file_path)
 
     @staticmethod
     def is_modified():
@@ -251,20 +249,20 @@ class Dcc(MainCore):
         hou.setFps(fps_value)
         self.set_ranges(range)
 
-    def _set_env_variable(self, var, value):
-        """sets environment var
-        Args:
-            var: (String) Environment variable name
-            value: (String) Value to set
-        """
-        os.environ[var] = value
-        try:
-            hou.allowEnvironmentVariableToOverwriteVariable(var, True)
-        except AttributeError:
-            # should be Houdini 12
-            hou.allowEnvironmentToOverwriteVariable(var, True)
-
-        value = value.replace("\\", "/")
-        hscript_command = "set -g %s = '%s'" % (var, value)
-
-        hou.hscript(str(hscript_command))
+    # def _set_env_variable(self, var, value):
+    #     """sets environment var
+    #     Args:
+    #         var: (String) Environment variable name
+    #         value: (String) Value to set
+    #     """
+    #     os.environ[var] = value
+    #     try:
+    #         hou.allowEnvironmentVariableToOverwriteVariable(var, True)
+    #     except AttributeError:
+    #         # should be Houdini 12
+    #         hou.allowEnvironmentToOverwriteVariable(var, True)
+    #
+    #     value = value.replace("\\", "/")
+    #     hscript_command = "set -g %s = '%s'" % (var, value)
+    #
+    #     hou.hscript(str(hscript_command))
