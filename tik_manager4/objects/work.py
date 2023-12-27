@@ -148,6 +148,14 @@ class Work(Settings, Entity):
             return -1
 
         # validate file format
+        print(file_format)
+        print(file_format)
+        print(file_format)
+        print(file_format)
+        print(self._dcc_handler.formats)
+        print(self._dcc_handler.formats)
+        print(self._dcc_handler.formats)
+
         file_format = file_format or self._dcc_handler.formats[0]
         if file_format not in self._dcc_handler.formats:
             raise ValueError("File format is not valid.")
@@ -160,7 +168,15 @@ class Work(Settings, Entity):
         Path(abs_version_path).parent.mkdir(parents=True, exist_ok=True)
 
         # save the file
-        self._dcc_handler.save_as(abs_version_path)
+        output_path = self._dcc_handler.save_as(abs_version_path)
+
+        # on some occasions the save as method may return a different path.
+        # for example, if the file cannot be saved with specified file format,
+        # extractor logic may decide to force something else.
+        if output_path != abs_version_path:
+            version_name = Path(output_path).name # e.g. "test_v001.ma"
+            file_format = Path(output_path).suffix # e.g. ".ma"
+
 
         # generate thumbnail
         # create the thumbnail folder if it doesn't exist
@@ -207,10 +223,12 @@ class Work(Settings, Entity):
             version_number, camera, label=label
         )
 
+        # camera code can be a node, path, uuid or name depending on the dcc
+        camera_code = self._dcc_handler.get_scene_cameras()[camera]
         preview_file_abs_path = self._dcc_handler.generate_preview(
             full_name,
             preview_folder,
-            camera=camera,
+            camera_code=camera_code,
             resolution=resolution,
             range=frame_range,
             settings=preview_settings,
@@ -322,7 +340,6 @@ class Work(Settings, Entity):
         """Construct a name for the work version.
 
         Args:
-            extension (str): The extension of the file.
             file_format (str): The file format of the file.
 
         """

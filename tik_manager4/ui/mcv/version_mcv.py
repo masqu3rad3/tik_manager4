@@ -170,11 +170,12 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.reference_btn.setEnabled(False)
             return
         if not base._dcc_handler.ingests.get("source", None):
-            self.load_btn.setEnabled(True)
+            # if the work not saved with the same dcc of the current dcc, make it italic
+            self.load_btn.setEnabled(base.dcc == base.guard.dcc)
             self.import_btn.setEnabled(False)
             self.reference_btn.setEnabled(False)
             return
-        self.load_btn.setEnabled(True)
+        self.load_btn.setEnabled(base.dcc == base.guard.dcc)
         self.import_btn.setEnabled(True)
         self.reference_btn.setEnabled(True)
 

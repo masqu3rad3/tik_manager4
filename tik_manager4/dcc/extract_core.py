@@ -23,6 +23,7 @@ class ExtractCore:
         self._category: str = ""
         self._status = "idle"
         self._extract_name = ""
+        self._message: str = ""
         self.category_functions = {}
         self.settings = {}
         for key, value in self.default_settings.items():
@@ -79,6 +80,10 @@ class ExtractCore:
     def state(self):
         return self._status
 
+    @property
+    def message(self):
+        return self._message
+
     def extract(self):
         func = self.category_functions.get(self.category, self._extract_default)
         try:
@@ -88,6 +93,7 @@ class ExtractCore:
             LOG.error(exc)
             LOG.error(f"Error while extracting {self.name} to {self.extract_folder}")
             self._status = "failed"
+            self._message = str(exc)
 
     def _extract_default(self):
         """Extract method for any non-specified category"""

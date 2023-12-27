@@ -3,13 +3,14 @@ import os
 import logging
 
 import hou
+import toolutils
 
 # from tik_manager4.ui.Qt import QtWidgets
 
 from tik_manager4.dcc.main_core import MainCore
-from tik_manager4.dcc.max import validate
-from tik_manager4.dcc.max import extract
-from tik_manager4.dcc.max import ingest
+from tik_manager4.dcc.houdini import validate
+from tik_manager4.dcc.houdini import extract
+from tik_manager4.dcc.houdini import ingest
 
 
 LOG = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ LOG = logging.getLogger(__name__)
 
 class Dcc(MainCore):
     name = "Houdini"
-    formats = [".hip", ".hiplc"]
+    formats = [".hip", ".hiplc", ".hipnc"]
     preview_enabled = True  # Whether or not to enable the preview in the UI
     validations = validate.classes
     extracts = extract.classes
@@ -44,7 +45,10 @@ class Dcc(MainCore):
         Returns:
 
         """
-        hou.hipFile.save(file_name=file_path)
+        if hou.isApprentice():
+            file_path = Path(file_path).with_suffix(".hipnc")
+        hou.hipFile.save(file_name=str(file_path))
+        return str(file_path)
 
     def open(self, file_path, force=True, **extra_arguments):
         """
@@ -60,7 +64,7 @@ class Dcc(MainCore):
         hou.hipFile.load(
             file_path, suppress_save_prompt=force, ignore_load_warnings=False
         )
-        self._set_env_variable("HIP", Path(file_path).parent)
+        self._set_env_variable("HIP", str(Path(file_path).parent))
 
     @staticmethod
     def get_ranges():
@@ -98,6 +102,13 @@ class Dcc(MainCore):
         nice_name = s_path.name
         if nice_name == "untitled":
             return ""
+        print(str(s_path))
+        print(str(s_path))
+        print(str(s_path))
+        print(str(s_path))
+        print(str(s_path))
+        print(str(s_path))
+        print(str(s_path))
         return str(s_path)
 
     @staticmethod
@@ -138,22 +149,41 @@ class Dcc(MainCore):
         Return all the cameras in the scene.
         Returns: (list) List of camera names
         """
-        # Get all nodes in the scene
-        all_nodes = hou.node("/").allSubChildren()
-        # Filter nodes to get only cameras
-        cameras = [node for node in all_nodes if node.type().name() == "cam"]
-        return cameras
+        cameras = hou.nodeType(hou.objNodeTypeCategory(), "cam").instances()
+        _dict = {}
+        for cam in cameras:
+            _dict[cam.name()] = cam.path()
+        # add the perspective as an option
+        _dict["persp"] = ""
+        return _dict
 
     @staticmethod
-    def generate_preview(name, folder, camera, resolution, range, settings=None):
+    def get_current_camera():
+        """
+        Return the current camera in the scene.
+        Returns: (String) Camera name (String), Node path (String)
+        """
+        _camera = (
+            hou.ui.paneTabOfType(hou.paneTabType.SceneViewer).curViewport().camera()
+        )
+        if not _camera:
+            return "persp", ""
+        return _camera.name(), _camera.path()
+
+    @staticmethod
+    def generate_preview(name, folder, camera_code, resolution, range, settings=None):
         """
         Create a preview from the current scene
         Args:
-            file_path: (String) File path to save the preview
-
-        Returns: (String) File path of the preview
-
+            name: (String) Name of the preview
+            folder: (String) Folder to save the preview
+            camera_code: (String) Camera code. In Houdini, this is the node path
+            resolution: (list) Resolution of the preview
+            range: (list) Range of the preview
+            settings: (dict) Global Settings dictionary
         """
+
+        extension = "jpg"
 
         settings = settings or {
             "DisplayFieldChart": False,
@@ -186,70 +216,34 @@ class Dcc(MainCore):
             "Quality": 100,
         }
 
-        extension = "avi"
+        scene_view = toolutils.sceneViewer()
+        viewport = scene_view.curViewport()
 
-        # get the current values
-        original_values = {
-            "width": rt.renderWidth,
-            "height": rt.renderHeight,
-            "selection": rt.getCurrentSelection(),
-        }
+        if camera_code != "":  # if camera is not perspective
+            hou.GeometryViewport.setCamera(viewport, camera_code)
 
-        # change the render settings temporarily
-        rt.renderWidth = resolution[0]
-        rt.renderHeight = resolution[1]
+        file_path = Path(folder) / f"{name}.$F4.{extension}"
 
-        display_geometry = bool(settings["PolygonOnly"])
-        display_shapes = not bool(settings["PolygonOnly"])
-        display_lights = not bool(settings["PolygonOnly"])
-        display_cameras = not bool(settings["PolygonOnly"])
-        display_helpers = not bool(settings["PolygonOnly"])
-        display_particles = not bool(settings["PolygonOnly"])
-        display_bones = not bool(settings["PolygonOnly"])
-        display_grid = bool(settings["ShowGrid"])
-        display_frame_nums = bool(settings["ShowFrameNumber"])
-        percent_size = settings["Percent"]
-        render_level = (
-            rt.execute("#litwireframe")
-            if settings["WireOnShaded"]
-            else rt.execute("#smoothhighlights")
-        )
-        if settings["ClearSelection"]:
-            rt.clearSelection()
+        flip_options = scene_view.flipbookSettings().stash()
 
-        file_path = Path(folder) / f"{name}.{extension}"
-
-        rt.createPreview(
-            filename=file_path,
-            percentSize=percent_size,
-            dspGeometry=display_geometry,
-            dspShapes=display_shapes,
-            dspLights=display_lights,
-            dspCameras=display_cameras,
-            dspHelpers=display_helpers,
-            dspParticles=display_particles,
-            dspBones=display_bones,
-            dspGrid=display_grid,
-            dspFrameNums=display_frame_nums,
-            rndLevel=render_level,
-        )
-
-        # restore the original values
-        rt.renderWidth = original_values["width"]
-        rt.renderHeight = original_values["height"]
-        rt.select(original_values["selection"])
+        flip_options.output(file_path)
+        flip_options.rameRange((range[0], range[1]))
+        flip_options.outputToMPlay(not settings["PostConversion"])
+        flip_options.useResolution(True)
+        flip_options.resolution((resolution[0], resolution[1]))
+        scene_view.flipbook(viewport, flip_options)
 
         return file_path
 
     @staticmethod
     def get_dcc_version():
         """Return the DCC major version."""
-        return rt.maxversion()[0]
+        return hou.applicationVersion()[0]
 
     @staticmethod
     def get_scene_fps():
         """Return the current FPS value set by DCC. None if not supported."""
-        return rt.framerate
+        return hou.fps()
 
     def set_scene_fps(self, fps_value):
         """
@@ -261,7 +255,7 @@ class Dcc(MainCore):
 
         """
         range = self.get_ranges()
-        rt.framerate = fps_value
+        hou.setFps(fps_value)
         self.set_ranges(range)
 
     def _set_env_variable(self, var, value):

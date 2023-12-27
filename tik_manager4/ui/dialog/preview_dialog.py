@@ -44,7 +44,7 @@ class PreviewDialog(QtWidgets.QDialog):
 
         camera_lbl = QtWidgets.QLabel("Camera: ")
         self.cameras_combo = QtWidgets.QComboBox()
-        self.cameras_combo.addItems(self.work._dcc_handler.get_scene_cameras() or [])
+        self.cameras_combo.addItems(list(self.work._dcc_handler.get_scene_cameras().keys()) or [])
         form_layout.addRow(camera_lbl, self.cameras_combo)
 
         resolution_lbl = QtWidgets.QLabel("Resolution: ")
@@ -96,6 +96,7 @@ class PreviewDialog(QtWidgets.QDialog):
         """Create the preview."""
         _name = self.preview_name_le.text()
         _camera = self.cameras_combo.currentText()
+        # _camera_code = self.work._dcc_handler.get_scene_cameras()[_camera]
         _resolution = [self.resolution_x_sp.value(), self.resolution_y_sp.value()]
         _range = [self.range_start_sp.value(), self.range_end_sp.value()]
         state = self.work.make_preview(self.version, _camera, _resolution, _range, label=_name, settings=self.work.guard.preview_settings.properties)

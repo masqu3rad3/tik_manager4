@@ -331,7 +331,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
                 )
                 if q == "cancel":
                     self.project.publisher.discard()
-                    self.__init__()
+                    # self.__init__(self.project)
                     raise Exception("Extraction Failed")
                 if q == "continue":
                     continue

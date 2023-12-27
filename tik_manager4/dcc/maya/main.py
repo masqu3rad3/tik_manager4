@@ -17,10 +17,11 @@ from tik_manager4.dcc.maya import ingest
 
 LOG = logging.getLogger(__name__)
 
+
 class Dcc(MainCore):
     name = "Maya"
     formats = [".ma", ".mb"]
-    preview_enabled = True # Whether or not to enable the preview in the UI
+    preview_enabled = True  # Whether or not to enable the preview in the UI
     validations = validate.classes
     extracts = extract.classes
     ingests = ingest.classes
@@ -34,7 +35,7 @@ class Dcc(MainCore):
         """
         try:
             win = omui.MQtUtil_mainWindow()
-        except AttributeError: # Maya 2025 / Qt 6
+        except AttributeError:  # Maya 2025 / Qt 6
             win = omui.MQtUtil.mainWindow()
         ptr = QtCompat.wrapInstance(int(win), QtWidgets.QMainWindow)
         return ptr
@@ -168,20 +169,31 @@ class Dcc(MainCore):
     @staticmethod
     def get_scene_cameras():
         """
-        Return all the cameras in the scene.
-        Returns: (list) List of camera names
+        Return a dictionary of all the cameras in the scene where key is the camera name and value is the camera uuid.
         """
-        return [cmds.listRelatives(x, parent=True)[0] for x in cmds.ls(type="camera")]
+        all_cameras = cmds.ls(type="camera")
+        _dict = {}
+        for cam in all_cameras:
+            _dict[cmds.listRelatives(cam, parent=True)[0]] = cmds.ls(cam, uuid=True)[0]
+        return _dict
 
     @staticmethod
-    def generate_preview(name, folder, camera, resolution, range, settings=None):
+    def get_current_camera():
+        """Get the current camera and its uuid."""
+        camera = cmds.modelPanel(cmds.getPanel(withFocus=True), query=True, camera=True)
+        return camera, cmds.ls(camera, uuid=True)[0]
+
+    @staticmethod
+    def generate_preview(name, folder, camera_code, resolution, range, settings=None):
         """
         Create a preview from the current scene
         Args:
-            file_path: (String) File path to save the preview
-
-        Returns: (String) File path of the preview
-
+            name: (String) Name of the preview
+            folder: (String) Folder to save the preview
+            camera_code: (String) Camera code. In Maya, this is the UUID of the camera transform node.
+            resolution: (list) Resolution of the preview
+            range: (list) Range of the preview
+            settings: (dict) Global Settings dictionary
         """
 
         settings = settings or {
@@ -215,20 +227,21 @@ class Dcc(MainCore):
             "Quality": 100,
         }
 
-        playback_slider = mel.eval('$tmpVar=$gPlayBackSlider')
+        playback_slider = mel.eval("$tmpVar=$gPlayBackSlider")
         active_sound = cmds.timeControl(playback_slider, q=True, sound=True)
 
         if platform.system() == "Windows":
-            output_format = u'avi'
-            output_codec = u'none'
-            extension = 'avi'
+            output_format = "avi"
+            output_codec = "none"
+            extension = "avi"
         else:
-            output_format = u'qt'
-            output_codec = u'jpg'
-            extension = 'mov'
+            output_format = "qt"
+            output_codec = "jpg"
+            extension = "mov"
 
         # Create pb panel and adjust it due to settings
-        pb_panel = panels.PanelManager(camera, resolution, inherit=True)
+        _camera = cmds.ls(camera_code)[0]
+        pb_panel = panels.PanelManager(_camera, resolution, inherit=True)
 
         if not settings.get("ViewportAsItIs"):
             pb_panel.display_field_chart = settings.get("DisplayFieldChart", False)
@@ -241,7 +254,9 @@ class Dcc(MainCore):
             pb_panel.display_safe_title = settings.get("DisplaySafeTitle", False)
 
             pb_panel.all_objects = not settings.get("PolygonOnly", True)
-            pb_panel.display_appearance = settings.get("DisplayAppearance", "smoothShaded")
+            pb_panel.display_appearance = settings.get(
+                "DisplayAppearance", "smoothShaded"
+            )
             pb_panel.display_textures = settings.get("DisplayTextures", True)
             pb_panel.grid = settings.get("ShowGrid", False)
             pb_panel.use_default_material = settings.get("UseDefaultMaterial", False)
@@ -251,23 +266,24 @@ class Dcc(MainCore):
         if not settings.get("HudsAsItIs"):
             pb_panel.hud = False
 
-        _output = cmds.playblast(format=output_format,
-                                      # sequenceTime=sequenceTime,
-                                      filename=str(Path(folder) / name),
-                                      widthHeight=resolution,
-                                      percent=settings.get("Percent", 100),
-                                      quality=settings.get("Quality", 100),
-                                      compression=output_codec,
-                                      sound=active_sound,
-                                      # useTraxSounds=True,
-                                      viewer=False,
-                                      offScreen=True,
-                                      offScreenViewportUpdate=True,
-                                      activeEditor=False,
-                                      editorPanelName=pb_panel.panel,
-                                      startTime=range[0],
-                                      endTime=range[1]
-                                      )
+        _output = cmds.playblast(
+            format=output_format,
+            # sequenceTime=sequenceTime,
+            filename=str(Path(folder) / name),
+            widthHeight=resolution,
+            percent=settings.get("Percent", 100),
+            quality=settings.get("Quality", 100),
+            compression=output_codec,
+            sound=active_sound,
+            # useTraxSounds=True,
+            viewer=False,
+            offScreen=True,
+            offScreenViewportUpdate=True,
+            activeEditor=False,
+            editorPanelName=pb_panel.panel,
+            startTime=range[0],
+            endTime=range[1],
+        )
 
         final_clip = f"{_output}.{extension}"
         pb_panel.kill()
