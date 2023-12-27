@@ -148,14 +148,6 @@ class Work(Settings, Entity):
             return -1
 
         # validate file format
-        print(file_format)
-        print(file_format)
-        print(file_format)
-        print(file_format)
-        print(self._dcc_handler.formats)
-        print(self._dcc_handler.formats)
-        print(self._dcc_handler.formats)
-
         file_format = file_format or self._dcc_handler.formats[0]
         if file_format not in self._dcc_handler.formats:
             raise ValueError("File format is not valid.")
