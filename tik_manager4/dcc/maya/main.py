@@ -59,6 +59,7 @@ class Dcc(MainCore):
         file_format = "mayaAscii" if extension == ".ma" else "mayaBinary"
         cmds.file(rename=file_path)
         cmds.file(save=True, type=file_format)
+        return file_path
 
     @staticmethod
     def open(file_path, force=True, **extra_arguments):

@@ -41,10 +41,11 @@ class Dcc(MainCore):
             file_path: (String) File path that will be written
             file_format: (String) File format
 
-        Returns:
+        Returns: (String) File path
 
         """
         rt.saveMaxFile(file_path)
+        return file_path
 
     @staticmethod
     def open(file_path, force=True, **extra_arguments):
