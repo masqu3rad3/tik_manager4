@@ -102,13 +102,6 @@ class Dcc(MainCore):
         nice_name = s_path.name
         if nice_name == "untitled":
             return ""
-        print(str(s_path))
-        print(str(s_path))
-        print(str(s_path))
-        print(str(s_path))
-        print(str(s_path))
-        print(str(s_path))
-        print(str(s_path))
         return str(s_path)
 
     @staticmethod
