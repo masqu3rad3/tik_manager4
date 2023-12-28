@@ -40,3 +40,4 @@ def set_environment_variable(var, value):
     hscript_command = "set -g %s = '%s'" % (var, value)
 
     hou.hscript(str(hscript_command))
+

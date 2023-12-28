@@ -163,6 +163,33 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         _element_type = self.get_selected_element_type()
         self.base.reference_version(_version, element_type=_element_type)
 
+
+    def __load_btn_state(self, base, element_type):
+        """Resolve the load button state."""
+
+        # load button is enabled only if the base.dcc and base.guard.dcc are the same
+        # it also requires the element_type to be source (in publish mode) or none (in work mode)
+        if element_type == "source" or not element_type:
+            self.load_btn.setEnabled(base.dcc == base.guard.dcc)
+        else:
+            self.load_btn.setEnabled(False)
+
+    def __import_and_reference_btn_states(self, base, element_type):
+        """Resolve the import button state."""
+
+        if element_type == "source" or not element_type:
+            self.import_btn.setEnabled(base.dcc == base.guard.dcc)
+            self.reference_btn.setEnabled(base.dcc == base.guard.dcc)
+            return
+        # import button is only enabled if the dcc ingests supports the element type
+        if element_type in base._dcc_handler.ingests.keys():
+            self.import_btn.setEnabled(True)
+            self.reference_btn.setEnabled(True)
+            return
+        self.import_btn.setEnabled(False)
+        self.reference_btn.setEnabled(False)
+        return
+
     def button_states(self, base):
         """Toggle the buttons depending on the base status."""
         if not base:
@@ -170,28 +197,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.import_btn.setEnabled(False)
             self.reference_btn.setEnabled(False)
             return
-        # if the base is a work type
-        if base.object_type == "work":
-            # if the dcc of the work is not the same as the current dcc
-            if base.dcc != base.guard.dcc:
-                self.load_btn.setEnabled(False)
-                self.import_btn.setEnabled(False)
-                self.reference_btn.setEnabled(False)
-                return
-        if not base._dcc_handler.ingests.get("source", None):
-            # if the work not saved with the same dcc of the current dcc, make it italic
-            self.load_btn.setEnabled(base.dcc == base.guard.dcc)
-            self.import_btn.setEnabled(False)
-            self.reference_btn.setEnabled(False)
-            return
-        if self.get_selected_element_type() not in base._dcc_handler.ingests.keys():
-            self.load_btn.setEnabled(base.dcc == base.guard.dcc)
-            self.import_btn.setEnabled(False)
-            self.reference_btn.setEnabled(False)
-            return
-        self.load_btn.setEnabled(base.dcc == base.guard.dcc)
-        self.import_btn.setEnabled(True)
-        self.reference_btn.setEnabled(True)
+        _element_type = self.get_selected_element_type()
+        self.__load_btn_state(base, _element_type)
+        self.__import_and_reference_btn_states(base, _element_type)
 
     def set_base(self, base):
         """Set the base object. This can be work or publish object."""

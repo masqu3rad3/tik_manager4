@@ -4,14 +4,14 @@ from pathlib import Path
 import hou
 from tik_manager4.dcc.ingest_core import IngestCore
 
-class Alembic(IngestCore):
+class Usd(IngestCore):
     """Ingest Alembic."""
 
-    nice_name =  "Ingest Alembic"
-    valid_extensions = [".abc"]
+    nice_name =  "Ingest Usd"
+    valid_extensions = [".usd", ".usda", ".usdc", ".usdz", ".usdnc"]
 
     def __init__(self):
-        super(Alembic, self).__init__()
+        super(Usd, self).__init__()
 
     def _bring_in_default(self):
         """Import Alembic File.
@@ -24,19 +24,15 @@ class Alembic(IngestCore):
         except ValueError: _file_path = Path(self.file_path)
 
         node = hou.node("obj")
-        alembic_node = node.createNode("alembicarchive", node_name=_file_path.stem)
-        alembic_node.moveToGoodPosition()
-        alembic_node.parm("fileName").set(str(_file_path))
+        geo_node = node.createNode("geo", node_name=_file_path.stem)
+        # this is to delete any existing nodes in the geo node
+        try: geo_node.allSubChildren()[0].destroy()
+        except IndexError: pass
+        geo_node.moveToGoodPosition()
 
-        alembic_node.parm("viewportlod").set("full")
-        alembic_node.parm("flattenVisibility").set(True)
-        alembic_node.parm("channelRef").set(False)
-        alembic_node.parm("buildSingleGeoNode").set(False)
-        alembic_node.parm("loadUserProps").set("none")
-        alembic_node.parm("loadmode").set("houdini")
-        alembic_node.parm("buildSubnet").set(False)
-
-        alembic_node.parm("buildHierarchy").pressButton()
+        usd_import_node = geo_node.createNode("usdimport", node_name=_file_path.stem)
+        usd_import_node.moveToGoodPosition()
+        usd_import_node.parm("filepath1").set(str(_file_path))
 
     def _reference_default(self):
         """Reference Alembic File."""
