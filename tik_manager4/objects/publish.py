@@ -123,15 +123,17 @@ class Publish(Entity):
             else:
                 raise ValueError("Source element is not found in the publish version.")
 
-    def import_version(self, version_number, element_type=None):
+    def import_version(self, version_number, element_type=None, ingestor=None):
         """Import the given version of the work to the scene."""
         if not element_type:
             raise ValueError("Element type is not given.")
+        if not ingestor:
+            ingestor = self._dcc_handler.ingests.get(element_type, None)
         version_obj = self.get_version(version_number)
         if version_obj:
             relative_path = version_obj.get_element_path(element_type)
             abs_path = self.get_abs_project_path(relative_path)
-            _func = self._dcc_handler.ingests.get(element_type, None)
+            _func = self._dcc_handler.ingests.get(ingestor, None)
             if not _func:
                 raise ValueError(f"Element type not supported: {element_type}")
             _import_obj = _func()
@@ -139,15 +141,17 @@ class Publish(Entity):
             _import_obj.file_path = abs_path
             _import_obj.bring_in()
 
-    def reference_version(self, version_number, element_type=None):
+    def reference_version(self, version_number, element_type=None, ingestor=None):
         """Reference the given version of the work to the scene."""
         if not element_type:
             raise ValueError("Element type is not given.")
+        if not ingestor:
+            ingestor = self._dcc_handler.ingests.get(element_type, None)
         version_obj = self.get_version(version_number)
         if version_obj:
             relative_path = version_obj.get_element_path(element_type)
             abs_path = self.get_abs_project_path(relative_path)
-            _func = self._dcc_handler.ingests.get(element_type, None)
+            _func = self._dcc_handler.ingests.get(ingestor, None)
             if not _func:
                 raise ValueError(f"Element type not supported: {element_type}")
             _import_obj = _func()

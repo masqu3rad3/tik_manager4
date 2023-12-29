@@ -51,9 +51,9 @@ class Alembic(ExtractCore):
         # Category names must match to the ones in category_definitions.json (case sensitive)
         self.category_functions = {"Model": self._extract_model,
                                    "Animation": self._extract_animation,
-                                   "Fx": self._extract_animation,
+                                   "Fx": self._extract_fx,
                                    "Layout": self._extract_layout,
-                                   "Lighting": self._extract_layout,
+                                   "Lighting": self._extract_lighting,
                                    }
 
 
@@ -75,6 +75,11 @@ class Alembic(ExtractCore):
         command = f"{_flags} -file {_file_path}"
         cmds.AbcExport(j=command)
 
+    def _extract_fx(self):
+        """Extract method for fx category"""
+        # identical to animation
+        self._extract_animation()
+
     def _extract_layout(self):
         """Extract method for fx category"""
         settings = self.settings.get("Layout", {})
@@ -84,6 +89,11 @@ class Alembic(ExtractCore):
         _flags = f"-frameRange {_start_frame} {_end_frame} -step 1.0 -uvWrite -worldSpace -writeUVSets -renderableOnly -writeVisibility -dataFormat ogawa"
         command = f"{_flags} -file {_file_path}"
         cmds.AbcExport(j=command)
+
+    def _extract_lighting(self):
+        """Extract method for fx category"""
+        # identical to layout
+        self._extract_layout()
 
     def _extract_default(self):
         """Extract method for any non-specified category"""

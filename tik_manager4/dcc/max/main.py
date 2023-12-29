@@ -1,11 +1,9 @@
 from pathlib import Path
 import logging
-import platform
 
 from pymxs import runtime as rt
 import qtmax
 
-# from tik_manager4.ui.Qt import QtWidgets
 
 from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.dcc.max import validate
@@ -13,7 +11,7 @@ from tik_manager4.dcc.max import extract
 from tik_manager4.dcc.max import ingest
 
 
-NAME = "Max"
+LOG = logging.getLogger(__name__)
 
 
 class Dcc(MainCore):
@@ -43,10 +41,11 @@ class Dcc(MainCore):
             file_path: (String) File path that will be written
             file_format: (String) File format
 
-        Returns:
+        Returns: (String) File path
 
         """
         rt.saveMaxFile(file_path)
+        return file_path
 
     @staticmethod
     def open(file_path, force=True, **extra_arguments):
@@ -143,26 +142,38 @@ class Dcc(MainCore):
 
     @staticmethod
     def get_scene_cameras():
-        """
-        Return all the cameras in the scene.
-        Returns: (list) List of camera names
-        """
+        """Return NAMES of all the cameras in the scene."""
         # Get all nodes in the scene
         all_nodes = rt.rootNode.children
         # Filter nodes to get only cameras
         cameras = [node for node in all_nodes if rt.isKindOf(node, rt.camera)]
-
-        return cameras
+        _dict = {}
+        for cam in cameras:
+            _dict[cam.name] = cam
+        # add the perspective as an option
+        _dict["persp"] = ""
+        return _dict
 
     @staticmethod
-    def generate_preview(name, folder, camera, resolution, range, settings=None):
+    def get_current_camera():
+        """Return the current camera in the scene."""
+        active_cam_node = rt.getActiveCamera()
+        if active_cam_node:
+            return active_cam_node.name, active_cam_node
+        else:
+            return "persp", ""
+
+    @staticmethod
+    def generate_preview(name, folder, camera_code, resolution, range, settings=None):
         """
         Create a preview from the current scene
         Args:
-            file_path: (String) File path to save the preview
-
-        Returns: (String) File path of the preview
-
+            name: (String) Name of the preview
+            folder: (String) Folder to save the preview
+            camera_code: (String) Camera code. In Max, this is camera node obj..
+            resolution: (list) Resolution of the preview
+            range: (list) Range of the preview
+            settings: (dict) Global Settings dictionary
         """
 
         settings = settings or {
@@ -228,9 +239,8 @@ class Dcc(MainCore):
             rt.clearSelection()
 
         file_path = Path(folder) / f"{name}.{extension}"
-
         rt.createPreview(
-            filename=file_path,
+            filename=str(file_path),
             percentSize=percent_size,
             dspGeometry=display_geometry,
             dspShapes=display_shapes,
@@ -242,6 +252,7 @@ class Dcc(MainCore):
             dspGrid=display_grid,
             dspFrameNums=display_frame_nums,
             rndLevel=render_level,
+            autoPlay=not settings["PostConversion"],
         )
 
         # restore the original values

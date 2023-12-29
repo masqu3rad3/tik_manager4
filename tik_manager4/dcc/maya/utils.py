@@ -1,4 +1,9 @@
-"""Collection of utility functions for Maya"""
+"""Collection of utility functions for Maya
+
+These are essentially methods are both required by the main module and the ingest, extract and/or validate modules.
+To prevent circular imports, these methods are collected here.
+"""
+
 from functools import wraps
 from maya import cmds
 

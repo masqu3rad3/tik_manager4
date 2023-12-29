@@ -321,6 +321,8 @@ class PublishSceneDialog(QtWidgets.QDialog):
         # single extractors are not saving the scene. Make sure the scene saved first
         self.project.publisher._dcc_handler.save_scene()
         for extractor_widget in self._extractor_widgets:
+            if not extractor_widget.extract.enabled:
+                continue
             self.project.publisher.extract_single(extractor_widget.extract)
             extractor_widget.set_state(extractor_widget.extract.state)
             if extractor_widget.extract.state == "failed":
@@ -331,7 +333,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
                 )
                 if q == "cancel":
                     self.project.publisher.discard()
-                    self.__init__()
+                    # self.__init__(self.project)
                     raise Exception("Extraction Failed")
                 if q == "continue":
                     continue
@@ -364,18 +366,11 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
     def check_extraction_status(self):
         """Check all extractions and return current state."""
-        successes = []
-        fails = []
-        idle = []
-
+        unavailable = []
         for extractor_widget in self._extractor_widgets:
-            if extractor_widget.extract.state == "success":
-                successes.append(extractor_widget.name)
-            if extractor_widget.extract.state == "idle":
-                idle.append(extractor_widget.name)
-            if extractor_widget.extract.state == "failed":
-                fails.append(extractor_widget.name)
-        return successes, fails, idle
+            if extractor_widget.extract.state == "unavailable":
+                unavailable.append(extractor_widget.extract.name)
+        return unavailable
 
     def publish(self):
         """Command to publish the scene."""
@@ -383,6 +378,9 @@ class PublishSceneDialog(QtWidgets.QDialog):
         self.validate_all()
         # check the state of the validations
         passes, warnings, fails, idle = self.check_validation_state()
+        # check for unavailable extractions
+        unavailable_extractors = self.check_extraction_status()
+
         # if there are fails, pop up a dialog
         if fails:
             self.feedback.pop_info(
@@ -395,6 +393,15 @@ class PublishSceneDialog(QtWidgets.QDialog):
             q = self.feedback.pop_question(
                 title="Validation Warnings",
                 text=f"Validation warnings for: \n\n{warnings}\n\nDo you want IGNORE them and continue?",
+                buttons=["continue", "cancel"],
+            )
+            if q == "cancel":
+                return
+
+        if unavailable_extractors:
+            q = self.feedback.pop_question(
+                title="Extraction Unavailable",
+                text=f"Extraction unavailable for: \n\n{unavailable_extractors}\n\nDo you want to continue?",
                 buttons=["continue", "cancel"],
             )
             if q == "cancel":
@@ -581,7 +588,7 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         # create a vertical line with color
         self.status_icon = QtWidgets.QFrame()
         # make it gray
-        self.status_icon.setStyleSheet("background-color: gray;")
+        # self.status_icon.setStyleSheet("background-color: gray;")
         # set the width to 10px
         self.status_icon.setFixedWidth(10)
         self.addWidget(self.status_icon)
@@ -592,6 +599,16 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         header_layout = QtWidgets.QHBoxLayout()
         header_layout.setSpacing(0)
         main_layout.addLayout(header_layout)
+
+        # add a checkbox if the extract is optional
+        if self.extract.optional:
+            self.checkbox = QtWidgets.QCheckBox()
+            # make it to occupy minimum space
+            self.checkbox.setFixedWidth(30)
+            self.checkbox.setChecked(self.extract.enabled)
+            header_layout.addWidget(self.checkbox)
+            # SIGNALS
+            self.checkbox.stateChanged.connect(self.toggle_enabled)
 
         self.collapsible_layout = CollapsibleLayout(
             text=self.extract.nice_name or self.extract.name
@@ -618,21 +635,67 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         self.info.set_size(32)
         self.addWidget(self.info)
 
+        # SIGNALS
+        self.info.clicked.connect(self.pop_info)
+
+        self.set_state(self.extract.state)
+        self.update_message_box()
+        self.toggle_enabled(self.extract.enabled)
+
+    def update_message_box(self):
+        """Update the info icons border color if there is a message to show."""
+        if self.extract.message:
+            self.info.set_color(border_color="red")
+        else:
+            self.info.set_color(border_color=self.extract.color)
+
+    def pop_info(self):
+        """Pops up an information dialog."""
+        information = self.extract.message
+        if information:
+            # create a mini dialog with non-editable text
+            dialog = QtWidgets.QDialog()
+            dialog.setWindowTitle(f"{self.extract.nice_name} Information")
+            dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            dialog.setModal(True)
+            dialog.setMinimumWidth(300)
+            dialog.setMinimumHeight(200)
+            dialog.setLayout(QtWidgets.QVBoxLayout())
+            text = QtWidgets.QTextEdit()
+            text.setReadOnly(True)
+            text.setText(information)
+            dialog.layout().addWidget(text)
+            dialog.exec_()
+        else:
+            return
+
+    def toggle_enabled(self, is_enabled):
+        """Toggle the enabled state of the extract."""
+        self.extract.enabled = is_enabled
+        self.collapsible_layout.contents_widget.setEnabled(is_enabled)
+        self.set_state(self.extract.state)
+        self.info.setEnabled(is_enabled)
+
     def toggle_settings_visibility(self, state):
         """Toggle the visibility of the settings frame."""
-        if state:
-            self.settings_frame.show()
-        else:
-            self.settings_frame.hide()
+        self.settings_frame.setVisible(state)
+        # if state:
+        #     self.settings_frame.show()
+        # else:
+        #     self.settings_frame.hide()
 
     def set_state(self, state):
         """Set the state of the extract."""
         if state == "success":
             self.status_icon.setStyleSheet("background-color: green;")
         elif state == "idle":
-            self.status_icon.setStyleSheet("background-color: gray;")
+            self.status_icon.setStyleSheet("background-color: #FF8D1C;")
         elif state == "failed":
             self.status_icon.setStyleSheet("background-color: red;")
+        elif state == "unavailable":
+            self.status_icon.setStyleSheet("background-color: gray;")
+        elif state == "disabled": # this is for optional extracts
+            self.status_icon.setStyleSheet("background-color: gray;")
         else:
             pass
         return

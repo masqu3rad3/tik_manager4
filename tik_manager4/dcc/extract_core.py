@@ -14,6 +14,7 @@ class ExtractCore:
     nice_name: str = ""
     color: tuple = (255, 255, 255)  # RGB
     default_settings: dict = {}
+    optional: bool = False
 
     def __init__(self):
         # get the module name as name
@@ -21,8 +22,10 @@ class ExtractCore:
         self._extension: str = ""
         self._extract_folder: str = ""
         self._category: str = ""
-        self._status = "idle"
+        self._state = "idle"
         self._extract_name = ""
+        self._enabled: bool = True
+        self._message: str = ""
         self.category_functions = {}
         self.settings = {}
         for key, value in self.default_settings.items():
@@ -38,6 +41,14 @@ class ExtractCore:
         # Set the 'name' variable in the subclass
         cls.name = module_name
         super().__init_subclass__(**kwargs)
+
+    @property
+    def enabled(self):
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, enabled):
+        self._enabled = enabled
 
     @property
     def extract_name(self):
@@ -77,17 +88,22 @@ class ExtractCore:
 
     @property
     def state(self):
-        return self._status
+        return self._state
+
+    @property
+    def message(self):
+        return self._message
 
     def extract(self):
         func = self.category_functions.get(self.category, self._extract_default)
         try:
             func()
-            self._status = "success"
+            self._state = "success"
         except Exception as exc:  # pylint: disable=broad-except
             LOG.error(exc)
             LOG.error(f"Error while extracting {self.name} to {self.extract_folder}")
-            self._status = "failed"
+            self._state = "failed"
+            self._message = str(exc)
 
     def _extract_default(self):
         """Extract method for any non-specified category"""

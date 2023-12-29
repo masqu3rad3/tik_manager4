@@ -160,7 +160,15 @@ class Work(Settings, Entity):
         Path(abs_version_path).parent.mkdir(parents=True, exist_ok=True)
 
         # save the file
-        self._dcc_handler.save_as(abs_version_path)
+        output_path = self._dcc_handler.save_as(abs_version_path)
+
+        # on some occasions the save as method may return a different path.
+        # for example, if the file cannot be saved with specified file format,
+        # extractor logic may decide to force something else.
+        if output_path != abs_version_path:
+            version_name = Path(output_path).name # e.g. "test_v001.ma"
+            file_format = Path(output_path).suffix # e.g. ".ma"
+
 
         # generate thumbnail
         # create the thumbnail folder if it doesn't exist
@@ -168,6 +176,7 @@ class Work(Settings, Entity):
         self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
 
         # add it to the versions
+        # TODO: Make a version object instead of a dictionary
         version = {
             "version_number": version_number,
             "workstation": socket.gethostname(),
@@ -207,10 +216,12 @@ class Work(Settings, Entity):
             version_number, camera, label=label
         )
 
+        # camera code can be a node, path, uuid or name depending on the dcc
+        camera_code = self._dcc_handler.get_scene_cameras()[camera]
         preview_file_abs_path = self._dcc_handler.generate_preview(
             full_name,
             preview_folder,
-            camera=camera,
+            camera_code=camera_code,
             resolution=resolution,
             range=frame_range,
             settings=preview_settings,
@@ -322,7 +333,6 @@ class Work(Settings, Entity):
         """Construct a name for the work version.
 
         Args:
-            extension (str): The extension of the file.
             file_format (str): The file format of the file.
 
         """
@@ -339,28 +349,30 @@ class Work(Settings, Entity):
             abs_path = self.get_abs_project_path(relative_path)
             self._dcc_handler.open(abs_path)
 
-    def import_version(self, version_number, element_type=None):
+    def import_version(self, version_number, element_type=None, ingestor=None):
         """Import the given version of the work to the scene."""
         # work files does not have element types. This is for publish files.
-        _element_type = element_type
+        _element_type = element_type or "source"
+        ingestor = ingestor or "source"
         version_obj = self.get_version(version_number)
         if version_obj:
             relative_path = version_obj.get("scene_path")
             abs_path = self.get_abs_project_path(relative_path)
-            _ingest_obj = self._dcc_handler.ingests["source"]()
+            _ingest_obj = self._dcc_handler.ingests[ingestor]()
             _ingest_obj.category = self.category
             _ingest_obj.file_path = abs_path
             _ingest_obj.bring_in()
 
-    def reference_version(self, version_number, element_type=None):
+    def reference_version(self, version_number, element_type=None, ingestor=None):
         """Reference the given version of the work to the scene."""
         # work files does not have element types. This is for publish files.
-        _element_type = element_type
+        _element_type = element_type or "source"
+        ingestor = ingestor or "source"
         version_obj = self.get_version(version_number)
         if version_obj:
             relative_path = version_obj.get("scene_path")
             abs_path = self.get_abs_project_path(relative_path)
-            _ingest_obj = self._dcc_handler.ingests["source"]()
+            _ingest_obj = self._dcc_handler.ingests[ingestor]()
             _ingest_obj.category = self.category
             _ingest_obj.file_path = abs_path
             _ingest_obj.reference()

@@ -177,7 +177,7 @@ class Publisher:
 
         # collect the extracted elements information and add to the publish object
         for extract_type_name, extract_object in self._resolved_extractors.items():
-            if extract_object.state == "failed":
+            if extract_object.state == "failed" or extract_object.state == "unavailable":
                 continue
             element = {
                 "type": extract_object.name,

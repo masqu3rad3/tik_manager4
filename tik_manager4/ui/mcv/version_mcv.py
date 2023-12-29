@@ -53,6 +53,15 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.element_combo = QtWidgets.QComboBox()
         element_layout.addWidget(self.element_combo)
 
+        ingest_with_lbl = QtWidgets.QLabel("Ingest with: ")
+        ingest_with_lbl.setFont(QtGui.QFont("Arial", 10))
+        self.ingest_with_combo = QtWidgets.QComboBox()
+        element_layout.addWidget(ingest_with_lbl)
+        element_layout.addWidget(self.ingest_with_combo)
+
+
+
+
         notes_layout = QtWidgets.QVBoxLayout()
         self.addLayout(notes_layout)
         notes_lbl = QtWidgets.QLabel("Notes: ")
@@ -89,6 +98,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.reference_btn.setEnabled(False)
 
         # SIGNALS
+        self.element_combo.currentIndexChanged.connect(lambda x: self.button_states(self.base))
+        self.element_combo.currentTextChanged.connect(self.element_type_changed)
         self.version_combo.currentIndexChanged.connect(self.version_changed)
         self.import_btn.clicked.connect(self.on_import)
         self.load_btn.clicked.connect(self.on_load)
@@ -105,7 +116,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             return
         _version = self.get_selected_version()
         _element_type = self.get_selected_element_type()
-        self.base.import_version(_version, element_type=_element_type)
+        _ingestor = self.get_selected_ingestor()
+        self.base.import_version(_version, element_type=_element_type, ingestor=_ingestor)
 
     def on_load(self):
         """Load the current version."""
@@ -160,7 +172,35 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         _version = self.get_selected_version()
         # if self.base.object_type == "publish":
         _element_type = self.get_selected_element_type()
-        self.base.reference_version(_version, element_type=_element_type)
+        _ingestor = self.get_selected_ingestor()
+        self.base.reference_version(_version, element_type=_element_type, ingestor=_ingestor)
+
+
+    def __load_btn_state(self, base, element_type):
+        """Resolve the load button state."""
+
+        # load button is enabled only if the base.dcc and base.guard.dcc are the same
+        # it also requires the element_type to be source (in publish mode) or none (in work mode)
+        if element_type == "source" or not element_type:
+            self.load_btn.setEnabled(base.dcc == base.guard.dcc)
+        else:
+            self.load_btn.setEnabled(False)
+
+    def __import_and_reference_btn_states(self, base, element_type):
+        """Resolve the import button state."""
+
+        if element_type == "source" or not element_type:
+            self.import_btn.setEnabled(base.dcc == base.guard.dcc)
+            self.reference_btn.setEnabled(base.dcc == base.guard.dcc)
+            return
+        # import button is only enabled if the dcc ingests supports the element type
+        if element_type in base._dcc_handler.ingests.keys():
+            self.import_btn.setEnabled(True)
+            self.reference_btn.setEnabled(True)
+            return
+        self.import_btn.setEnabled(False)
+        self.reference_btn.setEnabled(False)
+        return
 
     def button_states(self, base):
         """Toggle the buttons depending on the base status."""
@@ -169,14 +209,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.import_btn.setEnabled(False)
             self.reference_btn.setEnabled(False)
             return
-        if not base._dcc_handler.ingests.get("source", None):
-            self.load_btn.setEnabled(True)
-            self.import_btn.setEnabled(False)
-            self.reference_btn.setEnabled(False)
-            return
-        self.load_btn.setEnabled(True)
-        self.import_btn.setEnabled(True)
-        self.reference_btn.setEnabled(True)
+        _element_type = self.get_selected_element_type()
+        self.__load_btn_state(base, _element_type)
+        self.__import_and_reference_btn_states(base, _element_type)
 
     def set_base(self, base):
         """Set the base object. This can be work or publish object."""
@@ -208,8 +243,20 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.version_changed()
         self.version_combo.blockSignals(False)
 
+    def _resolve_available_ingests(self, version_extension):
+        """Resolve the available ingestors for the given extension."""
+        all_ingests = self.base._dcc_handler.ingests
+        # go through all the ingests and check if the version extension is supported
+        available_ingests = []
+        for ingest_name, fn in all_ingests.items():
+            if version_extension in fn.valid_extensions:
+                available_ingests.append(ingest_name)
+        return available_ingests
+
     def version_changed(self):
         """When the version dropdown is changed, update the notes and thumbnail."""
+        self.element_combo.blockSignals(True)
+        self.ingest_with_combo.blockSignals(True)
         version_number = int(self.version_combo.currentText())
         _index = self.version_combo.currentIndex()
         # check if the _index is the latest in combo box
@@ -223,10 +270,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.element_combo.clear()
         if self.base.object_type == "publish":
             self.element_combo.setEnabled(True)
+            self.ingest_with_combo.setEnabled(True)
             self.element_combo.addItems(_version.element_types)
+            # trigger the element type changed manually
+            self.element_type_changed(self.element_combo.currentText())
         else:
             # disable
             self.element_combo.setEnabled(False)
+            self.ingest_with_combo.setEnabled(False)
         self.notes_editor.clear()
         self.thumbnail.clear()
         self.notes_editor.setPlainText(_version.get("notes"))
@@ -235,6 +286,24 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.thumbnail.setPixmap(QtGui.QPixmap(_thumbnail_path))
         else:
             self.thumbnail.setPixmap(self.empty_pixmap)
+        self.element_combo.blockSignals(False)
+        self.ingest_with_combo.blockSignals(False)
+
+    def element_type_changed(self, element_type):
+        """Update the rest when element type is changed."""
+        if not element_type:
+            return
+        self.ingest_with_combo.clear()
+        _version_number = self.get_selected_version()
+        _version_object = self.base.get_version(_version_number)
+        element_version_extension = Path(_version_object.get_element_path(element_type)).suffix
+        _available_ingests = self._resolve_available_ingests(element_version_extension)
+        # update the ingest with combo
+        self.ingest_with_combo.addItems(_available_ingests)
+        # if there is an ingestor with the same name as the element type, select it
+        if element_type in _available_ingests:
+            self.ingest_with_combo.setCurrentText(element_type)
+        return
 
     def set_version(self, combo_value):
         """Set the version dropdown to the given version value."""
@@ -244,7 +313,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
     def get_selected_version(self):
         """Return the current version."""
-        version_number = int(self.version_combo.currentText())
+        selected_version_as_str = self.version_combo.currentText()
+        if not selected_version_as_str:
+            return None
+        version_number = int(selected_version_as_str)
         return version_number
         # Following returns the dictionary. We probably won't need it.
 
@@ -252,6 +324,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         """Return the current element."""
         if self.element_combo.isEnabled():
             return self.element_combo.currentText()
+        else:
+            return None
+
+    def get_selected_ingestor(self):
+        """Return the selected ingestor."""
+        if self.ingest_with_combo.isEnabled():
+            return self.ingest_with_combo.currentText()
         else:
             return None
 
