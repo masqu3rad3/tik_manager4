@@ -176,6 +176,7 @@ class Work(Settings, Entity):
         self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
 
         # add it to the versions
+        # TODO: Make a version object instead of a dictionary
         version = {
             "version_number": version_number,
             "workstation": socket.gethostname(),
@@ -348,28 +349,30 @@ class Work(Settings, Entity):
             abs_path = self.get_abs_project_path(relative_path)
             self._dcc_handler.open(abs_path)
 
-    def import_version(self, version_number, element_type=None):
+    def import_version(self, version_number, element_type=None, ingestor=None):
         """Import the given version of the work to the scene."""
         # work files does not have element types. This is for publish files.
-        _element_type = element_type
+        _element_type = element_type or "source"
+        ingestor = ingestor or "source"
         version_obj = self.get_version(version_number)
         if version_obj:
             relative_path = version_obj.get("scene_path")
             abs_path = self.get_abs_project_path(relative_path)
-            _ingest_obj = self._dcc_handler.ingests["source"]()
+            _ingest_obj = self._dcc_handler.ingests[ingestor]()
             _ingest_obj.category = self.category
             _ingest_obj.file_path = abs_path
             _ingest_obj.bring_in()
 
-    def reference_version(self, version_number, element_type=None):
+    def reference_version(self, version_number, element_type=None, ingestor=None):
         """Reference the given version of the work to the scene."""
         # work files does not have element types. This is for publish files.
-        _element_type = element_type
+        _element_type = element_type or "source"
+        ingestor = ingestor or "source"
         version_obj = self.get_version(version_number)
         if version_obj:
             relative_path = version_obj.get("scene_path")
             abs_path = self.get_abs_project_path(relative_path)
-            _ingest_obj = self._dcc_handler.ingests["source"]()
+            _ingest_obj = self._dcc_handler.ingests[ingestor]()
             _ingest_obj.category = self.category
             _ingest_obj.file_path = abs_path
             _ingest_obj.reference()

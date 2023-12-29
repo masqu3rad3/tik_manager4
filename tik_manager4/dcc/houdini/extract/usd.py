@@ -44,6 +44,7 @@ class Usd(ExtractCore):
         super().__init__()
         if hou.isApprentice():
             self._extension = ".usdnc"
+            self._message = "USD export is not supported in Houdini Apprentice. Format will be saved as .usdnc"
         else:
             self._extension = ".usd"
 

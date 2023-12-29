@@ -35,18 +35,16 @@ QMainWindow::separator
     color: white;
     padding-left: 4px;
     border: 1px solid #4c4c4c;
-    spacing: 3px; /* spacing between items in the tool bar */
+    spacing: 3px;
 }
 
 QMainWindow::separator:hover
 {
-
-    /*background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d7801a, stop:0.5 #b56c17 stop:1 #ff8d1c);*/
     background-color: #ff8d1c;
     color: white;
     padding-left: 4px;
     border: 1px solid #4c4c4c;
-    spacing: 3px; /* spacing between items in the tool bar */
+    spacing: 3px;
 }
 
 /* QToolTip ---------------------------------------------------------------
@@ -359,7 +357,7 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qabstractscrollarea
 --------------------------------------------------------------------------- */
 QAbstractScrollArea {
   background-color: #303030;
-  border: 0px solid #4c4c4c;
+  border: 1px solid #4c4c4c;
   border-radius: 4px;
   padding: 2px;
   min-height: 1.25em;
@@ -814,6 +812,7 @@ QComboBox
     border-width: 1px;
     border-color: #1e1e1e;
     border-style: solid;
+    border-radius: 4px;
     padding: 3px;
     font-size: 12px;
     padding-left: 5px;
@@ -822,7 +821,7 @@ QComboBox
 
 QComboBox QAbstractItemView {
   background-color: #303030;
-  border-radius: 0px;
+  border-radius: 4px;
   border: 1px solid #c88c51;
   selection-color: #000000;
   selection-background-color: #ff8d1c;
@@ -860,9 +859,11 @@ QComboBox::item:alternate {
   background: #303030;
 }
 
+/*
 QComboBox::item:checked {
   font-weight: bold;
 }
+*/
 
 QComboBox::item:selected {
   border: 1px solid transparent;
@@ -1446,17 +1447,6 @@ QHeaderView::up-arrow {
   width: 12px;
   image: url("rc:arrow_up.png");
 }
-
-
-/*
-QHeaderView::section
-{
-    background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:0 #616161, stop: 0.5 #505050, stop: 0.6 #434343, stop:1 #656565);
-    color: white;
-    padding-left: 4px;
-    border: 1px solid #4c4c4c;
-}
-*/
 
 /* QToolBox --------------------------------------------------------------
 

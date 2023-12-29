@@ -538,6 +538,8 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
             return
         # get the current tab name
         self._last_category = self.category_tab_widget.tabText(index)
+        if not self._last_category:
+            return
         works = self.task.categories[self._last_category].works
         if self.mode == 0 and self._last_category:
             self.work_tree_view.model.set_works(works.values())
