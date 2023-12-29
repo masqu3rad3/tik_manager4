@@ -144,6 +144,17 @@ class User(object):
         """Set the column visibilities."""
         self.resume.edit_property("visible_columns", value)
 
+    @property
+    def column_sizes(self):
+        """Get the column sizes."""
+        return self.resume.get_property("column_sizes", {})
+
+    @column_sizes.setter
+    def column_sizes(self, value):
+        """Set the column sizes."""
+        self.resume.edit_property("column_sizes", value)
+
+
     @classmethod
     def __set_authentication_status(cls, state):
         # cls._authenticated = state

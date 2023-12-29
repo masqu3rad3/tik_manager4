@@ -162,10 +162,11 @@ class MainUI(QtWidgets.QMainWindow):
         if subproject_id:
             state = self.subprojects_mcv.sub_view.select_by_id(subproject_id)
             if state:
-                # if its successfully set, then select the last task
+                # if its successfully set, then select the last selected task
                 task_id = self.tik.user.last_task
                 if task_id:
                     state = self.tasks_mcv.task_view.select_by_id(task_id)
+                    print("state", state)
                     if state:
                         # if its successfully set, then select the last category
                         category_index = self.tik.user.last_category or 0
@@ -180,6 +181,13 @@ class MainUI(QtWidgets.QMainWindow):
                                 version_id = self.tik.user.last_version
                                 if version_id:
                                     self.versions_mcv.set_version(version_id)
+                    else:
+                        # if the task cannot be set, then select the first one
+                        print("ASdfasdfasdf")
+                        self.tasks_mcv.task_view.select_first_item()
+                else:
+                    # if there is no task, then select the first one
+                    self.tasks_mcv.task_view.select_first_item()
         else:
             # if there are no subprojects, then select the first one
             self.subprojects_mcv.sub_view.select_first_item()
@@ -207,6 +215,16 @@ class MainUI(QtWidgets.QMainWindow):
         )
         self.categories_mcv.work_tree_view.show_columns(
             self.tik.user.visible_columns.get("categories", [])
+        )
+
+        self.subprojects_mcv.sub_view.set_column_sizes(
+            self.tik.user.column_sizes.get("subprojects", {})
+        )
+        self.tasks_mcv.task_view.set_column_sizes(
+            self.tik.user.column_sizes.get("tasks", {})
+        )
+        self.categories_mcv.work_tree_view.set_column_sizes(
+            self.tik.user.column_sizes.get("categories", {})
         )
 
     def initialize_mcv(self):
@@ -289,6 +307,14 @@ class MainUI(QtWidgets.QMainWindow):
             "categories": self.categories_mcv.work_tree_view.get_visible_columns(),
         }
         self.tik.user.visible_columns = columns_states
+
+        column_sizes = {
+            "subprojects": self.subprojects_mcv.sub_view.get_column_sizes(),
+            "tasks": self.tasks_mcv.task_view.get_column_sizes(),
+            "categories": self.categories_mcv.work_tree_view.get_column_sizes(),
+        }
+        self.tik.user.column_sizes = column_sizes
+
 
     # override the closeEvent to save the window state
     def closeEvent(self, event):

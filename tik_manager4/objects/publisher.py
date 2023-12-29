@@ -53,6 +53,9 @@ class Publisher:
             LOG.warning("No work object found. Aborting.")
             return False
 
+        self._resolved_extractors = {}
+        self._resolved_validators = {}
+
         # get the task object
         self._task_object = self._project_object.find_task_by_id(
             self._work_object.task_id

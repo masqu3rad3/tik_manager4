@@ -1,3 +1,5 @@
+"""Main module for Maya DCC integration."""
+
 from pathlib import Path
 import logging
 import platform
@@ -19,6 +21,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Dcc(MainCore):
+    """Maya DCC class."""
+
     name = "Maya"
     formats = [".ma", ".mb"]
     preview_enabled = True  # Whether or not to enable the preview in the UI

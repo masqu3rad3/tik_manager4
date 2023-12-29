@@ -277,6 +277,15 @@ class TikCategoryView(QtWidgets.QTreeView):
             if not self.isColumnHidden(x)
         ]
 
+    def get_column_sizes(self):
+        """Return all column sizes in a dictionary."""
+        return {x: int(self.columnWidth(x)) for x in range(self.model.columnCount())}
+
+    def set_column_sizes(self, column_sizes):
+        """Set the column sizes from the given dictionary."""
+        for column, size in column_sizes.items():
+            self.setColumnWidth(int(column), size)
+
     def filter(self, text):
         """Filter the model"""
         self.proxy_model.setFilterRegExp(

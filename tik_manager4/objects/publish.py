@@ -64,6 +64,11 @@ class Publish(Entity):
         # return len(list(self.versions.keys()))
         return len(self.versions)
 
+    def reload(self):
+        """Reload the publish object."""
+        self._work_object.reload()
+        self.scan_publish_versions()
+
     def get_last_version(self):
         """Return the last publish version."""
         # find the latest publish version

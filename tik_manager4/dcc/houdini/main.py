@@ -1,5 +1,6 @@
+"""Main module for Houdini DCC integration."""
+
 from pathlib import Path
-import os
 import logging
 
 import hou
@@ -19,7 +20,7 @@ LOG = logging.getLogger(__name__)
 
 class Dcc(MainCore):
     name = "Houdini"
-    formats = [".hip", ".hiplc", ".hipnc"]
+    formats = [".hip", ".hiplc"]
     preview_enabled = True  # Whether or not to enable the preview in the UI
     validations = validate.classes
     extracts = extract.classes
@@ -47,9 +48,9 @@ class Dcc(MainCore):
 
         """
         if hou.isApprentice():
-            file_path = Path(file_path).with_suffix(".hipnc")
-        hou.hipFile.save(file_name=str(file_path))
-        return str(file_path)
+            file_path = str(Path(file_path).with_suffix(".hipnc"))
+        hou.hipFile.save(file_name=file_path)
+        return file_path
 
     def open(self, file_path, force=True, **extra_arguments):
         """
@@ -248,21 +249,3 @@ class Dcc(MainCore):
         range = self.get_ranges()
         hou.setFps(fps_value)
         self.set_ranges(range)
-
-    # def _set_env_variable(self, var, value):
-    #     """sets environment var
-    #     Args:
-    #         var: (String) Environment variable name
-    #         value: (String) Value to set
-    #     """
-    #     os.environ[var] = value
-    #     try:
-    #         hou.allowEnvironmentVariableToOverwriteVariable(var, True)
-    #     except AttributeError:
-    #         # should be Houdini 12
-    #         hou.allowEnvironmentToOverwriteVariable(var, True)
-    #
-    #     value = value.replace("\\", "/")
-    #     hscript_command = "set -g %s = '%s'" % (var, value)
-    #
-    #     hou.hscript(str(hscript_command))
