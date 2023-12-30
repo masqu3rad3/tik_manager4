@@ -166,7 +166,6 @@ class MainUI(QtWidgets.QMainWindow):
                 task_id = self.tik.user.last_task
                 if task_id:
                     state = self.tasks_mcv.task_view.select_by_id(task_id)
-                    print("state", state)
                     if state:
                         # if its successfully set, then select the last category
                         category_index = self.tik.user.last_category or 0
@@ -183,7 +182,6 @@ class MainUI(QtWidgets.QMainWindow):
                                     self.versions_mcv.set_version(version_id)
                     else:
                         # if the task cannot be set, then select the first one
-                        print("ASdfasdfasdf")
                         self.tasks_mcv.task_view.select_first_item()
                 else:
                     # if there is no task, then select the first one
@@ -245,6 +243,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv = TikCategoryLayout()
         self.categories_mcv.work_tree_view.hide_columns(["id", "path"])
         self.category_layout.addLayout(self.categories_mcv)
+        # if it is houdini, make an exception on the category tab widget
+        if self.tik.dcc.name == "Houdini":
+            self.categories_mcv.category_tab_widget.setMaximumSize(QtCore.QSize(16777215, 30))
 
         self.versions_mcv = TikVersionLayout(parent=self)
         self.version_layout.addLayout(self.versions_mcv)
@@ -314,7 +315,6 @@ class MainUI(QtWidgets.QMainWindow):
             "categories": self.categories_mcv.work_tree_view.get_column_sizes(),
         }
         self.tik.user.column_sizes = column_sizes
-
 
     # override the closeEvent to save the window state
     def closeEvent(self, event):
@@ -390,7 +390,9 @@ class MainUI(QtWidgets.QMainWindow):
         import_item = QtWidgets.QAction("&Import Item", self)
         file_menu.addAction(import_item)
         file_menu.addSeparator()
-        settings_item = QtWidgets.QAction(pick.icon("settings"), "&Settings                    ", self)
+        settings_item = QtWidgets.QAction(
+            pick.icon("settings"), "&Settings                    ", self
+        )
         file_menu.addAction(settings_item)
         file_menu.addSeparator()
         user_login = QtWidgets.QAction(pick.icon("user"), "&User Login", self)
@@ -433,7 +435,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         # check if the tik.main.dcc has a preview method
         if self.tik.dcc.preview_enabled:
-            create_preview = QtWidgets.QAction(pick.icon("camera"), "&Create Preview", self)
+            create_preview = QtWidgets.QAction(
+                pick.icon("camera"), "&Create Preview", self
+            )
             tools_menu.addAction(create_preview)
             create_preview.triggered.connect(self.on_create_preview)
 
