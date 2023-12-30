@@ -72,7 +72,7 @@ class Category(Entity):
             return -1
 
         constructed_name = self.construct_name(name)
-        relative_path = Path(self.path, self.guard.dcc).as_posix()
+        relative_path = self.get_relative_work_path()
         # relative_path = Path(self.path).as_posix()
         abs_path = self.get_abs_database_path(self.guard.dcc, f"{constructed_name}.twork")
         # abs_path = self.get_abs_database_path(f"{constructed_name}.twork")
@@ -114,6 +114,11 @@ class Category(Entity):
 
         del self._works[name]
         _work.delete()
+
+    def get_relative_work_path(self):
+        """Return the relative path of the category"""
+        return Path(self.path, self.guard.dcc).as_posix()
+
 
     def construct_name(self, name):
         """Construct the name for the work file. Useful to preview in UI."""

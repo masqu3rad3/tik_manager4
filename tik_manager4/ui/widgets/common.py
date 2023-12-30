@@ -111,6 +111,7 @@ class StyleEditor:
 
 class StyleFrame(QtWidgets.QFrame, StyleEditor):
     """Frame with custom styler."""
+
     pass
 
 
@@ -159,6 +160,7 @@ class TikButton(QtWidgets.QPushButton, StyleEditor):
         }}"""
 
         self._append_style(color_style)
+
 
 class TikIconButton(TikButton):
     """Button specific for fixed sized icons."""
@@ -302,6 +304,7 @@ class TikLabelButton(TikButton):
         else:
             self.setText(self.normal_text)
 
+
 class HeaderLabel(TikLabel):
     """Label with bold font and indent."""
 
@@ -322,7 +325,7 @@ QLabel
         super(HeaderLabel, self).__init__(*args, **kwargs)
         self.setProperty("header", True)
         self.setIndent(10)
-        self.setMinimumHeight(30)
+        self.setFixedHeight(30)
         self.setFrameShape(QtWidgets.QFrame.Box)
         # center text
         self.setAlignment(QtCore.Qt.AlignCenter)
@@ -334,6 +337,7 @@ QLabel
     def set_font_size(self, font_size, bold=True):
         super(HeaderLabel, self).set_font_size(font_size, bold)
 
+
 class ResolvedText(TikLabel):
     """Label for resolved paths, names etc."""
 
@@ -341,13 +345,23 @@ class ResolvedText(TikLabel):
         super(ResolvedText, self).__init__(*args, **kwargs)
         # make is selectable
         self.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
+        # make is wrap
+        self.setWordWrap(True)
+
+        # Set the size policy to Expanding
+        size_policy = self.sizePolicy()
+        size_policy.setHorizontalPolicy(QtWidgets.QSizePolicy.Expanding)
+        size_policy.setVerticalPolicy(QtWidgets.QSizePolicy.Expanding)
+        self.setSizePolicy(size_policy)
 
     def set_font_size(self, font_size, bold=True):
         super(ResolvedText, self).set_font_size(font_size, bold)
         # self.setFont(QtGui.QFont(FONT, font_size, QtGui.QFont.Bold))
 
+
 class HorizontalSeparator(QtWidgets.QLabel):
     """Simple horizontal separator."""
+
     def __init__(self, color=(100, 100, 100), height=25, width=20):
         super(HorizontalSeparator, self).__init__()
         self._pixmap = QtGui.QPixmap(2, 100)
@@ -356,11 +370,14 @@ class HorizontalSeparator(QtWidgets.QLabel):
         self.setFixedHeight(height)
         self.setFixedWidth(width)
         self.setAlignment(QtCore.Qt.AlignCenter)
+
     def set_color(self, color):
         self._pixmap.fill(QtGui.QColor(*color))
 
+
 class VerticalSeparator(QtWidgets.QLabel):
     """Simple vertical separator."""
+
     def __init__(self, color=(100, 100, 100), height=1, width=None):
         super(VerticalSeparator, self).__init__()
         self.set_color(color)
@@ -369,6 +386,7 @@ class VerticalSeparator(QtWidgets.QLabel):
         self.setFixedHeight(height)
         if width:
             self.setFixedWidth(width)
+
     def set_color(self, color):
         if isinstance(color, (tuple, list)):
             color = f"rgb({color[0]}, {color[1]}, {color[2]});"

@@ -85,7 +85,7 @@ class SubprojectBrowser(path_browser.PathBrowser):
             # get the model data from the selected item of TikProjectLayout
             _tikSubItem = sub_projects.sub_view.get_selected_items()
             if _tikSubItem:
-                self.widget.setText(_tikSubItem.subproject.path)
-                self.value = _tikSubItem.subproject.path
+                self.widget.setText(_tikSubItem[0].subproject.path)
+                self.value = _tikSubItem[0].subproject.path
                 self.com.valueChangeEvent(self.value)
-                self.sub.emit(_tikSubItem.subproject)
+                self.sub.emit(_tikSubItem[0].subproject)

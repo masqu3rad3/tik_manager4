@@ -271,6 +271,8 @@ class PublishSceneDialog(QtWidgets.QDialog):
         notes_label = QtWidgets.QLabel("Notes:")
         self.bottom_layout.addWidget(notes_label)
         self.notes_text = QtWidgets.QTextEdit()
+        # add a placeholder text
+        self.notes_text.setPlaceholderText("Notes are mandatory for publishes.")
         self.bottom_layout.addWidget(self.notes_text)
 
         # buttons layout
