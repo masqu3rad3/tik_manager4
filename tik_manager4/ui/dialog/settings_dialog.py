@@ -23,7 +23,6 @@ from tik_manager4.ui.layouts.settings_layout import (
     convert_to_ui_definition,
     guess_data_type,
 )
-from ui.Qt.QtWidgets import QListView
 
 LOG = logging.getLogger(__name__)
 
