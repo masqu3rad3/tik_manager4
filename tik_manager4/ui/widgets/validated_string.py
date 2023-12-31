@@ -48,7 +48,6 @@ class ValidatedString(String):
         return self._connected_widgets
 
     def keyPressEvent(self, *args, **kwargs):
-        # supress the signals
         super(ValidatedString, self).keyPressEvent(*args, **kwargs)
         self._validate()
 

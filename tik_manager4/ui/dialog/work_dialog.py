@@ -60,6 +60,8 @@ class NewWorkDialog(QtWidgets.QDialog):
         self.update_labels(True)
 
         # self.resize(600, 350)
+        # focus on notes widget
+        self.notes_te.setFocus()
 
     def build_layouts(self):
         """Create the layouts and split the UI into left and right."""
@@ -119,6 +121,7 @@ class NewWorkDialog(QtWidgets.QDialog):
         # create a notes widget for the right side
         notes_lbl = QtWidgets.QLabel(text="Notes:")
         self.notes_te = QtWidgets.QPlainTextEdit()
+
         self.right_layout.addWidget(notes_lbl)
         self.right_layout.addWidget(self.notes_te)
 

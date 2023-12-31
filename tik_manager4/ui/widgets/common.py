@@ -348,12 +348,6 @@ class ResolvedText(TikLabel):
         # make is wrap
         self.setWordWrap(True)
 
-        # Set the size policy to Expanding
-        size_policy = self.sizePolicy()
-        size_policy.setHorizontalPolicy(QtWidgets.QSizePolicy.Expanding)
-        size_policy.setVerticalPolicy(QtWidgets.QSizePolicy.Expanding)
-        self.setSizePolicy(size_policy)
-
     def set_font_size(self, font_size, bold=True):
         super(ResolvedText, self).set_font_size(font_size, bold)
         # self.setFont(QtGui.QFont(FONT, font_size, QtGui.QFont.Bold))

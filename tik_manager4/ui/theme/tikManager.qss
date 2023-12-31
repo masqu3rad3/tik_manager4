@@ -357,7 +357,7 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qabstractscrollarea
 --------------------------------------------------------------------------- */
 QAbstractScrollArea {
   background-color: #303030;
-  border: 1px solid #4c4c4c;
+  border: 0px solid #4c4c4c;
   border-radius: 4px;
   padding: 2px;
   min-height: 1.25em;
@@ -502,6 +502,12 @@ QTextEdit:focus
     color: #F0F0F0;
 }
 
+QPlainTextEdit
+{
+    background-color: #242424;
+    color: #F0F0F0;
+    border: 1px solid #1e90ff;
+}
 
 
 
@@ -994,7 +1000,7 @@ QLineEdit
     padding: 1px;
     border-style: solid;
     border: 1px solid #1e1e1e;
-    border-radius: 0;
+    border-radius: 4;
     selection-background-color: #fe7e00;
 }
 
@@ -1025,10 +1031,15 @@ QLineEdit[error = true] {
 
 /* QSpinBox ------------------------------------------
 --------------------------------------------------------------------------- */
-
-QSpinBox{
+QDoubleSpinBox,
+QSpinBox
+{
     background-color: #242424;
-    color: #F0F0F0;
+    padding: 1px;
+    border-style: solid;
+    border: 1px solid #1e1e1e;
+    border-radius: 4;
+    selection-background-color: #fe7e00;
 }
 
 
