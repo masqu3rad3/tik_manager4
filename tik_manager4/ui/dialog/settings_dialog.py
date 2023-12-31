@@ -791,7 +791,7 @@ class CategoryDefinitions(QtWidgets.QWidget):
         # create a standard model to hold and manipulate the data
         validations_model = ReorderListModel()
         validations_model.setStringList(data["validations"])
-        validations_list: QListView = QtWidgets.QListView()
+        validations_list = QtWidgets.QListView()
         # validations_list = ReorderListView()
         validations_list.setModel(validations_model)
         # # make the items in the list change order by drag and drop
