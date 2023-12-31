@@ -19,32 +19,59 @@ class NewWorkDialog(QtWidgets.QDialog):
         task_id=None,
         category_index=None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super(NewWorkDialog, self).__init__(*args, **kwargs)
 
         self.feedback = Feedback(parent=self)
-        self.tik = main_object
+        self.main_object = main_object
+        self.setWindowTitle("Create New Work File")
 
+        # variables
         self.subproject = subproject
         self.task = task
         self.category = category
+
+        self.header_layout = None
+        self.left_layout = None
+        self.right_layout = None
+        self.buttons_layout = None
+
+        self.resolved_path_lbl = None
+        self.resolved_name_lbl = None
 
         # if no objects are given, try to resolve them from the given data
         if not any([subproject, task, category]):
             self.resolve_objects(subproject_id, task_id, category_index)
 
-        self.category_index = category_index or self.tik.user.last_category
-
-        self.setWindowTitle("Create New Work File")
-        self.resize(600, 350)
+        self.category_index = category_index or self.main_object.user.last_category
 
         # create the main layout
         self.master_layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.master_layout)
 
+        self.build_layouts()
+
+        self.primary_definition = self.define_primary_ui()
+        self.primary_data = Settings()
+
+        self.build_ui()
+
+        self.update_labels(True)
+
+        # self.resize(600, 350)
+        # focus on notes widget
+        self.notes_te.setFocus()
+
+    def build_layouts(self):
+        """Create the layouts and split the UI into left and right."""
+        self.header_layout = QtWidgets.QVBoxLayout()
+        self.master_layout.addLayout(self.header_layout)
+
         splitter = QtWidgets.QSplitter(self)
-        splitter.setHandleWidth(3)
+        splitter.setHandleWidth(10)
+        splitter.setCollapsible(0, False)
+        splitter.setCollapsible(1, False)
 
         self.master_layout.addWidget(splitter)
         splitter.setFrameShape(QtWidgets.QFrame.NoFrame)
@@ -60,29 +87,100 @@ class NewWorkDialog(QtWidgets.QDialog):
         self.right_layout = QtWidgets.QVBoxLayout(right_widget)
         self.right_layout.setContentsMargins(10, 2, 2, 10)
 
-        self.primary_definition = self.define_primary_ui()
-        self.primary_data = Settings()
+        self.buttons_layout = QtWidgets.QHBoxLayout()
+        self.master_layout.addLayout(self.buttons_layout)
 
-        self.build_ui()
+    def build_ui(self):
+        """Build the UI elements"""
 
-        splitter.setCollapsible(0, False)
-        splitter.setCollapsible(1, False)
+        header = HeaderLabel("New Work")
+        header.set_color("orange")
+        self.header_layout.addWidget(header)
+        self.resolved_path_lbl = ResolvedText("" * 30)
+        self.resolved_path_lbl.set_color("gray")
+        self.header_layout.addWidget(self.resolved_path_lbl)
+        self.resolved_name_lbl = ResolvedText("")
+        self.resolved_name_lbl.set_color("#FF8D1C")
+        self.header_layout.addWidget(self.resolved_name_lbl)
+
+        self.primary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
+            self.primary_definition, self.primary_data, parent=self
+        )
+        self.left_layout.addLayout(self.primary_content)
+
+        self.name_line_edit = self.primary_content.find("name")
+
+        _browse_subproject_widget = self.primary_content.find("subproject")
+
+        self.tasks_combo = self.primary_content.find("task")
+
+        self.categories_combo = self.primary_content.find("category")
+
+        _file_format = self.primary_content.find("file_format")
+
+        # create a notes widget for the right side
+        notes_lbl = QtWidgets.QLabel(text="Notes:")
+        self.notes_te = QtWidgets.QPlainTextEdit()
+
+        self.right_layout.addWidget(notes_lbl)
+        self.right_layout.addWidget(self.notes_te)
+
+        # create a the TikButtonBox
+        button_box = TikButtonBox(parent=self)
+        create_work_btn = button_box.addButton(
+            "Create Work", QtWidgets.QDialogButtonBox.AcceptRole
+        )
+        _ = button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
+        self.buttons_layout.addWidget(button_box)
+
+        _browse_subproject_widget.sub.connect(self.refresh_subproject)
+        self.tasks_combo.currentTextChanged.connect(self.set_task)
+        self.categories_combo.currentTextChanged.connect(self.set_category)
+        self.name_line_edit.validation_changed.connect(self.update_labels)
+        _file_format.currentTextChanged.connect(self.update_labels)
+
+        self.name_line_edit.add_connected_widget(create_work_btn)
+
+        button_box.accepted.connect(self.on_create_work)
+        button_box.rejected.connect(self.reject)
+
+    def update_labels(self, validation_status):
+        """Update the path and name labels."""
+        _name = self.primary_content.settings_data.get_property("name")
+        if not _name:
+            self.resolved_name_lbl.setText("No Name Entered")
+            # return
+        elif not validation_status:
+            self.resolved_name_lbl.setText("Invalid name")
+            # return
+        else:
+            _file_format = self.primary_content.settings_data.get_property(
+                "file_format"
+            )
+            constructed_name = f"{self.category.construct_name(_name)}{_file_format}"
+            self.resolved_name_lbl.setText(constructed_name)
+
+        if not self.category:
+            self.resolved_path_lbl.setText("Path cannot be resolved")
+        else:
+            constructed_path = self.category.get_relative_work_path()
+            self.resolved_path_lbl.setText(constructed_path)
 
     def resolve_objects(self, subproject_id=None, task_id=None, category_index=None):
         """Try to resolve the objects from the given data or last state."""
 
-        subproject_id = subproject_id or self.tik.user.last_subproject
+        subproject_id = subproject_id or self.main_object.user.last_subproject
         if subproject_id:
-            _subproject = self.tik.project.find_sub_by_id(subproject_id)
+            _subproject = self.main_object.project.find_sub_by_id(subproject_id)
             if _subproject != 1:
                 self.subproject = _subproject
-                task_id = task_id or self.tik.user.last_task
+                task_id = task_id or self.main_object.user.last_task
                 if task_id:
                     _task = self.subproject.get_task_by_id(task_id)
                     if _task != -1:
                         self.task = _task
                         category_index = (
-                            category_index or self.tik.user.last_category or 0
+                            category_index or self.main_object.user.last_category or 0
                         )
                         _category_name = self.task.get_property("categories")[
                             category_index
@@ -101,7 +199,7 @@ class NewWorkDialog(QtWidgets.QDialog):
             "subproject": {
                 "display_name": "Sub-project",
                 "type": "subprojectBrowser",
-                "project_object": self.tik.project,
+                "project_object": self.main_object.project,
                 "value": sub_path,
                 "tooltip": "Path of the sub-project",
             },
@@ -128,8 +226,8 @@ class NewWorkDialog(QtWidgets.QDialog):
             "file_format": {
                 "display_name": "File Format",
                 "type": "combo",
-                "items": self.tik.dcc.formats,
-                "value": self.tik.dcc.formats[0],
+                "items": self.main_object.dcc.formats,
+                "value": self.main_object.dcc.formats[0],
                 "tooltip": "File format of the work file",
             },
         }
@@ -142,8 +240,18 @@ class NewWorkDialog(QtWidgets.QDialog):
         self.tasks_combo.clear()
         self.categories_combo.clear()
         tasks = subproject.scan_tasks()
+
         if tasks:
             self.refresh_tasks(tasks)
+
+        # reinitialize the primary UI but add the existing name and file format
+        _name = self.primary_content.settings_data.get_property("name")
+        _file_format = self.primary_content.settings_data.get_property("file_format")
+        self.primary_content.settings_data.reset_settings()
+        self.primary_content.settings_data.set_data(
+            {"name": _name, "file_format": _file_format}
+        )
+        self.update_labels()
 
     def refresh_tasks(self, tasks):
         """Refresh the task and below."""
@@ -176,58 +284,29 @@ class NewWorkDialog(QtWidgets.QDialog):
 
     def set_task(self, task_name):
         """Set the task from the index."""
+        if not task_name:
+            return
         self.task = self.subproject.tasks[task_name]
         self.refresh_categories(self.task.categories)
+        self.update_labels()
+        return self.task
 
     def set_category(self, category_name):
         """Set the category from the index."""
+        if not category_name:
+            return
         self.category = self.task.categories[category_name]
+        self.update_labels()
+        return self.category
 
     def on_create_work(self):
         """Create the work file."""
         name = self.primary_data.get_property("name")
         file_format = self.primary_data.get_property("file_format")
         notes = self.notes_te.toPlainText()
+
         self.category.create_work(name, file_format=file_format, notes=notes)
         self.accept()
-
-    def build_ui(self):
-        """Build the UI elements"""
-
-        self.primary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
-            self.primary_definition, self.primary_data, parent=self
-        )
-        self.left_layout.addLayout(self.primary_content)
-
-        _name_line_edit = self.primary_content.find("name")
-
-        _browse_subproject_widget = self.primary_content.find("subproject")
-        _browse_subproject_widget.sub.connect(self.refresh_subproject)
-
-        self.tasks_combo = self.primary_content.find("task")
-        self.tasks_combo.currentTextChanged.connect(self.set_task)
-
-        self.categories_combo = self.primary_content.find("category")
-        self.categories_combo.currentTextChanged.connect(self.set_category)
-
-        # create a notes widget for the right side
-        notes_lbl = QtWidgets.QLabel(text="Notes:")
-        self.notes_te = QtWidgets.QPlainTextEdit()
-        self.right_layout.addWidget(notes_lbl)
-        self.right_layout.addWidget(self.notes_te)
-
-        # create a the TikButtonBox
-        button_box = TikButtonBox(parent=self)
-        create_work_btn = button_box.addButton(
-            "Create Work", QtWidgets.QDialogButtonBox.AcceptRole
-        )
-        _ = button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
-        self.master_layout.addWidget(button_box)
-
-        _name_line_edit.add_connected_widget(create_work_btn)
-
-        button_box.accepted.connect(self.on_create_work)
-        button_box.rejected.connect(self.reject)
 
 
 class NewVersionDialog(QtWidgets.QDialog):
@@ -240,8 +319,6 @@ class NewVersionDialog(QtWidgets.QDialog):
         self.ingest = ingest
         _title = "New Version" if not self.ingest else "Ingest Version"
         self.setWindowTitle(_title)
-        # self.setMinimumSize(500, 150)
-        # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
         self.master_layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.master_layout)
@@ -290,9 +367,11 @@ class NewVersionDialog(QtWidgets.QDialog):
         # align texts in combo to the right
         self.format_combo.setItemDelegate(QtWidgets.QStyledItemDelegate())
         # try to get the format from the last version and set it as current
-        _format = self.work_object.versions[-1].get("file_format", self.work_object._dcc_handler.formats[0])
+        _format = self.work_object.versions[-1].get(
+            "file_format", self.work_object._dcc_handler.formats[0]
+        )
         self.format_combo.setCurrentText(_format)
-        self.on_format_changed(_format) # initialize the name label with the format
+        self.on_format_changed(_format)  # initialize the name label with the format
 
         self.master_layout.addWidget(self.format_combo)
 

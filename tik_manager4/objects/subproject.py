@@ -397,7 +397,7 @@ class Subproject(Entity):
 
     def find_tasks_by_wildcard(self, wildcard):
         """Search recursively for all subprojects and the tasks inside them. Return the tasks matching the wildcard."""
-        _tasks = []
+        _tasks = self.get_tasks_by_wildcard(wildcard)
         queue = list(self.subs.values())
         while queue:
             current = queue.pop(0)
@@ -407,7 +407,10 @@ class Subproject(Entity):
 
     def find_task_by_id(self, uid):
         """Find the task by id."""
-        _tasks = []
+        # first check if the task is under this subproject
+        _search = self.get_task_by_id(uid)
+        if _search != -1:
+            return _search
         queue = list(self.subs.values())
         while queue:
             current = queue.pop(0)

@@ -12129,6 +12129,12 @@ class Signal(object):
 
     def __init__(self, *types:type, name:typing.Optional[str]=..., arguments:typing.Optional[str]=...): ...
 
+    def connect(self, check_changes):
+        pass
+
+    def emit(self, param):
+        pass
+
 
 class SignalInstance(object):
     def connect(self, slot:object, type:typing.Optional[type]=...): ...

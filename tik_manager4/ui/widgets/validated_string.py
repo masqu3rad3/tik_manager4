@@ -1,8 +1,13 @@
 import re
+from tik_manager4.ui.Qt import QtCore
 from tik_manager4.ui.widgets.value_widgets import String
 
 
 class ValidatedString(String):
+    """A custom QLineEdit widget purposed for browsing subprojects"""
+
+    validation_changed = QtCore.Signal(bool)
+
     def __init__(
         self,
         *args,
@@ -50,6 +55,7 @@ class ValidatedString(String):
         current_text = self.text()
         if not self.allow_empty and not current_text:
             self._fail()
+            self.validation_changed.emit(False)
         elif not self.string_value(
             current_text,
             allow_spaces=self.allow_spaces,
@@ -57,11 +63,13 @@ class ValidatedString(String):
             allow_special=self.allow_special_characters,
         ):
             self._fail()
+            self.validation_changed.emit(False)
         else:
             self.setStyleSheet(self.default_stylesheet)
             if self.connected_widgets:
                 for wid in self.connected_widgets:
                     wid.setEnabled(True)
+            self.validation_changed.emit(True)
 
     def _fail(self):
         """Disable the connected widgets and set the background color to red"""

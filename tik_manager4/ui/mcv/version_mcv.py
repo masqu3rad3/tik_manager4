@@ -43,6 +43,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.show_preview_btn = TikButton()
         self.show_preview_btn.setText("Show Preview")
         self.show_preview_btn.setMinimumSize(QtCore.QSize(60, 30))
+        self.show_preview_btn.setEnabled(False)
         version_layout.addWidget(self.show_preview_btn)
 
         element_layout = QtWidgets.QVBoxLayout()
@@ -269,15 +270,18 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         _version = self.base.get_version(version_number)
         self.element_combo.clear()
         if self.base.object_type == "publish":
+            self.show_preview_btn.setEnabled(False)
             self.element_combo.setEnabled(True)
             self.ingest_with_combo.setEnabled(True)
             self.element_combo.addItems(_version.element_types)
             # trigger the element type changed manually
             self.element_type_changed(self.element_combo.currentText())
-        else:
+        else: # WORK
             # disable
             self.element_combo.setEnabled(False)
             self.ingest_with_combo.setEnabled(False)
+            # enable the show preview button if there are previews
+            self.show_preview_btn.setEnabled(bool(_version.get("previews")))
         self.notes_editor.clear()
         self.thumbnail.clear()
         self.notes_editor.setPlainText(_version.get("notes"))
