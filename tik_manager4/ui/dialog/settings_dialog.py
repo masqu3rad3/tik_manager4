@@ -43,12 +43,14 @@ class SettingsDialog(QtWidgets.QDialog):
 
         # variables
         self.splitter = None
-        self.left_vlay = None
+        self.left_v_lay = None
         self.button_box_lay = None
         self.menu_tree_widget = None
+        self.apply_button = None
         self._validations_and_extracts = (
             None  # for caching the validations and extracts
         )
+        self.right_v_lay = None
 
         # # Execution
         self.build_layouts()
@@ -68,12 +70,12 @@ class SettingsDialog(QtWidgets.QDialog):
         self.splitter = QtWidgets.QSplitter(self)
 
         left_widget = QtWidgets.QWidget(self.splitter)
-        self.left_vlay = QtWidgets.QVBoxLayout(left_widget)
-        self.left_vlay.setContentsMargins(0, 0, 0, 0)
+        self.left_v_lay = QtWidgets.QVBoxLayout(left_widget)
+        self.left_v_lay.setContentsMargins(0, 0, 0, 0)
 
         right_widget = QtWidgets.QWidget(self.splitter)
-        self.right_vlayout = QtWidgets.QVBoxLayout(right_widget)
-        self.right_vlayout.setContentsMargins(0, 0, 0, 0)
+        self.right_v_lay = QtWidgets.QVBoxLayout(right_widget)
+        self.right_v_lay.setContentsMargins(0, 0, 0, 0)
 
         self.dialog_layout.addWidget(self.splitter)
 
@@ -87,7 +89,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.menu_tree_widget.setRootIsDecorated(True)
         self.menu_tree_widget.setHeaderHidden(True)
         self.menu_tree_widget.header().setVisible(False)
-        self.left_vlay.addWidget(self.menu_tree_widget)
+        self.left_v_lay.addWidget(self.menu_tree_widget)
 
         tik_button_box = TikButtonBox(parent=self)
         self.button_box_lay.addWidget(tik_button_box)
@@ -115,25 +117,25 @@ class SettingsDialog(QtWidgets.QDialog):
     def user_settings(self):
         """Create the user settings."""
         # create the menu items
-        self.user_widget_item = SwitchTreeItem(["User"], permission_level=0)
-        self.menu_tree_widget.addTopLevelItem(self.user_widget_item)
+        user_widget_item = SwitchTreeItem(["User"], permission_level=0)
+        self.menu_tree_widget.addTopLevelItem(user_widget_item)
 
         # we dont need to add sub-branches for user settings. All can be in root for now.
         content_widget = self.__create_generic_settings_layout(
             settings_data=self.main_object.user.settings,
             title="User Settings",
         )
-        self.user_widget_item.content = content_widget
+        user_widget_item.content = content_widget
 
     def project_settings(self):
         """Create the project settings."""
         # create the menu items
-        self.project_widget_item = SwitchTreeItem(["Project"], permission_level=3)
-        self.menu_tree_widget.addTopLevelItem(self.project_widget_item)
+        project_widget_item = SwitchTreeItem(["Project"], permission_level=3)
+        self.menu_tree_widget.addTopLevelItem(project_widget_item)
 
         # create sub-branches
         preview_settings_item = SwitchTreeItem(["Preview Settings"], permission_level=3)
-        self.project_widget_item.addChild(preview_settings_item)
+        project_widget_item.addChild(preview_settings_item)
         preview_settings_item.content = self.__create_generic_settings_layout(
             settings_data=self.main_object.project.preview_settings,
             title="Preview Settings",
@@ -142,11 +144,11 @@ class SettingsDialog(QtWidgets.QDialog):
         category_definitions = SwitchTreeItem(
             ["Category Definitions"], permission_level=3
         )
-        self.project_widget_item.addChild(category_definitions)
+        project_widget_item.addChild(category_definitions)
         category_definitions.content = self._project_category_definitions_content()
 
         metadata = SwitchTreeItem(["Metadata"], permission_level=3)
-        self.project_widget_item.addChild(metadata)
+        project_widget_item.addChild(metadata)
         metadata.content = self._metadata_content()
 
     def common_settings(self):
@@ -197,7 +199,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
             content_layout.addStretch()
 
-            self.right_vlayout.addWidget(content_widget)
+            self.right_v_lay.addWidget(content_widget)
 
             # add it to the item
             root_item.content = content_widget
@@ -230,18 +232,14 @@ class SettingsDialog(QtWidgets.QDialog):
         extracts = []
         # get the location of the file
         _file_path = Path(__file__)
-        print(_file_path)
-        # go to the tik_manager4 installation folder from  /tik_manager4/ui/dialog/settings_dialog.py
+        # go to the tik_manager4 installation folder from
+        # /tik_manager4/ui/dialog/settings_dialog.py
         _tik_manager4_path = _file_path.parents[2]
-        print("tik manager path: ", _tik_manager4_path)
         # DCC folder
         _dcc_folder = _tik_manager4_path / "dcc"
-        print("dcc folder: ", _dcc_folder)
         # collect all 'extract' and 'validate' folders under _dcc_folder recursively
         _extract_folders = list(_dcc_folder.glob("**/extract"))
-        print("extract folders: ", _extract_folders)
         _validate_folders = list(_dcc_folder.glob("**/validate"))
-        print("validate folders: ", _validate_folders)
         # Path(_search_dir).rglob("**/*.twork")
 
         # collect all extractors
@@ -253,7 +251,6 @@ class SettingsDialog(QtWidgets.QDialog):
                     if not x.stem.startswith("_")
                 ]
             )
-        print("extracts: ", extracts)
         for _validate_folder in _validate_folders:
             validations.extend(
                 [
@@ -262,8 +259,6 @@ class SettingsDialog(QtWidgets.QDialog):
                     if not x.stem.startswith("_")
                 ]
             )
-        print("validations: ", validations)
-
 
         self._validations_and_extracts = {
             "validations": list(set(validations)),
@@ -276,7 +271,7 @@ class SettingsDialog(QtWidgets.QDialog):
     ):
         """Create a generic settings layout."""
         content_widget = QtWidgets.QWidget()
-        self.right_vlayout.addWidget(content_widget)
+        self.right_v_lay.addWidget(content_widget)
 
         settings_vlay = QtWidgets.QVBoxLayout(content_widget)
 
@@ -334,7 +329,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
         # hide by default
         project_category_definitions_widget.setVisible(False)
-        self.right_vlayout.addWidget(project_category_definitions_widget)
+        self.right_v_lay.addWidget(project_category_definitions_widget)
 
         # SIGNALS
         project_category_definitions_widget.modified.connect(self.check_changes)
@@ -350,7 +345,7 @@ class SettingsDialog(QtWidgets.QDialog):
             settings_data, title="Metadata Definitions", parent=self
         )
         metadata_widget.setVisible(False)
-        self.right_vlayout.addWidget(metadata_widget)
+        self.right_v_lay.addWidget(metadata_widget)
 
         # SIGNALS
         metadata_widget.modified.connect(self.check_changes)
@@ -366,7 +361,7 @@ class SettingsDialog(QtWidgets.QDialog):
             settings_data, title="Metadata Definitions (Common)", parent=self
         )
         common_metadata_widget.setVisible(False)
-        self.right_vlayout.addWidget(common_metadata_widget)
+        self.right_v_lay.addWidget(common_metadata_widget)
 
         # SIGNALS
         common_metadata_widget.modified.connect(self.check_changes)
@@ -385,7 +380,7 @@ class SettingsDialog(QtWidgets.QDialog):
             parent=self,
         )
         common_category_definitions_widget.setVisible(False)
-        self.right_vlayout.addWidget(common_category_definitions_widget)
+        self.right_v_lay.addWidget(common_category_definitions_widget)
 
         # SIGNALS
         common_category_definitions_widget.modified.connect(self.check_changes)
@@ -418,8 +413,8 @@ class MetadataDefinitions(QtWidgets.QWidget):
 
         self.header_layout = None
         self.splitter = None
-        self.left_vlay = None
-        self.right_vlay = None
+        self.left_v_lay = None
+        self.right_v_lay = None
 
         self.switch_tree_widget = None
 
@@ -438,12 +433,12 @@ class MetadataDefinitions(QtWidgets.QWidget):
         self.splitter = QtWidgets.QSplitter(self)
 
         left_widget = QtWidgets.QWidget(self.splitter)
-        self.left_vlay = QtWidgets.QVBoxLayout(left_widget)
-        self.left_vlay.setContentsMargins(0, 0, 0, 0)
+        self.left_v_lay = QtWidgets.QVBoxLayout(left_widget)
+        self.left_v_lay.setContentsMargins(0, 0, 0, 0)
 
         right_widget = QtWidgets.QWidget(self.splitter)
-        self.right_vlay = QtWidgets.QVBoxLayout(right_widget)
-        self.right_vlay.setContentsMargins(0, 0, 0, 0)
+        self.right_v_lay = QtWidgets.QVBoxLayout(right_widget)
+        self.right_v_lay.setContentsMargins(0, 0, 0, 0)
 
         main_layout.addWidget(self.splitter)
 
@@ -463,11 +458,11 @@ class MetadataDefinitions(QtWidgets.QWidget):
         self.switch_tree_widget.setRootIsDecorated(False)
         self.switch_tree_widget.setHeaderHidden(True)
         self.switch_tree_widget.header().setVisible(False)
-        self.left_vlay.addWidget(self.switch_tree_widget)
+        self.left_v_lay.addWidget(self.switch_tree_widget)
 
         # add 'add' and 'remove' buttons in a horizontal layout
         add_remove_buttons_layout = QtWidgets.QHBoxLayout()
-        self.left_vlay.addLayout(add_remove_buttons_layout)
+        self.left_v_lay.addLayout(add_remove_buttons_layout)
         add_metadata_button = TikButton(text="Add New Metadata", parent=self)
         add_remove_buttons_layout.addWidget(add_metadata_button)
         remove_metadata_button = TikButton(text="Delete Metadata", parent=self)
@@ -513,31 +508,31 @@ class MetadataDefinitions(QtWidgets.QWidget):
     @staticmethod
     def _prepare_default_data(data_type):
         """Convenience method to prepare the default data for the given data type."""
-        default_data = {"default": "", "type": data_type}
-        if data_type == "boolean":
-            default_data["default"]: bool = False
-        elif data_type == "string":
-            default_data["default"]: str = ""
-        elif data_type == "integer":
-            default_data["default"]: int = 0
-        elif data_type == "float":
-            default_data["default"]: float = 0.0
-        elif data_type == "vector2Int":
-            default_data["default"]: list = [0, 0]
-        elif data_type == "vector2Float":
-            default_data["default"]: list = [0.0, 0.0]
-        elif data_type == "vector3Int":
-            default_data["default"]: list = [0, 0, 0]
-        elif data_type == "vector3Float":
-            default_data["default"]: list = [0.0, 0.0, 0.0]
-        elif data_type == "combo":
-            default_data["default"]: str = ""
-        else:
-            default_data["default"]: str = ""
 
+        if data_type == "boolean":
+            _default_object_type: bool = False
+        elif data_type == "string":
+            _default_object_type: str = ""
+        elif data_type == "integer":
+            _default_object_type: int = 0
+        elif data_type == "float":
+            _default_object_type: float = 0.0
+        elif data_type == "vector2Int":
+            _default_object_type: list = [0, 0]
+        elif data_type == "vector2Float":
+            _default_object_type: list = [0.0, 0.0]
+        elif data_type == "vector3Int":
+            _default_object_type: list = [0, 0, 0]
+        elif data_type == "vector3Float":
+            _default_object_type: list = [0.0, 0.0, 0.0]
+        elif data_type == "combo":
+            _default_object_type: str = ""
+        else:
+            _default_object_type: str = ""
+        default_data = {"default": _default_object_type, "type": data_type}
+        # enum lists are only for combo boxes
         if data_type == "combo":
             default_data["enum"] = []
-
         return default_data
 
     def remove_metadata(self):
@@ -562,7 +557,7 @@ class MetadataDefinitions(QtWidgets.QWidget):
     def _delete_value_widget(self, widget_item):
         """Deletes the value widget and removes it from the layout."""
         widget_item.content.deleteLater()
-        self.right_vlay.removeWidget(widget_item.content)
+        self.right_v_lay.removeWidget(widget_item.content)
         widget_item.content = None
 
     def _add_value_widget(self, name, data):
@@ -582,8 +577,8 @@ class MetadataDefinitions(QtWidgets.QWidget):
 
         form_layout = QtWidgets.QFormLayout()
         content_layout.addLayout(form_layout)
-
-        # type label. We don't want to make it editable. Easier to delete the metadata and add a new one.
+        # type label. We don't want to make it editable.
+        # Easier to delete the metadata and add a new one.
         type_label = QtWidgets.QLabel("Type: ")
         type_name = ResolvedText(data_type)
         form_layout.addRow(type_label, type_name)
@@ -616,7 +611,7 @@ class MetadataDefinitions(QtWidgets.QWidget):
             )
 
         content_widget.setVisible(False)
-        self.right_vlay.addWidget(content_widget)
+        self.right_v_lay.addWidget(content_widget)
         widget_item.content = content_widget
 
     def build_value_widgets(self):
@@ -820,7 +815,6 @@ class CategoryDefinitions(QtWidgets.QWidget):
         type_combo.com.valueChanged.connect(lambda value: data.update({"type": value}))
         type_combo.com.valueChanged.connect(lambda value: self.modified.emit(True))
 
-
         validations_list.model().rowsMoved.connect(
             lambda _: self._reorder_items(validations_model, data["validations"])
         )
@@ -834,7 +828,6 @@ class CategoryDefinitions(QtWidgets.QWidget):
                 validations_model, data["validations"], "validations"
             )
         )
-        # add_extract_button.clicked.connect(test_print)
         extracts_list.model().rowsMoved.connect(
             lambda _: self._reorder_items(extracts_model, data["extracts"])
         )
@@ -844,7 +837,6 @@ class CategoryDefinitions(QtWidgets.QWidget):
         add_extract_button.clicked.connect(
             lambda: self._add_item(extracts_model, data["extracts"], "extracts")
         )
-
 
         # link the content widget to the item for visibility switching
         content_widget.setVisible(False)
