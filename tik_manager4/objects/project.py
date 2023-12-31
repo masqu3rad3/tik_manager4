@@ -202,11 +202,12 @@ class Project(Subproject):
         """
 
         _file_path_obj = Path(file_path)
-        parent_path = _file_path_obj.parent
+        work_path = _file_path_obj.parent
         # get the base name with extension
+        category_path = work_path.parent
         base_name = _file_path_obj.name
         try:
-            relative_path = parent_path.relative_to(self.absolute_path)
+            relative_path = category_path.relative_to(self.absolute_path)
         except ValueError:
             self.log.error("File path is not under the project root")
             return None, None
@@ -215,7 +216,8 @@ class Project(Subproject):
         for work_file in work_files:
             _work = Work(work_file)
             for nmb, version in enumerate(_work.versions):
-                if version.get("scene_path") == base_name:
+                resolved_path = Path(work_path.stem, base_name).as_posix()
+                if version.get("scene_path") == resolved_path:
                     return _work, version.get("version_number", nmb)
         return None, None
 
