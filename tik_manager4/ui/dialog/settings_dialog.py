@@ -1,10 +1,14 @@
+# pylint: disable=import-error
 """Dialog for settings."""
+
+import dataclasses
 
 from pathlib import Path
 import logging
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 from tik_manager4.ui.widgets import value_widgets
+from tik_manager4.ui.widgets.validated_string import ValidatedString
 from tik_manager4.ui.widgets.switch_tree import SwitchTreeWidget, SwitchTreeItem
 from tik_manager4.ui.widgets.common import (
     HeaderLabel,
@@ -19,8 +23,21 @@ from tik_manager4.ui.layouts.settings_layout import (
     convert_to_ui_definition,
     guess_data_type,
 )
+from ui.Qt.QtWidgets import QListView
 
 LOG = logging.getLogger(__name__)
+
+
+@dataclasses.dataclass
+class MainLayout:
+    """Main layout structure for the settings dialog and contents."""
+
+    master_layout: (QtWidgets.QVBoxLayout, QtWidgets.QHBoxLayout) = None
+    header_layout: QtWidgets.QVBoxLayout = None
+    splitter: QtWidgets.QSplitter = None
+    left_v_lay: QtWidgets.QVBoxLayout = None
+    right_v_lay: QtWidgets.QVBoxLayout = None
+    button_box_lay: QtWidgets.QHBoxLayout = None
 
 
 class SettingsDialog(QtWidgets.QDialog):
@@ -28,59 +45,48 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def __init__(self, main_object, *args, **kwargs):
         """Initiate the class."""
-        super(SettingsDialog, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # DYNAMIC VARIABLES
         self._setting_widgets = []
         self.settings_list = []  # list of settings objects
 
         self.main_object = main_object
-
+        self.layouts = MainLayout()
         self.setWindowTitle("Settings")
-
-        self.dialog_layout = QtWidgets.QVBoxLayout(self)
-        self.dialog_layout.setContentsMargins(10, 10, 10, 10)
-
-        # variables
-        self.splitter = None
-        self.left_v_lay = None
-        self.button_box_lay = None
         self.menu_tree_widget = None
         self.apply_button = None
         self._validations_and_extracts = (
             None  # for caching the validations and extracts
         )
-        self.right_v_lay = None
+        # Execution
+        self.build_ui()
 
-        # # Execution
+    def build_ui(self):
+        """Build the UI."""
         self.build_layouts()
         self.build_static_widgets()
         self.create_content()
-
         # set the first item on menu tree as current
         self.menu_tree_widget.setCurrentItem(self.menu_tree_widget.topLevelItem(0))
-
         self.resize(960, 630)
-
-        self.splitter.setSizes([250, 750])
+        self.layouts.splitter.setSizes([250, 750])
 
     def build_layouts(self):
         """Build layouts."""
+        self.layouts.master_layout = QtWidgets.QVBoxLayout(self)
+        self.layouts.splitter = QtWidgets.QSplitter(self)
 
-        self.splitter = QtWidgets.QSplitter(self)
+        left_widget = QtWidgets.QWidget(self.layouts.splitter)
+        self.layouts.left_v_lay = QtWidgets.QVBoxLayout(left_widget)
+        self.layouts.left_v_lay.setContentsMargins(0, 0, 0, 0)
 
-        left_widget = QtWidgets.QWidget(self.splitter)
-        self.left_v_lay = QtWidgets.QVBoxLayout(left_widget)
-        self.left_v_lay.setContentsMargins(0, 0, 0, 0)
-
-        right_widget = QtWidgets.QWidget(self.splitter)
-        self.right_v_lay = QtWidgets.QVBoxLayout(right_widget)
-        self.right_v_lay.setContentsMargins(0, 0, 0, 0)
-
-        self.dialog_layout.addWidget(self.splitter)
-
-        self.button_box_lay = QtWidgets.QHBoxLayout()
-        self.dialog_layout.addLayout(self.button_box_lay)
+        right_widget = QtWidgets.QWidget(self.layouts.splitter)
+        self.layouts.right_v_lay = QtWidgets.QVBoxLayout(right_widget)
+        self.layouts.right_v_lay.setContentsMargins(0, 0, 0, 0)
+        self.layouts.master_layout.addWidget(self.layouts.splitter)
+        self.layouts.button_box_lay = QtWidgets.QHBoxLayout()
+        self.layouts.master_layout.addLayout(self.layouts.button_box_lay)
 
     def build_static_widgets(self):
         """Build static widgets."""
@@ -89,10 +95,10 @@ class SettingsDialog(QtWidgets.QDialog):
         self.menu_tree_widget.setRootIsDecorated(True)
         self.menu_tree_widget.setHeaderHidden(True)
         self.menu_tree_widget.header().setVisible(False)
-        self.left_v_lay.addWidget(self.menu_tree_widget)
+        self.layouts.left_v_lay.addWidget(self.menu_tree_widget)
 
         tik_button_box = TikButtonBox(parent=self)
-        self.button_box_lay.addWidget(tik_button_box)
+        self.layouts.button_box_lay.addWidget(tik_button_box)
         self.apply_button = tik_button_box.addButton("Apply", tik_button_box.ApplyRole)
         self.apply_button.setEnabled(False)
         cancel_button = tik_button_box.addButton("Cancel", tik_button_box.RejectRole)
@@ -103,7 +109,7 @@ class SettingsDialog(QtWidgets.QDialog):
         cancel_button.clicked.connect(self.close)
         ok_button.clicked.connect(lambda: self.apply_settings(close_dialog=True))
 
-        self.button_box_lay.addWidget(tik_button_box)
+        self.layouts.button_box_lay.addWidget(tik_button_box)
 
     def create_content(self):
         """Create the content."""
@@ -111,7 +117,6 @@ class SettingsDialog(QtWidgets.QDialog):
         self.user_settings()
         self.project_settings()
         self.common_settings()
-
         self.create_content_links()
 
     def user_settings(self):
@@ -119,7 +124,6 @@ class SettingsDialog(QtWidgets.QDialog):
         # create the menu items
         user_widget_item = SwitchTreeItem(["User"], permission_level=0)
         self.menu_tree_widget.addTopLevelItem(user_widget_item)
-
         # we dont need to add sub-branches for user settings. All can be in root for now.
         content_widget = self.__create_generic_settings_layout(
             settings_data=self.main_object.user.settings,
@@ -140,7 +144,6 @@ class SettingsDialog(QtWidgets.QDialog):
             settings_data=self.main_object.project.preview_settings,
             title="Preview Settings",
         )
-
         category_definitions = SwitchTreeItem(
             ["Category Definitions"], permission_level=3
         )
@@ -175,14 +178,12 @@ class SettingsDialog(QtWidgets.QDialog):
             self.menu_tree_widget.topLevelItem(x)
             for x in range(self.menu_tree_widget.topLevelItemCount())
         ]
-
         for root_item in root_items:
             # create a content widget
             if not root_item.content:
                 content_widget = QtWidgets.QWidget()
                 content_widget.setVisible(False)
                 content_layout = QtWidgets.QVBoxLayout(content_widget)
-
             else:
                 content_widget = root_item.content
                 content_layout = content_widget.layout()
@@ -198,9 +199,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 content_layout.addWidget(button)
 
             content_layout.addStretch()
-
-            self.right_v_lay.addWidget(content_widget)
-
+            self.layouts.right_v_lay.addWidget(content_widget)
             # add it to the item
             root_item.content = content_widget
 
@@ -240,8 +239,6 @@ class SettingsDialog(QtWidgets.QDialog):
         # collect all 'extract' and 'validate' folders under _dcc_folder recursively
         _extract_folders = list(_dcc_folder.glob("**/extract"))
         _validate_folders = list(_dcc_folder.glob("**/validate"))
-        # Path(_search_dir).rglob("**/*.twork")
-
         # collect all extractors
         for _extract_folder in _extract_folders:
             extracts.extend(
@@ -271,13 +268,13 @@ class SettingsDialog(QtWidgets.QDialog):
     ):
         """Create a generic settings layout."""
         content_widget = QtWidgets.QWidget()
-        self.right_v_lay.addWidget(content_widget)
+        self.layouts.right_v_lay.addWidget(content_widget)
 
-        settings_vlay = QtWidgets.QVBoxLayout(content_widget)
+        settings_v_lay = QtWidgets.QVBoxLayout(content_widget)
 
         header_layout = QtWidgets.QVBoxLayout()
         # header_layout.setSpacing(13)
-        settings_vlay.addLayout(header_layout)
+        settings_v_lay.addLayout(header_layout)
 
         # add the title
         title_label = HeaderLabel(title)
@@ -295,7 +292,7 @@ class SettingsDialog(QtWidgets.QDialog):
         scroll_area_contents_widget = QtWidgets.QWidget()
         scroll_area_contents_widget.setGeometry(QtCore.QRect(0, 0, 104, 345))
         scroll_area.setWidget(scroll_area_contents_widget)
-        settings_vlay.addWidget(scroll_area)
+        settings_v_lay.addWidget(scroll_area)
         scroll_layout = QtWidgets.QVBoxLayout(scroll_area_contents_widget)
         scroll_layout.setContentsMargins(0, 0, 0, 0)
 
@@ -329,7 +326,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
         # hide by default
         project_category_definitions_widget.setVisible(False)
-        self.right_v_lay.addWidget(project_category_definitions_widget)
+        self.layouts.right_v_lay.addWidget(project_category_definitions_widget)
 
         # SIGNALS
         project_category_definitions_widget.modified.connect(self.check_changes)
@@ -345,7 +342,7 @@ class SettingsDialog(QtWidgets.QDialog):
             settings_data, title="Metadata Definitions", parent=self
         )
         metadata_widget.setVisible(False)
-        self.right_v_lay.addWidget(metadata_widget)
+        self.layouts.right_v_lay.addWidget(metadata_widget)
 
         # SIGNALS
         metadata_widget.modified.connect(self.check_changes)
@@ -361,7 +358,7 @@ class SettingsDialog(QtWidgets.QDialog):
             settings_data, title="Metadata Definitions (Common)", parent=self
         )
         common_metadata_widget.setVisible(False)
-        self.right_v_lay.addWidget(common_metadata_widget)
+        self.layouts.right_v_lay.addWidget(common_metadata_widget)
 
         # SIGNALS
         common_metadata_widget.modified.connect(self.check_changes)
@@ -380,7 +377,7 @@ class SettingsDialog(QtWidgets.QDialog):
             parent=self,
         )
         common_category_definitions_widget.setVisible(False)
-        self.right_v_lay.addWidget(common_category_definitions_widget)
+        self.layouts.right_v_lay.addWidget(common_category_definitions_widget)
 
         # SIGNALS
         common_category_definitions_widget.modified.connect(self.check_changes)
@@ -404,65 +401,63 @@ class MetadataDefinitions(QtWidgets.QWidget):
 
     modified = QtCore.Signal(bool)
 
-    def __init__(self, settings_data, title="", *args, **kwargs):
-        super(MetadataDefinitions, self).__init__(*args, **kwargs)
+    def __init__(self, settings_data, *args, title="", **kwargs):
+        super().__init__(*args, **kwargs)
 
         # variables
         self.title = title
         self.settings_data = settings_data
 
-        self.header_layout = None
-        self.splitter = None
-        self.left_v_lay = None
-        self.right_v_lay = None
-
+        self.layouts = MainLayout()
         self.switch_tree_widget = None
 
         self.build_layouts()
         self.build_static_widgets()
         self.build_value_widgets()
 
-        self.splitter.setSizes([500, 500])
+        self.layouts.splitter.setSizes([500, 500])
 
     def build_layouts(self):
         """Build the layouts."""
-        main_layout = QtWidgets.QVBoxLayout(self)
-        self.header_layout = QtWidgets.QVBoxLayout()
-        main_layout.addLayout(self.header_layout)
+        self.layouts.master_layout = QtWidgets.QVBoxLayout(self)
+        self.layouts.header_layout = QtWidgets.QVBoxLayout()
+        self.layouts.master_layout.addLayout(self.layouts.header_layout)
 
-        self.splitter = QtWidgets.QSplitter(self)
+        self.layouts.splitter = QtWidgets.QSplitter(self)
 
-        left_widget = QtWidgets.QWidget(self.splitter)
-        self.left_v_lay = QtWidgets.QVBoxLayout(left_widget)
-        self.left_v_lay.setContentsMargins(0, 0, 0, 0)
+        left_widget = QtWidgets.QWidget(self.layouts.splitter)
+        self.layouts.left_v_lay = QtWidgets.QVBoxLayout(left_widget)
+        self.layouts.left_v_lay.setContentsMargins(0, 0, 0, 0)
 
-        right_widget = QtWidgets.QWidget(self.splitter)
-        self.right_v_lay = QtWidgets.QVBoxLayout(right_widget)
-        self.right_v_lay.setContentsMargins(0, 0, 0, 0)
+        right_widget = QtWidgets.QWidget(self.layouts.splitter)
+        self.layouts.right_v_lay = QtWidgets.QVBoxLayout(right_widget)
+        self.layouts.right_v_lay.setContentsMargins(0, 0, 0, 0)
 
-        main_layout.addWidget(self.splitter)
+        self.layouts.master_layout.addWidget(self.layouts.splitter)
 
     def build_static_widgets(self):
+        """Build static widgets."""
         title_label = HeaderLabel(self.title)
-        # title_label.setMaximumHeight(30)
-        self.header_layout.addWidget(title_label)
+        self.layouts.header_layout.addWidget(title_label)
 
         # add a label to show the path of the settings file
         path_label = ResolvedText(self.settings_data.settings_file)
         path_label.setMaximumHeight(30)
-        self.header_layout.addWidget(path_label)
+        self.layouts.header_layout.addWidget(path_label)
 
-        self.header_layout.addWidget(VerticalSeparator(color=(255, 141, 28), height=1))
+        self.layouts.header_layout.addWidget(
+            VerticalSeparator(color=(255, 141, 28), height=1)
+        )
 
         self.switch_tree_widget = SwitchTreeWidget()
         self.switch_tree_widget.setRootIsDecorated(False)
         self.switch_tree_widget.setHeaderHidden(True)
         self.switch_tree_widget.header().setVisible(False)
-        self.left_v_lay.addWidget(self.switch_tree_widget)
+        self.layouts.left_v_lay.addWidget(self.switch_tree_widget)
 
         # add 'add' and 'remove' buttons in a horizontal layout
         add_remove_buttons_layout = QtWidgets.QHBoxLayout()
-        self.left_v_lay.addLayout(add_remove_buttons_layout)
+        self.layouts.left_v_lay.addLayout(add_remove_buttons_layout)
         add_metadata_button = TikButton(text="Add New Metadata", parent=self)
         add_remove_buttons_layout.addWidget(add_metadata_button)
         remove_metadata_button = TikButton(text="Delete Metadata", parent=self)
@@ -557,7 +552,7 @@ class MetadataDefinitions(QtWidgets.QWidget):
     def _delete_value_widget(self, widget_item):
         """Deletes the value widget and removes it from the layout."""
         widget_item.content.deleteLater()
-        self.right_v_lay.removeWidget(widget_item.content)
+        self.layouts.right_v_lay.removeWidget(widget_item.content)
         widget_item.content = None
 
     def _add_value_widget(self, name, data):
@@ -611,7 +606,7 @@ class MetadataDefinitions(QtWidgets.QWidget):
             )
 
         content_widget.setVisible(False)
-        self.right_v_lay.addWidget(content_widget)
+        self.layouts.right_v_lay.addWidget(content_widget)
         widget_item.content = content_widget
 
     def build_value_widgets(self):
@@ -627,17 +622,15 @@ class CategoryDefinitions(QtWidgets.QWidget):
 
     modified = QtCore.Signal(bool)
 
-    def __init__(self, settings_data, availability_dict, title="", *args, **kwargs):
-        super(CategoryDefinitions, self).__init__(*args, **kwargs)
+    def __init__(self, settings_data, availability_dict, *args, title="", **kwargs):
+        """Initiate the class."""
+        super().__init__(*args, **kwargs)
         self.availability_dict = availability_dict
 
         self.title = title
         self.settings_data = settings_data
 
-        self.header_layout = None
-        self.splitter = None
-        self.left_vlay = None
-        self.right_vlay = None
+        self.layouts = MainLayout()
 
         self.switch_tree_widget = None
 
@@ -645,47 +638,50 @@ class CategoryDefinitions(QtWidgets.QWidget):
         self.build_static_widgets()
         self.build_value_widgets()
 
-        self.splitter.setSizes([500, 500])
+        self.layouts.splitter.setSizes([500, 500])
 
     def build_layouts(self):
         """Build the layouts."""
-        main_layout = QtWidgets.QVBoxLayout(self)
-        self.header_layout = QtWidgets.QVBoxLayout()
-        main_layout.addLayout(self.header_layout)
+        self.layouts.master_layout = QtWidgets.QVBoxLayout(self)
+        self.layouts.header_layout = QtWidgets.QVBoxLayout()
+        self.layouts.master_layout.addLayout(self.layouts.header_layout)
 
-        self.splitter = QtWidgets.QSplitter(self)
+        self.layouts.splitter = QtWidgets.QSplitter(self)
 
-        left_widget = QtWidgets.QWidget(self.splitter)
-        self.left_vlay = QtWidgets.QVBoxLayout(left_widget)
-        self.left_vlay.setContentsMargins(0, 0, 0, 0)
+        left_widget = QtWidgets.QWidget(self.layouts.splitter)
+        self.layouts.left_v_lay = QtWidgets.QVBoxLayout(left_widget)
+        self.layouts.left_v_lay.setContentsMargins(0, 0, 0, 0)
 
-        right_widget = QtWidgets.QWidget(self.splitter)
-        self.right_vlay = QtWidgets.QVBoxLayout(right_widget)
-        self.right_vlay.setContentsMargins(0, 0, 0, 0)
+        right_widget = QtWidgets.QWidget(self.layouts.splitter)
+        self.layouts.right_v_lay = QtWidgets.QVBoxLayout(right_widget)
+        self.layouts.right_v_lay.setContentsMargins(0, 0, 0, 0)
 
-        main_layout.addWidget(self.splitter)
+        self.layouts.master_layout.addWidget(self.layouts.splitter)
 
     def build_static_widgets(self):
+        """Build static widgets."""
         title_label = HeaderLabel(self.title)
         # title_label.setMaximumHeight(30)
-        self.header_layout.addWidget(title_label)
+        self.layouts.header_layout.addWidget(title_label)
 
         # add a label to show the path of the settings file
         path_label = ResolvedText(self.settings_data.settings_file)
         path_label.setMaximumHeight(30)
-        self.header_layout.addWidget(path_label)
+        self.layouts.header_layout.addWidget(path_label)
 
-        self.header_layout.addWidget(VerticalSeparator(color=(255, 141, 28), height=1))
+        self.layouts.header_layout.addWidget(
+            VerticalSeparator(color=(255, 141, 28), height=1)
+        )
 
         self.switch_tree_widget = SwitchTreeWidget()
         self.switch_tree_widget.setRootIsDecorated(False)
         self.switch_tree_widget.setHeaderHidden(True)
         self.switch_tree_widget.header().setVisible(False)
-        self.left_vlay.addWidget(self.switch_tree_widget)
+        self.layouts.left_v_lay.addWidget(self.switch_tree_widget)
 
         # add 'add' and 'remove' buttons in a horizontal layout
         add_remove_buttons_layout = QtWidgets.QHBoxLayout()
-        self.left_vlay.addLayout(add_remove_buttons_layout)
+        self.layouts.left_v_lay.addLayout(add_remove_buttons_layout)
         add_metadata_button = TikButton(text="Add New Category", parent=self)
         add_remove_buttons_layout.addWidget(add_metadata_button)
         remove_metadata_button = TikButton(text="Delete Category", parent=self)
@@ -697,7 +693,54 @@ class CategoryDefinitions(QtWidgets.QWidget):
 
     def add_category(self):
         """Pop up a dialog to add a new category."""
-        pass
+
+        def _add_category_item():
+            name = name_line_edit.text()
+            if name in self.settings_data.properties:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "Warning",
+                    f"Category with the name '{name}' already exists.",
+                )
+                return
+            default_data = {
+                "type": "",
+                "validations": [],
+                "extracts": [],
+            }
+            self.settings_data.add_property(name, default_data)
+            self._add_value_widget(name, data=default_data)
+            # emit the modified signal
+            self.modified.emit(True)
+            add_category_dialog.close()
+
+        add_category_dialog = QtWidgets.QDialog(self)
+        add_category_dialog.setWindowTitle("Add Category")
+        dialog_layout = QtWidgets.QVBoxLayout(add_category_dialog)
+        add_category_dialog.setLayout(dialog_layout)
+        # create a line edit to enter the name
+        horizontal_layout = QtWidgets.QHBoxLayout()
+        dialog_layout.addLayout(horizontal_layout)
+        name_label = QtWidgets.QLabel("Name: ")
+        # name_line_edit = QtWidgets.QLineEdit(self)
+        name_line_edit = ValidatedString("name")
+        name_line_edit.allow_spaces = False
+        name_line_edit.allow_special_characters = False
+        name_line_edit.allow_empty = False
+        horizontal_layout.addWidget(name_label)
+        horizontal_layout.addWidget(name_line_edit)
+        # create a button box
+        button_box = TikButtonBox()
+        add_category_pb = button_box.addButton("Add", button_box.AcceptRole)
+        name_line_edit.set_connected_widgets(add_category_pb)
+        _cancel_pb = button_box.addButton("Cancel", button_box.RejectRole)
+        dialog_layout.addWidget(button_box)
+        # if user clicks ok return the selected items
+        # button_box.accepted.connect(add_category_dialog.accept)
+        add_category_pb.clicked.connect(_add_category_item)
+        button_box.rejected.connect(add_category_dialog.reject)
+        # show the dialog
+        add_category_dialog.show()
 
     def remove_category(self):
         """Removes the selected category from the layout."""
@@ -714,7 +757,6 @@ class CategoryDefinitions(QtWidgets.QWidget):
         # delete the value widget
         self._delete_value_widget(selected_item)
         # ARCHIVE the category in settings data
-        # self.settings_data.edit_property(category_name, {"archived": True})
         self.settings_data.edit_sub_property((category_name, "archived"), True)
         # emit the modified signal
         self.modified.emit(True)
@@ -722,47 +764,35 @@ class CategoryDefinitions(QtWidgets.QWidget):
     def _delete_value_widget(self, widget_item):
         """Deletes the value widget and removes it from the layout."""
         widget_item.content.deleteLater()
-        self.right_vlay.removeWidget(widget_item.content)
+        self.layouts.right_v_lay.removeWidget(widget_item.content)
         widget_item.content = None
 
-    def _add_value_widget(self, name, data):
-        """Adds a new value widget to the layout."""
-
-        # if it is archived, skip it.
-        if data.get("archived"):
-            return
-
-        widget_item = SwitchTreeItem([name])
-        self.switch_tree_widget.addTopLevelItem(widget_item)
-
-        content_widget = QtWidgets.QWidget()
-        content_layout = QtWidgets.QVBoxLayout()
-        content_widget.setLayout(content_layout)
-
-        form_layout = QtWidgets.QFormLayout()
-        content_layout.addLayout(form_layout)
-
-        # there are 3 contents in each category definition
-        # 1. type
+    def __add_type(self, form_layout, data):
+        """Convenience method for adding a type widget."""
         type_label = QtWidgets.QLabel("Type: ")
         type_combo = value_widgets.Combo(name="type", value=data["type"])
         type_combo.setToolTip(
-            "Type of the category. This value defines if the category belongs to an asset or shot mode. If left empty, it will be available in all modes."
+            "Type of the category. "
+            "This value defines if the category belongs to an asset or shot mode. "
+            "If left empty, it will be available in all modes."
         )
         type_combo.addItems(["asset", "shot", ""])
-
         type_combo.setCurrentText(data["type"])
+
         form_layout.addRow(type_label, type_combo)
 
-        # 2. validations
-        # add the validations
+        # SIGNALS
+        type_combo.com.valueChanged.connect(lambda value: data.update({"type": value}))
+        type_combo.com.valueChanged.connect(lambda value: self.modified.emit(True))
+
+    def __add_validations(self, form_layout, data):
+        """Convenience method for adding validations view."""
         validations_layout = QtWidgets.QHBoxLayout()
         validations_label = QtWidgets.QLabel("Validations: ")
         # create a standard model to hold and manipulate the data
-        # validations_model = QtCore.QStringListModel()
         validations_model = ReorderListModel()
         validations_model.setStringList(data["validations"])
-        validations_list = QtWidgets.QListView()
+        validations_list: QListView = QtWidgets.QListView()
         # validations_list = ReorderListView()
         validations_list.setModel(validations_model)
         # # make the items in the list change order by drag and drop
@@ -786,35 +816,7 @@ class CategoryDefinitions(QtWidgets.QWidget):
 
         form_layout.addRow(validations_label, validations_layout)
 
-        # 3. extracts
-        _extracts_layout = QtWidgets.QHBoxLayout()
-        extracts_label = QtWidgets.QLabel("Extracts: ")
-        # create a standard model to hold and manipulate the data
-        extracts_model = QtCore.QStringListModel()
-        extracts_model.setStringList(data["extracts"])
-        extracts_list = QtWidgets.QListView()
-        extracts_list.setModel(extracts_model)
-        extracts_list.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
-
-        _extracts_layout.addWidget(extracts_list)
-        # add the buttons
-        _extracts_buttons_layout = QtWidgets.QVBoxLayout()
-        _extracts_layout.addLayout(_extracts_buttons_layout)
-        add_extract_button = TikIconButton(
-            icon_name="plus", size=32, background_color="#405040", parent=self
-        )
-        _extracts_buttons_layout.addWidget(add_extract_button)
-        remove_extract_button = TikIconButton(
-            icon_name="minus", size=32, parent=self, background_color="#504040"
-        )
-        _extracts_buttons_layout.addWidget(remove_extract_button)
-
-        form_layout.addRow(extracts_label, _extracts_layout)
-
         # SIGNALS
-        type_combo.com.valueChanged.connect(lambda value: data.update({"type": value}))
-        type_combo.com.valueChanged.connect(lambda value: self.modified.emit(True))
-
         validations_list.model().rowsMoved.connect(
             lambda _: self._reorder_items(validations_model, data["validations"])
         )
@@ -828,6 +830,33 @@ class CategoryDefinitions(QtWidgets.QWidget):
                 validations_model, data["validations"], "validations"
             )
         )
+    def __add_extracts(self, form_layout, data):
+        """Convenience method to add extracts view."""
+        extracts_layout = QtWidgets.QHBoxLayout()
+        extracts_label = QtWidgets.QLabel("Extracts: ")
+        # create a standard model to hold and manipulate the data
+        extracts_model = QtCore.QStringListModel()
+        extracts_model.setStringList(data["extracts"])
+        extracts_list = QtWidgets.QListView()
+        extracts_list.setModel(extracts_model)
+        extracts_list.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+
+        extracts_layout.addWidget(extracts_list)
+        # add the buttons
+        extracts_buttons_layout = QtWidgets.QVBoxLayout()
+        extracts_layout.addLayout(extracts_buttons_layout)
+        add_extract_button = TikIconButton(
+            icon_name="plus", size=32, background_color="#405040", parent=self
+        )
+        extracts_buttons_layout.addWidget(add_extract_button)
+        remove_extract_button = TikIconButton(
+            icon_name="minus", size=32, parent=self, background_color="#504040"
+        )
+        extracts_buttons_layout.addWidget(remove_extract_button)
+
+        form_layout.addRow(extracts_label, extracts_layout)
+
+        # SIGNALS
         extracts_list.model().rowsMoved.connect(
             lambda _: self._reorder_items(extracts_model, data["extracts"])
         )
@@ -838,9 +867,31 @@ class CategoryDefinitions(QtWidgets.QWidget):
             lambda: self._add_item(extracts_model, data["extracts"], "extracts")
         )
 
+    def _add_value_widget(self, name, data):
+        """Adds a new value widget to the layout."""
+
+        # if it is archived, skip it.
+        if data.get("archived"):
+            return
+
+        widget_item = SwitchTreeItem([name])
+        self.switch_tree_widget.addTopLevelItem(widget_item)
+
+        content_widget = QtWidgets.QWidget()
+        content_layout = QtWidgets.QVBoxLayout()
+        content_widget.setLayout(content_layout)
+
+        form_layout = QtWidgets.QFormLayout()
+        content_layout.addLayout(form_layout)
+
+        # add type, validations and extracts
+        self.__add_type(form_layout, data)
+        self.__add_validations(form_layout, data)
+        self.__add_extracts(form_layout, data)
+
         # link the content widget to the item for visibility switching
         content_widget.setVisible(False)
-        self.right_vlay.addWidget(content_widget)
+        self.layouts.right_v_lay.addWidget(content_widget)
         widget_item.content = content_widget
 
     def _remove_item(self, validations_model, validations_list, list_data):
@@ -888,7 +939,6 @@ class CategoryDefinitions(QtWidgets.QWidget):
 
         # if user clicks ok return the selected items
         button_box.accepted.connect(add)
-        # button_box.accepted.connect(dialog.accept)
         button_box.rejected.connect(add_item_dialog.reject)
         button_layout.addWidget(button_box)
         dialog_layout.addLayout(button_layout)
@@ -908,21 +958,22 @@ class CategoryDefinitions(QtWidgets.QWidget):
 
 
 class ReorderListModel(QtCore.QStringListModel):
-    """Custom QStringListModel that disables the overwrite when reordering items by drag and drop."""
-
+    """Custom QStringListModel that disables the overwrite
+    when reordering items by drag and drop.
+    """
+    # pylint: disable=too-few-public-methods
     def __init__(self, strings=None, parent=None):
         super().__init__(parent)
         if strings is not None:
             self.setStringList(strings)
-
     def flags(self, index):
+        """Override the flags method to disable the overwrite."""
         if index.isValid():
             return (
                 QtCore.Qt.ItemIsSelectable
                 | QtCore.Qt.ItemIsDragEnabled
                 | QtCore.Qt.ItemIsEnabled
             )
-
         return (
             QtCore.Qt.ItemIsSelectable
             | QtCore.Qt.ItemIsDragEnabled
@@ -936,13 +987,9 @@ if __name__ == "__main__":
     import sys
     import tik_manager4
     from tik_manager4.ui import pick
-
     app = QtWidgets.QApplication(sys.argv)
-
     tik = tik_manager4.initialize("Standalone")
     _style_file = pick.style_file()
-
     dialog = SettingsDialog(tik, styleSheet=str(_style_file.readAll(), "utf-8"))
-    # dialog = SettingsDialog(tik)
     dialog.show()
     sys.exit(app.exec_())

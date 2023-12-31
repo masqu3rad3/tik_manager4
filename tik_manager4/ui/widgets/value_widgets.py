@@ -51,10 +51,16 @@ class Combo(QtWidgets.QComboBox):
         self.setCurrentText(value)
         self.currentTextChanged.connect(self.value_change_event)
         self.disables = disables or []
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
     def value_change_event(self, e):
         self.value = e
         self.com.valueChangeEvent(e)
+
+    def wheelEvent(self, *args, **kwargs):  # pylint: disable=invalid-name
+        """Override the wheel event to not the scroll if the widget is not focused"""
+        if self.hasFocus():
+            super(Combo, self).wheelEvent(*args, **kwargs)
 
 
 class SpinnerInt(QtWidgets.QSpinBox):
@@ -77,10 +83,16 @@ class SpinnerInt(QtWidgets.QSpinBox):
         self.setValue(value)
         self.valueChanged.connect(self.value_change_event)
         self.disables = disables or []
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
     def value_change_event(self, e):
         self.value = e
         self.com.valueChangeEvent(e)
+
+    def wheelEvent(self, *args, **kwargs):  # pylint: disable=invalid-name
+        """Override the wheel event to not the scroll if the widget is not focused"""
+        if self.hasFocus():
+            super(SpinnerInt, self).wheelEvent(*args, **kwargs)
 
 
 class Integer(SpinnerInt):
@@ -109,10 +121,16 @@ class SpinnerFloat(QtWidgets.QDoubleSpinBox):
         self.setValue(value)
         self.valueChanged.connect(self.value_change_event)
         self.disables = disables or []
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
     def value_change_event(self, e):
         self.value = e
         self.com.valueChangeEvent(e)
+
+    def wheelEvent(self, *args, **kwargs):  # pylint: disable=invalid-name
+        """Override the wheel event to not the scroll if the widget is not focused"""
+        if self.hasFocus():
+            super(SpinnerFloat, self).wheelEvent(*args, **kwargs)
 
 
 class Float(SpinnerFloat):
