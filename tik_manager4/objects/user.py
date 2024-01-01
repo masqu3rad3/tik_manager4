@@ -154,7 +154,6 @@ class User(object):
         """Set the column sizes."""
         self.resume.edit_property("column_sizes", value)
 
-
     @classmethod
     def __set_authentication_status(cls, state):
         # cls._authenticated = state

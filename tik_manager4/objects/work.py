@@ -375,7 +375,7 @@ class Work(Settings, Entity):
             _ingest_obj.file_path = abs_path
             _ingest_obj.reference()
 
-    def delete_work(self):
+    def delete(self):
         """Delete the work."""
         # TODO: implement this. This should move the work to the purgatory.
         pass
