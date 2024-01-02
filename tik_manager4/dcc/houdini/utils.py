@@ -34,10 +34,8 @@ def set_ranges(range_list):
 def set_environment_variable(var, value):
     """Set the environment variable."""
     hou.allowEnvironmentToOverwriteVariable(var, True)
-    # os.environ[var] = value
     hou.putenv(var, value)
     value = value.replace("\\", "/")
     hscript_command = "set -g %s = '%s'" % (var, value)
-
     hou.hscript(str(hscript_command))
 

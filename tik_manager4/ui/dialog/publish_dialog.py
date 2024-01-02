@@ -589,8 +589,6 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         # status icon
         # create a vertical line with color
         self.status_icon = QtWidgets.QFrame()
-        # make it gray
-        # self.status_icon.setStyleSheet("background-color: gray;")
         # set the width to 10px
         self.status_icon.setFixedWidth(10)
         self.addWidget(self.status_icon)
@@ -621,8 +619,10 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         self.collapsible_layout.label.set_font_size(10, bold=True)
         header_layout.addLayout(self.collapsible_layout)
 
-        self.settings_data = self.extract.settings.get(self.extract.category, None)
-        if self.settings_data:
+        self.settings_data = self.extract.global_settings
+        self.settings_data.update(self.extract.settings.get(self.extract.category, {}))
+        # self.settings_data = self.extract.settings.get(self.extract.category, None)
+        if self.settings_data.properties:
             # update exposed setting defaults with the metadata (if exists)
             self.settings_data.update(self.override_data or {})
             settings_ui = convert_to_ui_definition(self.settings_data)
@@ -656,18 +656,18 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         information = self.extract.message
         if information:
             # create a mini dialog with non-editable text
-            dialog = QtWidgets.QDialog()
-            dialog.setWindowTitle(f"{self.extract.nice_name} Information")
-            dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-            dialog.setModal(True)
-            dialog.setMinimumWidth(300)
-            dialog.setMinimumHeight(200)
-            dialog.setLayout(QtWidgets.QVBoxLayout())
+            pop_info_dialog = QtWidgets.QDialog()
+            pop_info_dialog.setWindowTitle(f"{self.extract.nice_name} Information")
+            pop_info_dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            pop_info_dialog.setModal(True)
+            pop_info_dialog.setMinimumWidth(300)
+            pop_info_dialog.setMinimumHeight(200)
+            pop_info_dialog.setLayout(QtWidgets.QVBoxLayout())
             text = QtWidgets.QTextEdit()
             text.setReadOnly(True)
             text.setText(information)
-            dialog.layout().addWidget(text)
-            dialog.exec_()
+            pop_info_dialog.layout().addWidget(text)
+            pop_info_dialog.exec_()
         else:
             return
 
@@ -681,10 +681,6 @@ class ExtractRow(QtWidgets.QHBoxLayout):
     def toggle_settings_visibility(self, state):
         """Toggle the visibility of the settings frame."""
         self.settings_frame.setVisible(state)
-        # if state:
-        #     self.settings_frame.show()
-        # else:
-        #     self.settings_frame.hide()
 
     def set_state(self, state):
         """Set the state of the extract."""

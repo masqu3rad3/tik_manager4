@@ -14,7 +14,8 @@ class ExtractCore:
 
     nice_name: str = ""
     color: tuple = (255, 255, 255)  # RGB
-    default_settings: dict = {}
+    exposed_settings: dict = {}
+    global_exposed_settings: dict = {}
     optional: bool = False
 
     def __init__(self):
@@ -29,11 +30,15 @@ class ExtractCore:
         self._message: str = ""
         self._bundled: bool = False # if bundled, the extract will be a folder
         self.category_functions = {}
+        self.global_settings = Settings()
+        self.global_settings.set_data(self.global_exposed_settings)
         self.settings = {}
-        for key, value in self.default_settings.items():
+        # create settings objects from the default settings
+        for key, value in self.exposed_settings.items():
             _settings = Settings()
             _settings.set_data(value)
             self.settings[key] = _settings
+
 
     def __init_subclass__(cls, **kwargs):
         # Get the base name of the file without the extension using pathlib

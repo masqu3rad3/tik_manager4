@@ -1,6 +1,8 @@
 import logging
 from pathlib import Path
 
+from tik_manager4.core import utils
+
 import datetime
 
 class Filelog():
@@ -13,7 +15,7 @@ class Filelog():
         # FIXME(ckutlu): Perhaps we can live with only a path argument
         super(Filelog, self).__init__()
         self.file_name = filename if filename else "defaultLog"
-        self.file_dir = filedir or str(Path().home())
+        self.file_dir = filedir or utils.get_home_dir()
         self.file_path_obj = Path(self.file_dir, f"{self.file_name}.log")
         self.logger = logging.getLogger(self.file_name)
         self.logger.setLevel(logging.DEBUG)

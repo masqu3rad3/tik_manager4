@@ -1,8 +1,10 @@
 """Ingest STL."""
 
 from pathlib import Path
+
 from maya import cmds
 from maya import OpenMaya as om
+
 from tik_manager4.dcc.ingest_core import IngestCore
 
 

@@ -16,7 +16,7 @@ class Usd(ExtractCore):
 
     # these are the exposed settings in the UI
     # WARNING: Caution removing keys from this dict! It will likely throw a KeyError on the _extract_* methods
-    default_settings = {
+    exposed_settings = {
         "Animation": {
             "start_frame": _ranges[0],
             "end_frame": _ranges[3],

@@ -8,7 +8,7 @@ class Source(IngestCore):
     """Ingest Source Maya Scene."""
 
     nice_name = "Ingest Source Scene"
-    valid_extensions = [".mb", ".ma"]
+    valid_extensions = [".nk"]
 
     def __init__(self):
         super(Source, self).__init__()

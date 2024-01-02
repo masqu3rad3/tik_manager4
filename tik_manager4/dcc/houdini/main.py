@@ -20,7 +20,8 @@ LOG = logging.getLogger(__name__)
 
 class Dcc(MainCore):
     name = "Houdini"
-    formats = [".hip", ".hiplc"]
+    _main_format = ".hip" if not hou.isApprentice() else ".hipnc"
+    formats = [_main_format, ".hiplc"]
     preview_enabled = True  # Whether or not to enable the preview in the UI
     validations = validate.classes
     extracts = extract.classes
@@ -66,7 +67,7 @@ class Dcc(MainCore):
         hou.hipFile.load(
             file_path, suppress_save_prompt=force, ignore_load_warnings=False
         )
-        utils.set_environment_variable("HIP", str(Path(file_path).parent))
+        utils.set_environment_variable("HIP", Path(file_path).parent.as_posix())
 
     @staticmethod
     def get_ranges():
