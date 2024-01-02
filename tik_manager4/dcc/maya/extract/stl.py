@@ -1,5 +1,7 @@
 """Extract STL from Maya Scene"""
 
+from pathlib import Path
+
 from maya import cmds
 from maya import OpenMaya as om
 
@@ -24,12 +26,39 @@ class Stl(ExtractCore):
         om.MGlobal.displayInfo("STL Extractor loaded")
 
         self._extension = ".stl"
+        self._bundled = True
         # we don't need to define category functions for STL
+
+    @staticmethod
+    def collect():
+        """Collect bundle data from the scene."""
+        meshes = cmds.ls(type="mesh")
+        mesh_transforms = cmds.listRelatives(meshes, parent=True, fullPath=True)
+        return mesh_transforms
 
     def _extract_default(self):
         """Extract STL from Maya scene."""
         # STL files are not supporting ranges. For our purposes we will
         # use the same _extract_default function for all categories.
+        # STL export exports the each mesh separately. We need to have a bundle
+        # directory which will hold all meshes.
+        bundle_meshes = self.collect()
+        if not bundle_meshes:
+            om.MGlobal.displayInfo("No meshes found in the scene.")
+            raise ValueError("No meshes found in the scene.")
 
-        _file_path = self._get_file_path()
-        cmds.file(_file_path, force=True, options="v=0;", typ="stl", exportSelected=False)
+        bundle_directory = self.resolve_output()
+        # create the path if it doesn't exist
+        Path(bundle_directory).mkdir(parents=True, exist_ok=True)
+
+        for mesh in bundle_meshes:
+            cmds.select(mesh)
+            nice_name = mesh.split("|")[-1] # get the last part of the DAG path
+            file_path = Path(bundle_directory, f"{nice_name}.stl")
+            cmds.file(
+                file_path,
+                force=True,
+                options="v=0;",
+                type="STLExport",
+                exportSelected=True,
+            )

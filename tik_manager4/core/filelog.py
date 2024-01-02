@@ -9,7 +9,7 @@ class Filelog():
     last_message = None
     last_message_type = None
 
-    def __init__(self, logname = None, filename=None, filedir=None, date=True, time=True, size_cap=500000):
+    def __init__(self, logname = None, filename="tik_manager4", filedir=None, date=True, time=True, size_cap=500000):
         # FIXME(ckutlu): Perhaps we can live with only a path argument
         super(Filelog, self).__init__()
         self.file_name = filename if filename else "defaultLog"
@@ -58,7 +58,7 @@ class Filelog():
         return self.log_name
 
     def info(self, msg):
-        stamped_msg = "%sINFO    : %s" %(self._get_now(), msg)
+        stamped_msg = "%sINFO     : %s" %(self._get_now(), msg)
         self._start_logging()
         self.logger.info(stamped_msg)
         self.__set_last_message(msg, "info")
@@ -66,7 +66,7 @@ class Filelog():
         return msg
 
     def warning(self, msg):
-        stamped_msg = "%sWARNING : %s" % (self._get_now(), msg)
+        stamped_msg = "%sWARNING  : %s" % (self._get_now(), msg)
         self._start_logging()
         self.logger.warning(stamped_msg)
         self.__set_last_message(msg, "warning")
@@ -74,13 +74,21 @@ class Filelog():
         return msg
 
     def error(self, msg, proceed=True):
-        stamped_msg = "%sERROR   : %s" % (self._get_now(), msg)
+        stamped_msg = "%sERROR    : %s" % (self._get_now(), msg)
         self._start_logging()
         self.logger.error(stamped_msg)
         self.__set_last_message(msg, "error")
         self._end_logging()
         if not proceed:
             raise Exception(msg)
+        return msg
+
+    def exception(self, msg):
+        stamped_msg = "%sEXCEPTION: %s" % (self._get_now(), msg)
+        self._start_logging()
+        self.logger.exception(stamped_msg)
+        self.__set_last_message(msg, "error")
+        self._end_logging()
         return msg
 
     def title(self, msg):

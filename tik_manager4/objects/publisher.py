@@ -189,6 +189,7 @@ class Publisher:
                 "path": Path(extract_object.resolve_output())
                 .relative_to(self._published_object.get_abs_project_path())
                 .as_posix(),
+                "bundled": extract_object.bundled,
             }
             self._published_object._elements.append(element)
 

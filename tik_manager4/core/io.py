@@ -9,7 +9,7 @@ from json.decoder import JSONDecodeError
 from tik_manager4.core import filelog
 from tik_manager4.external import filelock as fl
 
-LOG = filelog.Filelog(logname=__name__, filename="tik_manager")
+LOG = filelog.Filelog(logname=__name__)
 
 
 class IO():
