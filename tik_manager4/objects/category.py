@@ -38,17 +38,17 @@ class Category(Entity):
                 matched_items.append(work)
         return matched_items
 
-    def scan_works(self, all_dcc=False):
+    def scan_works(self):
         """Scan the category folder and return the works"""
         # get all files recursively, regardless of the dcc
-        _search_dir = self.get_abs_database_path()
-        _work_paths = list(Path(_search_dir).rglob("**/*.twork"))
+        search_dir = self.get_abs_database_path()
+        _work_paths = list(Path(search_dir).rglob("**/*.twork"))
 
         # add the file if it is new. if it is not new,
         # check the modified time and update if necessary
-        for _w_path, _w_data in dict(self._works).items():
-            if _w_path not in _work_paths:
-                self._works.pop(_w_path)
+        for w_path, _w_data in dict(self._works).items():
+            if w_path not in _work_paths:
+                self._works.pop(w_path)
         for _work_path in _work_paths:
             existing_work = self._works.get(_work_path, None)
             if not existing_work:
@@ -97,23 +97,22 @@ class Category(Entity):
         _work.new_version(file_format=file_format, notes=notes)
         return _work
 
-    def delete_work(self, name):
+    def delete_work(self, work_path):
         """Delete a work under the category."""
-
-        _work = self._works.get(name, None)
+        _work = self._works.get(Path(work_path), None)
         if not _work:
             LOG.warning(
-                "There is no work under this category with the name => %s" % name
+                "There is no work under this category with the name => %s" % work_path
             )
             return -1
 
         # if not, check if the user is the owner of the work
-        if self.guard.user != _work.creator or self.check_permissions(level=3):
+        if self.guard.user != _work.creator or not self.check_permissions(level=3):
             LOG.warning("You do not have the permission to delete this work")
             return -1
-
-        del self._works[name]
+        del self._works[work_path]
         _work.delete()
+        return 1
 
     def get_relative_work_path(self):
         """Return the relative path of the category"""

@@ -15,7 +15,6 @@ from tik_manager4 import dcc
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
-
 class Work(Settings, Entity):
     _dcc_handler = dcc.Dcc()
     object_type = "work"
@@ -155,7 +154,7 @@ class Work(Settings, Entity):
         # get filepath of current version
         version_number, version_name, thumbnail_name = self.construct_names(file_format)
 
-        abs_version_path = self.get_abs_project_path(version_name)
+        abs_version_path = self.get_abs_project_path(self.name, version_name)
         thumbnail_path = self.get_abs_database_path("thumbnails", thumbnail_name)
         Path(abs_version_path).parent.mkdir(parents=True, exist_ok=True)
 
@@ -176,13 +175,12 @@ class Work(Settings, Entity):
         self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
 
         # add it to the versions
-        # TODO: Make a version object instead of a dictionary
         version = {
             "version_number": version_number,
             "workstation": socket.gethostname(),
             "notes": notes,
             "thumbnail": Path("thumbnails", thumbnail_name).as_posix(),
-            "scene_path": str(version_name),
+            "scene_path": Path(self.name, str(version_name)).as_posix(),
             "user": self.guard.user,
             "previews": {},
             "file_format": file_format,
@@ -377,7 +375,7 @@ class Work(Settings, Entity):
             _ingest_obj.file_path = abs_path
             _ingest_obj.reference()
 
-    def delete_work(self):
+    def delete(self):
         """Delete the work."""
         # TODO: implement this. This should move the work to the purgatory.
         pass
