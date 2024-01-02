@@ -184,6 +184,7 @@ class Publisher:
                 continue
             element = {
                 "type": extract_object.name,
+                "suffix": extract_object.extension,
                 # get the relative path to the project
                 # "path": Path(extract_object.resolve_output()).relative_to(self._work_object.guard.project_root).as_posix()
                 "path": Path(extract_object.resolve_output())

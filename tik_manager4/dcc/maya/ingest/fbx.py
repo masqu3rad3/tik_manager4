@@ -34,12 +34,12 @@ class Fbx(IngestCore):
     def _bring_in_model(self):
         """Import FBX file."""
         om.MGlobal.displayInfo("Bringing in FBX Model")
-        fbxu.load(self.file_path, merge_mode="add", animation=False)
+        fbxu.load(self.ingest_path, merge_mode="add", animation=False)
 
     def _bring_in_animation(self):
         """Import FBX file."""
         om.MGlobal.displayInfo("Bringing in FBX Animation")
-        fbxu.load(self.file_path, merge_mode="merge", animation=True)
+        fbxu.load(self.ingest_path, merge_mode="merge", animation=True)
 
     def _bring_in_layout(self):
         """Import FBX file."""
@@ -62,15 +62,15 @@ class Fbx(IngestCore):
     def _bring_in_default(self):
         """Import FBX file."""
         om.MGlobal.displayInfo("Bringing in FBX with default settings")
-        fbxu.load(self.file_path)
+        fbxu.load(self.ingest_path)
 
     def _reference_default(self):
         """Reference the FBX file."""
 
         # this method will be used for all categories
-        namespace = self.namespace or Path(self.file_path).stem
+        namespace = self.namespace or Path(self.ingest_path).stem
         ref = cmds.file(
-            self.file_path,
+            self.ingest_path,
             reference=True,
             groupLocator=True,
             mergeNamespacesOnClash=False,

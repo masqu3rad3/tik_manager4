@@ -19,6 +19,7 @@ class IngestCore:
         self._status: str = "idle"
         self._file_path: str = ""
         self._namespace: str = ""
+        self._bundled: bool = False
         self.category_functions: dict = {}
         self.category_reference_functions: dict = {}
 
@@ -38,33 +39,46 @@ class IngestCore:
 
     @category.setter
     def category(self, category):
+        """Set the category for the rules."""
         # TODO some validation here
         self._category = category
 
     @property
     def state(self):
+        """Return the state of the ingest."""
         return self._status
 
     @property
-    def file_path(self):
+    def ingest_path(self):
+        """Return the file path of the ingest."""
         return self._file_path
 
     @property
     def namespace(self):
+        """Return the namespace of the ingest."""
         return self._namespace
 
     @namespace.setter
     def namespace(self, namespace):
+        """Set the namespace of the ingest."""
         self._namespace = namespace
 
-    @file_path.setter
-    def file_path(self, file_path):
-        _file_path = Path(file_path)
-        if not _file_path.exists():
-            raise ValueError(f"File path does not exist: {file_path}")
-        if _file_path.suffix not in self.valid_extensions:
-            raise ValueError(f"File extension not valid: {_file_path.suffix}")
-        self._file_path = file_path
+    @property
+    def bundled(self):
+        """Return if the ingest is a bundle or not."""
+        return self._bundled
+
+    @ingest_path.setter
+    def ingest_path(self, ingest_path):
+        """Set the path for the ingest.
+        This path can be a file or a directory depending on the ingest type.
+        """
+        _path = Path(ingest_path)
+        if not _path.exists():
+            raise ValueError(f"File path does not exist: {ingest_path}")
+        if self.bundled and _path.suffix not in self.valid_extensions:
+            raise ValueError(f"File extension not valid: {_path.suffix}")
+        self._file_path = ingest_path
 
     def bring_in(self):  # a.k.a import
         """Bring in the element to the scene."""

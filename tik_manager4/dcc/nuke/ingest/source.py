@@ -16,7 +16,7 @@ class Source(IngestCore):
     def _bring_in_default(self):
         """Import the Maya scene."""
         nuke.tprint("Bringing in Source Scene")
-        nuke.nodePaste(self.file_path)
+        nuke.nodePaste(self.ingest_path)
 
     def _reference_default(self):
         """Reference the Maya scene."""

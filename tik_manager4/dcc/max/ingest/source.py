@@ -17,12 +17,12 @@ class Source(IngestCore):
     def _bring_in_default(self):
         """Import the Maya scene."""
         pymxs.print_("Bringing in Source Scene")
-        rt.mergeMaxFile(self.file_path, prompt=False)
+        rt.mergeMaxFile(self.ingest_path, prompt=False)
 
     def _reference_default(self):
         """Reference the Maya scene."""
         # this method will be used for all categories
         pymxs.print_("Referencing Source Scene")
-        xrefobjs = rt.getMAXFileObjectNames(self.file_path)
-        rt.xrefs.addNewXRefObject(self.file_path, xrefobjs)
+        xrefobjs = rt.getMAXFileObjectNames(self.ingest_path)
+        rt.xrefs.addNewXRefObject(self.ingest_path, xrefobjs)
 
