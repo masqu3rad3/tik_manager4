@@ -205,7 +205,7 @@ class Publisher:
             "thumbnails", thumbnail_name
         )
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
-        self._dcc_handler.generate_thumbnail(thumbnail_path, 100, 100)
+        self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
         self._published_object.add_property(
             "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
         )
