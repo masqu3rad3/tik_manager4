@@ -48,6 +48,12 @@ class Dcc(MainCore):
         return file_path
 
     @staticmethod
+    def save_prompt():
+        """Pop up the save prompt."""
+        rt.execute("max file saveas")
+        return True # returning True is mandatory for the save prompt to work
+
+    @staticmethod
     def open(file_path, force=True, **extra_arguments):
         """
         Opens the given file path

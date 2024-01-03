@@ -58,6 +58,13 @@ class Dcc(MainCore):
         return file_path
 
     @staticmethod
+    def save_prompt():
+        """Pop up the save prompt and wait for user action."""
+        _r = nuke.scriptSave()
+        # Return True (or any other value you need)
+        return True
+
+    @staticmethod
     def open(file_path, force=True, **extra_arguments):
         """
         Opens the given file path
@@ -126,11 +133,11 @@ class Dcc(MainCore):
             # create a write node
             write_node = nuke.createNode("Write")
             write_node.setName("tik_tempWrite")
-            write_node['file'].setValue(Path(file_path).as_posix())
+            write_node["file"].setValue(Path(file_path).as_posix())
             write_node["use_limit"].setValue(True)
             frame = self.get_current_frame()
-            write_node['first'].setValue(frame)
-            write_node['last'].setValue(frame)
+            write_node["first"].setValue(frame)
+            write_node["last"].setValue(frame)
 
             # execute & cleanup
             nuke.execute(write_node, frame, frame)
@@ -138,17 +145,23 @@ class Dcc(MainCore):
             nuke.delete(reformat_node)
             return file_path
 
-        except: # pylint: disable=bare-except
+        except:  # pylint: disable=bare-except
             try:
-                QtGui.QPixmap.grabWindow(QtWidgets.QApplication.desktop().winId(),0,0,
-                                   QtWidgets.QApplication.desktop().screenGeometry().width()*0.8,
-                                   QtWidgets.QApplication.desktop().screenGeometry().height()*0.8).save(file_path)
-                #resize
-                ratio = width/height
-                pixmap_resized = QtGui.QPixmap(file_path).scaled(width, width/ratio, QtCore.Qt.KeepAspectRatio)
+                QtGui.QPixmap.grabWindow(
+                    QtWidgets.QApplication.desktop().winId(),
+                    0,
+                    0,
+                    QtWidgets.QApplication.desktop().screenGeometry().width() * 0.8,
+                    QtWidgets.QApplication.desktop().screenGeometry().height() * 0.8,
+                ).save(file_path)
+                # resize
+                ratio = width / height
+                pixmap_resized = QtGui.QPixmap(file_path).scaled(
+                    width, width / ratio, QtCore.Qt.KeepAspectRatio
+                )
                 pixmap_resized.save(file_path)
                 return file_path
-            except: # pylint: disable=bare-except
+            except:  # pylint: disable=bare-except
                 LOG.warning("Could not generate thumbnail")
                 return ""
 
@@ -156,4 +169,3 @@ class Dcc(MainCore):
     def get_dcc_version():
         """Get the current nuke version."""
         return nuke.NUKE_VERSION_STRING
-
