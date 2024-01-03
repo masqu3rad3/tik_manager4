@@ -71,7 +71,7 @@ class Stl(ExtractCore):
             merge_node.moveToGoodPosition()
             merge_node.parm("numobj").set(1)
             merge_node.parm("xformtype").set("local")
-            merge_node.parm("pack").set(True)
+            merge_node.parm("pack").set(False)
             merge_node.parm("objpath1").set(geo_node.path())
 
             # rop sop

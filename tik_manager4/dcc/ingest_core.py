@@ -76,7 +76,7 @@ class IngestCore:
         _path = Path(ingest_path)
         if not _path.exists():
             raise ValueError(f"File path does not exist: {ingest_path}")
-        if self.bundled and _path.suffix not in self.valid_extensions:
+        if not self.bundled and _path.suffix not in self.valid_extensions:
             raise ValueError(f"File extension not valid: {_path.suffix}")
         self._file_path = ingest_path
 
