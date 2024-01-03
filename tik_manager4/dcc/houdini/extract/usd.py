@@ -19,7 +19,7 @@ class Usd(ExtractCore):
     _ranges = utils.get_ranges()
 
     # these are the exposed settings in the UI
-    default_settings = {
+    exposed_settings = {
         "Animation": {
             "start_frame": _ranges[0],
             "end_frame": _ranges[3],
@@ -74,7 +74,7 @@ class Usd(ExtractCore):
             # start from scratch if it exists
             geo_node.destroy()
 
-        geo_node = root_node.createNode("geo", node_name="__tik_export_usd")
+        geo_node = root_node.createNode("geo", node_name="tik_export_usd")
         # this is to delete any existing nodes in the geo node
         try:
             geo_node.allSubChildren()[0].destroy()

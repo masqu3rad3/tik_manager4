@@ -36,11 +36,11 @@ class USD(IngestCore):
 
     def _bring_in_default(self):
         """Import USD File with default settings."""
-        cmds.mayaUSDImport(file=self.file_path, primPath="/")
+        cmds.mayaUSDImport(file=self.ingest_path, primPath="/")
 
     def _bring_in_model(self):
         """Import USD File for model category."""
-        cmds.mayaUSDImport(file=self.file_path, readAnimData=False, useAsAnimationCache=False, primPath="/")
+        cmds.mayaUSDImport(file=self.ingest_path, readAnimData=False, useAsAnimationCache=False, primPath="/")
 
     def _bring_in_lookdev(self):
         """Import USD File for lookdev category."""
@@ -59,7 +59,7 @@ class USD(IngestCore):
 
     def _bring_in_animation(self):
         """Import USD File."""
-        cmds.mayaUSDImport(file=self.file_path, readAnimData=1, useAsAnimationCache=True, primPath="/")
+        cmds.mayaUSDImport(file=self.ingest_path, readAnimData=1, useAsAnimationCache=True, primPath="/")
 
     def _bring_in_fx(self):
         """Import USD File."""
@@ -75,9 +75,9 @@ class USD(IngestCore):
         """Reference USD File with default settings."""
 
         # this method will be used for all categories
-        namespace = self.namespace or Path(self.file_path).stem
+        namespace = self.namespace or Path(self.ingest_path).stem
         ref = cmds.file(
-            self.file_path,
+            self.ingest_path,
             reference=True,
             groupLocator=True,
             mergeNamespacesOnClash=False,

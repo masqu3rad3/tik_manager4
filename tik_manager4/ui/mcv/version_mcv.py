@@ -295,12 +295,16 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
     def element_type_changed(self, element_type):
         """Update the rest when element type is changed."""
+        self.ingest_with_combo.clear()
         if not element_type:
             return
-        self.ingest_with_combo.clear()
         _version_number = self.get_selected_version()
         _version_object = self.base.get_version(_version_number)
-        element_version_extension = Path(_version_object.get_element_path(element_type)).suffix
+        is_bundled = _version_object.is_element_bundled(element_type)
+        if is_bundled == False: # this is for backwards compatibility
+            element_version_extension = Path(_version_object.get_element_path(element_type)).suffix
+        else:
+            element_version_extension = _version_object.get_element_suffix(element_type)
         _available_ingests = self._resolve_available_ingests(element_version_extension)
         # update the ingest with combo
         self.ingest_with_combo.addItems(_available_ingests)

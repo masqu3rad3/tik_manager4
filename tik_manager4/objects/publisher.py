@@ -184,11 +184,11 @@ class Publisher:
                 continue
             element = {
                 "type": extract_object.name,
-                # get the relative path to the project
-                # "path": Path(extract_object.resolve_output()).relative_to(self._work_object.guard.project_root).as_posix()
+                "suffix": extract_object.extension,
                 "path": Path(extract_object.resolve_output())
                 .relative_to(self._published_object.get_abs_project_path())
                 .as_posix(),
+                "bundled": extract_object.bundled,
             }
             self._published_object._elements.append(element)
 
@@ -205,7 +205,7 @@ class Publisher:
             "thumbnails", thumbnail_name
         )
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
-        self._dcc_handler.generate_thumbnail(thumbnail_path, 100, 100)
+        self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
         self._published_object.add_property(
             "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
         )

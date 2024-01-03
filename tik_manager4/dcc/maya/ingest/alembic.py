@@ -30,12 +30,12 @@ class Alembic(IngestCore):
     def _bring_in_model(self):
         """Import Alembic File."""
         om.MGlobal.displayInfo("Bringing in Alembic Model")
-        cmds.AbcImport(self.file_path, mode="import", fitTimeRange=False, setToStartFrame=False)
+        cmds.AbcImport(self.ingest_path, mode="import", fitTimeRange=False, setToStartFrame=False)
 
     def _bring_in_animation(self):
         """Import Alembic File."""
         om.MGlobal.displayInfo("Bringing in Alembic Animation")
-        cmds.AbcImport(self.file_path, mode="import", fitTimeRange=True, setToStartFrame=True)
+        cmds.AbcImport(self.ingest_path, mode="import", fitTimeRange=True, setToStartFrame=True)
 
     def _bring_in_fx(self):
         """Import Alembic File."""
@@ -58,19 +58,19 @@ class Alembic(IngestCore):
     def _bring_in_default(self):
         """Import Alembic File."""
         om.MGlobal.displayInfo("Bringing in Alembic with default settings")
-        cmds.AbcImport(self.file_path)
+        cmds.AbcImport(self.ingest_path)
 
     def _reference_default(self):
         """Create a GPU Cache for alembics instead of reference."""
 
         # this method will be used for all categories
         # Create Cache Node
-        namespace = self.namespace or Path(self.file_path).stem
+        namespace = self.namespace or Path(self.ingest_path).stem
         cache_node = cmds.createNode("gpuCache", name=f"{namespace}Cache")
         cache_parent = cmds.listRelatives(cache_node, parent=True, path=True)
         cache_parent = cmds.rename(cache_parent, namespace)
         # Set Cache Path
-        cmds.setAttr(f"{cache_node}.cacheFileName", self.file_path, type="string")
+        cmds.setAttr(f"{cache_node}.cacheFileName", self.ingest_path, type="string")
         # Namespace
         if not cmds.namespace(exists=namespace):
             cmds.namespace(addNamespace=namespace)

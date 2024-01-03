@@ -143,7 +143,7 @@ class Publish(Entity):
                 raise ValueError(f"Element type not supported: {element_type}")
             _import_obj = _func()
             _import_obj.category = self._work_object.category
-            _import_obj.file_path = abs_path
+            _import_obj.ingest_path = abs_path # This path can be a folder if its a bundled type.
             _import_obj.bring_in()
 
     def reference_version(self, version_number, element_type=None, ingestor=None):
@@ -161,7 +161,7 @@ class Publish(Entity):
                 raise ValueError(f"Element type not supported: {element_type}")
             _import_obj = _func()
             _import_obj.category = self._work_object.category
-            _import_obj.file_path = abs_path
+            _import_obj.ingest_path = abs_path
             _import_obj.reference()
 
 
@@ -292,4 +292,18 @@ class PublishVersion(Settings, Entity):
         for element in self.elements:
             if element["type"] == element_type:
                 return element["path"]
+        return None
+
+    def get_element_suffix(self, element_type):
+        """Return the element suffix of the given element type."""
+        for element in self.elements:
+            if element["type"] == element_type:
+                return element["suffix"]
+        return None
+
+    def is_element_bundled(self, element_type):
+        """Return if the element is bundled or not."""
+        for element in self.elements:
+            if element["type"] == element_type:
+                return element.get("bundled", False)
         return None

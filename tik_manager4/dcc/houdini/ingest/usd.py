@@ -20,8 +20,8 @@ class Usd(IngestCore):
         # get the project path
         project_path = hou.getenv("JOB")
         # try to get a relative path to the project. If it is not possible, use the absolute path.
-        try: _file_path = "$JOB" / Path(self.file_path).relative_to(project_path)
-        except ValueError: _file_path = Path(self.file_path)
+        try: _file_path = "$JOB" / Path(self.ingest_path).relative_to(project_path)
+        except ValueError: _file_path = Path(self.ingest_path)
 
         node = hou.node("obj")
         geo_node = node.createNode("geo", node_name=_file_path.stem)

@@ -19,7 +19,7 @@ class Source(IngestCore):
     def _bring_in_default(self):
         """Import the Maya scene."""
         # LOG.info("Bringing in Source Scene")
-        hou.hipFile.merge(self.file_path, node_pattern="*", overwrite_on_conflict=False, ignore_load_warnings=False)
+        hou.hipFile.merge(self.ingest_path, node_pattern="*", overwrite_on_conflict=False, ignore_load_warnings=False)
 
     def _reference_default(self):
         """Reference the Maya scene."""

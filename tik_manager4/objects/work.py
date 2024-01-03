@@ -358,7 +358,7 @@ class Work(Settings, Entity):
             abs_path = self.get_abs_project_path(relative_path)
             _ingest_obj = self._dcc_handler.ingests[ingestor]()
             _ingest_obj.category = self.category
-            _ingest_obj.file_path = abs_path
+            _ingest_obj.ingest_path = abs_path
             _ingest_obj.bring_in()
 
     def reference_version(self, version_number, element_type=None, ingestor=None):
@@ -372,7 +372,7 @@ class Work(Settings, Entity):
             abs_path = self.get_abs_project_path(relative_path)
             _ingest_obj = self._dcc_handler.ingests[ingestor]()
             _ingest_obj.category = self.category
-            _ingest_obj.file_path = abs_path
+            _ingest_obj.ingest_path = abs_path
             _ingest_obj.reference()
 
     def delete(self):

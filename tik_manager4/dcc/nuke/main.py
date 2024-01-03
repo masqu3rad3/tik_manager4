@@ -20,7 +20,8 @@ class Dcc(MainCore):
     """Nuke DCC class."""
 
     name = "Nuke"
-    formats = [".nk"]
+    _main_format = ".nk" if not nuke.env.get("nc") else ".nknc"
+    formats = [_main_format]
     preview_enabled = False  # Whether or not to enable the preview in the UI
     validations = validate.classes
     extracts = extract.classes

@@ -19,7 +19,7 @@ class Alembic(ExtractCore):
     _ranges = utils.get_ranges()
 
     # these are the exposed settings in the UI
-    default_settings = {
+    exposed_settings = {
         "Animation": {
             "start_frame": _ranges[0],
             "end_frame": _ranges[3],
@@ -71,7 +71,7 @@ class Alembic(ExtractCore):
             raise Exception(msg)
 
         # check if the export node exists
-        geo_node = root_node.node("__tik_export_geo")
+        geo_node = root_node.node("tik_export_geo")
         if geo_node:
             # start from scratch if it exists
             geo_node.destroy()

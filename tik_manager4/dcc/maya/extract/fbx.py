@@ -15,7 +15,7 @@ class Fbx(ExtractCore):
     _ranges = utils.get_ranges()
 
     # these are the exposed settings in the UI
-    default_settings = {
+    exposed_settings = {
         "Animation": {
             "start_frame": _ranges[0],
             "end_frame": _ranges[3],
