@@ -60,9 +60,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         element_layout.addWidget(ingest_with_lbl)
         element_layout.addWidget(self.ingest_with_combo)
 
-
-
-
         notes_layout = QtWidgets.QVBoxLayout()
         self.addLayout(notes_layout)
         notes_lbl = QtWidgets.QLabel("Notes: ")
@@ -99,7 +96,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.reference_btn.setEnabled(False)
 
         # SIGNALS
-        self.element_combo.currentIndexChanged.connect(lambda x: self.button_states(self.base))
+        self.element_combo.currentIndexChanged.connect(
+            lambda x: self.button_states(self.base)
+        )
         self.element_combo.currentTextChanged.connect(self.element_type_changed)
         self.version_combo.currentIndexChanged.connect(self.version_changed)
         self.import_btn.clicked.connect(self.on_import)
@@ -118,7 +117,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         _version = self.get_selected_version()
         _element_type = self.get_selected_element_type()
         _ingestor = self.get_selected_ingestor()
-        self.base.import_version(_version, element_type=_element_type, ingestor=_ingestor)
+        self.base.import_version(
+            _version, element_type=_element_type, ingestor=_ingestor
+        )
 
     def on_load(self):
         """Load the current version."""
@@ -130,6 +131,30 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             )
             return
         _version = self.get_selected_version()
+        # check if the current scene is modified.
+        # if it is, ask if the user wants to save it
+        if self.base._dcc_handler.is_modified():
+            question = "Current scene is modified. Do you want to save it?"
+            state = self.feedback.pop_question(
+                title="Save current scene?",
+                text=question,
+                buttons=["yes", "no", "cancel"],
+            )
+            if state == "cancel":
+                return
+            if state == "yes":
+                if self.base._dcc_handler.get_scene_file() == "":
+                    _state = self.base._dcc_handler.save_prompt()
+                    # if the save prompt is defined, it will do a recursive check.
+                    # this is a safety procudure to prevent infinite recursion
+                    # if the save prompts is not defined on a dcc.
+                    # this is not working on NUKE at the moment.
+                    if _state:
+                        self.on_load()
+                    return
+                self.base._dcc_handler.save_scene()
+                return
+
         if self.base.object_type == "publish":
             _publish_version = self.base.get_version(_version)
             if "source" not in _publish_version.element_types:
@@ -174,8 +199,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         # if self.base.object_type == "publish":
         _element_type = self.get_selected_element_type()
         _ingestor = self.get_selected_ingestor()
-        self.base.reference_version(_version, element_type=_element_type, ingestor=_ingestor)
-
+        self.base.reference_version(
+            _version, element_type=_element_type, ingestor=_ingestor
+        )
 
     def __load_btn_state(self, base, element_type):
         """Resolve the load button state."""
@@ -276,7 +302,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.element_combo.addItems(_version.element_types)
             # trigger the element type changed manually
             self.element_type_changed(self.element_combo.currentText())
-        else: # WORK
+        else:  # WORK
             # disable
             self.element_combo.setEnabled(False)
             self.ingest_with_combo.setEnabled(False)
@@ -301,8 +327,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         _version_number = self.get_selected_version()
         _version_object = self.base.get_version(_version_number)
         is_bundled = _version_object.is_element_bundled(element_type)
-        if is_bundled == False: # this is for backwards compatibility
-            element_version_extension = Path(_version_object.get_element_path(element_type)).suffix
+        if is_bundled == False:  # this is for backwards compatibility
+            element_version_extension = Path(
+                _version_object.get_element_path(element_type)
+            ).suffix
         else:
             element_version_extension = _version_object.get_element_suffix(element_type)
         _available_ingests = self._resolve_available_ingests(element_version_extension)

@@ -34,6 +34,11 @@ class MainCore():
         pass
 
     @staticmethod
+    def save_prompt():
+        """Pop up the save prompt."""
+        pass
+
+    @staticmethod
     def open(file_path, force=True, **extra_arguments):
         """
         Opens the given file path
@@ -187,7 +192,7 @@ class MainCore():
     @staticmethod
     def is_modified():
         """Returns True if the scene has unsaved changes"""
-        pass
+        False
 
     @staticmethod
     def get_scene_file():

@@ -49,9 +49,37 @@ class Dcc(MainCore):
 
         """
         if hou.isApprentice():
-            file_path = str(Path(file_path).with_suffix(".hipnc"))
+            file_path = Path(file_path).with_suffix(".hipnc").as_posix()
         hou.hipFile.save(file_name=file_path)
         return file_path
+
+    def save_prompt(self):
+        """Pop up the save prompt."""
+
+        # Get the current Houdini scene
+        scene = hou.ui.paneTabOfType(hou.paneTabType.SceneViewer).pwd()
+
+        # Specify allowed file types or extensions
+        file_types = hou.fileType.Hip
+
+        # Prompt the user to select a file path for saving
+        file_path = hou.ui.selectFile(
+            start_directory=scene.path(),
+            title="Save As",
+            file_type=file_types,
+            chooser_mode=hou.fileChooserMode.Write,
+            default_value="",
+        )
+
+        # Check if the user selected a file path
+        if file_path:
+            # Set the Houdini scene to the selected file path
+            self.save_as(file_path)
+
+        # we are deliberitely returning True no matter what to be in the same
+        # behaviour as other DCCs. If the user cancels the save dialog, there will
+        # be another recursive scene modified check.
+        return True
 
     def open(self, file_path, force=True, **extra_arguments):
         """
@@ -99,7 +127,7 @@ class Dcc(MainCore):
     def get_scene_file():
         """Get the current scene file."""
         s_path = Path(hou.hipFile.path())
-        nice_name = s_path.name
+        nice_name = s_path.stem
         if nice_name == "untitled":
             return ""
         return str(s_path)

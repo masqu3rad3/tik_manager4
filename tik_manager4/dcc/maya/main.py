@@ -66,6 +66,12 @@ class Dcc(MainCore):
         return file_path
 
     @staticmethod
+    def save_prompt():
+        """Pop up the save prompt."""
+        cmds.SaveScene()
+        return True # this is important or else will be an indefinite loop
+
+    @staticmethod
     def open(file_path, force=True, **extra_arguments):
         """
         Opens the given file path
@@ -104,6 +110,12 @@ class Dcc(MainCore):
     @staticmethod
     def is_modified():
         """Returns True if the scene has unsaved changes"""
+        # an empty string (not saved) should return False IF the scene is empty
+        # not having any DAG objects in the scene doesnt necessarily mean the scene is empty
+        # but we will assume that for now.
+        default_dag_nodes = ['persp', 'perspShape', 'top', 'topShape', 'front', 'frontShape', 'side', 'sideShape']
+        if cmds.ls(dag=True) == default_dag_nodes:
+            return False
         return cmds.file(query=True, modified=True)
 
     @staticmethod
