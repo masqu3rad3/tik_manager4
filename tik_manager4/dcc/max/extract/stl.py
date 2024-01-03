@@ -15,7 +15,6 @@ class Stl(ExtractCore):
 
     def __init__(self):
         super().__init__()
-        pymxs.print_("STL Extractor loaded")
         self._extension = ".stl"
         self._bundled = True
         # we don't need to define category functions for STL

@@ -1,6 +1,5 @@
 """Extract 3ds Max scene."""
 
-import pymxs
 from pymxs import runtime as rt
 from tik_manager4.dcc.extract_core import ExtractCore
 
@@ -13,8 +12,7 @@ class Source(ExtractCore):
 
     def __init__(self):
         super(Source, self).__init__()
-        pymxs.print_("3ds Max Scene Extractor loaded")
-        self.extension = ".max"
+        self._extension = ".max"
 
     def _extract_default(self):
         """Extract method for any non-specified category"""
