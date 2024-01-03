@@ -1,30 +1,21 @@
-"""Extract STL from Maya Scene"""
-
+"""Extract STL from 3ds Max Scene"""
 from pathlib import Path
 
-from maya import cmds
-from maya import OpenMaya as om
+import pymxs
+from pymxs import runtime as rt
 
 from tik_manager4.dcc.extract_core import ExtractCore
 
 
 class Stl(ExtractCore):
-    """Extract STL from Maya scene."""
+    """Extract STL from 3ds Max scene."""
 
     nice_name = "STL"
     color = (100, 200, 0)
 
     def __init__(self):
         super().__init__()
-        if not cmds.pluginInfo("stlTranslator", loaded=True, query=True):
-            try:
-                cmds.loadPlugin("stlTranslator")
-            except Exception as e:
-                om.MGlobal.displayInfo("STL Plugin cannot be initialized")
-                raise e
-
-        om.MGlobal.displayInfo("STL Extractor loaded")
-
+        pymxs.print_("STL Extractor loaded")
         self._extension = ".stl"
         self._bundled = True
         # we don't need to define category functions for STL
@@ -32,19 +23,18 @@ class Stl(ExtractCore):
     @staticmethod
     def collect():
         """Collect bundle data from the scene."""
-        meshes = cmds.ls(type="mesh")
-        mesh_transforms = cmds.listRelatives(meshes, parent=True, fullPath=True)
-        return mesh_transforms
+        meshes = rt.geometry
+        return meshes
 
     def _extract_default(self):
-        """Extract STL from Maya scene."""
+        """Extract STL from 3ds Max scene."""
         # STL files are not supporting ranges. For our purposes we will
         # use the same _extract_default function for all categories.
         # STL export exports the each mesh separately. We need to have a bundle
         # directory which will hold all meshes.
         bundle_meshes = self.collect()
         if not bundle_meshes:
-            om.MGlobal.displayInfo("No polygon mesh object found in the scene.")
+            pymxs.print_("No polygon mesh object found in the scene.")
             raise ValueError("No polygon mesh object found in the scene.")
 
         _str_directory = self.resolve_output()
@@ -53,13 +43,13 @@ class Stl(ExtractCore):
         bundle_directory.mkdir(parents=True, exist_ok=True)
 
         for mesh in bundle_meshes:
-            cmds.select(mesh)
-            nice_name = mesh.split("|")[-1] # get the last part of the DAG path
+            rt.select(mesh)
+            nice_name = mesh.name
             file_path = bundle_directory / f"{nice_name}.stl"
-            cmds.file(
+            rt.select(mesh)
+            rt.exportFile(
                 file_path.as_posix(),
-                force=True,
-                options="v=0;",
-                type="STLExport",
+                rt.name("NoPrompt"),
                 exportSelected=True,
-            )
+                using=rt.STL_Export,
+            )  # using binary format
