@@ -15,11 +15,12 @@ from tik_manager4 import dcc
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
+
 class Work(Settings, Entity):
     _dcc_handler = dcc.Dcc()
     object_type = "work"
 
-    def __init__(self, absolute_path, name=None, path=None):
+    def __init__(self, absolute_path, name=None, path=None, parent_task=None):
         super(Work, self).__init__()
         self.settings_file = Path(absolute_path)
 
@@ -36,6 +37,7 @@ class Work(Settings, Entity):
         self._software_version = None
         # there are 3 states: working, published, omitted
         self._state = "working"
+        self._parent_task = parent_task
 
         self.modified_time = None  # to compare and update if necessary
         self.publish = Publish(
@@ -90,6 +92,12 @@ class Work(Settings, Entity):
         return self._task_name
 
     @property
+    def parent_task(self):
+        """Return the parent task object."""
+        if self._parent_task:
+            return self._parent_task
+
+    @property
     def creator(self):
         """Return the creator of the work."""
         return self._creator
@@ -121,7 +129,7 @@ class Work(Settings, Entity):
 
     def revive_work(self):
         """Revive the work."""
-        self._state = "working" if not self.publishes else "published"
+        self._state = "working" if not self.publish.versions else "published"
         self.edit_property("state", self._state)
         self.apply_settings()
 
@@ -165,9 +173,8 @@ class Work(Settings, Entity):
         # for example, if the file cannot be saved with specified file format,
         # extractor logic may decide to force something else.
         if output_path != abs_version_path:
-            version_name = Path(output_path).name # e.g. "test_v001.ma"
-            file_format = Path(output_path).suffix # e.g. ".ma"
-
+            version_name = Path(output_path).name  # e.g. "test_v001.ma"
+            file_format = Path(output_path).suffix  # e.g. ".ma"
 
         # generate thumbnail
         # create the thumbnail folder if it doesn't exist
@@ -339,13 +346,13 @@ class Work(Settings, Entity):
         thumbnail_name = f"{self._name}_v{version_number:03d}_thumbnail.jpg"
         return version_number, version_name, thumbnail_name
 
-    def load_version(self, version_number):
+    def load_version(self, version_number, force=False):
         """Load the given version of the work."""
         version_obj = self.get_version(version_number)
         if version_obj:
             relative_path = version_obj.get("scene_path")
             abs_path = self.get_abs_project_path(relative_path)
-            self._dcc_handler.open(abs_path)
+            self._dcc_handler.open(abs_path, force=force)
 
     def import_version(self, version_number, element_type=None, ingestor=None):
         """Import the given version of the work to the scene."""
@@ -379,3 +386,34 @@ class Work(Settings, Entity):
         """Delete the work."""
         # TODO: implement this. This should move the work to the purgatory.
         pass
+
+    def _get_metadata(self, key):
+        """Get the metadata from the parent sub."""
+        parent_task = self.parent_task
+        if not parent_task:
+            return None
+        parent_sub = parent_task.parent_sub
+        if not parent_sub:
+            return None
+        return parent_sub.metadata.get_value(key, None)
+
+    def check_dcc_version_mismatch(self):
+        """Check if there is a mismatch with the current and defined dcc versions.
+
+        Returns:
+            bool: False if there is no mismatch.
+            Otherwise returns a tuple of defined dcc version and current dcc version.
+        """
+        # first try to get the current dcc version from scene. If not found, do not proceed.
+        current_dcc = self._dcc_handler.get_dcc_version()
+        if not current_dcc:
+            return False # In this case we assume there is no need for dcc check
+        metadata_key = f"{self.guard.dcc}_version"
+        # if a dcc version defined in metadata, use that. Otherwise use the current dcc version.
+        defined_dcc_version = self._get_metadata(metadata_key) or self.dcc_version
+        # compare this against the current dcc version
+        if defined_dcc_version != current_dcc:
+            return (defined_dcc_version, current_dcc)
+        return False
+
+

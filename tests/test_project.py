@@ -286,6 +286,7 @@ class TestProject:
             categories=["Model", "Rig", "LookDev"],
             parent_path="Assets/Characters/Soldier",
         )
+        assert task.file_name == "superman.ttask"
         assert task.name == "superman"
         assert task.creator == "Admin"
         assert list(task.categories.keys()) == ["Model", "Rig", "LookDev"]
@@ -603,17 +604,58 @@ class TestProject:
 
         # try to create a new version without permissions
         tik.user.set("Observer", password="1234")
-        assert ultraman_task.categories["Rig"].create_work(
-            "varC", notes="this is a complete new version of varC"
-        ) == -1
+        assert (
+            ultraman_task.categories["Rig"].create_work(
+                "varC", notes="this is a complete new version of varC"
+            )
+            == -1
+        )
 
         tik.user.set("Admin", password="1234")
         # try to create a new version with a wrong format
         with pytest.raises(ValueError) as e_info:
             ultraman_task.categories["Rig"].create_work(
-                "varC", file_format=".burhan", notes="this is a complete new version of varC"
+                "varC",
+                file_format=".burhan",
+                notes="this is a complete new version of varC",
             )
             assert e_info == "File format is not valid."
+
+    def test_checking_dcc_version_mismatch(self, project_manual_path, tik, monkeypatch):
+        self.test_creating_works(project_manual_path, tik)
+
+        sub = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"]
+        model_category = sub.tasks["bizarro"].categories["Model"]
+        works = model_category.scan_works()
+        work_object = list(works.values())[0]
+
+        t = work_object.check_dcc_version_mismatch()
+        # this should return False. Standalone doesnt even have a dcc version
+        assert work_object.check_dcc_version_mismatch() == False
+
+        # mock the get_dcc_version method to return a value for testing
+        monkeypatch.setattr(work_object._dcc_handler, "get_dcc_version", lambda: "mocked_dcc_version")
+        # moch the object's _dcc_version to return the same value for testing
+        work_object._dcc_version = "mocked_dcc_version"
+        assert work_object.check_dcc_version_mismatch() == False  # no mismatch
+
+        work_object._dcc_version = "this_mock_should_fail"
+        assert work_object.check_dcc_version_mismatch() == (
+            "this_mock_should_fail",
+            "mocked_dcc_version",
+        )
+
+        # mock the sub's meta data to override the dcc version which will be compared against.
+        monkeypatch.setattr(sub._metadata, "get_value", lambda _key, _: "monkeypatched_version")
+        assert work_object.check_dcc_version_mismatch() == ('monkeypatched_version', 'mocked_dcc_version')
+
+        # in the case of where the parent_task doesn't have a parent sub
+        # and there is no parent task at all:
+        work_object._parent_task._parent_sub = None
+        assert work_object.check_dcc_version_mismatch() == ('this_mock_should_fail', 'mocked_dcc_version')
+        work_object._parent_task = None
+        assert work_object.check_dcc_version_mismatch() == ('this_mock_should_fail', 'mocked_dcc_version')
+
 
 
     def test_find_works_by_wildcard(self, project_manual_path, tik):
@@ -647,25 +689,55 @@ class TestProject:
         self.test_creating_works(project_manual_path, tik)
 
         # scan all works
-        initial_scan = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works()
+        initial_scan = (
+            tik.project.subs["Assets"]
+            .subs["Characters"]
+            .subs["Soldier"]
+            .tasks["bizarro"]
+            .categories["Model"]
+            .scan_works()
+        )
         assert initial_scan
         initial_scan_count = int(len(initial_scan.keys()))
-        assert initial_scan_count== 3
+        assert initial_scan_count == 3
 
         # add another work version to the first work and scan again
-        _w = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"]._works
+        _w = (
+            tik.project.subs["Assets"]
+            .subs["Characters"]
+            .subs["Soldier"]
+            .tasks["bizarro"]
+            .categories["Model"]
+            ._works
+        )
         work_obj = _w[list(_w.keys())[0]]
         work_obj.new_version()
 
-        second_scan = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works()
+        second_scan = (
+            tik.project.subs["Assets"]
+            .subs["Characters"]
+            .subs["Soldier"]
+            .tasks["bizarro"]
+            .categories["Model"]
+            .scan_works()
+        )
         assert second_scan
         second_scan_count = int(len(second_scan.keys()))
         assert second_scan_count == initial_scan_count
 
         # temporarily disable (change the extension) of one of the work paths and scan again
-        _temp = work_obj.settings_file.rename(work_obj.settings_file.with_suffix(".bck"))
+        _temp = work_obj.settings_file.rename(
+            work_obj.settings_file.with_suffix(".bck")
+        )
         # scan again and compare with the previous scan
-        third_scan = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works()
+        third_scan = (
+            tik.project.subs["Assets"]
+            .subs["Characters"]
+            .subs["Soldier"]
+            .tasks["bizarro"]
+            .categories["Model"]
+            .scan_works()
+        )
         assert third_scan
         third_scan_count = int(len(third_scan.keys()))
         assert third_scan_count == second_scan_count - 1
@@ -673,8 +745,13 @@ class TestProject:
     def test_deleting_works(self, project_manual_path, tik):
         self.test_creating_works(project_manual_path, tik)
 
-        # delete a work
-        model_category = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"]
+        model_category = (
+            tik.project.subs["Assets"]
+            .subs["Characters"]
+            .subs["Soldier"]
+            .tasks["bizarro"]
+            .categories["Model"]
+        )
         works = model_category.scan_works()
         target_work = list(works.keys())[0]
 

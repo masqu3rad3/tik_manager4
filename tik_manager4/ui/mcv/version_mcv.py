@@ -175,7 +175,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 if state == "cancel":
                     return
 
-        self.base.load_version(_version)
+        self.base.load_version(_version, force=True)
 
     def on_reference(self):
         """Reference the current version."""

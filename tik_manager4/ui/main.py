@@ -534,9 +534,9 @@ class MainUI(QtWidgets.QMainWindow):
                 critical=True,
             )
             return
-        _work, _version = self.tik.project.find_work_by_absolute_path(scene_file_path)
+        work, _version = self.tik.project.find_work_by_absolute_path(scene_file_path)
 
-        if not _work:
+        if not work:
             self.feedback.pop_info(
                 title="Work object cannot be found.",
                 text="Work cannot be found. Versions can only saved on work objects.\n"
@@ -546,7 +546,20 @@ class MainUI(QtWidgets.QMainWindow):
             )
             return
 
-        dialog = NewVersionDialog(work_object=_work, parent=self)
+        dcc_version_mismatch = work.check_dcc_version_mismatch()
+        if dcc_version_mismatch:
+            question = self.feedback.pop_question(
+                title="DCC version mismatch",
+                text="The current DCC version does not match the version of the work or metadata definition.\n\n"
+                f"Current DCC version: {dcc_version_mismatch[0]}\n"
+                f"Work DCC version: {dcc_version_mismatch[1]}\n\n"
+                "Do you want to continue?",
+                buttons=["continue", "cancel"]
+            )
+            if question == "cancel":
+                return
+
+        dialog = NewVersionDialog(work_object=work, parent=self)
         state = dialog.exec_()
         if state:
             self.set_last_state()
