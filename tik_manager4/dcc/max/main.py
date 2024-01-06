@@ -271,7 +271,7 @@ class Dcc(MainCore):
     @staticmethod
     def get_dcc_version():
         """Return the DCC major version."""
-        return rt.maxversion()[0]
+        return str(rt.maxversion()[0])
 
     @staticmethod
     def get_scene_fps():

@@ -51,5 +51,21 @@
   "sub_steps": {
     "default": 1,
     "type": "integer"
+  },
+  "maya_version": {
+    "default": "",
+    "type": "string"
+  },
+  "houdini_version": {
+    "default": "",
+    "type": "string"
+  },
+    "nuke_version": {
+        "default": "",
+        "type": "string"
+    },
+  "3dsmax_version": {
+    "default": "",
+    "type": "string"
   }
 }
