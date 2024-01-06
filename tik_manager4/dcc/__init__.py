@@ -4,7 +4,7 @@ NAME = os.getenv("TIK_DCC")
 
 if NAME == "Maya":
     from tik_manager4.dcc.maya.main import Dcc
-elif NAME == "Max":
+elif NAME == "3dsmax":
     from tik_manager4.dcc.max.main import Dcc
 elif NAME == "Houdini":
     from tik_manager4.dcc.houdini.main import Dcc

@@ -52,8 +52,8 @@ class Category(Entity):
         for _work_path in _work_paths:
             existing_work = self._works.get(_work_path, None)
             if not existing_work:
-                _work = Work(absolute_path=_work_path)
-                self._works[_work_path] = _work
+                work = Work(absolute_path=_work_path, parent_task=self.parent_task)
+                self._works[_work_path] = work
             else:
                 if existing_work.is_modified():
                     existing_work.reload()
@@ -63,7 +63,7 @@ class Category(Entity):
         """Check if the category is empty"""
         return not bool(self.works)
 
-    def create_work(self, name, file_format=None, notes=""):
+    def create_work(self, name, file_format=None, notes="", ignore_checks=True):
         """Creates a task under the category"""
 
         # valid file_format keyword can be collected from main.dcc.formats
@@ -78,24 +78,33 @@ class Category(Entity):
         # abs_path = self.get_abs_database_path(f"{constructed_name}.twork")
         if Path(abs_path).exists():
             # in that case instantiate the work and iterate the version.
-            _work = Work(absolute_path=abs_path)
-            _work.new_version(file_format=file_format, notes=notes)
-            return _work
-        _work = Work(abs_path, name=constructed_name, path=relative_path)
-        _work.add_property("name", constructed_name)
-        _work.add_property("creator", self.guard.user)
-        _work.add_property("category", self.name)
-        _work.add_property("dcc", self.guard.dcc)
-        _work.add_property("dcc_version", _work._dcc_handler.get_dcc_version())
-        _work.add_property("versions", [])
-        _work.add_property("work_id", _work.generate_id())
-        _work.add_property("task_name", self.parent_task.name)
-        _work.add_property("task_id", self.parent_task.id)
-        _work.add_property("path", relative_path)
-        _work.add_property("state", "working")
-        _work.init_properties()
-        _work.new_version(file_format=file_format, notes=notes)
-        return _work
+            work = Work(absolute_path=abs_path, parent_task=self.parent_task)
+            work.new_version(file_format=file_format, notes=notes, ignore_checks=ignore_checks)
+            return work
+        work = Work(abs_path, name=constructed_name, path=relative_path, parent_task=self.parent_task)
+        if not ignore_checks:
+            # check if there is a mismatch with the current dcc version
+            dcc_mismatch = work.check_dcc_version_mismatch()
+            if dcc_mismatch:
+                LOG.warning(
+                    f"The current dcc version ({dcc_mismatch[1]}) does not match with the defined dcc version ({dcc_mismatch[0]})."
+                )
+                return -1
+
+        work.add_property("name", constructed_name)
+        work.add_property("creator", self.guard.user)
+        work.add_property("category", self.name)
+        work.add_property("dcc", self.guard.dcc)
+        work.add_property("dcc_version", work._dcc_handler.get_dcc_version())
+        work.add_property("versions", [])
+        work.add_property("work_id", work.generate_id())
+        work.add_property("task_name", self.parent_task.name)
+        work.add_property("task_id", self.parent_task.id)
+        work.add_property("path", relative_path)
+        work.add_property("state", "working")
+        work.init_properties()
+        work.new_version(file_format=file_format, notes=notes, ignore_checks=ignore_checks)
+        return work
 
     def delete_work(self, work_path):
         """Delete a work under the category."""

@@ -40,7 +40,7 @@ class Task(Settings, Entity):
         self._categories = {}
         self.build_categories(self.get_property("categories") or categories)
 
-        self.parent_sub = parent_sub
+        self._parent_sub = parent_sub
 
     @property
     def file_name(self):
@@ -67,6 +67,10 @@ class Task(Settings, Entity):
     @property
     def categories(self):
         return self._categories
+
+    @property
+    def parent_sub(self):
+        return self._parent_sub
 
     def build_categories(self, category_list):
         """

@@ -106,3 +106,12 @@ class Entity():
     def show_database_folder(self):
         """Open the database path in Windows Explorer(Windows) or Nautilus(Linux)."""
         self._open_folder(self.get_abs_database_path())
+
+    def get_metadata(self, parent_task, key):
+        """Convenience method to get the metadata for work and category objects."""
+        if not parent_task:
+            return None
+        parent_sub = parent_task.parent_sub
+        if not parent_sub:
+            return None
+        return parent_sub.metadata.get_value(key, None)

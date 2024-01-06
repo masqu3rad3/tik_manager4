@@ -113,7 +113,7 @@ class Publish(Entity):
                 return version
         return None
 
-    def load_version(self, version_number):
+    def load_version(self, version_number, force=False):
         """Load the publish version."""
         # loading published files is not safe, therefore we are loading the file and immediately save it
         # as a new working version.
@@ -123,7 +123,7 @@ class Publish(Entity):
                 relative_path = version_obj.get_element_path("source")
                 abs_path = self.get_abs_project_path(relative_path)
                 suffix = Path(abs_path).suffix
-                self._dcc_handler.open(abs_path)
+                self._dcc_handler.open(abs_path, force=force)
                 self._work_object.new_version(notes=f"Auto Saved from publish version {version_obj.version}", file_format=suffix)
             else:
                 raise ValueError("Source element is not found in the publish version.")
