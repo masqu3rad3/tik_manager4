@@ -309,4 +309,4 @@ class Dcc(MainCore):
     @staticmethod
     def get_dcc_version():
         """Return the DCC major version."""
-        return str(cmds.about(query=True, api=True))
+        return str(cmds.about(query=True, majorVersion=True))

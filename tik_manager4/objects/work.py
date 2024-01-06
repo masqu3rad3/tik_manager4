@@ -147,12 +147,30 @@ class Work(Settings, Entity):
             if version.get("version_number") == version_number:
                 return version
 
-    def new_version(self, file_format=None, notes=""):
-        """Create a new version of the work."""
+    def new_version(self, file_format=None, notes="", ignore_checks=True):
+        """Create a new version of the work.
+
+        Args:
+            file_format (str): The file format of the file.
+            notes (str): Notes for the version.
+            ignore_checks (bool): If True, skip all pre-checks.
+
+        Returns:
+            dict: The version dictionary.
+        """
 
         state = self.check_permissions(level=1)
         if state != 1:
             return -1
+
+        if not ignore_checks:
+            # check if there is a mismatch with the current dcc version
+            dcc_mismatch = self.check_dcc_version_mismatch()
+            if dcc_mismatch:
+                LOG.warning(
+                    f"The current dcc version ({dcc_mismatch[1]}) does not match with the defined dcc version ({dcc_mismatch[0]})."
+                )
+                return -1
 
         # validate file format
         file_format = file_format or self._dcc_handler.formats[0]
@@ -387,16 +405,6 @@ class Work(Settings, Entity):
         # TODO: implement this. This should move the work to the purgatory.
         pass
 
-    def _get_metadata(self, key):
-        """Get the metadata from the parent sub."""
-        parent_task = self.parent_task
-        if not parent_task:
-            return None
-        parent_sub = parent_task.parent_sub
-        if not parent_sub:
-            return None
-        return parent_sub.metadata.get_value(key, None)
-
     def check_dcc_version_mismatch(self):
         """Check if there is a mismatch with the current and defined dcc versions.
 
@@ -408,9 +416,9 @@ class Work(Settings, Entity):
         current_dcc = self._dcc_handler.get_dcc_version()
         if not current_dcc:
             return False # In this case we assume there is no need for dcc check
-        metadata_key = f"{self.guard.dcc}_version"
+        metadata_key = f"{self.guard.dcc.lower()}_version"
         # if a dcc version defined in metadata, use that. Otherwise use the current dcc version.
-        defined_dcc_version = self._get_metadata(metadata_key) or self.dcc_version
+        defined_dcc_version = self.get_metadata(self.parent_task, metadata_key) or self.dcc_version
         # compare this against the current dcc version
         if defined_dcc_version != current_dcc:
             return (defined_dcc_version, current_dcc)

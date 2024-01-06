@@ -404,11 +404,6 @@ class TikCategoryView(QtWidgets.QTreeView):
         print(item)
         # TODO
 
-    def load_item(self, item):
-        """Loads the given item"""
-        print("Method not implemented")
-        print(item)
-        # TODO
 
 
 class TikCategoryLayout(QtWidgets.QVBoxLayout):

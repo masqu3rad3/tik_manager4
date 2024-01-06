@@ -121,8 +121,32 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             _version, element_type=_element_type, ingestor=_ingestor
         )
 
+    def _load_pre_checks(self, work_obj):
+        """Metadata and scene compare checks before loading."""
+        if work_obj.dcc != work_obj.guard.dcc:
+            self.feedback.pop_info(
+                title="DCC mismatch",
+                text=f"{work_obj.dcc} scenes cannot loaded into {work_obj.guard.dcc}.",
+                critical=True,
+            )
+            return False
+        dcc_version_mismatch = work_obj.check_dcc_version_mismatch()
+        if dcc_version_mismatch:
+            question = self.feedback.pop_question(
+                title="DCC version mismatch",
+                text="The current DCC version does not match the version of the work or metadata definition.\n\n"
+                f"Current DCC version: {dcc_version_mismatch[1]}\n"
+                f"Defined DCC version: {dcc_version_mismatch[0]}\n\n"
+                "Do you want to continue loading?",
+                buttons=["continue", "cancel"]
+            )
+            if question == "cancel":
+                return False
+        return True
+
     def on_load(self):
         """Load the current version."""
+
         if not self.base:
             self.feedback.pop_info(
                 title="No work or publish selected.",
@@ -130,6 +154,15 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 critical=True,
             )
             return
+
+        if self.base.object_type == "publish":
+            work_obj = self.base._work_object
+        else:
+            work_obj = self.base
+
+        if not self._load_pre_checks(work_obj):
+            return
+
         _version = self.get_selected_version()
         # check if the current scene is modified.
         # if it is, ask if the user wants to save it
@@ -146,7 +179,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 if self.base._dcc_handler.get_scene_file() == "":
                     _state = self.base._dcc_handler.save_prompt()
                     # if the save prompt is defined, it will do a recursive check.
-                    # this is a safety procudure to prevent infinite recursion
+                    # this is a safety procedure to prevent infinite recursion
                     # if the save prompts is not defined on a dcc.
                     # this is not working on NUKE at the moment.
                     if _state:

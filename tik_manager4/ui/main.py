@@ -480,12 +480,30 @@ class MainUI(QtWidgets.QMainWindow):
                 critical=True,
             )
             return
+        self._new_version_pre_checks(selected_work_item.tik_obj)
         dialog = NewVersionDialog(
             work_object=selected_work_item.tik_obj, parent=self, ingest=True
         )
         state = dialog.exec_()
         if state:
             self._ingest_success()
+
+    def _new_work_pre_checks(self, subproject):
+        """Collection of pre-checks for the new work method."""
+        _dcc_name = self.tik.project.guard.dcc
+        _current_dcc_version = self.tik.dcc.get_dcc_version()
+        _metadata_dcc_version = subproject.metadata.get_value(f"{_dcc_name.lower()}_version", None)
+        if _metadata_dcc_version:
+            if _current_dcc_version != _metadata_dcc_version:
+                question = self.feedback.pop_question(
+                    title="DCC version mismatch",
+                    text=f"The current dcc version ({_current_dcc_version}) does not match with the defined dcc version ({_metadata_dcc_version})."
+                    "Do you want to continue?",
+                    buttons=["continue", "cancel"]
+                )
+                if question == "cancel":
+                    return False
+        return True
 
     def on_new_work(self):
         """Create a new work."""
@@ -510,6 +528,9 @@ class MainUI(QtWidgets.QMainWindow):
                 return
             subproject = task.parent_sub
 
+        if not self._new_work_pre_checks(subproject):
+            return
+
         dialog = NewWorkDialog(
             self.tik, parent=self, subproject=subproject, task=task, category=category
         )
@@ -519,6 +540,22 @@ class MainUI(QtWidgets.QMainWindow):
             self.refresh_versions()
             self.status_bar.showMessage("New work created successfully.", 5000)
             self.resume_last_state()
+
+    def _new_version_pre_checks(self, work_obj):
+        """Collection of pre-checks for the new version method."""
+        dcc_version_mismatch = work_obj.check_dcc_version_mismatch()
+        if dcc_version_mismatch:
+            question = self.feedback.pop_question(
+                title="DCC version mismatch",
+                text="The current DCC version does not match the version of the work or metadata definition.\n\n"
+                f"Current DCC version: {dcc_version_mismatch[1]}\n"
+                f"Defined DCC version: {dcc_version_mismatch[1]}\n\n"
+                "Do you want to continue?",
+                buttons=["continue", "cancel"]
+            )
+            if question == "cancel":
+                return False
+        return True
 
     def on_new_version(self):
         """Create a new version."""
@@ -546,18 +583,8 @@ class MainUI(QtWidgets.QMainWindow):
             )
             return
 
-        dcc_version_mismatch = work.check_dcc_version_mismatch()
-        if dcc_version_mismatch:
-            question = self.feedback.pop_question(
-                title="DCC version mismatch",
-                text="The current DCC version does not match the version of the work or metadata definition.\n\n"
-                f"Current DCC version: {dcc_version_mismatch[0]}\n"
-                f"Work DCC version: {dcc_version_mismatch[1]}\n\n"
-                "Do you want to continue?",
-                buttons=["continue", "cancel"]
-            )
-            if question == "cancel":
-                return
+        if not self._new_version_pre_checks(work):
+            return
 
         dialog = NewVersionDialog(work_object=work, parent=self)
         state = dialog.exec_()

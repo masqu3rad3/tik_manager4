@@ -63,7 +63,7 @@ class Category(Entity):
         """Check if the category is empty"""
         return not bool(self.works)
 
-    def create_work(self, name, file_format=None, notes=""):
+    def create_work(self, name, file_format=None, notes="", ignore_checks=True):
         """Creates a task under the category"""
 
         # valid file_format keyword can be collected from main.dcc.formats
@@ -79,9 +79,18 @@ class Category(Entity):
         if Path(abs_path).exists():
             # in that case instantiate the work and iterate the version.
             work = Work(absolute_path=abs_path, parent_task=self.parent_task)
-            work.new_version(file_format=file_format, notes=notes)
+            work.new_version(file_format=file_format, notes=notes, ignore_checks=ignore_checks)
             return work
         work = Work(abs_path, name=constructed_name, path=relative_path, parent_task=self.parent_task)
+        if not ignore_checks:
+            # check if there is a mismatch with the current dcc version
+            dcc_mismatch = work.check_dcc_version_mismatch()
+            if dcc_mismatch:
+                LOG.warning(
+                    f"The current dcc version ({dcc_mismatch[1]}) does not match with the defined dcc version ({dcc_mismatch[0]})."
+                )
+                return -1
+
         work.add_property("name", constructed_name)
         work.add_property("creator", self.guard.user)
         work.add_property("category", self.name)
@@ -94,7 +103,7 @@ class Category(Entity):
         work.add_property("path", relative_path)
         work.add_property("state", "working")
         work.init_properties()
-        work.new_version(file_format=file_format, notes=notes)
+        work.new_version(file_format=file_format, notes=notes, ignore_checks=ignore_checks)
         return work
 
     def delete_work(self, work_path):

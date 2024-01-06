@@ -527,7 +527,7 @@ class TestProject:
             tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].scan_tasks()
         )
 
-    def test_creating_works(self, project_manual_path, tik):
+    def test_creating_works_and_versions(self, project_manual_path, tik):
         self.test_creating_and_adding_new_tasks(project_manual_path, tik)
 
         tik.user.set("Admin", 1234)
@@ -535,21 +535,9 @@ class TestProject:
         # create some addigional tasks
         asset_categories = ["Model", "Rig", "LookDev"]
 
-        bizarro_task = tik.project.create_task(
-            "bizarro",
-            categories=asset_categories,
-            parent_path="Assets/Characters/Soldier",
-        )
-        ultraman_task = tik.project.create_task(
-            "ultraman",
-            categories=asset_categories,
-            parent_path="Assets/Characters/Soldier",
-        )
-        superboy_task = tik.project.create_task(
-            "superboy",
-            categories=asset_categories,
-            parent_path="Assets/Characters/Soldier",
-        )
+        bizarro_task = tik.project.create_task( "bizarro", categories=asset_categories, parent_path="Assets/Characters/Soldier")
+        ultraman_task = tik.project.create_task( "ultraman", categories=asset_categories, parent_path="Assets/Characters/Soldier")
+        superboy_task = tik.project.create_task( "superboy", categories=asset_categories, parent_path="Assets/Characters/Soldier")
 
         # check if a category is empty or not
         assert superboy_task.categories["Model"].is_empty() == True
@@ -561,68 +549,61 @@ class TestProject:
 
         # create a work
         bizarro_task.categories["Model"].create_work("default")
-        bizarro_task.categories["Model"].create_work(
-            "main", file_format=".txt", notes="This is a note. Very default."
-        )
-        bizarro_task.categories["Model"].create_work(
-            "lod300", file_format=".txt", notes="This is a note. Lod300."
-        )
+        bizarro_task.categories["Model"].create_work("main", file_format=".txt", notes="This is a note. Very default.")
+        bizarro_task.categories["Model"].create_work("lod300", file_format=".txt", notes="This is a note. Lod300.")
 
         bizarro_task.categories["Rig"].create_work("default")
-        bizarro_task.categories["Rig"].create_work(
-            "main", file_format=".txt", notes="This is a note. Very default Rig."
-        )
-        bizarro_task.categories["Rig"].create_work(
-            "lod300", file_format=".txt", notes="This is a note. Lod300 Rig."
-        )
+        bizarro_task.categories["Rig"].create_work("main", file_format=".txt", notes="This is a note. Very default Rig.")
+        bizarro_task.categories["Rig"].create_work("lod300", file_format=".txt", notes="This is a note. Lod300 Rig.")
 
-        ultraman_task.categories["Model"].create_work(
-            "varA", notes="This is a Model note for varA"
-        )
-        ultraman_task.categories["Model"].create_work(
-            "varB", notes="This is a Model note for varB"
-        )
-        ultraman_task.categories["Model"].create_work(
-            "varC", notes="This is a Model note for varC"
-        )
+        ultraman_task.categories["Model"].create_work("varA", notes="This is a Model note for varA")
+        ultraman_task.categories["Model"].create_work("varB", notes="This is a Model note for varB")
+        ultraman_task.categories["Model"].create_work("varC", notes="This is a Model note for varC")
 
-        ultraman_task.categories["Rig"].create_work(
-            "varA", notes="This is a note for varA"
-        )
-        ultraman_task.categories["Rig"].create_work(
-            "varB", notes="This is a note for varB"
-        )
-        ultraman_task.categories["Rig"].create_work(
-            "varC", notes="This is a note for varC"
-        )
+        ultraman_task.categories["Rig"].create_work("varA", notes="This is a note for varA")
+        ultraman_task.categories["Rig"].create_work("varB", notes="This is a note for varB")
+        ultraman_task.categories["Rig"].create_work("varC", notes="This is a note for varC")
 
         # when an existing work name used, it should iterate a version over existing work
-        this_should_have_2_versions = ultraman_task.categories["Rig"].create_work(
-            "varC", notes="this is a complete new version of varC"
-        )
+        this_should_have_2_versions = ultraman_task.categories["Rig"].create_work("varC", notes="this is a complete new version of varC")
         assert this_should_have_2_versions.version_count == 2
 
         # try to create a new version without permissions
         tik.user.set("Observer", password="1234")
-        assert (
-            ultraman_task.categories["Rig"].create_work(
-                "varC", notes="this is a complete new version of varC"
-            )
-            == -1
-        )
+        assert ultraman_task.categories["Rig"].create_work("varC", notes="this is a complete new version of varC") == -1
 
         tik.user.set("Admin", password="1234")
         # try to create a new version with a wrong format
         with pytest.raises(ValueError) as e_info:
-            ultraman_task.categories["Rig"].create_work(
-                "varC",
-                file_format=".burhan",
-                notes="this is a complete new version of varC",
-            )
+            ultraman_task.categories["Rig"].create_work( "varC", file_format=".burhan", notes="this is a complete new version of varC")
             assert e_info == "File format is not valid."
 
+    def test_versioning_up(self, project_manual_path, tik, monkeypatch):
+        self.test_creating_works_and_versions(project_manual_path, tik)
+        # try to create a new version with checks
+        sub = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"]
+        model_category = sub.tasks["bizarro"].categories["Model"]
+        _works = model_category.works
+        work = list(_works.values())[0] # get the first work
+        assert work.new_version(ignore_checks=False) != -1
+        # alter the dcc version and monkeypatch the get_dcc_version method to return a value for testing
+        work._dcc_version = "this_should_fail"
+        monkeypatch.setattr(work._dcc_handler, "get_dcc_version", lambda: "mocked_dcc_version")
+        assert work.new_version(ignore_checks=False) == -1
+
+        # monkeypatch the self._dcc_handler.save_as method to return a value for testing
+        monkeypatch.setattr(work._dcc_handler, "save_as", lambda x: Path(x).with_suffix(".burhan"))
+        test_version = work.new_version(ignore_checks=True)
+        assert test_version.get("file_format") == ".burhan"
+
+        # try to create a new version without permissions
+        tik.user.set("Observer", password="1234")
+        assert work.new_version(ignore_checks=False) == -1
+
+
+
     def test_checking_dcc_version_mismatch(self, project_manual_path, tik, monkeypatch):
-        self.test_creating_works(project_manual_path, tik)
+        self.test_creating_works_and_versions(project_manual_path, tik)
 
         sub = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"]
         model_category = sub.tasks["bizarro"].categories["Model"]
@@ -659,7 +640,7 @@ class TestProject:
 
 
     def test_find_works_by_wildcard(self, project_manual_path, tik):
-        self.test_creating_works(project_manual_path, tik)
+        self.test_creating_works_and_versions(project_manual_path, tik)
         lod300_works = (
             tik.project.subs["Assets"]
             .subs["Characters"]
@@ -686,64 +667,34 @@ class TestProject:
         assert model_lod300[0].name == "bizarro_Model_lod300"
 
     def test_scanning_works(self, project_manual_path, tik):
-        self.test_creating_works(project_manual_path, tik)
+        self.test_creating_works_and_versions(project_manual_path, tik)
 
         # scan all works
-        initial_scan = (
-            tik.project.subs["Assets"]
-            .subs["Characters"]
-            .subs["Soldier"]
-            .tasks["bizarro"]
-            .categories["Model"]
-            .scan_works()
-        )
+        initial_scan = (tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works())
         assert initial_scan
         initial_scan_count = int(len(initial_scan.keys()))
         assert initial_scan_count == 3
 
         # add another work version to the first work and scan again
-        _w = (
-            tik.project.subs["Assets"]
-            .subs["Characters"]
-            .subs["Soldier"]
-            .tasks["bizarro"]
-            .categories["Model"]
-            ._works
-        )
+        _w = (tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"]._works)
         work_obj = _w[list(_w.keys())[0]]
         work_obj.new_version()
 
-        second_scan = (
-            tik.project.subs["Assets"]
-            .subs["Characters"]
-            .subs["Soldier"]
-            .tasks["bizarro"]
-            .categories["Model"]
-            .scan_works()
-        )
+        second_scan = (tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works())
         assert second_scan
         second_scan_count = int(len(second_scan.keys()))
         assert second_scan_count == initial_scan_count
 
         # temporarily disable (change the extension) of one of the work paths and scan again
-        _temp = work_obj.settings_file.rename(
-            work_obj.settings_file.with_suffix(".bck")
-        )
+        _temp = work_obj.settings_file.rename(work_obj.settings_file.with_suffix(".bck"))
         # scan again and compare with the previous scan
-        third_scan = (
-            tik.project.subs["Assets"]
-            .subs["Characters"]
-            .subs["Soldier"]
-            .tasks["bizarro"]
-            .categories["Model"]
-            .scan_works()
-        )
+        third_scan = (tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works())
         assert third_scan
         third_scan_count = int(len(third_scan.keys()))
         assert third_scan_count == second_scan_count - 1
 
     def test_deleting_works(self, project_manual_path, tik):
-        self.test_creating_works(project_manual_path, tik)
+        self.test_creating_works_and_versions(project_manual_path, tik)
 
         model_category = (
             tik.project.subs["Assets"]
@@ -865,7 +816,7 @@ class TestProject:
         )
 
     def test_deleting_non_empty_tasks(self, project_manual_path, tik):
-        self.test_creating_works(project_manual_path, tik)
+        self.test_creating_works_and_versions(project_manual_path, tik)
         tik.user.set("Admin", password="1234")
         assert (
             tik.project.subs["Assets"]
