@@ -60,6 +60,7 @@ def launch(dcc="Standalone"):
             pass
     m = MainUI(tik, parent=parent)
     m.show()
+    return m
 
 
 class MainUI(QtWidgets.QMainWindow):
@@ -67,7 +68,7 @@ class MainUI(QtWidgets.QMainWindow):
         super(MainUI, self).__init__(**kwargs)
         self.tik = main_object
 
-        self.setWindowTitle("Tik Manager {}".format(version.__version__))
+        self.setWindowTitle(WINDOW_NAME)
         self.setObjectName(WINDOW_NAME)
 
         self.feedback = Feedback(self)
@@ -442,15 +443,6 @@ class MainUI(QtWidgets.QMainWindow):
             create_preview.triggered.connect(self.on_create_preview)
 
         menu_bar.setMinimumWidth(menu_bar.sizeHint().width())
-
-    def test(self):
-        """Test function."""
-
-        print("Subprojects:")
-        print(self.subprojects_mcv.sub_view.get_items_count())
-        print("Tasks:")
-        print(self.tasks_mcv.task_view.get_items_count())
-        self.tasks_mcv.task_view.select_first_item()
 
     def _ingest_success(self):
         """Callback function for the ingest success event."""
