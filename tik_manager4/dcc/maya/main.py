@@ -184,6 +184,23 @@ class Dcc(MainCore):
         return file_path
 
     @staticmethod
+    def get_scene_fps():
+        """Return the current FPS value set by DCC. None if not supported."""
+        return utils.get_scene_fps()
+
+    @staticmethod
+    def set_scene_fps(fps_value):
+        """
+        Set the FPS value in DCC if supported.
+        Args:
+            fps_value: (integer) fps value
+
+        Returns: None
+
+        """
+        utils.set_scene_fps(fps_value)
+
+    @staticmethod
     def get_scene_cameras():
         """
         Return a dictionary of all the cameras in the scene where key is the camera name and value is the camera uuid.
