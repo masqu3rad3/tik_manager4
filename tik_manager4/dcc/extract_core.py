@@ -4,6 +4,7 @@ from pathlib import Path
 import importlib
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
+from tik_manager4.objects.metadata import Metadata
 
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
@@ -17,6 +18,7 @@ class ExtractCore:
     exposed_settings: dict = {}
     global_exposed_settings: dict = {}
     optional: bool = False
+    bundled: bool =False
 
     def __init__(self):
         # get the module name as name
@@ -28,11 +30,12 @@ class ExtractCore:
         self._extract_name = ""
         self._enabled: bool = True
         self._message: str = ""
-        self._bundled: bool = False # if bundled, the extract will be a folder
+        # self._bundled: bool = False # if bundled, the extract will be a folder
+        self._metadata: Metadata
         self.category_functions = {}
         self.global_settings = Settings()
         self.global_settings.set_data(self.global_exposed_settings)
-        self.settings = {}
+        self.settings: dict = {}
         # create settings objects from the default settings
         for key, value in self.exposed_settings.items():
             _settings = Settings()
@@ -113,9 +116,23 @@ class ExtractCore:
         return self._message
 
     @property
-    def bundled(self):
-        """Return the bundled state of the extractor."""
-        return self._bundled
+    def metadata(self):
+        """Return the metadata of the extractor."""
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, metadata):
+        """Set the metadata of the extractor."""
+        # if any of the setting keys are in the metadata, set the value of the setting
+        for global_key in self.global_settings.keys:
+            if metadata.exists(global_key):
+                self.global_settings.edit_property(global_key, metadata.get_value(global_key))
+
+        for category_key in self.settings:
+            for setting_key in self.settings[category_key].keys:
+                if metadata.exists(setting_key):
+                    self.settings[category_key].edit_property(setting_key, metadata.get_value(setting_key))
+        self._metadata = metadata
 
     def extract(self):
         """Execute the extract."""
@@ -136,7 +153,7 @@ class ExtractCore:
 
     def resolve_output(self):
         """Resolve the output path."""
-        if self._bundled:
+        if self.bundled:
             output_path = Path(self.extract_folder) / self._extract_name
         else:
             output_path = Path(self.extract_folder) / f"{self._extract_name}{self.extension}"

@@ -2,6 +2,7 @@
 
 import importlib
 from pathlib import Path
+from tik_manager4.objects.metadata import Metadata
 
 
 class ValidateCore:
@@ -20,7 +21,9 @@ class ValidateCore:
         self.autofixable: bool = False
         self.selectable: bool = False
 
-        self.collection = []
+        self._metadata: Metadata
+
+        self.collection: list = []
 
         self._state: str = "idle"
         self._fail_message: str = ""
@@ -41,6 +44,14 @@ class ValidateCore:
     @property
     def fail_message(self):
         return self._fail_message
+
+    @property
+    def metadata(self):
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, metadata):
+        self._metadata = metadata
 
     def reset(self):
         """Reset the validation."""

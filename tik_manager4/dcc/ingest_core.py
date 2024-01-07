@@ -3,6 +3,7 @@
 import importlib
 from pathlib import Path
 from tik_manager4.core import filelog
+from tik_manager4.objects.metadata import Metadata
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -12,6 +13,7 @@ class IngestCore:
 
     nice_name: str = ""
     valid_extensions: list = []
+    bundled: bool = False
 
     def __init__(self):
         self.name = str(Path(__file__).stem)
@@ -19,7 +21,8 @@ class IngestCore:
         self._status: str = "idle"
         self._file_path: str = ""
         self._namespace: str = ""
-        self._bundled: bool = False
+        # self._bundled: bool = False
+        self._metadata: Metadata
         self.category_functions: dict = {}
         self.category_reference_functions: dict = {}
 
@@ -64,9 +67,14 @@ class IngestCore:
         self._namespace = namespace
 
     @property
-    def bundled(self):
-        """Return if the ingest is a bundle or not."""
-        return self._bundled
+    def metadata(self):
+        """Return the metadata object."""
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, metadata):
+        """Set the metadata object."""
+        self._metadata = metadata
 
     @ingest_path.setter
     def ingest_path(self, ingest_path):

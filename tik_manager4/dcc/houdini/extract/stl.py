@@ -16,6 +16,7 @@ class Stl(ExtractCore):
     nice_name = "STL"
     optional = False
     color = (100, 200, 0)
+    bundled = True
 
     # global exposed settings will apply ALL categories
     global_exposed_settings = {"discard_export_nodes": True}
@@ -23,7 +24,6 @@ class Stl(ExtractCore):
     def __init__(self):
         super().__init__()
         self._extension = ".stl"
-        self._bundled = True
         # we don't need to define category functions for STL
 
         self.export_geo_node_name = "tik_STL_export"

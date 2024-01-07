@@ -7,6 +7,7 @@ To prevent circular imports, these methods are collected here.
 
 from functools import wraps
 from maya import cmds
+from maya import mel
 
 
 def get_ranges():
@@ -38,6 +39,28 @@ def set_ranges(range_list):
         maxTime=range_list[2],
         animationEndTime=range_list[3],
     )
+
+def get_scene_fps():
+    """Return the current FPS value set by DCC. None if not supported."""
+    return mel.eval("currentTimeUnitToFPS")
+def set_scene_fps(fps_value):
+    """
+    Set the FPS value in DCC if supported.
+    Args:
+        fps_value: (integer) fps value
+
+    Returns: None
+
+    """
+    # maya is a bit weird with fps.
+    # there are number of predefined fps values. Some float, some int.
+    # Int ones don't accept float values and vice versa.
+    if int(fps_value) == fps_value:
+        fps_value = int(fps_value)
+    try:
+        mel.eval(f"currentUnit -time {fps_value}fps;")
+    except RuntimeError as exc:
+        raise RuntimeError("Invalid FPS value") from exc
 
 # decorator to keep the current selection
 def keepselection(func):

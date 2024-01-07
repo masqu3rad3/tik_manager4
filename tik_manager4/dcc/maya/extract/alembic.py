@@ -16,6 +16,8 @@ class Alembic(ExtractCore):
     _ranges = utils.get_ranges()
 
     # these are the exposed settings in the UI
+    # any metadata with the same key will OVERRIDE
+    # both exposed setting values and global exposed setting values
     exposed_settings = {
         "Animation": {
             "start_frame": _ranges[0],

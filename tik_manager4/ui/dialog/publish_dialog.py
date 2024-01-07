@@ -254,10 +254,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
         # -------------------
         for _extractor_name, extractor in self.project.publisher.extractors.items():
             # get the metadata for the extractor
-            LOG.info(self.project.publisher.metadata)
-            extract_row = ExtractRow(
-                extract_object=extractor, override_data=self.project.publisher.metadata
-            )
+            extract_row = ExtractRow(extract_object=extractor)
             self.extracts_scroll_lay.addLayout(extract_row)
             self._extractor_widgets.append(extract_row)
         # -------------------
@@ -569,12 +566,10 @@ class ValidateRow(QtWidgets.QHBoxLayout):
 class ExtractRow(QtWidgets.QHBoxLayout):
     """Custom Layout for extract rows."""
 
-    def __init__(self, extract_object, override_data=None, *args, **kwargs):
+    def __init__(self, extract_object, *args, **kwargs):
         """Initialize the ExtractRow."""
         super(ExtractRow, self).__init__(*args, **kwargs)
         self.extract = extract_object
-        self.override_data = override_data  # this dict can be the entire metadata or just the picked settings.
-
         self.status_icon = None
         self.label = None
         self.settings_btn = None
@@ -620,11 +615,9 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         header_layout.addLayout(self.collapsible_layout)
 
         self.settings_data = self.extract.global_settings
-        self.settings_data.update(self.extract.settings.get(self.extract.category, {}))
-        # self.settings_data = self.extract.settings.get(self.extract.category, None)
+        self.settings_data.update(self.extract.settings.get(self.extract.category, {}), add_missing_keys=True)
         if self.settings_data.properties:
             # update exposed setting defaults with the metadata (if exists)
-            self.settings_data.update(self.override_data or {})
             settings_ui = convert_to_ui_definition(self.settings_data)
             settings_formlayout = SettingsLayout(settings_ui, self.settings_data)
             self.collapsible_layout.contents_layout.addLayout(settings_formlayout)
