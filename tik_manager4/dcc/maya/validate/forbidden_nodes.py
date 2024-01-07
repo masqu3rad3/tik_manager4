@@ -1,7 +1,6 @@
 """Validation for unique names in Maya scene"""
 
 from maya import cmds
-from maya import mel
 from tik_manager4.dcc.validate_core import ValidateCore
 
 class ForbiddenNodes(ValidateCore):
