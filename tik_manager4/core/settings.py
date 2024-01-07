@@ -73,9 +73,11 @@ class Settings():
         self._currentValue.update(data)
         self._originalValue = deepcopy(self._currentValue)
 
-    def update(self, data, dont_add_new_keys=True):
+    def update(self, data, add_missing_keys=False):
         """Updates the settings data"""
-        if dont_add_new_keys:
+        if isinstance(data, Settings):
+            data = data.get_data()
+        if not add_missing_keys:
             self._currentValue.update((k, data[k]) for k in self._currentValue.keys() & data.keys())
         else:
             self._currentValue.update(data)
@@ -154,3 +156,8 @@ class Settings():
         if self._fallback:
             self.initialize(self._io.read(self._fallback))
             self.apply_settings(force=True)
+    def __str__(self):
+        # return the type of the class and the current data
+        return f"{type(self).__name__}({self._currentValue})"
+    def __repr__(self):
+        return str(self._currentValue)

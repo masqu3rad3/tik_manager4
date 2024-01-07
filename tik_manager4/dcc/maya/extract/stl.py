@@ -13,6 +13,7 @@ class Stl(ExtractCore):
 
     nice_name = "STL"
     color = (100, 200, 0)
+    bundled = True
 
     def __init__(self):
         super().__init__()
@@ -26,7 +27,6 @@ class Stl(ExtractCore):
         om.MGlobal.displayInfo("STL Extractor loaded")
 
         self._extension = ".stl"
-        self._bundled = True
         # we don't need to define category functions for STL
 
     @staticmethod

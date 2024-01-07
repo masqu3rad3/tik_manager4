@@ -11,10 +11,10 @@ class Stl(IngestCore):
     """Ingest STL."""
     nice_name = "Ingest STL"
     valid_extensions = [".stl"]
+    bundled = True
 
     def __init__(self):
         super(Stl, self).__init__()
-        self._bundled = True
 
     def _bring_in_default(self):
         """Import STL File."""

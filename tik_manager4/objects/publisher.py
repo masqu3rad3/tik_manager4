@@ -72,12 +72,10 @@ class Publisher:
         # collect the matching extracts and validations from the dcc_handler.
         for extract in extracts:
             if extract in list(self._dcc_handler.extracts.keys()):
-                self._resolved_extractors[extract] = self._dcc_handler.extracts[
-                    extract
-                ]()
-                self._resolved_extractors[
-                    extract
-                ].category = self._work_object.category  # define the category
+                self._resolved_extractors[extract] = self._dcc_handler.extracts[extract]()
+                # define the category
+                self._resolved_extractors[extract].category = self._work_object.category
+                self._resolved_extractors[extract].metadata = self._metadata
             else:
                 LOG.warning(
                     "Extract {0} defined in category settings but it is not available on {1}".format(
@@ -90,6 +88,7 @@ class Publisher:
                 self._resolved_validators[validation] = self._dcc_handler.validations[
                     validation
                 ]()
+                self._resolved_validators[validation].metadata = self._metadata
             else:
                 LOG.warning(
                     "Validation {0} defined in category settings but it is not available on {1}".format(
@@ -234,10 +233,15 @@ class Publisher:
         extract_object.extract_name = f"{self._work_object.name}_v{self._publish_version:03d}"  # define the extract name
         extract_object.extract()
 
+    # @property
+    # def metadata(self):
+    #     """Return the metadata as DICTIONARY."""
+    #     return dict(self._metadata.get_all_items())
+
     @property
     def metadata(self):
-        """Return the metadata as DICTIONARY."""
-        return dict(self._metadata.get_all_items())
+        """Return the metadata."""
+        return self._metadata
 
     @property
     def publish_version(self):

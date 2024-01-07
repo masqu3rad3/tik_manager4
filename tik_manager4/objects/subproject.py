@@ -6,66 +6,11 @@ import shutil
 
 from fnmatch import fnmatch
 from tik_manager4.core import filelog
+from tik_manager4.objects.metadata import Metadata
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.task import Task
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
-
-
-class Metaitem(object):
-    """Hold the value and overridden status of a property."""
-
-    def __init__(self, value, overridden=False):
-        """Initialize Metaitem.
-        Args:
-            value (any): The value of the property.
-            overridden (bool): Whether the value is overridden or not.
-        """
-        self.value = value
-        self.overridden = overridden
-
-
-class Metadata(dict):
-    """Metadata class."""
-
-    def __init__(self, data_dictionary):
-        """Initialize Metadata object.
-        Args:
-            data_dictionary (dict): The dictionary to initialize the metadata with.
-        """
-        super(Metadata, self).__init__(data_dictionary)
-
-        # create a Metaitem for each key in the data_dictionary
-        for key, val in data_dictionary.items():
-            self.add_item(key, val)
-
-    def add_item(self, key, value, overridden=False):
-        """Add an item to the metadata."""
-        self[key] = Metaitem(value, overridden=overridden)
-        return self[key]
-
-    def get_all_items(self):
-        """Return all items in the metadata."""
-        for key, val in self.items():
-            yield key, val.value
-
-    def get_value(self, key, fallback_value=None):
-        """Get the value of a key."""
-        if key in self:
-            return self[key].value
-        return fallback_value
-
-    def is_overridden(self, key):
-        """Check if a key is overridden."""
-        if key in self:
-            return self[key].overridden
-        return False
-
-    def override(self, data_dictionary):
-        """Override the metadata with a new dictionary."""
-        # clear metadata
-        for key, data in data_dictionary.items():
-            self[key] = Metaitem(data, overridden=True)
 
 
 class Subproject(Entity):

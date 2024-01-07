@@ -1,7 +1,6 @@
 """Validation for unique names in Maya scene"""
 
 from maya import cmds
-from maya import mel
 from tik_manager4.dcc.validate_core import ValidateCore
 
 class ForbiddenNodes(ValidateCore):
@@ -11,7 +10,7 @@ class ForbiddenNodes(ValidateCore):
     forbiddenNodeTypes = ["polyBlindData", "unknown", "blindDataTemplate"]
 
     def __init__(self):
-        super(ForbiddenNodes, self).__init__()
+        super().__init__()
         self.autofixable = True
         self.ignorable = True
         self.selectable = True
