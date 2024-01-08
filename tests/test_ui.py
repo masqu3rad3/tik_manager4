@@ -7,6 +7,10 @@ from tik_manager4.core import utils
 
 import tik_manager4
 from tik_manager4.ui import main
+from tik_manager4.ui.Qt import QtWidgets
+from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog
+from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
+from tik_manager4.ui.dialog.feedback import Feedback
 
 class TestUI:
     """Test UI."""
@@ -42,11 +46,39 @@ class TestUI:
 
     def test_launch_ui_manually(self, qtbot, main_object):
         parent = main_object.dcc.get_main_window()
-        m = main.MainUI(main_object)
+        m = main.MainUI(main_object, parent=parent)
         m.show()
         qtbot.addWidget(m)
         assert m.windowTitle() == main.WINDOW_NAME
         assert m.objectName() == main.WINDOW_NAME
 
+    def test_main_ui_buttons(self, qtbot, main_object, monkeypatch):
+        m = main.launch(dcc="Standalone")
+        m.show()
+        qtbot.addWidget(m)
 
+        # Test buttons
+        # get all the buttons under work_buttons_layout
+        buttons_layout = m.work_buttons_layout
+        widget_count = buttons_layout.count()
+        for nmb in range(widget_count):
+            button = buttons_layout.itemAt(nmb).widget()
+            if button:
+                button_text = button.text()
+                if button_text == "Save New Work":
+                    monkeypatch.setattr(NewWorkDialog, "exec_", lambda *args: QtWidgets.QMessageBox.Yes)
+                    button.click()
+                elif button_text == "Increment Version":
+                    monkeypatch.setattr(m.feedback, "pop_info", lambda *args: QtWidgets.QMessageBox.Yes)
+                    button.click()
+                elif button_text == "Ingest Version":
+                    monkeypatch.setattr(m.feedback, "pop_info", lambda *args, **kwargs: QtWidgets.QMessageBox.Yes)
+                    button.click()
+                # elif button_text == "Publish":
+                #     monkeypatch.setattr(PublishSceneDialog.feedback, "pop_info", lambda *args: QtWidgets.QMessageBox.Yes)
+                #     button.click()
+                # else:
+                #     print(button)
+                #     print(button.text())
+                #     raise ValueError("Button not found")
 
