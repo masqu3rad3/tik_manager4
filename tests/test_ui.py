@@ -1,7 +1,13 @@
 """Tests for the UI elements."""
+import os
+import pytest
+
+IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
+if IN_GITHUB_ACTIONS:
+    pytest.skip("Skipping UI tests in GitHub Actions", allow_module_level=True)
+
 from pathlib import Path
 import shutil
-import pytest
 import sys
 from tik_manager4.core import utils
 
