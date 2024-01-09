@@ -6,8 +6,9 @@ V4 is currently a work in progress.
 
 Contact me via ardakutlu@gmail.com if you want to contribute.
 
+
 **Powered by**
 
-.. |pycharm| image:: https://resources.jetbrains.com/storage/products/company/brand/logos/PyCharm.png
-  :target: https://www.jetbrains.com/pycharm
-  :width: 400
+<a href="https://www.jetbrains.com/pycharm" style="display:inline-block;">
+  <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/PyCharm.png" width="400" style="float:left; margin-right:10px;">
+</a>
