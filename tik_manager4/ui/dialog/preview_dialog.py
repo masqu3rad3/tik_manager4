@@ -9,6 +9,7 @@ from tik_manager4.ui.widgets import common
 class PreviewDialog(QtWidgets.QDialog):
     def __init__(self, work_object, version, resolution=None, range=None, *args, **kwargs):
         super(PreviewDialog, self).__init__(*args, **kwargs)
+        range = range or [1001, 1100]
         self.feedback = feedback.Feedback(parent=self)
         self.version = version
         self.work = work_object
@@ -44,7 +45,9 @@ class PreviewDialog(QtWidgets.QDialog):
 
         camera_lbl = QtWidgets.QLabel("Camera: ")
         self.cameras_combo = QtWidgets.QComboBox()
-        self.cameras_combo.addItems(list(self.work._dcc_handler.get_scene_cameras().keys()) or [])
+        scene_cameras = self.work._dcc_handler.get_scene_cameras()
+        if scene_cameras:
+            self.cameras_combo.addItems(list(scene_cameras.keys()))
         form_layout.addRow(camera_lbl, self.cameras_combo)
 
         resolution_lbl = QtWidgets.QLabel("Resolution: ")
@@ -105,28 +108,6 @@ class PreviewDialog(QtWidgets.QDialog):
         else:
             self.feedback.pop_info("Preview not created", "Preview not created. Cancelled by user.")
 
-
-# Test the dialog
-if __name__ == "__main__":
-    import sys
-    import tik_manager4
-    from tik_manager4.ui import pick
-
-    app = QtWidgets.QApplication(sys.argv)
-    tik = tik_manager4.initialize("Standalone")
-    tik.user.set("Admin", "1234")
-    # tik.user.set("Generic", "1234")
-    all_tasks = tik.project.find_tasks_by_wildcard("*")
-    for task in all_tasks:
-        works = task.find_works_by_wildcard("*")
-        if works:
-            break
-    work = works[0]
-    dialog = PreviewDialog(work, 1)
-    _style_file = pick.style_file()
-    dialog.setStyleSheet(str(_style_file.readAll(), "utf-8"))
-    dialog.show()
-    sys.exit(app.exec_())
 
 
 
