@@ -126,9 +126,9 @@ class TestMayaProject():
         for count in range(1, 4):
             # RESOLVE
             project.publisher.resolve()
-            assert work_obj.path == project.publisher._work_object.path
-            assert work_obj.name == project.publisher._work_object.name
-            assert work_obj.id == project.publisher._work_object.id
+            assert work_obj.path == project.publisher.work_object.path
+            assert work_obj.name == project.publisher.work_object.name
+            assert work_obj.id == project.publisher.work_object.id
             assert project.publisher.publish_version == count
             # if category == "Model":
             #     assert project.publisher.extract_names == ["scene", "alembic"]

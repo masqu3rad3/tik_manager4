@@ -159,7 +159,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             return
 
         if self.base.object_type == "publish":
-            work_obj = self.base._work_object
+            work_obj = self.base.work_object
         else:
             work_obj = self.base
 
@@ -419,15 +419,21 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             )
             return
         _version = self.get_selected_version()
+
+        state, msg = self.base.check_delete_version_permissions(_version)
+        if state != 1:
+            self.feedback.pop_info(
+                title="Permission Error",
+                text=msg,
+                critical=True,
+            )
+            return
+
         if self.base.object_type == "work":
-            # print("Deleting work version")
-            # print(_version)
-            # _obj = self.base.get_version(_version)
-            # print(_obj)
             _name = self.base.get_version(_version).get("scene_path", "")
             are_you_sure = self.feedback.pop_question(
                 title="Delete Work Version",
-                text="You are about to delete the work version:\n\n"
+                text="You are about to delete a work version:\n\n"
                      f"{_name}\n\n"
                      "This action cannot be undone.\n"
                      "Do you want to continue?",
@@ -435,16 +441,28 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 )
             if are_you_sure == "cancel":
                 return
-            self.base.delete_version(_version)
-            # repopulate the combo box
-            self.populate_versions(self.base._versions)
-        # self.base.delete_version(_version)
+        elif self.base.object_type == "publish":
+            _name = self.base.get_version(_version).get("name", "")
+            are_you_sure = self.feedback.pop_question(
+                title="Delete Publish Version",
+                text="You are about to delete a PUBLISH version:\n\n"
+                     f"{_name}\n\n"
+                     "This action cannot be undone.\n"
+                     "Do you want to continue?",
+                buttons=["yes", "cancel"]
+                )
+            if are_you_sure == "cancel":
+                return
+
+        self.base.delete_version(_version)
+        # repopulate the combo box
+        self.populate_versions(self.base.versions)
 
     def refresh(self):
         """Refresh the version dropdown."""
         if self.base:
             self.base.reload()
-            self.populate_versions(self.base._versions)
+            self.populate_versions(self.base.versions)
         else:
             self.version_combo.clear()
             self.notes_editor.clear()

@@ -30,29 +30,29 @@ class Publish(Entity):
     def __init__(self, work_object):
         """Initialize the publish object."""
         super(Publish, self).__init__()
-        self._work_object = work_object
+        self.work_object = work_object
 
         self._publish_versions = {}
 
     @property
     def name(self):
         """Return the name of the publish."""
-        return self._work_object.name
+        return self.work_object.name
 
     @property
     def publish_id(self):
         """Return the publish id of the publish."""
-        return self._work_object.id
+        return self.work_object.id
 
     @property
     def path(self):
         """Return the path of the publish."""
-        return Path(self._work_object.path, "publish").as_posix()
+        return Path(self.work_object.path, "publish").as_posix()
 
     @property
     def dcc(self):
         """Return the dcc of the publish."""
-        return self._work_object.dcc
+        return self.work_object.dcc
 
     @property
     def versions(self):
@@ -66,10 +66,27 @@ class Publish(Entity):
         # return len(list(self.versions.keys()))
         return len(self.versions)
 
+    @property
+    def state(self):
+        """Return the state of the publish."""
+        return self.work_object.state
+
     def reload(self):
         """Reload the publish object."""
-        self._work_object.reload()
+        self.work_object.reload()
         self.scan_publish_versions()
+
+    def omit(self):
+        """Omit the work."""
+        self.work_object._state = "omitted"
+        self.work_object.edit_property("state", self.work_object._state)
+        self.work_object.apply_settings()
+
+    def revive(self):
+        """Revive the work."""
+        self.work_object._state = "working" if not self.versions else "published"
+        self.work_object.edit_property("state", self.work_object._state)
+        self.work_object.apply_settings()
 
     def get_last_version(self):
         """Return the last publish version."""
@@ -80,11 +97,11 @@ class Publish(Entity):
 
     def get_publish_data_folder(self):
         """Return the publish data folder."""
-        return self._work_object.get_abs_database_path("publish", self._work_object.name)
+        return self.work_object.get_abs_database_path("publish", self.work_object.name)
 
-    def get_publish_scene_folder(self):
+    def get_publish_project_folder(self):
         """Return the publish scene folder."""
-        return self._work_object.get_abs_project_path("publish", self._work_object.name)
+        return self.work_object.get_abs_project_path("publish", self.work_object.name)
 
     def scan_publish_versions(self):
         """Get the publish versions in the publish folder."""
@@ -126,7 +143,7 @@ class Publish(Entity):
                 abs_path = self.get_abs_project_path(relative_path)
                 suffix = Path(abs_path).suffix
                 self._dcc_handler.open(abs_path, force=force)
-                self._work_object.new_version(notes=f"Auto Saved from publish version {version_obj.version}", file_format=suffix)
+                self.work_object.new_version(notes=f"Auto Saved from publish version {version_obj.version}", file_format=suffix)
             else:
                 raise ValueError("Source element is not found in the publish version.")
 
@@ -144,7 +161,7 @@ class Publish(Entity):
             if not _func:
                 raise ValueError(f"Element type not supported: {element_type}")
             _import_obj = _func()
-            _import_obj.category = self._work_object.category
+            _import_obj.category = self.work_object.category
             _import_obj.ingest_path = abs_path # This path can be a folder if its a bundled type.
             _import_obj.bring_in()
 
@@ -162,7 +179,7 @@ class Publish(Entity):
             if not _func:
                 raise ValueError(f"Element type not supported: {element_type}")
             _import_obj = _func()
-            _import_obj.category = self._work_object.category
+            _import_obj.category = self.work_object.category
             _import_obj.ingest_path = abs_path
             _import_obj.reference()
 
@@ -182,19 +199,60 @@ class Publish(Entity):
             return -1
 
         # move the whole publish folder to purgatory
-        _purgatory_path = Path(self._work_object.get_purgatory_project_path(), "publish")
+        _purgatory_path = Path(self.work_object.get_purgatory_project_path(), "publish")
         _purgatory_path.mkdir(parents=True, exist_ok=True)
-        shutil.move(self.get_publish_scene_folder(), str(_purgatory_path / self._work_object.name), copy_function=shutil.copytree)
+        shutil.move(self.get_publish_project_folder(), str(_purgatory_path / self.work_object.name), copy_function=shutil.copytree)
 
         # move the database files to purgatory
-        _purgatory_db_path = Path(self._work_object.get_purgatory_database_path(), "publish")
+        _purgatory_db_path = Path(self.work_object.get_purgatory_database_path(), "publish")
         _purgatory_db_path.mkdir(parents=True, exist_ok=True)
-        shutil.move(self.get_publish_data_folder(), str(_purgatory_db_path / self._work_object.name), copy_function=shutil.copytree)
+        shutil.move(self.get_publish_data_folder(), str(_purgatory_db_path / self.work_object.name), copy_function=shutil.copytree)
 
         # clear the publish versions
         self._publish_versions = {}
         return 1
 
+    def check_delete_version_permissions(self, version_number):
+        """Shortcut and wrapper for the check_permissions method."""
+        if self.check_permissions(level=3) == -1:
+            return False, "Only Admins can delete publishes."
+        return True, ""
+
+    def delete_version(self, version_number):
+        """Delete the given publish version."""
+        state, msg = self.check_delete_version_permissions(version_number)
+        if not state:
+            LOG.warning(msg)
+            return -1
+
+        version_obj = self.get_version(version_number)
+        if version_obj:
+            for element in version_obj.elements:
+                relative_path = element["path"]
+                source_abs_path = version_obj.get_abs_project_path(relative_path)
+                dest_abs_path = version_obj.get_purgatory_project_path(relative_path)
+                Path(dest_abs_path).parent.mkdir(parents=True, exist_ok=True)
+                shutil.move(source_abs_path, dest_abs_path, copy_function=shutil.copytree)
+
+            # move the thumbnail to purgatory
+            thumbnail_relative_path = version_obj.get("thumbnail", None)
+            if thumbnail_relative_path:
+                thumbnail_abs_path = version_obj.get_abs_database_path(thumbnail_relative_path)
+                thumbnail_dest_abs_path = version_obj.get_purgatory_database_path(thumbnail_relative_path)
+                Path(thumbnail_dest_abs_path).parent.mkdir(parents=True, exist_ok=True)
+                shutil.move(thumbnail_abs_path, thumbnail_dest_abs_path, copy_function=shutil.copytree)
+
+            # move the database file to purgatory
+            _file_name = Path(version_obj.settings_file).name
+            dest_abs_file_path = version_obj.get_purgatory_database_path(version_obj.name, _file_name)
+            Path(dest_abs_file_path).parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(version_obj.settings_file, dest_abs_file_path, copy_function=shutil.copytree)
+
+            # remove the publish version from the publish versions
+            self._publish_versions.pop(version_obj.settings_file)
+            return 1
+        else:
+            return -1
 
 class PublishVersion(Settings, Entity):
     """PublishVersion object class."""

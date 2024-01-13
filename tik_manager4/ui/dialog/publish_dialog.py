@@ -109,7 +109,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
     def check_eligibility(self):
         """Checks if the current scene is eligible for publishing."""
-        if not self.project.publisher._work_object:
+        if not self.project.publisher.work_object:
             self.feedback.pop_info(
                 title="Non-valid Scene",
                 text="Current Scene does not belong to a 'Work' in this project. Please save scene as a 'Work' before publishing or switch to the correct project.",

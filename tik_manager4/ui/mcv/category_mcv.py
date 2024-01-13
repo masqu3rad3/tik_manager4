@@ -13,8 +13,8 @@ class TikWorkItem(QtGui.QStandardItem):
     state_color_dict = {
         "working": (255, 255, 0),
         "published": (0, 255, 0),
-        # "omitted": (255, 0, 0),
         "omitted": (255, 255, 0),
+        "promoted": (0, 255, 0),
     }
 
     def __init__(self, work_obj):
@@ -50,11 +50,10 @@ class TikWorkItem(QtGui.QStandardItem):
 
 
 class TikPublishItem(QtGui.QStandardItem):
-    color_dict = {
-        # cyan for scene
-        "publish": (0, 255, 255),
-        # magenta for elements
-        "element": (255, 0, 255),
+    state_color_dict = {
+        "working": (0, 255, 255),
+        "published": (0, 255, 255),
+        "omitted": (0, 255, 255),
         "promoted": (0, 255, 0),
     }
 
@@ -63,14 +62,32 @@ class TikPublishItem(QtGui.QStandardItem):
 
         self.tik_obj = publish_obj
 
-        fnt = QtGui.QFont("Open Sans", 10)
-        fnt.setBold(False)
+        self.fnt = QtGui.QFont("Open Sans", 10)
+        self.fnt.setBold(False)
         self.setEditable(False)
 
-        self.setFont(fnt)
+        self.setFont(self.fnt)
         self.setText(str(publish_obj.name))
         self.state = None
-        self.setForeground(QtGui.QColor(*self.color_dict["publish"]))
+        # self.setForeground(QtGui.QColor(*self.state_color_dict["publish"]))
+        self.refresh()
+
+    def refresh(self):
+        self.set_state(self.tik_obj.state)
+
+    def set_state(self, state):
+        self.state = state
+        _state_color = self.state_color_dict[state]
+        # cross out omitted items
+        self.fnt.setStrikeOut(state == "omitted")
+        self.setFont(self.fnt)
+        # if the work not saved with the same dcc of the current dcc, make it italic
+        if self.tik_obj.dcc != self.tik_obj.guard.dcc:
+            self.fnt.setItalic(True)
+            self.setFont(self.fnt)
+            _state_color = tuple([int(x * 0.5) for x in _state_color])
+        self.setForeground(QtGui.QColor(*_state_color))
+
 
 
 class TikCategoryModel(QtGui.QStandardItemModel):
@@ -354,11 +371,11 @@ class TikCategoryView(QtWidgets.QTreeView):
 
         right_click_menu.addSeparator()
 
-        delete_item_act = right_click_menu.addAction(self.tr("Revive Work"))
+        delete_item_act = right_click_menu.addAction(self.tr("Revive Work/Publish"))
         delete_item_act.triggered.connect(lambda _=None, x=item: self.revive_item(item))
-        delete_item_act = right_click_menu.addAction(self.tr("Omit Work"))
+        delete_item_act = right_click_menu.addAction(self.tr("Omit Work/Publish"))
         delete_item_act.triggered.connect(lambda _=None, x=item: self.omit_item(item))
-        delete_item_act = right_click_menu.addAction(self.tr("Delete Work"))
+        delete_item_act = right_click_menu.addAction(self.tr("Delete Work/Publish"))
         delete_item_act.triggered.connect(lambda _=None, x=item: self.delete_item(item))
 
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
@@ -390,12 +407,12 @@ class TikCategoryView(QtWidgets.QTreeView):
 
     def omit_item(self, item):
         """Omits the given item"""
-        item.tik_obj.omit_work()
+        item.tik_obj.omit()
         item.refresh()
 
     def revive_item(self, item):
         """Revives the given item"""
-        item.tik_obj.revive_work()
+        item.tik_obj.revive()
         item.refresh()
 
     def delete_item(self, item):

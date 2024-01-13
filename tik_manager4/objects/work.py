@@ -122,13 +122,13 @@ class Work(Settings, Entity):
         """Reload from file"""
         self.__init__(self.settings_file)
 
-    def omit_work(self):
+    def omit(self):
         """Omit the work."""
         self._state = "omitted"
         self.edit_property("state", self._state)
         self.apply_settings()
 
-    def revive_work(self):
+    def revive(self):
         """Revive the work."""
         self._state = "working" if not self.publish.versions else "published"
         self.edit_property("state", self._state)
@@ -438,7 +438,8 @@ class Work(Settings, Entity):
         if not state:
             return -1
 
-        self.publish.destroy()
+        if self.publish.versions:
+            self.publish.destroy()
 
         purgatory_database_dir = Path(self.get_purgatory_database_path())
         purgatory_database_dir.mkdir(parents=True, exist_ok=True)
@@ -461,21 +462,54 @@ class Work(Settings, Entity):
         shutil.move(str(self.settings_file), str(db_destination))
         return 1
 
+    def check_delete_version_permissions(self, version_number):
+        """Check the permissions for deleting the given version of the work.
+
+        Users can only delete their own versions. Admins can delete any version.
+        If there is a publish of the version, only Admins can delete the version.
+        """
+        version_obj = self.get_version(version_number)
+        if not version_obj:
+            LOG.warning(f"Version {version_number} does not exist.")
+            return False, "Version does not exist."
+        if self.check_permissions(level=3) == -1:
+            if self.guard.user != version_obj.get("user"):
+                msg = ("You do not have the permission to delete this version.\n"
+                       "Only admins can delete other users' versions.")
+                LOG.warning(msg)
+                return False, msg
+        return True, ""
+
     def delete_version(self, version_number):
         """Delete the given version of the work.
 
         Args:
             version_number (int): Version number.
         """
+
+        state, _msg = self.check_delete_version_permissions(version_number)
+        if not state:
+            return -1
         version_obj = self.get_version(version_number)
         if version_obj:
             relative_path = version_obj.get("scene_path")
-            abs_path = self.get_abs_project_path(relative_path)
-            Path(abs_path).unlink()
+            abs_path = version_obj.get_abs_project_path(relative_path)
+            dest_path = version_obj.get_purgatory_project_path(relative_path)
+            shutil.move(abs_path, dest_path, copy_function=shutil.copytree)
+
+            # move the thumbnail
+            thumbnail_relative_path = version_obj.get("thumbnail", None)
+            if thumbnail_relative_path:
+                thumbnail_abs_path = version_obj.get_abs_database_path(thumbnail_relative_path)
+                thumbnail_dest_path = version_obj.get_purgatory_database_path(thumbnail_relative_path)
+                Path(thumbnail_dest_path).parent.mkdir(parents=True, exist_ok=True)
+                shutil.move(thumbnail_abs_path, thumbnail_dest_path, copy_function=shutil.copytree)
+
             # remove the version from the versions list
             self._versions.remove(version_obj)
             self.edit_property("versions", self._versions)
             self.apply_settings(force=True)
+        return 1
 
 
     def check_dcc_version_mismatch(self):

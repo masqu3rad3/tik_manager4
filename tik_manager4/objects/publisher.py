@@ -45,6 +45,11 @@ class Publisher:
         """Return the extractors."""
         return self._resolved_extractors
 
+    @property
+    def work_object(self):
+        """Return the work object."""
+        return self._work_object
+
     def resolve(self):
         """Resolve the validations, extracts, variables, etc."""
         self._work_object, self._work_version = self._project_object.get_current_work()
@@ -102,7 +107,7 @@ class Publisher:
             self._work_object.publish.get_publish_data_folder()
         )
         self._abs_publish_scene_folder = (
-            self._work_object.publish.get_publish_scene_folder()
+            self._work_object.publish.get_publish_project_folder()
         )
         self._publish_version = latest_publish_version + 1
         self._publish_file_name = (
