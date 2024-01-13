@@ -71,6 +71,11 @@ class Publish(Entity):
         """Return the state of the publish."""
         return self.work_object.state
 
+    @property
+    def parent_task(self):
+        """Return the parent task of the publish."""
+        return self.work_object.parent_task
+
     def reload(self):
         """Reload the publish object."""
         self.work_object.reload()

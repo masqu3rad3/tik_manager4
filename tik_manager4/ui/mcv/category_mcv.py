@@ -42,11 +42,15 @@ class TikWorkItem(QtGui.QStandardItem):
         self.fnt.setStrikeOut(state == "omitted")
         self.setFont(self.fnt)
         # if the work not saved with the same dcc of the current dcc, make it italic
-        if self.tik_obj.dcc != self.tik_obj.guard.dcc:
+        if not self.dcc_check():
             self.fnt.setItalic(True)
             self.setFont(self.fnt)
             _state_color = tuple([int(x * 0.5) for x in _state_color])
         self.setForeground(QtGui.QColor(*_state_color))
+
+    def dcc_check(self):
+        """Checks if the dcc of the work matches the dcc of the current session"""
+        return self.tik_obj.dcc == self.tik_obj.guard.dcc
 
 
 class TikPublishItem(QtGui.QStandardItem):
@@ -82,12 +86,15 @@ class TikPublishItem(QtGui.QStandardItem):
         self.fnt.setStrikeOut(state == "omitted")
         self.setFont(self.fnt)
         # if the work not saved with the same dcc of the current dcc, make it italic
-        if self.tik_obj.dcc != self.tik_obj.guard.dcc:
+        if not self.dcc_check():
             self.fnt.setItalic(True)
             self.setFont(self.fnt)
             _state_color = tuple([int(x * 0.5) for x in _state_color])
         self.setForeground(QtGui.QColor(*_state_color))
 
+    def dcc_check(self):
+        """Checks if the dcc of the work matches the dcc of the current session"""
+        return self.tik_obj.dcc == self.tik_obj.guard.dcc
 
 
 class TikCategoryModel(QtGui.QStandardItemModel):
@@ -384,8 +391,74 @@ class TikCategoryView(QtWidgets.QTreeView):
         """Re-populates the model keeping the expanded state"""
         self.model.populate()
 
+    @staticmethod
+    def metadata_pre_checks(dcc_handler, metadata):
+        """Collection of pre-checks for the metadata method."""
+        metadata_fps = metadata.get_value("fps", None)
+        current_fps = dcc_handler.get_scene_fps()
+        if metadata_fps and current_fps:  # if the dcc supports fps and metadata has a value
+            if current_fps != metadata_fps:
+                msg = f"The current fps ({current_fps}) does not match with the defined fps ({metadata_fps})."
+                yield msg
+        metadata_start_frame = metadata.get_value("start_frame", None)
+        metadata_end_frame = metadata.get_value("end_frame", None)
+        raw_frame_range = dcc_handler.get_ranges()
+        print("raw_frame_range", raw_frame_range)
+        start_mismatch = False
+        end_mismatch = False
+        if any([metadata_start_frame,
+                metadata_end_frame]) and raw_frame_range:  # if the dcc supports range and metadata has a value
+            if metadata_start_frame:
+                if float(metadata_start_frame) != float(raw_frame_range[0]):
+                    start_mismatch = True
+            if metadata_end_frame:
+                if float(metadata_end_frame) != float(raw_frame_range[-1]):
+                    end_mismatch = True
+            if start_mismatch or end_mismatch:
+                msg = f"The current frame range ({raw_frame_range[0], raw_frame_range[-1]}) does not match with the defined frame range ({[metadata_start_frame, metadata_end_frame]})."
+                yield msg
+
+    def new_version_pre_checks(self, work_obj, metadata):
+        """Collection of pre-checks for the new version method."""
+        dcc_version_mismatch = work_obj.check_dcc_version_mismatch()
+        if dcc_version_mismatch:
+            msg = ("The current DCC version does not match the version of the work or metadata definition.\n\n"
+                f"Current DCC version: {dcc_version_mismatch[1]}\n"
+                f"Defined DCC version: {dcc_version_mismatch[0]}\n\n")
+            yield msg
+
+        for msg in self.metadata_pre_checks(work_obj._dcc_handler, metadata):
+            yield msg
+
     def ingest_here(self, item):
         """Send the ingest signal with the given item"""
+        # first check for permissions
+        if item.tik_obj.check_permissions(level=1) == -1:
+            msg = "This user does not have permissions for this action."
+            self.feedback.pop_info(title="Permission Error", text=msg)
+            return
+
+        # get the metadata for the checks.
+        parent_task = item.tik_obj.parent_task
+        metadata = parent_task.parent_sub.metadata
+        pre_checks = self.new_version_pre_checks(item.tik_obj, metadata)
+
+        if not item.dcc_check():
+            self.feedback.pop_info(
+                title="DCC Mismatch",
+                text="The current DCC does not match the DCC of the work.",
+                critical=True,
+            )
+            return
+
+        for check_msg in pre_checks:
+            question = self.feedback.pop_question(
+                title="Metadata Mismatch",
+                text=f"{check_msg}\n\nDo you want to continue?",
+                buttons=["continue", "cancel"]
+            )
+            if question == "cancel":
+                return
 
         dialog = NewVersionDialog(work_object=item.tik_obj, parent=self, ingest=True)
         state = dialog.exec_()

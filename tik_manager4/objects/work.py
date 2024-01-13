@@ -120,7 +120,7 @@ class Work(Settings, Entity):
 
     def reload(self):
         """Reload from file"""
-        self.__init__(self.settings_file)
+        self.__init__(self.settings_file, name=self._name, path=self._relative_path, parent_task=self._parent_task)
 
     def omit(self):
         """Omit the work."""

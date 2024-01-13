@@ -461,9 +461,6 @@ class MainUI(QtWidgets.QMainWindow):
 
     def on_ingest_version(self):
         """Iterate a version over the selected work in the ui."""
-        if not self._pre_check(level=1):
-            return
-        # get the selected work. If no work is selected, return
         selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
         if not selected_work_item:
             self.feedback.pop_info(
@@ -472,39 +469,8 @@ class MainUI(QtWidgets.QMainWindow):
                 critical=True,
             )
             return
-        self._new_version_pre_checks(selected_work_item.tik_obj)
-        dialog = NewVersionDialog(
-            work_object=selected_work_item.tik_obj, parent=self, ingest=True
-        )
-        state = dialog.exec_()
-        if state:
-            self._ingest_success()
-
-    def __metadata_pre_checks(self, metadata):
-        """Collection of pre-checks for the metadata method."""
-        metadata_fps = metadata.get_value("fps", None)
-        current_fps = self.tik.dcc.get_scene_fps()
-        if metadata_fps and current_fps:  # if the dcc supports fps and metadata has a value
-            if current_fps != metadata_fps:
-                msg = f"The current fps ({current_fps}) does not match with the defined fps ({metadata_fps})."
-                yield msg
-        metadata_start_frame = metadata.get_value("start_frame", None)
-        metadata_end_frame = metadata.get_value("end_frame", None)
-        raw_frame_range = self.tik.dcc.get_ranges()
-        start_mismatch = False
-        end_mismatch = False
-        if any([metadata_start_frame,
-                metadata_end_frame]) and raw_frame_range:  # if the dcc supports range and metadata has a value
-            if metadata_start_frame:
-                if float(metadata_start_frame) != float(raw_frame_range[0]):
-                    start_mismatch = True
-            if metadata_end_frame:
-                if float(metadata_end_frame) != float(raw_frame_range[-1]):
-                    end_mismatch = True
-            if start_mismatch or end_mismatch:
-                msg = f"The current frame range ({raw_frame_range[0], raw_frame_range[-1]}) does not match with the defined frame range ({[metadata_start_frame, metadata_end_frame]})."
-                yield msg
-
+        self.categories_mcv.work_tree_view.ingest_here(selected_work_item)
+    #
     def _new_work_pre_checks(self, subproject):
         """Collection of pre-checks for the new work method."""
         dcc_name = self.tik.project.guard.dcc
@@ -515,7 +481,8 @@ class MainUI(QtWidgets.QMainWindow):
                 msg = f"The current dcc version ({current_dcc_version}) does not match with the defined dcc version ({metadata_dcc_version})."
                 yield msg
 
-        for msg in self.__metadata_pre_checks(subproject.metadata):
+        # for msg in self.__metadata_pre_checks(subproject.metadata):
+        for msg in self.categories_mcv.work_tree_view.metadata_pre_checks(self.tik.dcc, subproject.metadata):
             yield msg
 
 
@@ -571,10 +538,10 @@ class MainUI(QtWidgets.QMainWindow):
         if dcc_version_mismatch:
             msg = ("The current DCC version does not match the version of the work or metadata definition.\n\n"
                 f"Current DCC version: {dcc_version_mismatch[1]}\n"
-                f"Defined DCC version: {dcc_version_mismatch[1]}\n\n")
+                f"Defined DCC version: {dcc_version_mismatch[0]}\n\n")
             yield msg
 
-        for msg in self.__metadata_pre_checks(metadata):
+        for msg in self.categories_mcv.work_tree_view.metadata_pre_checks(self.tik.dcc, metadata):
             yield msg
 
     def on_new_version(self):
