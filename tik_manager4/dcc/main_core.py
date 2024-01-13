@@ -58,7 +58,7 @@ class MainCore():
         Returns: (list) [<absolute range start>, <user range start>, <user range end>,
         <absolute range end>
         """
-        return (None, None, None, None)
+        pass
 
     @staticmethod
     def set_ranges(range_list):

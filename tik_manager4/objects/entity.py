@@ -77,10 +77,10 @@ class Entity():
         return str(Path(self.guard.project_root, self.path, *args))
 
     def get_purgatory_project_path(self, *args):
-        return str(Path(self.guard.project_root, "__purgatory", self.path, *args))
+        return str(Path(self.guard.project_root, ".purgatory", self.path, *args))
 
     def get_purgatory_database_path(self, *args):
-        return str(Path(self.guard.project_root, "__purgatory", "tikDatabase",  self.path, *args))
+        return str(Path(self.guard.project_root, ".purgatory", "tikDatabase",  self.path, *args))
 
     @staticmethod
     def _open_folder(target):

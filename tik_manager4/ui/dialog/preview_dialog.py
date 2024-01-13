@@ -14,7 +14,13 @@ class PreviewDialog(QtWidgets.QDialog):
         self.version = version
         self.work = work_object
         self.resolution = resolution or self.work.guard.project_settings.get_property("resolution", [1920, 1080])
-        range_start, _urs, _ure, range_end = self.work._dcc_handler.get_ranges()
+        raw_ranges = self.work._dcc_handler.get_ranges()
+        if raw_ranges:
+            range_start = raw_ranges[0]
+            range_end = raw_ranges[-1]
+        else:
+            range_start = 1001
+            range_end = 1100
         _range = range or [range_start, range_end]
         self.range = [_range[0] or range_start, _range[1] or range_end]
         self.setWindowTitle("Create Preview")

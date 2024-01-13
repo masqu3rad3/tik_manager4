@@ -106,23 +106,6 @@ class Category(Entity):
         work.new_version(file_format=file_format, notes=notes, ignore_checks=ignore_checks)
         return work
 
-    def delete_work(self, work_path):
-        """Delete a work under the category."""
-        _work = self._works.get(Path(work_path), None)
-        if not _work:
-            LOG.warning(
-                "There is no work under this category with the name => %s" % work_path
-            )
-            return -1
-
-        # if not, check if the user is the owner of the work
-        if self.guard.user != _work.creator or not self.check_permissions(level=3):
-            LOG.warning("You do not have the permission to delete this work")
-            return -1
-        del self._works[work_path]
-        _work.delete()
-        return 1
-
     def get_relative_work_path(self):
         """Return the relative path of the category"""
         return Path(self.path, self.guard.dcc).as_posix()

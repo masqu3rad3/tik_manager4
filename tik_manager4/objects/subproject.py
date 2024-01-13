@@ -325,12 +325,9 @@ class Subproject(Entity):
                     task_name
                 )
             )
-            from tik_manager4.core import io
 
             Path(self.get_purgatory_database_path(task.file_name)).mkdir(parents=True, exist_ok=True)
-            # io.IO().folder_check(self.get_purgatory_database_path(task.file_name))
             Path(self.get_purgatory_project_path()).mkdir(parents=True, exist_ok=True)
-            # io.IO().folder_check(self.get_purgatory_project_path())
             shutil.move(
                 self.get_abs_database_path(task.file_name),
                 self.get_purgatory_database_path(task.file_name),

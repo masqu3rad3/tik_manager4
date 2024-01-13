@@ -1,6 +1,7 @@
 # pylint: disable=super-with-arguments
 # pylint: disable=consider-using-f-string
 import socket
+import shutil
 import platform
 import subprocess
 from pathlib import Path
@@ -119,15 +120,15 @@ class Work(Settings, Entity):
 
     def reload(self):
         """Reload from file"""
-        self.__init__(self.settings_file)
+        self.__init__(self.settings_file, name=self._name, path=self._relative_path, parent_task=self._parent_task)
 
-    def omit_work(self):
+    def omit(self):
         """Omit the work."""
         self._state = "omitted"
         self.edit_property("state", self._state)
         self.apply_settings()
 
-    def revive_work(self):
+    def revive(self):
         """Revive the work."""
         self._state = "working" if not self.publish.versions else "published"
         self.edit_property("state", self._state)
@@ -400,10 +401,116 @@ class Work(Settings, Entity):
             _ingest_obj.ingest_path = abs_path
             _ingest_obj.reference()
 
-    def delete(self):
-        """Delete the work."""
-        # TODO: implement this. This should move the work to the purgatory.
-        pass
+    def check_destroy_permissions(self):
+        """Check the permissions for deleting the work.
+
+        Users can only delete their own works. Admins can delete any work.
+        If there is a publish of the work, only Admins can delete the work.
+        """
+        if self.check_permissions(level=3) == -1:
+            if self.publish.versions:
+                # if there is a publish, only admins can delete the work
+                msg = "This work has published versions. Only admins can delete it."
+                LOG.warning(msg)
+                return False, msg
+            if self.guard.user != self._creator:
+                msg = ("You do not have the permission to delete this work.\n"
+                       "Only admins can delete other users' works.")
+                LOG.warning(msg)
+                return False, msg
+            else:
+                # check creators for all versions
+                for version in self._versions:
+                    if version.get("user") != self.guard.user:
+                        msg = ("You do not have the permission to delete this work.\n"
+                               "There are other versions created by other user(s).\n"
+                               "Only admins can delete other users' works.")
+                        LOG.warning(msg)
+                        return False, msg
+        return True, ""
+
+    def destroy(self):
+        """Delete the work AND all its versions AND PUBLISHES.
+
+        CAUTION: This is a destructive operation. Use with care.
+        """
+        state, msg = self.check_destroy_permissions()
+        if not state:
+            return -1
+
+        if self.publish.versions:
+            self.publish.destroy()
+
+        purgatory_database_dir = Path(self.get_purgatory_database_path())
+        purgatory_database_dir.mkdir(parents=True, exist_ok=True)
+        purgatory_scene_dir = Path(self.get_purgatory_project_path())
+        purgatory_scene_dir.mkdir(parents=True, exist_ok=True)
+
+        shutil.move(self.get_abs_project_path(self.name), self.get_purgatory_project_path(self.name), copy_function=shutil.copytree)
+
+        thumbnails_dir = Path(self.get_abs_database_path("thumbnails"))
+        # collect all thumbnails starting with the work name
+        thumbnails = thumbnails_dir.glob(f"{self.name}_*")
+        for thumbnail in thumbnails:
+            thumb_destination_dir = purgatory_database_dir / "thumbnails"
+            thumb_destination_dir.mkdir(parents=True, exist_ok=True)
+            thumb_destination_file = thumb_destination_dir / thumbnail.name
+            shutil.move(str(thumbnail), str(thumb_destination_file))
+
+        # finally move the database file
+        db_destination = purgatory_database_dir / Path(self.settings_file).name
+        shutil.move(str(self.settings_file), str(db_destination))
+        return 1
+
+    def check_delete_version_permissions(self, version_number):
+        """Check the permissions for deleting the given version of the work.
+
+        Users can only delete their own versions. Admins can delete any version.
+        If there is a publish of the version, only Admins can delete the version.
+        """
+        version_obj = self.get_version(version_number)
+        if not version_obj:
+            LOG.warning(f"Version {version_number} does not exist.")
+            return False, "Version does not exist."
+        if self.check_permissions(level=3) == -1:
+            if self.guard.user != version_obj.get("user"):
+                msg = ("You do not have the permission to delete this version.\n"
+                       "Only admins can delete other users' versions.")
+                LOG.warning(msg)
+                return False, msg
+        return True, ""
+
+    def delete_version(self, version_number):
+        """Delete the given version of the work.
+
+        Args:
+            version_number (int): Version number.
+        """
+
+        state, _msg = self.check_delete_version_permissions(version_number)
+        if not state:
+            return -1
+        version_obj = self.get_version(version_number)
+        if version_obj:
+            relative_path = version_obj.get("scene_path")
+            abs_path = version_obj.get_abs_project_path(relative_path)
+            dest_path = version_obj.get_purgatory_project_path(relative_path)
+            shutil.move(abs_path, dest_path, copy_function=shutil.copytree)
+
+            # move the thumbnail
+            thumbnail_relative_path = version_obj.get("thumbnail", None)
+            if thumbnail_relative_path:
+                thumbnail_abs_path = version_obj.get_abs_database_path(thumbnail_relative_path)
+                thumbnail_dest_path = version_obj.get_purgatory_database_path(thumbnail_relative_path)
+                Path(thumbnail_dest_path).parent.mkdir(parents=True, exist_ok=True)
+                shutil.move(thumbnail_abs_path, thumbnail_dest_path, copy_function=shutil.copytree)
+
+            # remove the version from the versions list
+            self._versions.remove(version_obj)
+            self.edit_property("versions", self._versions)
+            self.apply_settings(force=True)
+        return 1
+
 
     def check_dcc_version_mismatch(self):
         """Check if there is a mismatch with the current and defined dcc versions.
