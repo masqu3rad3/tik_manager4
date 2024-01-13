@@ -105,6 +105,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.load_btn.clicked.connect(self.on_load)
         self.reference_btn.clicked.connect(self.on_reference)
 
+        self.version_combo.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.version_combo.customContextMenuRequested.connect(self.right_click_menu)
+
     def on_import(self):
         """Import the current version."""
         if not self.base:
@@ -317,7 +320,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         """When the version dropdown is changed, update the notes and thumbnail."""
         self.element_combo.blockSignals(True)
         self.ingest_with_combo.blockSignals(True)
-        version_number = int(self.version_combo.currentText())
+        version_text = self.version_combo.currentText()
+        if not version_text:
+            return
+        version_number = int(version_text)
         _index = self.version_combo.currentIndex()
         # check if the _index is the latest in combo box
         if _index == self.version_combo.count() - 1:
@@ -403,6 +409,37 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         else:
             return None
 
+    def delete_version(self):
+        """Delete the selected Work or Publish version."""
+        if not self.base:
+            self.feedback.pop_info(
+                title="No work or publish selected.",
+                text="Please select a work or publish to delete.",
+                critical=True,
+            )
+            return
+        _version = self.get_selected_version()
+        if self.base.object_type == "work":
+            # print("Deleting work version")
+            # print(_version)
+            # _obj = self.base.get_version(_version)
+            # print(_obj)
+            _name = self.base.get_version(_version).get("scene_path", "")
+            are_you_sure = self.feedback.pop_question(
+                title="Delete Work Version",
+                text="You are about to delete the work version:\n\n"
+                     f"{_name}\n\n"
+                     "This action cannot be undone.\n"
+                     "Do you want to continue?",
+                buttons=["yes", "cancel"]
+                )
+            if are_you_sure == "cancel":
+                return
+            self.base.delete_version(_version)
+            # repopulate the combo box
+            self.populate_versions(self.base._versions)
+        # self.base.delete_version(_version)
+
     def refresh(self):
         """Refresh the version dropdown."""
         if self.base:
@@ -412,6 +449,19 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.version_combo.clear()
             self.notes_editor.clear()
             self.thumbnail.clear()
+
+    def right_click_menu(self, position):
+        """Right click menu for the version dropdown."""
+
+        right_click_menu = QtWidgets.QMenu()
+        right_click_menu.setStyleSheet(self.parent.styleSheet())  # Add this line
+
+        delete_version_action = QtWidgets.QAction(self.tr("Delete Version"), self)
+        right_click_menu.addAction(delete_version_action)
+        delete_version_action.triggered.connect(self.delete_version)
+
+        right_click_menu.exec_((QtGui.QCursor.pos()))
+
 
 
 class ImageWidget(QtWidgets.QLabel):

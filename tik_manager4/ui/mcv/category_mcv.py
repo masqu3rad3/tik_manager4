@@ -400,9 +400,51 @@ class TikCategoryView(QtWidgets.QTreeView):
 
     def delete_item(self, item):
         """Deletes the given item"""
-        print("Method not implemented")
-        print(item)
-        # TODO
+
+        # lets make pre-check for permissions:
+        state, msg = item.tik_obj.check_destroy_permissions()
+        if not state:
+            self.feedback.pop_info(title="Permission error", text=msg, critical=True)
+            return
+
+        if item.tik_obj.object_type == "work":
+            are_you_sure = self.feedback.pop_question(
+                title="Are you sure?",
+                text=f"You are about to delete '{item.tik_obj.name}' completely.\n\n"
+                     "This will delete ALL VERSIONS and ALL PUBLISHES of this work.\n\n"
+                     "This action cannot be undone.\n"
+                     "Are you sure you want to continue?",
+                buttons=["yes", "cancel"]
+            )
+            if are_you_sure == "cancel":
+                return
+            # double check if there is a publish under this work
+            if item.tik_obj.publish.versions:
+                are_you_sure = self.feedback.pop_question(
+                    title="Are you REALLY sure?",
+                    text="There are published versions under this work.\n\n"
+                         "ALL PUBLISHES and ALL WORK VERSIONS will be deleted.\n\n"
+                         "This action cannot be undone.\n"
+                         "Are you REALLY sure you want to continue?",
+                    buttons=["yes", "cancel"]
+                )
+                if are_you_sure == "cancel":
+                    return
+        elif item.tik_obj.object_type == "publish":
+            are_you_sure = self.feedback.pop_question(
+                title="Are you sure?",
+                text=f"You are about to delete '{item.tik_obj.name}' completely.\n\n"
+                     "This will delete ALL VERSIONS of this publish.\n\n"
+                     "This action cannot be undone.\n"
+                     "Are you sure you want to continue?",
+                buttons=["yes", "cancel"]
+            )
+            if are_you_sure == "cancel":
+                return
+
+        item.tik_obj.destroy()
+        # remove the item from the model
+        self.model.removeRow(item.row())
 
 
 

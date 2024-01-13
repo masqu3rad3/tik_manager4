@@ -1,6 +1,8 @@
 # pylint: disable=super-with-arguments
 """Publish object module."""
 
+import shutil
+
 from pathlib import Path
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.entity import Entity
@@ -163,6 +165,35 @@ class Publish(Entity):
             _import_obj.category = self._work_object.category
             _import_obj.ingest_path = abs_path
             _import_obj.reference()
+
+    def check_destroy_permissions(self):
+        """Shortcut and wrapper for the check_permissions method."""
+        if self.check_permissions(level=3) == -1:
+            return False, "Only Admins can delete publishes."
+        return True, ""
+    def destroy(self):
+        """Delete ALL PUBLISHES of the work.
+
+        Use with caution.
+        """
+        state, msg = self.check_destroy_permissions()
+        if not state:
+            LOG.warning(msg)
+            return -1
+
+        # move the whole publish folder to purgatory
+        _purgatory_path = Path(self._work_object.get_purgatory_project_path(), "publish")
+        _purgatory_path.mkdir(parents=True, exist_ok=True)
+        shutil.move(self.get_publish_scene_folder(), str(_purgatory_path / self._work_object.name), copy_function=shutil.copytree)
+
+        # move the database files to purgatory
+        _purgatory_db_path = Path(self._work_object.get_purgatory_database_path(), "publish")
+        _purgatory_db_path.mkdir(parents=True, exist_ok=True)
+        shutil.move(self.get_publish_data_folder(), str(_purgatory_db_path / self._work_object.name), copy_function=shutil.copytree)
+
+        # clear the publish versions
+        self._publish_versions = {}
+        return 1
 
 
 class PublishVersion(Settings, Entity):

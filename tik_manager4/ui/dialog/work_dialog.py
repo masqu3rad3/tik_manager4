@@ -367,9 +367,12 @@ class NewVersionDialog(QtWidgets.QDialog):
         # align texts in combo to the right
         self.format_combo.setItemDelegate(QtWidgets.QStyledItemDelegate())
         # try to get the format from the last version and set it as current
-        _format = self.work_object.versions[-1].get(
-            "file_format", self.work_object._dcc_handler.formats[0]
-        )
+        if self.work_object.versions:
+            _format = self.work_object.versions[-1].get(
+                "file_format", self.work_object._dcc_handler.formats[0]
+            )
+        else:
+            _format = self.work_object._dcc_handler.formats[0]
         self.format_combo.setCurrentText(_format)
         self.on_format_changed(_format)  # initialize the name label with the format
 

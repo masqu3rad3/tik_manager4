@@ -704,18 +704,15 @@ class TestProject:
             .categories["Model"]
         )
         works = model_category.scan_works()
-        target_work = list(works.keys())[0]
+        target_work = list(works.values())[0]
 
         # try to delete a work without permissions
         tik.user.set("Generic", password="1234")
-        assert model_category.delete_work(target_work) == -1
+        assert target_work.destroy() == -1
 
         tik.user.set("Admin", password="1234")
-        # try to delete a non existing work
-        assert model_category.delete_work("burhan_altintop") == -1
-
         # delete the work
-        assert model_category.delete_work(target_work) == 1
+        assert target_work.destroy() == 1
 
     def test_deleting_empty_task(self, project_manual_path, tik):
         self.test_creating_and_adding_new_tasks(project_manual_path, tik)
