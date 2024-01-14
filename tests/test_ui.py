@@ -29,10 +29,10 @@ class TestUI:
     """Test UI."""
 
     @pytest.fixture(scope='function')
-    def main_object(self, tik):
+    def main_object(self, tik, files):
         project_path = Path(utils.get_home_dir(), "t4_UI_test_project_DO_NOT_USE")
         if project_path.exists():
-            shutil.rmtree(str(project_path))
+            files.force_remove_directory(project_path)
         tik.user.set("Admin", "1234")
         tik.create_project(str(project_path), structure_template="empty")
         return tik

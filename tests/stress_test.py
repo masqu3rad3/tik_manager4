@@ -18,11 +18,11 @@ WORDS = response.content.splitlines()
 # @pytest.mark.usefixtures("prepare")
 class TestStress:
     """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
-    def test_create_a_big_project(self, tik):
+    def test_create_a_big_project(self, tik, files):
         test_stress_project_path = Path(utils.get_home_dir(), "t4_stress_test_DO_NOT_USE")
         # test_stress_project_path = os.path.join(utils.get_home_dir(), "t4_stress_test_DO_NOT_USE")
         if test_stress_project_path.exists():
-            shutil.rmtree(str(test_stress_project_path))
+            files.force_remove_directory(test_stress_project_path)
 
         tik.user.set("Admin", "1234")
 

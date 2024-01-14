@@ -25,7 +25,6 @@ class TestMayaProject():
     def project(self, tik, files):
         project_path = Path(utils.get_home_dir(), "t4_maya_test_project_DO_NOT_USE")
         if project_path.exists():
-            # force_remove_directory(project_path)
             files.force_remove_directory(project_path)
         tik.user.set("Admin", "1234")
         tik.create_project(str(project_path), structure_template="empty")
