@@ -274,15 +274,16 @@ def test_getting_home_dir(monkeypatch):
     monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Linux")
     assert utils.get_home_dir() == str(Path("/home/user"))
 
-def test_execute(tmp_path, monkeypatch):
+def test_execute(tmp_path):
     """Test execute function."""
     _file = tmp_path / "test_execute.txt"
 
-    # Test for Windows
-    with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Windows"):
-        with patch("os.startfile") as mock_startfile:
-            utils.execute(str(_file))
-            mock_startfile.assert_called_once_with(str(_file))
+    if platform.system() == "Windows":
+        # Test for Windows
+        with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Windows"):
+            with patch("os.startfile") as mock_startfile:
+                utils.execute(str(_file))
+                mock_startfile.assert_called_once_with(str(_file))
 
     # Test for Linux
     with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Linux"):
