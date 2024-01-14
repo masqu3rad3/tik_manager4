@@ -96,7 +96,6 @@ class Publish(Entity):
     def get_last_version(self):
         """Return the last publish version."""
         # find the latest publish version
-        # _publish_version_numbers = [data.version for publish_path, data in self.versions.items()]
         _publish_version_numbers = [data.version for data in self.versions]
         return 0 if not _publish_version_numbers else max(_publish_version_numbers)
 

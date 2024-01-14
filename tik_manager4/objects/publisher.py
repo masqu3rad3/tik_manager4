@@ -158,6 +158,33 @@ class Publisher:
         for val_name, val_object in self._resolved_validators.items():
             val_object.validate()
 
+    def write_protect(self, file_or_folder_path):
+        """Protect the given file or folder making it read-only."""
+        path = Path(file_or_folder_path)
+        file_list = []
+        if path.is_file():
+            file_list.append(path)
+        elif path.is_dir():
+            for _file in path.rglob("*"):
+                file_list.append(_file)
+        for _file in file_list:
+            try:
+                _file.chmod(0o444)
+            except Exception as e: # pylint: disable=broad-except
+                LOG.warning(f"File protection failed: {_file}")
+
+
+    def extract_single(self, extract_object):
+        """Does the extract from the given extract object."""
+        publish_path = Path(
+            self._work_object.get_abs_project_path("publish", self._work_object.name)
+        )
+        extract_object.category = self._work_object.category  # define the category
+        extract_object.extract_folder = str(publish_path)  # define the extract folder
+        extract_object.extract_name = f"{self._work_object.name}_v{self._publish_version:03d}"  # define the extract name
+        extract_object.extract()
+        self.write_protect(extract_object.resolve_output())
+
     def extract(self):
         """Extract the elements."""
         # first save the scene
@@ -165,14 +192,8 @@ class Publisher:
         publish_path = Path(
             self._work_object.get_abs_project_path("publish", self._work_object.name)
         )
-        for extract_type_name, extract_object in self._resolved_extractors.items():
-            # extract_object.category = self._work_object.category # define the category #
-            extract_object.category = self._work_object.category
-            extract_object.extract_folder = str(
-                publish_path
-            )  # define the extract folder
-            extract_object.extract_name = f"{self._work_object.name}_v{self._publish_version:03d}"  # define the extract name
-            extract_object.extract()
+        for _extract_type_name, extract_object in self._resolved_extractors.items():
+            self.extract_single(extract_object)
 
     def publish(self, notes=None):
         """Finalize the publish by updating the reserved slot."""
@@ -228,21 +249,6 @@ class Publisher:
         self._published_object = None
         LOG.info("Publish discarded.")
 
-    def extract_single(self, extract_object):
-        """Does the extract from the given extract object."""
-        publish_path = Path(
-            self._work_object.get_abs_project_path("publish", self._work_object.name)
-        )
-        extract_object.category = self._work_object.category  # define the category
-        extract_object.extract_folder = str(publish_path)  # define the extract folder
-        extract_object.extract_name = f"{self._work_object.name}_v{self._publish_version:03d}"  # define the extract name
-        extract_object.extract()
-
-    # @property
-    # def metadata(self):
-    #     """Return the metadata as DICTIONARY."""
-    #     return dict(self._metadata.get_all_items())
-
     @property
     def metadata(self):
         """Return the metadata."""
@@ -252,16 +258,6 @@ class Publisher:
     def publish_version(self):
         """Return the resolved publish version."""
         return self._publish_version
-
-    # @property
-    # def extract_names(self):
-    #     """Return the resolved extract names."""
-    #     return list(self._resolved_extractors.keys())
-    #
-    # @property
-    # def validation_names(self):
-    #     """Return the resolved validation names."""
-    #     return list(self._resolved_validators.keys())
 
     @property
     def publish_name(self):

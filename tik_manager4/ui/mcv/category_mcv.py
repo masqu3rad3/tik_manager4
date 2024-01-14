@@ -349,9 +349,12 @@ class TikCategoryView(QtWidgets.QTreeView):
                 level += 1
         else:
             level = 0
-        ingest_act = right_click_menu.addAction(self.tr("Ingest Here"))
-        ingest_act.triggered.connect(lambda _=None, x=item: self.ingest_here(item))
-        right_click_menu.addSeparator()
+
+        # if the item is a work, add the ingest action
+        if item.tik_obj.object_type == "work":
+            ingest_act = right_click_menu.addAction(self.tr("Ingest Here"))
+            ingest_act.triggered.connect(lambda _=None, x=item: self.ingest_here(item))
+            right_click_menu.addSeparator()
         load_act = right_click_menu.addAction(self.tr("Load"))
         load_act.triggered.connect(self.load_event.emit)
         import_act = right_click_menu.addAction(self.tr("Import To the Scene"))

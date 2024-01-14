@@ -146,6 +146,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv = None
         self.versions_mcv = None
 
+        # buttons
+        self.ingest_version_btn = None
+
         self.initialize_mcv()
         self.build_bars()
         self.build_buttons()
@@ -263,9 +266,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.item_selected.connect(
             self.versions_mcv.set_base
         )
-        # self.categories_mcv.mode_changed.connect(self.set_buttons_visibility)
+        self.categories_mcv.mode_changed.connect(self._main_button_states)
         self.categories_mcv.work_tree_view.version_created.connect(self._ingest_success)
-        # self.categories_mcv.work_tree_view.doubleClicked.connect(self.load_work)
         self.categories_mcv.work_tree_view.doubleClicked.connect(
             self.versions_mcv.on_load
         )
@@ -345,18 +347,18 @@ class MainUI(QtWidgets.QMainWindow):
         save_new_work_btn.setMinimumSize(150, 40)
         increment_version_btn = TikButton("Increment Version")
         increment_version_btn.setMinimumSize(150, 40)
-        ingest_version_btn = TikButton("Ingest Version")
-        ingest_version_btn.setMinimumSize(150, 40)
+        self.ingest_version_btn = TikButton("Ingest Version")
+        self.ingest_version_btn.setMinimumSize(150, 40)
         publish_scene_btn = TikButton("Publish")
         publish_scene_btn.setMinimumSize(150, 40)
 
         self.work_buttons_layout.addWidget(save_new_work_btn)
         self.work_buttons_layout.addWidget(increment_version_btn)
-        self.work_buttons_layout.addWidget(ingest_version_btn)
+        self.work_buttons_layout.addWidget(self.ingest_version_btn)
         self.work_buttons_layout.addWidget(publish_scene_btn)
         self.work_buttons_layout.addStretch(1)
         increment_version_btn.clicked.connect(self.on_new_version)
-        ingest_version_btn.clicked.connect(self.on_ingest_version)
+        self.ingest_version_btn.clicked.connect(self.on_ingest_version)
         save_new_work_btn.clicked.connect(self.on_new_work)
         publish_scene_btn.clicked.connect(self.on_publish_scene)
 
@@ -443,6 +445,14 @@ class MainUI(QtWidgets.QMainWindow):
             create_preview.triggered.connect(self.on_create_preview)
 
         menu_bar.setMinimumWidth(menu_bar.sizeHint().width())
+
+    def _main_button_states(self):
+        """Toggle the states of the main buttons according to certain conditions."""
+        # if the mode is set to "work", then enable the ingest button
+        if self.categories_mcv.mode == 0: # work mode
+            self.ingest_version_btn.setEnabled(True)
+        elif self.categories_mcv.mode == 1: # publish mode
+            self.ingest_version_btn.setEnabled(False)
 
     def _ingest_success(self):
         """Callback function for the ingest success event."""
