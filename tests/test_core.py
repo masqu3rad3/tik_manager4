@@ -273,27 +273,17 @@ def test_getting_home_dir(monkeypatch):
     monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Linux")
     assert utils.get_home_dir() == str(Path("/home/user"))
 
-# def test_applying_stylesheet(tmp_path):
-#     """Test applying stylesheet."""
-#     # test applying stylesheet
-#     _stylesheet = tmp_path / "test_stylesheet.qss"
-#     with open(_stylesheet, "w") as f:
-#         f.write("test")
-#     app = QtWidgets.QApplication(sys.argv)
-#     _widget = QtWidgets.QWidget()
-#     assert utils.apply_stylesheet(str(_stylesheet), _widget) == True
-#     assert utils.apply_stylesheet(str(tmp_path / "test_stylesheet.NA"), _widget) == False
 
-# def test_execute(tmp_path, monkeypatch):
-#     """Test execute function."""
-#     import os
-#     _file = tmp_path / "test_execute.txt"
-#     # monkeypatch the subprocess.Popen function
-#     monkeypatch.setattr(utils.subprocess, "Popen", lambda x: "test")
-#     monkeypatch.setattr(utils.os, "startfile", lambda x: "test")
-#     monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Windows")
-#     utils.execute(str(_file))
-#     monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Linux")
-#     utils.execute(str(_file))
-#     monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Darwin")
-#     utils.execute(str(_file))
+def test_execute(tmp_path, monkeypatch):
+    """Test execute function."""
+    _file = tmp_path / "test_execute.txt"
+    # monkeypatch the subprocess.Popen function
+    monkeypatch.setattr(utils.subprocess, "Popen", lambda x: "test")
+    monkeypatch.setattr(utils.os, "startfile", lambda x: "test")
+    monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Windows")
+    utils.execute(str(_file))
+    monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Linux")
+    utils.execute(str(_file))
+    monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Darwin")
+    utils.execute(str(_file))
+    monkeypatch.undo()

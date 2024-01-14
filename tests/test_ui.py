@@ -183,6 +183,17 @@ class TestUI:
         dialog.show()
         # qtbot.stop()
 
+    def test_applying_stylesheet(self, qtbot, tmp_path):
+        """Test applying stylesheet."""
+        # test applying stylesheet
+        _stylesheet = tmp_path / "test_stylesheet.qss"
+        with open(_stylesheet, "w") as f:
+            f.write("test")
+        _widget = QtWidgets.QWidget()
+        qtbot.addWidget(_widget)
+        assert utils.apply_stylesheet(str(_stylesheet), _widget) == True
+        assert utils.apply_stylesheet(str(tmp_path / "test_stylesheet.NA"), _widget) == False
+
     # def test_standard_item_model(self, qtmodeltester):
     #     model = QtGui.QStandardItemModel()
     #     items = [QtGui.QStandardItem(str(i)) for i in range(4)]
