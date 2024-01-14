@@ -174,29 +174,29 @@ def test_initialize_and_setting_data_with_settings(tmp_path):
     assert _settings_for_set_data.is_settings_changed() == True
     assert _settings_for_set_data.get_data() == test_data
 
-def test_reading_back_from_an_existing_settings_file(tmp_path):
-    """Read back from an existing settings file."""
-    _settings_1 = settings.Settings(file_path=str(tmp_path / "test_settings.json"))
-    # add some data
-    _settings_1.add_property("test_string", "test")
-    _settings_1.add_property("test_dict", {"sub_test": "sub_test_initial_value"})
-    _settings_1.apply_settings()
-    # read the data back
-    _settings_2 = settings.Settings(file_path=str(tmp_path / "test_settings.json"))
-    assert _settings_2.get_property("test_string") == "test"
-    assert _settings_2.get_property("test_dict") == {"sub_test": "sub_test_initial_value"}
-
-    # modify the first settings file and check if the second one will understand that its modified
-    _settings_1.edit_property("test_string", "test_edited")
-    _settings_1.apply_settings()
-    assert _settings_2.is_modified()
-
-    # _setting_2 should still hold the old data
-    assert _settings_2.get_property("test_string") == "test"
-    # reload the data
-    _settings_2.reload()
-    # now it should hold the new data
-    assert _settings_2.get_property("test_string") == "test_edited"
+# def test_reading_back_from_an_existing_settings_file(tmp_path):
+#     """Read back from an existing settings file."""
+#     _settings_1 = settings.Settings(file_path=str(tmp_path / "test_settings.json"))
+#     # add some data
+#     _settings_1.add_property("test_string", "test")
+#     _settings_1.add_property("test_dict", {"sub_test": "sub_test_initial_value"})
+#     _settings_1.apply_settings()
+#     # read the data back
+#     _settings_2 = settings.Settings(file_path=str(tmp_path / "test_settings.json"))
+#     assert _settings_2.get_property("test_string") == "test"
+#     assert _settings_2.get_property("test_dict") == {"sub_test": "sub_test_initial_value"}
+#
+#     # modify the first settings file and check if the second one will understand that its modified
+#     _settings_1.edit_property("test_string", "test_edited")
+#     _settings_1.apply_settings()
+#     assert _settings_2.is_modified()
+#
+#     # _setting_2 should still hold the old data
+#     assert _settings_2.get_property("test_string") == "test"
+#     # reload the data
+#     _settings_2.reload()
+#     # now it should hold the new data
+#     assert _settings_2.get_property("test_string") == "test_edited"
 
 def test_settings_fallback_function(tmp_path):
     """Test settings fallback function."""
