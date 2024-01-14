@@ -2,7 +2,8 @@
 import sys
 import time
 import pytest
-from unittest import mock
+# from unittest import mock
+from unittest.mock import patch
 import platform
 import codecs
 from pathlib import Path
@@ -273,17 +274,38 @@ def test_getting_home_dir(monkeypatch):
     monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Linux")
     assert utils.get_home_dir() == str(Path("/home/user"))
 
-
 def test_execute(tmp_path, monkeypatch):
     """Test execute function."""
     _file = tmp_path / "test_execute.txt"
-    # monkeypatch the subprocess.Popen function
-    monkeypatch.setattr(utils.subprocess, "Popen", lambda x: "test")
-    monkeypatch.setattr(utils.os, "startfile", lambda x: "test")
-    monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Windows")
-    utils.execute(str(_file))
-    monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Linux")
-    utils.execute(str(_file))
-    monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Darwin")
-    utils.execute(str(_file))
-    monkeypatch.undo()
+
+    # Test for Windows
+    with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Windows"):
+        with patch("os.startfile") as mock_startfile:
+            utils.execute(str(_file))
+            mock_startfile.assert_called_once_with(str(_file))
+
+    # Test for Linux
+    with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Linux"):
+        with patch("subprocess.Popen") as mock_popen:
+            utils.execute(str(_file))
+            mock_popen.assert_called_once_with(["xdg-open", str(_file)])
+
+    # Test for another platform (Darwin in this case)
+    with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Darwin"):
+        with patch("subprocess.Popen") as mock_popen:
+            utils.execute(str(_file))
+            mock_popen.assert_called_once_with(["open", str(_file)])
+
+# def test_execute(tmp_path, monkeypatch):
+#     """Test execute function."""
+#     _file = tmp_path / "test_execute.txt"
+#     # monkeypatch the subprocess.Popen function
+#     monkeypatch.setattr(utils.subprocess, "Popen", lambda x: "test")
+#     monkeypatch.setattr(utils.os, "startfile", lambda x: "test")
+#     monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Windows")
+#     utils.execute(str(_file))
+#     monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Linux")
+#     utils.execute(str(_file))
+#     monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Darwin")
+#     utils.execute(str(_file))
+#     monkeypatch.undo()
