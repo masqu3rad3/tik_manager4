@@ -189,7 +189,7 @@ def test_reading_back_from_an_existing_settings_file(tmp_path):
     # modify the first settings file and check if the second one will understand that its modified
     _settings_1.edit_property("test_string", "test_edited")
     _settings_1.apply_settings()
-    assert _settings_2.is_modified() == True
+    assert _settings_2.is_modified()
 
     # _setting_2 should still hold the old data
     assert _settings_2.get_property("test_string") == "test"
