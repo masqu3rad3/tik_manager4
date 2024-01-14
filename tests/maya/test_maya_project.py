@@ -1,5 +1,6 @@
 """Project management related tests for Maya."""
-
+import stat
+import os
 import shutil
 import pytest
 from pathlib import Path
@@ -11,6 +12,7 @@ try:
 except ImportError:
     pytest.skip('Maya is not installed.', allow_module_level=True)
 
+
 class TestMayaProject():
     """Maya Project related tests."""
 
@@ -20,10 +22,10 @@ class TestMayaProject():
         cmds.file(new=True, force=True)
 
     @pytest.fixture(scope='function')
-    def project(self, tik):
+    def project(self, tik, files):
         project_path = Path(utils.get_home_dir(), "t4_maya_test_project_DO_NOT_USE")
         if project_path.exists():
-            shutil.rmtree(str(project_path))
+            files.force_remove_directory(project_path)
         tik.user.set("Admin", "1234")
         tik.create_project(str(project_path), structure_template="empty")
         return tik.project

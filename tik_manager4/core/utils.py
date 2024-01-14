@@ -8,13 +8,14 @@ import subprocess
 CURRENT_PLATFORM = platform.system()
 def get_home_dir():
     """Get the user home directory."""
-    # return str(Path().home())
     # expanduser does not always return the same result (in Maya it returns user/Documents).
     # This returns the true user folder for all platforms and dccs"""
-    if platform.system() == "Windows":
+    if CURRENT_PLATFORM == "Windows":
         return os.path.normpath(os.getenv("USERPROFILE"))
+        # return str(Path(os.getenv("USERPROFILE")))
     else:
         return os.path.normpath(os.getenv("HOME"))
+        # return str(Path(os.getenv("HOME")))
 
 def apply_stylesheet(file_path, widget):
     """reads and applies the qss file to the widget"""
@@ -29,7 +30,7 @@ def apply_stylesheet(file_path, widget):
 def execute(file_path):
     if CURRENT_PLATFORM == "Windows":
         os.startfile(file_path)
-    elif platform.system() == "Linux":
+    elif CURRENT_PLATFORM == "Linux":
         # logger.warning("Linux execution not yet implemented")
         subprocess.Popen(["xdg-open", file_path])
     else:

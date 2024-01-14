@@ -4,6 +4,7 @@ from pathlib import Path
 import shutil
 from pprint import pprint
 import pytest
+from tik_manager4.core import settings
 from tik_manager4.core import utils
 
 
@@ -14,24 +15,24 @@ class TestProject:
     # tik = tik_manager4.initialize("Standalone")
 
     @pytest.fixture(scope="function")
-    def project_default_path(self):
+    def project_default_path(self, files):
         project_path = Path(utils.get_home_dir(), "TM4_default")
         if project_path.exists():
-            shutil.rmtree(str(project_path))
+            files.force_remove_directory(project_path)
         return str(project_path)
 
     @pytest.fixture(scope="function")
-    def project_path(self):
+    def project_path(self, files):
         project_path = Path(utils.get_home_dir(), "t4_test_project_DO_NOT_USE")
         if project_path.exists():
-            shutil.rmtree(str(project_path))
+            files.force_remove_directory(project_path)
         return str(project_path)
 
     @pytest.fixture(scope="function")
-    def project_manual_path(self):
+    def project_manual_path(self, files):
         project_path = Path(utils.get_home_dir(), "t4_test_manual_DO_NOT_USE")
         if project_path.exists():
-            shutil.rmtree(str(project_path))
+            files.force_remove_directory(project_path)
         return str(project_path)
 
     def test_default_project_paths(self, project_default_path, tik):
@@ -527,7 +528,7 @@ class TestProject:
             tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].scan_tasks()
         )
 
-    def test_creating_works_and_versions(self, project_manual_path, tik):
+    def test_creating_works_and_versions(self, project_manual_path, tik, monkeypatch):
         self.test_creating_and_adding_new_tasks(project_manual_path, tik)
 
         tik.user.set("Admin", 1234)
@@ -578,8 +579,20 @@ class TestProject:
             ultraman_task.categories["Rig"].create_work( "varC", file_format=".burhan", notes="this is a complete new version of varC")
             assert e_info == "File format is not valid."
 
+        # create a new work ignoring the checks
+        assert ultraman_task.categories["Rig"].create_work("varD", ignore_checks=False)
+
+        # monkeypatch the work.check_dcc_version_mismatch method to return a value for testing
+        from tik_manager4.objects.work import Work
+        def mock_check_dcc_version_mismatch(*args, **kwargs):
+            return "something", "something_else"
+        monkeypatch.setattr(Work, "check_dcc_version_mismatch", mock_check_dcc_version_mismatch)
+        assert ultraman_task.categories["Rig"].create_work("varE", ignore_checks=False) == -1
+        monkeypatch.undo()
+
+
     def test_versioning_up(self, project_manual_path, tik, monkeypatch):
-        self.test_creating_works_and_versions(project_manual_path, tik)
+        self.test_creating_works_and_versions(project_manual_path, tik, monkeypatch)
         # try to create a new version with checks
         sub = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"]
         model_category = sub.tasks["bizarro"].categories["Model"]
@@ -600,10 +613,12 @@ class TestProject:
         tik.user.set("Observer", password="1234")
         assert work.new_version(ignore_checks=False) == -1
 
+        monkeypatch.undo()
+
 
 
     def test_checking_dcc_version_mismatch(self, project_manual_path, tik, monkeypatch):
-        self.test_creating_works_and_versions(project_manual_path, tik)
+        self.test_creating_works_and_versions(project_manual_path, tik, monkeypatch)
 
         sub = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"]
         model_category = sub.tasks["bizarro"].categories["Model"]
@@ -637,10 +652,10 @@ class TestProject:
         work_object._parent_task = None
         assert work_object.check_dcc_version_mismatch() == ('this_mock_should_fail', 'mocked_dcc_version')
 
+        monkeypatch.undo()
 
-
-    def test_find_works_by_wildcard(self, project_manual_path, tik):
-        self.test_creating_works_and_versions(project_manual_path, tik)
+    def test_find_works_by_wildcard(self, project_manual_path, tik, monkeypatch):
+        self.test_creating_works_and_versions(project_manual_path, tik, monkeypatch)
         lod300_works = (
             tik.project.subs["Assets"]
             .subs["Characters"]
@@ -666,8 +681,8 @@ class TestProject:
         assert len(model_lod300) == 1
         assert model_lod300[0].name == "bizarro_Model_lod300"
 
-    def test_scanning_works(self, project_manual_path, tik):
-        self.test_creating_works_and_versions(project_manual_path, tik)
+    def test_scanning_works(self, project_manual_path, tik, monkeypatch):
+        self.test_creating_works_and_versions(project_manual_path, tik, monkeypatch)
 
         # scan all works
         initial_scan = (tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works())
@@ -679,6 +694,7 @@ class TestProject:
         _w = (tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"]._works)
         work_obj = _w[list(_w.keys())[0]]
         work_obj.new_version()
+        work_obj_2 = _w[list(_w.keys())[1]]
 
         second_scan = (tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works())
         assert second_scan
@@ -693,8 +709,15 @@ class TestProject:
         third_scan_count = int(len(third_scan.keys()))
         assert third_scan_count == second_scan_count - 1
 
-    def test_deleting_works(self, project_manual_path, tik):
-        self.test_creating_works_and_versions(project_manual_path, tik)
+        # mock if someone else changed the file meantime
+        _temp_settings = settings.Settings(str(work_obj_2.settings_file))
+        _temp_settings.edit_property("creator", "Burhan")
+        _temp_settings.apply_settings(force=True)
+        # scan again and compare with the previous scan
+        fourth_scan = (tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].scan_works())
+
+    def test_deleting_works(self, project_manual_path, tik, monkeypatch):
+        self.test_creating_works_and_versions(project_manual_path, tik, monkeypatch)
 
         model_category = (
             tik.project.subs["Assets"]
@@ -812,8 +835,8 @@ class TestProject:
             "warning",
         )
 
-    def test_deleting_non_empty_tasks(self, project_manual_path, tik):
-        self.test_creating_works_and_versions(project_manual_path, tik)
+    def test_deleting_non_empty_tasks(self, project_manual_path, tik, monkeypatch):
+        self.test_creating_works_and_versions(project_manual_path, tik, monkeypatch)
         tik.user.set("Admin", password="1234")
         assert (
             tik.project.subs["Assets"]

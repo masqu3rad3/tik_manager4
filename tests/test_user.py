@@ -1,23 +1,5 @@
 """Tests for User related functions"""
 
-from pathlib import Path
-
-# import pytest
-
-# from mockup import Mockup
-# from tik_manager4.objects import user
-
-# @pytest.mark.usefixtures("clean_user")
-# @pytest.mark.usefixtures("prepare")
-# class TestUser():
-#     """Uses a fresh mockup_common folder and test_project under user directory for all tests"""
-    # mock = Mockup()
-    # mock.prepare()
-    # user.User(common_directory=mock.common)  # this is for not popping up the "missing common folder" message
-
-    # import tik_manager4  # importing main checks the common folder definition, thats why its here
-    # tik = tik_manager4.initialize("Standalone")
-
 def test_reinitializing_user(tik):
     """Tests validating the user information (again)"""
     tik.project.__init__()

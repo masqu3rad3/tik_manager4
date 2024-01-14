@@ -29,10 +29,10 @@ class TestUI:
     """Test UI."""
 
     @pytest.fixture(scope='function')
-    def main_object(self, tik):
+    def main_object(self, tik, files):
         project_path = Path(utils.get_home_dir(), "t4_UI_test_project_DO_NOT_USE")
         if project_path.exists():
-            shutil.rmtree(str(project_path))
+            files.force_remove_directory(project_path)
         tik.user.set("Admin", "1234")
         tik.create_project(str(project_path), structure_template="empty")
         return tik
@@ -182,6 +182,17 @@ class TestUI:
         dialog.setStyleSheet(str(style_file.readAll(), "utf-8"))
         dialog.show()
         # qtbot.stop()
+
+    def test_applying_stylesheet(self, qtbot, tmp_path):
+        """Test applying stylesheet."""
+        # test applying stylesheet
+        _stylesheet = tmp_path / "test_stylesheet.qss"
+        with open(_stylesheet, "w") as f:
+            f.write("test")
+        _widget = QtWidgets.QWidget()
+        qtbot.addWidget(_widget)
+        assert utils.apply_stylesheet(str(_stylesheet), _widget) == True
+        assert utils.apply_stylesheet(str(tmp_path / "test_stylesheet.NA"), _widget) == False
 
     # def test_standard_item_model(self, qtmodeltester):
     #     model = QtGui.QStandardItemModel()

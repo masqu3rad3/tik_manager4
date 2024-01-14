@@ -44,6 +44,7 @@ class Settings():
     def reload(self):
         """Reloads the settings from file"""
         self.settings_file = self._filePath
+        return self._currentValue
 
     @property
     def keys(self):
@@ -69,7 +70,6 @@ class Settings():
         data = data or {}
         self._originalValue = {}
         self._currentValue = {}
-        # self._originalValue.update(data)
         self._currentValue.update(data)
         self._originalValue = deepcopy(self._currentValue)
 
@@ -92,6 +92,7 @@ class Settings():
             return False
         self._originalValue = deepcopy(self._currentValue)
         self._io.write(self._originalValue)
+        self._time_stamp = self._io.get_modified_time()
         return True
 
     def reset_settings(self):
@@ -138,11 +139,11 @@ class Settings():
         return val
 
     def set_data(self, data):
-        """Feeds the raw data directly"""
+        """Feed the raw data directly."""
         self._currentValue = data
 
     def get_data(self):
-        """Returns the whole current data"""
+        """Return the whole current data."""
         return self._currentValue
 
     def set_fallback(self, file_path):
