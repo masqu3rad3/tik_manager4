@@ -1,5 +1,6 @@
 """Configuration for pytest."""
-
+import os
+import stat
 import shutil
 from pathlib import Path
 import pytest
@@ -27,3 +28,33 @@ def tik(tmp_path):
     # restore the original user directory
     shutil.rmtree(str(user_path))
     shutil.copytree(str(tmp_path / "user_backup"), str(user_path))
+
+
+@pytest.fixture(scope='session', autouse=True)
+def files():
+    """Fixture to handle files."""
+    return Files()
+
+
+class Files:
+    def _onerror_handler(self, func, path, exc_info):
+        """
+        Error handler for shutil.rmtree to handle read-only files.
+        """
+
+        # If the error is due to a permission error and the file is read-only
+        if issubclass(exc_info[0], PermissionError):
+            os.chmod(path, stat.S_IWRITE)  # Give write permission
+            func(path)  # Retry the original function
+        else:
+            raise  # Re-raise the original exception if it's not a permission error
+
+    def force_remove_directory(self, directory_path):
+        """
+        Forcefully remove a directory along with read-only files.
+        """
+        try:
+            shutil.rmtree(str(directory_path), onerror=self._onerror_handler)
+            print(f"Successfully removed {directory_path}.")
+        except Exception as e:
+            print(f"Error removing {directory_path}: {e}")
