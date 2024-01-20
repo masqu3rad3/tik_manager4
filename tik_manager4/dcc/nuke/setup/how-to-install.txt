@@ -1,0 +1,29 @@
+- Locate the startup scripts folder
+        Check the following link to locate the folder for different operating systems:
+        https://learn.foundry.com/nuke/developers/63/pythondevguide/startup.html
+
+        Hint: You can also find the folders by running the following command in the Nuke script editor:
+        nuke.pluginPath()
+
+- open (or create) init.py and add the following lines:
+
+# Tik Manager 4 [Start]
+import sys
+tik_path = "PATH//TO//PARENT//FOLDER//OF//TIKMANAGER4//"
+if not tik_path in sys.path:
+    sys.path.append(tik_path)
+# Tik Manager 4 [End]
+
+- open (or create) menu.py and add the following lines:
+
+- Copy all png files under the icons folder to the nuke startup scripts folder
+
+# Tik Manager 4 [Start]
+toolbar = nuke.menu('Nodes')
+smMenu = toolbar.addMenu('SceneManager', icon='tik4_main_ui.png')
+smMenu.addCommand('Main UI', 'from tik_manager4.ui import main as tik4_main\ntik4_main.launch(dcc="Nuke")', icon='tik4_main_ui.png')
+smMenu.addCommand('New Version', 'from tik_manager4.ui import main\ntui = main.launch("Maya", dont_show=True)\ntui.on_new_version()', icon='tik4_new_version.png')
+smMenu.addCommand('Publish', 'from tik_manager4.ui import main\ntui = main.launch("Maya", dont_show=True)\ntui.on_publish_scene()', icon='tik4_publish.png')
+# Tik Manager 4 [End]
+
+- Restart Nuke
