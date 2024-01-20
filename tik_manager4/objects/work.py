@@ -37,8 +37,8 @@ class Work(Settings, Entity):
         self._relative_path = path
         self._software_version = None
         # there are 3 states: working, published, omitted
-        self._state = "working"
         self._parent_task = parent_task
+        self._state = "working"
 
         self.modified_time = None  # to compare and update if necessary
         self.publish = Publish(
@@ -61,6 +61,8 @@ class Work(Settings, Entity):
         self._relative_path = self.get_property("path", self._relative_path)
         self._software_version = self.get_property("softwareVersion")
         self._state = self.get_property("state", self._state)
+        if self._state == "working" and self.publish.versions:
+            self._state = "published"
 
     @property
     def state(self):
@@ -130,7 +132,7 @@ class Work(Settings, Entity):
 
     def revive(self):
         """Revive the work."""
-        self._state = "working" if not self.publish.versions else "published"
+        self._state = "working"
         self.edit_property("state", self._state)
         self.apply_settings()
 
