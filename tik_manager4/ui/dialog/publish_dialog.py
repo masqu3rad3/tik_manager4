@@ -59,6 +59,7 @@ from tik_manager4.ui.layouts.settings_layout import (
 )
 from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
 from tik_manager4.ui.dialog.feedback import Feedback
+from tik_manager4.ui import pick
 
 LOG = logging.getLogger(__name__)
 
@@ -69,6 +70,10 @@ class PublishSceneDialog(QtWidgets.QDialog):
     def __init__(self, project_object, *args, **kwargs):
         """Initialize the PublishSceneDialog."""
         super(PublishSceneDialog, self).__init__(*args, **kwargs)
+
+        # set style
+        _style_file = pick.style_file()
+        self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
 
         # DYNAMIC ATTRIBUTES
         self._validator_widgets = []
@@ -702,9 +707,12 @@ if __name__ == "__main__":
 
     app = QtWidgets.QApplication(sys.argv)
 
-    _style_file = pick.style_file()
+    # _style_file = pick.style_file()
+    # dialog = PublishSceneDialog(
+    #     tik.project, styleSheet=str(_style_file.readAll(), "utf-8")
+    # )
     dialog = PublishSceneDialog(
-        tik.project, styleSheet=str(_style_file.readAll(), "utf-8")
+        tik.project
     )
 
     dialog.show()

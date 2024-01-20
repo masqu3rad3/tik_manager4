@@ -38,5 +38,73 @@ global proc shelf_TikManager4 () {
         -commandRepeatable 1
         -flat 1
     ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "New Version"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "new_version"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "tik4_new_version.png"
+        -image1 "tik4_new_version.png"
+        -style "iconOnly"
+        -marginWidth 0
+        -marginHeight 1
+        -command "from tik_manager4.ui import main\ntui = main.launch('Maya', dont_show=True)\ntui.on_new_version()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Publish Scene"
+        -enableBackground 0
+        -backgroundColor 0 0 0
+        -highlightColor 0.321569 0.521569 0.65098
+        -align "center"
+        -label "publish"
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont"
+        -overlayLabelColor 0.8 0.8 0.8
+        -overlayLabelBackColor 0 0 0 0.5
+        -image "tik4_publish.png"
+        -image1 "tik4_publish.png"
+        -style "iconOnly"
+        -marginWidth 0
+        -marginHeight 1
+        -command "from tik_manager4.ui import main\ntui = main.launch('Maya', dont_show=True)\ntui.on_publish_scene()"
+        -sourceType "python"
+        -commandRepeatable 1
+        -flat 1
+    ;
 
 } 

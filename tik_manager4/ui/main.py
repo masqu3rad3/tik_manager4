@@ -47,7 +47,7 @@ LOG = logging.getLogger(__name__)
 WINDOW_NAME = "Tik Manager {}".format(version.__version__)
 
 
-def launch(dcc="Standalone"):
+def launch(dcc="Standalone", dont_show=False):
     all_widgets = QtWidgets.QApplication.allWidgets()
     tik = tik_manager4.initialize(dcc)
     parent = tik.dcc.get_main_window()
@@ -59,7 +59,8 @@ def launch(dcc="Standalone"):
         except (AttributeError, TypeError):
             pass
     m = MainUI(tik, parent=parent)
-    m.show()
+    if not dont_show:
+        m.show()
     return m
 
 
