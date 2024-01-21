@@ -239,6 +239,15 @@ class Publisher:
 
     def discard(self):
         """Discard the reserved slot."""
+        # find any extracted files and delete them
+        for _extract_type_name, extract_object in self._resolved_extractors.items():
+            if extract_object.state == "failed":
+                continue
+            _extracted_file_path = Path(extract_object.resolve_output())
+            if _extracted_file_path.exists():
+                # remove the write protection
+                _extracted_file_path.chmod(0o777)
+                _extracted_file_path.unlink()
 
         # delete the publish file
         _publish_file_path = (

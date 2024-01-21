@@ -25,10 +25,10 @@ class Source(ExtractCore):
         self.extension = ""
 
     def _extract_default(self):
-        """Extract method for any non-specified category"""
+        """Extract for any non-specified category."""
         _file_path = self.resolve_output()  # this won't have an extension.
         # first save the file as a temporary backup file:
         _temp_backup = hou.hipFile.saveAsBackup()
-        self.extension = Path(_temp_backup).suffix
+        self.extension = Path(_temp_backup).suffix # UPDATE THE EXTENSION - IMPORTANT
         _file_path = Path(_file_path).with_suffix(self.extension)
         shutil.move(_temp_backup, str(_file_path))

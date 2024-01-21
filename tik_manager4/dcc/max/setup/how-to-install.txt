@@ -1,0 +1,21 @@
+Tik Manager 4 3ds Max Installation Guide
+
+- Open tik4_path.ms with notepad or any text editor you want.
+
+- Replace the "PATH//TO//PARENT//FOLDER//OF//TIKMANAGER4//" with the path of where the tik_manager folder copied. Use double BACK Slashes between folder names
+
+- Save modified smManagerCallback.ms into one of the 3ds Max scripts startup folder.
+        The Startup Scripts directory is defined on the Configure System Paths dialog. Common paths for startup scripts are:
+        %localappdata%\Autodesk\3dsMax\<YOUR MAX VERSION>\ENU\scripts\startup
+        %programfiles%\Autodesk\<YOUR MAX VERSION>\scripts\Startup
+
+- Copy all .bmp files inside the icons folder (TikManager4_16a.bmp, TikManager4_16i.bmp, TikManager4_24a.bmp, TikManager4_24i.bmp) into the usericons folder of 3ds Max
+        Default path for usericons folder:
+        e.g.
+        %localappdata%\Autodesk\3dsMax\2023 – 64bit\ENU\usericons
+
+- Launch 3dsMax and run setup3dsMax.ms from scripting -> Run Script, or drag and drop the file into 3ds Max viewport
+
+- Link the MacroScripts to the Toolbar or QuadMenu. Details about MacroScripts can be found here:
+        https://www.scriptspot.com/3ds-max/tutorials/3ds-max-maxscript-how-to-install-a-macroscript
+        https://help.autodesk.com/view/MAXDEV/2023/ENU/?guid=GUID-6E21C768-7256-4500-AB1F-B144F492F055

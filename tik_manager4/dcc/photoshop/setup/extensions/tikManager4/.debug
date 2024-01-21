@@ -1,0 +1,12 @@
+    <ExtensionList>
+        <!-- 1 -->
+        <Extension Id="com.tik.manager.panel">
+           <HostList>
+
+               <!-- 2 -->
+               <Host Name="PHXS" Port="8088"/>
+               <Host Name="PHSP" Port="8088"/>
+
+            </HostList>
+        </Extension>
+    </ExtensionList>    

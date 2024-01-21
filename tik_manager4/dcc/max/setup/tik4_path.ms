@@ -1,2 +1,6 @@
-python.Execute "import sys"
-python.Execute "sys.path.append("PATH//TO//PARENT//FOLDER//OF//TIKMANAGER4//")"
+python.Execute "
+import sys
+tik_path = "PATH//TO//PARENT//FOLDER//OF//TIKMANAGER4//"
+if not tik_path in sys.path:
+    sys.path.append(tik_path)
+"
