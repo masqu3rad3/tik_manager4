@@ -4,7 +4,7 @@ st_a = Analysis(
     ['dcc\\standalone\\tik4_standalone.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('ui\\theme', 'ui\\theme')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
