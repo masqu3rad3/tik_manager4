@@ -12,6 +12,8 @@ elif NAME == "nuke":
     from tik_manager4.dcc.nuke.main import Dcc
 elif NAME == "photoshop":
     from tik_manager4.dcc.photoshop.main import Dcc
+elif NAME == "blender":
+    from tik_manager4.dcc.blender.main import Dcc
 elif NAME == "standalone":
     from tik_manager4.dcc.standalone.main import Dcc
 else:

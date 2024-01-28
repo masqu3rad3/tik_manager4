@@ -23,8 +23,6 @@ class Dcc(MainCore):
     def __init__(self):
         super().__init__()
 
-        self.dispatch_names = None
-
         self.com_link = Dispatch("Photoshop.Application")
         # self.com_link = self.get_dispatch("Photoshop.Application")
 

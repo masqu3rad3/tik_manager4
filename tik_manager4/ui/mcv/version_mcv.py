@@ -149,7 +149,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
     def on_load(self):
         """Load the current version."""
-
         if not self.base:
             self.feedback.pop_info(
                 title="No work or publish selected.",
