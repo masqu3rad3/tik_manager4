@@ -19,5 +19,5 @@ for mod in modules:
         for name, obj in inspect.getmembers(module):
             if inspect.isclass(obj) and issubclass(obj, ValidateCore) and obj != ValidateCore:
                 classes[obj.name] = obj
-                # validators.append(obj())
+
 

@@ -33,7 +33,16 @@ st_exe = EXE(
 )
 
 ps_a = Analysis(
-    ['dcc\\photoshop\\tik4_photoshop.py'],
+    [
+        'dcc\\photoshop\\tik4_ps_main_ui.py',
+        'dcc\\photoshop\\extract\\exr.py',
+        'dcc\\photoshop\\extract\\jpg.py',
+        'dcc\\photoshop\\extract\\png.py',
+        'dcc\\photoshop\\extract\\source.py',
+        'dcc\\photoshop\\extract\\tga.py',
+        'dcc\\photoshop\\extract\\tif.py',
+        'dcc\\photoshop\\ingest\\source.py',
+     ],
     pathex=[],
     binaries=[],
     datas=[],
@@ -63,10 +72,81 @@ ps_exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
+
+ps_b = Analysis(
+    ['dcc\\photoshop\\tik4_ps_new_version.py'],
+    pathex=[],
+    binaries=[],
+    datas=[],
+    hiddenimports=[],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[],
+    noarchive=False,
+)
+ps_b_pyz = PYZ(ps_b.pure)
+
+ps_b_exe = EXE(
+    ps_b_pyz,
+    ps_b.scripts,
+    [],
+    exclude_binaries=True,
+    name='tik4_ps_new_version',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    console=False,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+)
+
+ps_c = Analysis(
+    ['dcc\\photoshop\\tik4_ps_publish.py'],
+    pathex=[],
+    binaries=[],
+    datas=[],
+    hiddenimports=[],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[],
+    noarchive=False,
+)
+ps_c_pyz = PYZ(ps_c.pure)
+
+ps_c_exe = EXE(
+    ps_c_pyz,
+    ps_c.scripts,
+    [],
+    exclude_binaries=True,
+    name='tik4_ps_publish',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    console=False,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+)
+
 coll = COLLECT(
     ps_exe,
     ps_a.binaries,
     ps_a.datas,
+    ps_b_exe,
+    ps_b.binaries,
+    ps_b.datas,
+    ps_c_exe,
+    ps_c.binaries,
+    ps_c.datas,
     st_exe,
     st_a.binaries,
     st_a.datas,
