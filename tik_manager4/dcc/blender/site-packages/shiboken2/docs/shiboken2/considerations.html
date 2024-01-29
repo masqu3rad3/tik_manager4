@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Words of Advice</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pyside.css" />
+    <link rel="prev" title="SampleBinding Example" href="examples/samplebinding.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png"/></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="examples/samplebinding.html" title="SampleBinding Example"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Words of Advice</a></li> 
+      </ul>
+    </div>
+    </div>
+</div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="words-of-advice">
+<span id="id1"></span><h1>Words of Advice</h1>
+<p>When writing or using Python bindings there is some things you must keep in mind.</p>
+<section id="duck-punching-and-virtual-methods">
+<span id="id2"></span><h2>Duck punching and virtual methods</h2>
+<p>The combination of duck punching, the practice of altering class characteristics
+of already instantiated objects, and virtual methods of wrapped C++ classes, can
+be tricky. That was an optimistic statement.</p>
+<p>Let’s see duck punching in action for educational purposes.</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">Binding</span>
+
+<span class="n">obj</span> <span class="o">=</span> <span class="n">Binding</span><span class="o">.</span><span class="n">CppClass</span><span class="p">()</span>
+
+<span class="c1"># CppClass has a virtual method called &#39;virtualMethod&#39;,</span>
+<span class="c1"># but we don&#39;t like it anymore.</span>
+<span class="k">def</span> <span class="nf">myVirtualMethod</span><span class="p">(</span><span class="n">self_obj</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="n">obj</span><span class="o">.</span><span class="n">virtualMethod</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">(</span><span class="n">myVirtualMethod</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">Binding</span><span class="o">.</span><span class="n">CppClass</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>If some C++ code happens to call <cite>CppClass::virtualMethod(…)</cite> on the C++ object
+held by “obj” Python object, the new duck punched “virtualMethod” method will be
+properly called. That happens because the underlying C++ object is in fact an instance
+of a generated C++ class that inherits from <cite>CppClass</cite>, let’s call it <cite>CppClassWrapper</cite>,
+responsible for receiving the C++ virtual method calls and finding out the proper Python
+override to which handle such a call.</p>
+<p>Now that you know this, consider the case when C++ has a factory method that gives you
+new C++ objects originated somewhere in C++-land, in opposition to the ones generated in
+Python-land by the usage of class constructors, like in the example above.</p>
+<p>Brief interruption to show what I was saying:</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">Binding</span>
+
+<span class="n">obj</span> <span class="o">=</span> <span class="n">Binding</span><span class="o">.</span><span class="n">createCppClass</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">myVirtualMethod</span><span class="p">(</span><span class="n">self_obj</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="c1"># Punching a dead duck...</span>
+<span class="n">obj</span><span class="o">.</span><span class="n">virtualMethod</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">(</span><span class="n">myVirtualMethod</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">Binding</span><span class="o">.</span><span class="n">CppClass</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The <cite>Binding.createCppClass()</cite> factory method is just an example, C++ created objects
+can pop out for a number of other reasons. Objects created this way have a Python wrapper
+holding them as usual, but the object held is not a <cite>CppClassWrapper</cite>, but a regular
+<cite>CppClass</cite>. All virtual method calls originated in C++ will stay in C++ and never reach
+a Python virtual method overridden via duck punching.</p>
+<p>Although duck punching is an interesting Python feature, it don’t mix well with wrapped
+C++ virtual methods, specially when you can’t tell the origin of every single wrapped
+C++ object. In summary: don’t do it!</p>
+</section>
+<section id="python-old-style-classes-and-pyside">
+<span id="pyside-old-style-class"></span><h2>Python old style classes and PySide</h2>
+<p>Because of some architectural decisions and deprecated Python types.
+Since PySide 1.1 old style classes are not supported with multiple inheritance.</p>
+<p>Below you can check the examples:</p>
+<p>Example with old style class:</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PySide2</span> <span class="kn">import</span> <span class="n">QtCore</span>
+
+<span class="k">class</span> <span class="nc">MyOldStyleObject</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">MyObject</span><span class="p">(</span><span class="n">QtCore</span><span class="p">,</span> <span class="n">MyOldStyleObject</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>this example will raise a ‘TypeError’ due to the limitation on PySide, to fix
+this you will need use the new style class:</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PySide2</span> <span class="kn">import</span> <span class="n">QtCore</span>
+
+<span class="k">class</span> <span class="nc">MyOldStyleObject</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">MyObject</span><span class="p">(</span><span class="n">QtCore</span><span class="p">,</span> <span class="n">MyOldStyleObject</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>All classes used for multiple inheritance with other PySide types need to have
+‘object’ as base class.
+<strong>**********************</strong>
+Frequently Asked Questions
+<strong>**********************</strong></p>
+<p>This is a list of Frequently Asked Questions about Shiboken.
+Feel free to suggest new entries using our <a class="reference external" href="http://lists.qt-project.org/mailman/listinfo/pyside">Mailing list</a> or our IRC channel!</p>
+</section>
+<section id="general">
+<h2>General</h2>
+<section id="what-is-shiboken">
+<h3>What is Shiboken?</h3>
+<p>Shiboken is a Generator Runner plugin that outputs C++ code for CPython
+extensions.
+The first version of PySide had source code based on Boost templates.
+It was easier to produce code but a paradigm change was needed, as the next
+question explains.</p>
+</section>
+<section id="why-did-you-switch-from-boost-python-to-shiboken">
+<h3>Why did you switch from Boost.Python to Shiboken?</h3>
+<p>The main reason was the size reduction. Boost.Python makes excessive use of
+templates resulting in a significant increase of the binaries size.
+On the other hand, as Shiboken generates CPython code, the resulting binaries
+are smaller.</p>
+</section>
+</section>
+<section id="creating-bindings">
+<h2>Creating bindings</h2>
+<section id="can-i-wrap-non-qt-libraries">
+<h3>Can I wrap non-Qt libraries?</h3>
+<p>Yes. Check Shiboken source code for an example (libsample).</p>
+</section>
+<section id="is-there-any-runtime-dependency-on-the-generated-binding">
+<h3>Is there any runtime dependency on the generated binding?</h3>
+<p>Yes. Only libshiboken, and the obvious Python interpreter
+and the C++ library that is being wrapped.</p>
+</section>
+<section id="what-do-i-have-to-do-to-create-my-bindings">
+<h3>What do I have to do to create my bindings?</h3>
+<p>Most of the work is already done by the API Extractor.
+The developer creates a <a class="reference internal" href="typesystem.html"><span class="doc">typesystem</span></a>
+file with any customization wanted in
+the generated code, like removing classes or changing method signatures.
+The generator will output the <em>.h</em> and <em>.cpp</em> files with the CPython code that
+will wrap the target library for python.</p>
+</section>
+<section id="is-there-any-recommended-build-system">
+<h3>Is there any recommended build system?</h3>
+<p>Both API Extractor and generator uses and recommends the CMake build system.</p>
+</section>
+<section id="can-i-write-closed-source-bindings-with-the-generator">
+<h3>Can I write closed-source bindings with the generator?</h3>
+<p>Yes, as long as you use a LGPL version of Qt, due to runtime requirements.</p>
+</section>
+<section id="what-is-inject-code">
+<h3>What is ‘inject code’?</h3>
+<p>That’s how we call customized code that will be <em>injected</em> into the
+generated at specific locations. They are specified inside the typesystem.</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Conversion Rule Tag</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pyside.css" />
+    <link rel="next" title="Manipulating Documentation" href="typesystem_documentation.html" />
+    <link rel="prev" title="Manipulating Object and Value Types" href="typesystem_manipulating_objects.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png"/></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="typesystem_documentation.html" title="Manipulating Documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="typesystem_manipulating_objects.html" title="Manipulating Object and Value Types"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="typesystem.html" accesskey="U">Type System Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Conversion Rule Tag</a></li> 
+      </ul>
+    </div>
+    </div>
+</div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="conversion-rule-tag">
+<span id="id1"></span><h1>Conversion Rule Tag</h1>
+<section id="conversion-rule">
+<span id="id2"></span><h2>conversion-rule</h2>
+<blockquote>
+<div><p>The <strong>conversion-rule</strong> tag specifies how a <strong>primitive-type</strong>, a <strong>container-type</strong>,
+or a <strong>value-type</strong> may be converted to and from the native C++ language types to the
+target language types.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;value-type&gt;</span>
+    <span class="nt">&lt;conversion-rule&gt;</span>
+        <span class="nt">&lt;native-to-target&gt;</span>
+        // Code to convert a native value to a target language object.
+        <span class="nt">&lt;/native-to-target&gt;</span>
+        <span class="nt">&lt;target-to-native&gt;</span>
+            <span class="nt">&lt;add-conversion</span> <span class="na">type=</span><span class="s">&#39;TARGETTYPEA&#39;</span> <span class="na">check=</span><span class="s">&#39;TARGETTYPEA_CHECK(%in)&#39;</span><span class="nt">&gt;</span>
+            // Code to convert target language type object of type TARGETTYPEA
+            // to the C++ native type represented by the value/primitive/container-type.
+            <span class="nt">&lt;/add-conversion&gt;</span>
+            <span class="nt">&lt;add-conversion</span> <span class="na">type=</span><span class="s">&#39;TARGETTYPEB&#39;</span> <span class="na">check=</span><span class="s">&#39;TARGETTYPEB_CHECK(%in)&#39;</span><span class="nt">&gt;</span>
+            // Code to convert target language type object of type TARGETTYPEB
+            // to the C++ native type represented by the value/primitive/container-type.
+            <span class="nt">&lt;/add-conversion&gt;</span>
+        <span class="nt">&lt;/target-to-native&gt;</span>
+    <span class="nt">&lt;/conversion-rule&gt;</span>
+<span class="nt">&lt;/value-type&gt;</span>
+</pre></div>
+</div>
+<p>The example above show the structure of a complete conversion rule. Each of the
+child tags comprising the conversion rule are described in their own sections
+below.</p>
+</div></blockquote>
+</section>
+<section id="native-to-target">
+<span id="id3"></span><h2>native-to-target</h2>
+<blockquote>
+<div><p>The <strong>native-to-target</strong> tag tells how to convert a native C++ value to its
+target language equivalent. The text inside the tag is a C++ code the takes
+an input value an does what’s needed to convert it to the output value.
+<code class="docutils literal notranslate"><span class="pre">insert-template</span></code> tags may be used to insert commonly repeating code.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;conversion-rule&gt;</span>
+    <span class="nt">&lt;native-to-target&gt;</span>
+    // Code to convert a native value to a target language object.
+    <span class="nt">&lt;/native-to-target&gt;</span>
+<span class="nt">&lt;/conversion-rule&gt;</span>
+</pre></div>
+</div>
+<p>Use the replace node to modify the template code.
+Notice that the generator must provide type system variables for the input
+and output values and types, namely <strong>%in</strong>, <strong>%out</strong>, <strong>%INTYPE</strong> and
+<strong>%OUTTYPE</strong>. In the case of container types, <strong>%INTYPE</strong> refers to the
+full container type (e.g. <strong>“list&lt;int&gt;”</strong>) and <strong>%INTYPE_0</strong>, <strong>%INTYPE_1</strong>,
+<strong>%INTYPE_#</strong>, should be replaced by the types used in the container template
+(e.g. <strong>%INTYPE_0</strong> correspondes to <strong>“int”</strong> for <strong>“list&lt;int&gt;”</strong>).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">file</span></code> and <code class="docutils literal notranslate"><span class="pre">snippet</span></code> attributes are also supported (see <a class="reference internal" href="typesystem_manipulating_objects.html#inject-code"><span class="std std-ref">inject-code</span></a> nodes).</p>
+</div></blockquote>
+</section>
+<section id="target-to-native">
+<span id="id4"></span><h2>target-to-native</h2>
+<blockquote>
+<div><p>The <strong>target-to-native</strong> tag encloses at least one, but usually many, conversions
+from target language values to C++ native values. The <em>optional</em> attribute
+<code class="docutils literal notranslate"><span class="pre">replace</span></code> tells if the target language to C++ conversions will be added to, or if
+they will replace the implicit conversions collected by <em>ApiExtractor</em>. The default
+value for it is <em>yes</em>.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;conversion-rule&gt;</span>
+    <span class="nt">&lt;target-to-native</span> <span class="na">replace=</span><span class="s">&#39;yes|no&#39;</span><span class="nt">&gt;</span>\
+    // List of target to native conversions meant to replace or expand
+    // the already existing implicit conversions.
+    <span class="nt">&lt;/target-to-native&gt;</span>
+<span class="nt">&lt;/conversion-rule&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="add-conversion">
+<span id="id5"></span><h2>add-conversion</h2>
+<blockquote>
+<div><blockquote>
+<div><p>Each <strong>add-conversion</strong> tag adds a rule for conversion of a target language type,
+indicated by the <code class="docutils literal notranslate"><span class="pre">type</span></code> attribute, to the C++ native type represented by the
+<strong>primitive-type</strong>, a <strong>container-type</strong>, or <strong>value-type</strong>, to which the parent
+<strong>conversion-rule</strong> belongs.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;target-to-native&gt;</span>
+    <span class="nt">&lt;add-conversion</span> <span class="na">type=</span><span class="s">&#39;TARGETTYPE&#39;</span> <span class="na">check=</span><span class="s">&#39;TARGETTYPECHECK(%in)&#39;</span><span class="nt">&gt;</span>
+    // Code to convert target language type object of type TARGETTYPE_A
+    // to the C++ native type represented by the value/primitive/container-type.
+    <span class="nt">&lt;/add-conversion&gt;</span>
+<span class="nt">&lt;target-to-native&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The <code class="docutils literal notranslate"><span class="pre">check</span></code> attribute tells how a target value should be checked to see if it belongs to
+the type expected. This attribute is <em>optional</em>, for it can be derived from the <code class="docutils literal notranslate"><span class="pre">type</span></code>
+attribute, but it isn’t unusual that some special check is needed. The variables
+<strong>%in</strong>, <strong>%out</strong>, <strong>%INTYPE</strong>, <strong>%INTYPE_#</strong>, and <strong>%OUTTYPE</strong>, must be provided by
+the generator as in the <code class="docutils literal notranslate"><span class="pre">native-to-target</span></code> tag.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">file</span></code> and <code class="docutils literal notranslate"><span class="pre">snippet</span></code> attributes are also supported (see <a class="reference internal" href="typesystem_manipulating_objects.html#inject-code"><span class="std std-ref">inject-code</span></a> nodes).</p>
+</div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Manipulating Documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pyside.css" />
+    <link rel="next" title="Type System Variables" href="typesystem_variables.html" />
+    <link rel="prev" title="Conversion Rule Tag" href="typesystem_conversionrule.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png"/></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="typesystem_variables.html" title="Type System Variables"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="typesystem_conversionrule.html" title="Conversion Rule Tag"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="typesystem.html" accesskey="U">Type System Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Manipulating Documentation</a></li> 
+      </ul>
+    </div>
+    </div>
+</div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="manipulating-documentation">
+<h1>Manipulating Documentation</h1>
+<section id="inject-documentation">
+<h2>inject-documentation</h2>
+<blockquote>
+<div><p>The inject-documentation node inserts the documentation into the generated
+documentation. This node is a child of the object-type, value-type and
+modify-function nodes.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;value-type&gt;</span>
+    <span class="nt">&lt;inject-documentation</span> <span class="na">mode=</span><span class="s">&quot;append | prepend | replace&quot;</span> <span class="na">format=</span><span class="s">&quot;native | target&quot;</span> <span class="nt">&gt;</span>
+        // the documentation
+    <span class="nt">&lt;/inject-code&gt;</span>
+<span class="nt">&lt;/value-type&gt;</span>
+</pre></div>
+</div>
+<p>The <strong>mode</strong> attribute default value is <em>replace</em>.</p>
+<p>The <strong>format</strong> attribute specifies when the documentation injection will
+occur and it accepts the following values:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>native: Before XML&lt;-&gt;Backend transformation occur, so the injected code <em>must</em> be a valid XML.</p></li>
+<li><p>target: After XML&lt;-&gt;Backend transformation occur, so the injected code <em>must</em> be a valid backend format.</p></li>
+</ul>
+</div></blockquote>
+<p>At the moment the only supported backend is Sphinx.</p>
+</div></blockquote>
+</section>
+<section id="modify-documentation">
+<h2>modify-documentation</h2>
+<blockquote>
+<div><p>The modify-documentation node allows you to change the auto-generated
+documentation. API Extractor transforms XML’s from qdoc (the Qt documentation
+tool) into .rst files to be processed later using Sphinx. You can modify
+the XML before the transformation takes place.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-documentation</span> <span class="na">xpath=</span><span class="s">&quot;...&quot;</span><span class="nt">&gt;</span>
+    <span class="cm">&lt;!-- new documentation --&gt;</span>
+<span class="nt">&lt;/modify-documentation&gt;</span>
+</pre></div>
+</div>
+<p>The <strong>xpath</strong> attribute is the XPath to the node that you want to modify.</p>
+</div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

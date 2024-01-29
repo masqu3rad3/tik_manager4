@@ -1,0 +1,474 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Specifying Types</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pyside.css" />
+    <link rel="next" title="Code Generation Terminology" href="typesystem_codegeneration.html" />
+    <link rel="prev" title="Type System Reference" href="typesystem.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png"/></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="typesystem_codegeneration.html" title="Code Generation Terminology"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="typesystem.html" title="Type System Reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="typesystem.html" accesskey="U">Type System Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Specifying Types</a></li> 
+      </ul>
+    </div>
+    </div>
+</div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="specifying-types">
+<h1>Specifying Types</h1>
+<section id="including-snippets">
+<span id="typesystem"></span><h2>Including Snippets</h2>
+<p>There might be repetitive XML code, for example function modifications that
+need to be done on classes that are not related by type inheritance.
+It is possible to split out such snippets and include them via an entity reference.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;object-type</span> <span class="na">name=</span><span class="s">&quot;A&quot;</span><span class="nt">&gt;</span>
+        <span class="ni">&amp;common_function_modifications;</span>
+    <span class="nt">&lt;/object-type&gt;</span>
+    <span class="nt">&lt;object-type</span> <span class="na">name=</span><span class="s">&quot;B&quot;</span><span class="nt">&gt;</span>
+        <span class="ni">&amp;common_function_modifications;</span>
+    <span class="nt">&lt;/object-type&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+<p>The entity name is interpreted as file name (with suffix <strong>xml</strong>) appended and resolved
+in the type system paths passed as command line argument.</p>
+<p>Note that this is not a standard externally parsed entity due to the limitations
+of the underlying parser.</p>
+</section>
+<section id="id1">
+<h2>typesystem</h2>
+<blockquote>
+<div><p>This is the root node containing all the type system information. It can
+have a number of attributes, described below.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem</span> <span class="na">package=</span><span class="s">&quot;...&quot;</span> <span class="na">default-superclass=</span><span class="s">&quot;...&quot;</span> <span class="na">allow-thread=</span><span class="s">&quot;...&quot;</span> <span class="na">exception-handling=</span><span class="s">&quot;...&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+<p>The <strong>package</strong> attribute is a string describing the package to be used,
+e.g. “QtCore”.
+The <em>optional</em> <strong>default-superclass</strong> attribute is the canonical C++ base class
+name of all objects, e.g., “object”.</p>
+<p>The <em>optional</em> attributes <strong>allow-thread</strong> and <strong>exception-handling</strong>
+specify the default handling for the corresponding function modification
+(see <a class="reference internal" href="typesystem_manipulating_objects.html#modify-function"><span class="std std-ref">modify-function</span></a>).</p>
+</div></blockquote>
+</section>
+<section id="load-typesystem">
+<h2>load-typesystem</h2>
+<blockquote>
+<div><p>The load-typesystem node specifies which type systems to load when mapping
+multiple libraries to another language or basing one library on another, and
+it is a child of the typesystem node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;load-typesystem</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span> <span class="na">generate=</span><span class="s">&quot;yes | no&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+<p>The <strong>name</strong> attribute is the filename of the typesystem to load, the
+<strong>generate</strong> attribute specifies whether code should be generated or not. The
+later must be specified when basing one library on another, making the generator
+able to understand inheritance hierarchies, primitive mapping, parameter types
+in functions, etc.</p>
+<p>Most libraries will be based on both the QtCore and QtGui modules, in which
+case code generation for these libraries will be disabled.</p>
+</div></blockquote>
+</section>
+<section id="rejection">
+<h2>rejection</h2>
+<blockquote>
+<div><p>The rejection node rejects the given class, or the specified function or
+field, and it is a child of the typesystem node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;rejection</span> <span class="na">class=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">function-name=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">field-name=</span><span class="s">&quot;...&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+<p>The <strong>class</strong> attribute is the C++ class name of the class to reject. Use the
+<em>optional</em> <strong>function-name</strong> or <strong>field-name</strong> attributes to reject a particular
+function or field. Note that the <strong>field-name</strong> and <strong>function-name</strong> cannot
+be specified at the same time. To remove all occurrences of a given field or
+function, set the class attribute to *.</p>
+</div></blockquote>
+</section>
+<section id="primitive-type">
+<span id="id2"></span><h2>primitive-type</h2>
+<blockquote>
+<div><p>The primitive-type node describes how a primitive type is mapped from C++ to
+the target language, and is a child of the typesystem node. Note that most
+primitives are already specified in the QtCore typesystem.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;primitive-type</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">since=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">until=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">target-name=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">default-constructor=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">preferred-conversion=</span><span class="s">&quot;yes | no&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+<p>The <strong>name</strong> attribute is the name of the primitive in C++, the optional,
+<strong>target-name</strong> attribute is the name of the primitive type in the target
+language. If the later two attributes are not specified their default value
+will be the same as the <strong>name</strong> attribute.</p>
+<p>The <em>optional</em>  <strong>since</strong> value is used to specify the API version in which
+the type was introduced.</p>
+<p>Similarly, the <em>optional</em>  <strong>until</strong> value can be used to specify the API
+version in which the type will be obsoleted.</p>
+<p>If the <em>optional</em> <strong>preferred-conversion</strong> attribute is set to <em>no</em>, it
+indicates that this version of the primitive type is not the preferred C++
+equivalent of the target language type. For example, in Python both “qint64”
+and “long long” become “long” but we should prefer the “qint64” version. For
+this reason we mark “long long” with preferred-conversion=”no”.</p>
+<p>The <em>optional</em> <strong>default-constructor</strong> specifies the minimal constructor
+call to build one value of the primitive-type. This is not needed when the
+primitive-type may be built with a default constructor (the one without
+arguments).</p>
+<p>The <em>optional</em> <strong>preferred-conversion</strong> attribute tells how to build a default
+instance of the primitive type. It should be a constructor call capable of
+creating a instance of the primitive type. Example: a class “Foo” could have
+a <strong>preferred-conversion</strong> value set to “Foo()”. Usually this attribute is
+used only for classes declared as primitive types and not for primitive C++
+types, but that depends on the application using <em>ApiExtractor</em>.</p>
+</div></blockquote>
+</section>
+<section id="namespace-type">
+<span id="namespace"></span><h2>namespace-type</h2>
+<blockquote>
+<div><p>The namespace-type node maps the given C++ namespace to the target language,
+and it is a child of the typesystem node. Note that within namespaces, the
+generator only supports enums (i.e., no functions or classes).</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;namespace-type</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">visible=</span><span class="s">&quot;true | auto | false&quot;</span>
+        <span class="na">generate=</span><span class="s">&quot;yes | no&quot;</span>
+        <span class="na">generate-using=</span><span class="s">&quot;yes | no&quot;</span>
+        <span class="na">package=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">since=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">revision=</span><span class="s">&quot;...&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+<p>The <strong>name</strong> attribute is the name of the namespace, e.g., “Qt”.</p>
+<p>The <em>optional</em> <strong>visible</strong> attribute is used specify whether the
+namespace is visible in the target language name. Its default value is
+<strong>auto</strong>. It means that normal namespaces are visible, but inline namespaces
+(as introduced in C++ 11) will not be visible.</p>
+<p>The detection of inline namespaces requires shiboken to be built
+using LLVM 9.0.</p>
+<p>The <em>optional</em> <strong>generate</strong> is a legacy attribute. Specifying
+<strong>no</strong> is equivalent to <strong>visible=”false”</strong>.</p>
+<p>The <em>optional</em> <strong>generate-using</strong> attribute specifies whether
+<code class="docutils literal notranslate"><span class="pre">using</span> <span class="pre">namespace</span></code> is generated into the wrapper code for classes within
+the namespace (default: <strong>yes</strong>). This ensures for example that not fully
+qualified enumeration values of default argument values compile.
+However, in rare cases, it might cause ambiguities and can then be turned
+off.</p>
+<p>The <strong>package</strong> attribute can be used to override the package of the type system.</p>
+<p>The <em>optional</em>  <strong>since</strong> value is used to specify the API version of this type.</p>
+<p>The <strong>revision</strong> attribute can be used to specify a revision for each type, easing the
+production of ABI compatible bindings.</p>
+</div></blockquote>
+</section>
+<section id="enum-type">
+<h2>enum-type</h2>
+<blockquote>
+<div><p>The enum-type node maps the given enum from C++ to the target language,
+and it is a child of the typesystem node. Use the reject-enum-value to
+reject values.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;enum-type</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">identified-by-value=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">class=</span><span class="s">&quot;yes | no&quot;</span>
+        <span class="na">since=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">flags=</span><span class="s">&quot;yes | no&quot;</span>
+        <span class="na">flags-revision=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">lower-bound=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">upper-bound=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">force-integer=</span><span class="s">&quot;yes | no&quot;</span>
+        <span class="na">extensible=</span><span class="s">&quot;yes | no&quot;</span>
+        <span class="na">revision=</span><span class="s">&quot;...&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+<p>The <strong>name</strong> attribute is the fully qualified C++ name of the enum
+(e.g.,”Qt::FillRule”). If the <em>optional</em> <strong>flags</strong> attribute is set to <em>yes</em>
+(the default is <em>no</em>), the generator will expect an existing QFlags&lt;T&gt; for the
+given enum type. The <strong>lower-bound</strong> and <strong>upper-bound</strong> attributes are used
+to specify runtime bounds checking for the enum value. The value must be a
+compilable target language statement, such as “QGradient.Spread.PadSpread”
+(taking again Python as an example). If the <strong>force-integer</strong> attribute is
+set to <em>yes</em> (the default is <em>no</em>), the generated target language code will
+use the target language integers instead of enums. And finally, the
+<strong>extensible</strong> attribute specifies whether the given enum can be extended
+with user values (the default is <em>no</em>).</p>
+<p>The <em>optional</em>  <strong>since</strong> value is used to specify the API version of this type.</p>
+<p>The attribute <strong>identified-by-value</strong> helps to specify anonymous enums using the
+name of one of their values, which is unique for the anonymous enum scope.
+Notice that the <strong>enum-type</strong> tag can either have <strong>name</strong> or <strong>identified-by-value</strong>
+but not both.</p>
+<p>The <strong>revision</strong> attribute can be used to specify a revision for each type, easing the
+production of ABI compatible bindings.</p>
+<p>The <strong>flags-revision</strong> attribute has the same purposes of <strong>revision</strong> attribute but
+is used for the QFlag related to this enum.</p>
+</div></blockquote>
+</section>
+<section id="reject-enum-value">
+<h2>reject-enum-value</h2>
+<blockquote>
+<div><p>The reject-enum-value node rejects the enum value specified by the <strong>name</strong>
+attribute, and it is a child of the enum-type node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;enum-type&gt;</span>
+    <span class="nt">&lt;reject-enum-value</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/enum-type&gt;</span>
+</pre></div>
+</div>
+<p>This node is used when a C++ enum implementation has several identical numeric
+values, some of which are typically obsolete.</p>
+</div></blockquote>
+</section>
+<section id="value-type">
+<span id="id3"></span><h2>value-type</h2>
+<blockquote>
+<div><p>The value-type node indicates that the given C++ type is mapped onto the target
+language as a value type. This means that it is an object passed by value on C++,
+i.e. it is stored in the function call stack. It is a child of the <a class="reference internal" href="#typesystem"><span class="std std-ref">Including Snippets</span></a> node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;value-type</span>  <span class="na">name=</span><span class="s">&quot;...&quot;</span> <span class="na">since=</span><span class="s">&quot;...&quot;</span>
+     <span class="na">copyable=</span><span class="s">&quot;yes | no&quot;</span>
+     <span class="na">allow-thread=</span><span class="s">&quot;...&quot;</span>
+     <span class="na">exception-handling=</span><span class="s">&quot;...&quot;</span>
+     <span class="na">hash-function=</span><span class="s">&quot;...&quot;</span>
+     <span class="na">stream=</span><span class="s">&quot;yes | no&quot;</span>
+     <span class="na">default-constructor=</span><span class="s">&quot;...&quot;</span>
+     <span class="na">revision=</span><span class="s">&quot;...&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+<p>The <strong>name</strong> attribute is the fully qualified C++ class name, such as
+“QMatrix” or “QPainterPath::Element”. The <strong>copyable</strong> attribute is used to
+force or not specify if this type is copyable. The <em>optional</em> <strong>hash-function</strong>
+attribute informs the function name of a hash function for the type.</p>
+<p>The <em>optional</em> attribute <strong>stream</strong> specifies whether this type will be able to
+use externally defined operators, like QDataStream &lt;&lt; and &gt;&gt;. If equals to <strong>yes</strong>,
+these operators will be called as normal methods within the current class.</p>
+<p>The <em>optional</em>  <strong>since</strong> value is used to specify the API version of this type.</p>
+<p>The <em>optional</em> <strong>default-constructor</strong> specifies the minimal constructor
+call to build one instance of the value-type. This is not needed when the
+value-type may be built with a default constructor (the one without arguments).
+Usually a code generator may guess a minimal constructor for a value-type based
+on its constructor signatures, thus <strong>default-constructor</strong> is used only in
+very odd cases.</p>
+<p>The <strong>revision</strong> attribute can be used to specify a revision for each type, easing the
+production of ABI compatible bindings.</p>
+<p>The <em>optional</em> attributes <strong>allow-thread</strong> and <strong>exception-handling</strong>
+specify the default handling for the corresponding function modification
+(see <a class="reference internal" href="typesystem_manipulating_objects.html#modify-function"><span class="std std-ref">modify-function</span></a>).</p>
+</div></blockquote>
+</section>
+<section id="object-type">
+<span id="id4"></span><h2>object-type</h2>
+<blockquote>
+<div><p>The object-type node indicates that the given C++ type is mapped onto the target
+language as an object type. This means that it is an object passed by pointer on
+C++ and it is stored on the heap. It is a child of the <a class="reference internal" href="#typesystem"><span class="std std-ref">Including Snippets</span></a> node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;object-type</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span>
+     <span class="na">since=</span><span class="s">&quot;...&quot;</span>
+     <span class="na">copyable=</span><span class="s">&quot;yes | no&quot;</span>
+     <span class="na">allow-thread=</span><span class="s">&quot;...&quot;</span>
+     <span class="na">exception-handling=</span><span class="s">&quot;...&quot;</span>
+     <span class="na">hash-function=</span><span class="s">&quot;...&quot;</span>
+     <span class="na">stream=</span><span class="s">&quot;yes | no&quot;</span>
+     <span class="na">revision=</span><span class="s">&quot;...&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+<p>The <strong>name</strong> attribute is the fully qualified C++ class name. If there is no
+C++ base class, the default-superclass attribute can be used to specify a
+superclass for the given type, in the generated target language API. The
+<strong>copyable</strong> and <strong>hash-function</strong> attributes are the same as described for
+<a class="reference internal" href="#value-type"><span class="std std-ref">value-type</span></a>.</p>
+<p>The <em>optional</em> attribute <strong>stream</strong> specifies whether this type will be able to
+use externally defined operators, like QDataStream &lt;&lt; and &gt;&gt;. If equals to <strong>yes</strong>,
+these operators will be called as normal methods within the current class.</p>
+<p>The <em>optional</em>  <strong>since</strong> value is used to specify the API version of this type.</p>
+<p>The <strong>revision</strong> attribute can be used to specify a revision for each type, easing the
+production of ABI compatible bindings.</p>
+<p>The <em>optional</em> attributes <strong>allow-thread</strong> and <strong>exception-handling</strong>
+specify the default handling for the corresponding function modification
+(see <a class="reference internal" href="typesystem_manipulating_objects.html#modify-function"><span class="std std-ref">modify-function</span></a>).</p>
+</div></blockquote>
+</section>
+<section id="interface-type">
+<h2>interface-type</h2>
+<blockquote>
+<div><p>This type is deprecated and no longer has any effect. Use object-type instead.</p>
+</div></blockquote>
+</section>
+<section id="container-type">
+<span id="id5"></span><h2>container-type</h2>
+<blockquote>
+<div><p>The container-type node indicates that the given class is a container and
+must be handled using one of the conversion helpers provided by attribute <strong>type</strong>.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;container-type</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">since=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">type =</span><span class="s">&quot;...&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+<p>The <strong>name</strong> attribute is the fully qualified C++ class name. The <strong>type</strong>
+attribute is used to indicate what conversion rule will be applied to the
+container. It can be: <em>list</em>, <em>string-list</em>, <em>linked-list</em>, <em>vector</em>, <em>stack</em>,
+<em>queue</em>, <em>set</em>, <em>map</em>, <em>multi-map</em>, <em>hash</em>, <em>multi-hash</em> or <em>pair</em>.</p>
+<p>The <em>optional</em>  <strong>since</strong> value is used to specify the API version of this container.</p>
+</div></blockquote>
+</section>
+<section id="typedef-type">
+<h2>typedef-type</h2>
+<blockquote>
+<div><p>The typedef-type allows for specifying typedefs in the typesystem. They
+are mostly equivalent to spelling out the typedef in the included header, which
+is often complicated when trying to wrap libraries whose source code cannot be
+easily extended.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;typedef-type</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">source=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">since=</span><span class="s">&quot;...&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+<p>The <strong>source</strong> attribute is the source. Example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;namespace-type</span> <span class="na">name=</span><span class="s">&#39;std&#39;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;value-type</span> <span class="na">name=</span><span class="s">&#39;optional&#39;</span> <span class="na">generate=</span><span class="s">&#39;no&#39;</span><span class="nt">/&gt;</span>\n&quot;
+<span class="nt">&lt;/namespace-type&gt;</span>
+<span class="nt">&lt;typedef-type</span> <span class="na">name=</span><span class="s">&quot;IntOptional&quot;</span> <span class="na">source=</span><span class="s">&quot;std::optional&amp;lt;int&amp;gt;&quot;</span><span class="nt">/&gt;</span>
+</pre></div>
+</div>
+<p>is equivalent to</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">optional</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">IntOptional</span><span class="p">;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The <em>optional</em>  <strong>since</strong> value is used to specify the API version of this type.</p>
+</div></blockquote>
+</section>
+<section id="custom-type">
+<span id="id6"></span><h2>custom-type</h2>
+<blockquote>
+<div><p>The custom-type node simply makes the parser aware of the existence of a target
+language type, thus avoiding errors when trying to find a type used in function
+signatures and other places. The proper handling of the custom type is meant to
+be done by a generator using the APIExractor.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;custom-type</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+<p>The <strong>name</strong> attribute is the name of the custom type, e.g., “PyObject”.</p>
+</div></blockquote>
+</section>
+<section id="smart-pointer-type">
+<span id="id7"></span><h2>smart-pointer-type</h2>
+<blockquote>
+<div><p>The smart pointer type node indicates that the given class is a smart pointer
+and requires inserting calls to <strong>getter</strong> to access the pointeee.
+Currently, only the <strong>type</strong> <em>shared</em> is supported and the usage is limited
+to function return values.
+<strong>ref-count-method</strong> specifies the name of the method used to do reference counting.</p>
+<p>The <em>optional</em> attribute <strong>instantiations</strong> specifies for which instantiations
+of the smart pointer wrappers will be generated (comma-separated list).
+By default, this will happen for all instantiations found by code parsing.
+This might be a problem when linking different modules, since wrappers for the
+same instantiation might be generated into different modules, which then clash.
+Providing an instantiations list makes it possible to specify which wrappers
+will be generated into specific modules.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;smart-pointer-type</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">since=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">type=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">getter=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">ref-count-method=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">instantiations=</span><span class="s">&quot;...&quot;</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="function">
+<span id="id8"></span><h2>function</h2>
+<blockquote>
+<div><p>The function node indicates that the given C++ global function is mapped onto
+the target language.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;function</span> <span class="na">signature=</span><span class="s">&quot;...&quot;</span> <span class="na">rename=</span><span class="s">&quot;...&quot;</span> <span class="na">since=</span><span class="s">&quot;...&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+<p>This tag has some limitations, it doesn’t support function modifications, besides you
+can’t add a function overload using <a class="reference internal" href="typesystem_manipulating_objects.html#add-function"><span class="std std-ref">add-function</span></a> tag to an existent function.
+These limitation will be addressed in future versions of ApiExtractor.</p>
+<p>The function tag has two <em>optional</em> attributes: <strong>since</strong>, whose value is used to specify
+the API version of this function, and <strong>rename</strong>, to modify the function name.</p>
+</div></blockquote>
+</section>
+<section id="system-include">
+<span id="id9"></span><h2>system-include</h2>
+<blockquote>
+<div><p>The optional <strong>system-include</strong> specifies the name of a system include
+file or a system include path (indicated by a trailing slash) to be
+parsed. Normally, include files considered to be system include
+files are skipped by the C++ code parser. Its primary use case
+is exposing classes from the STL library.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;system-include</span> <span class="na">file-name=</span><span class="s">&quot;memory&quot;</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;system-include</span> <span class="na">file-name=</span><span class="s">&quot;/usr/include/Qt/&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

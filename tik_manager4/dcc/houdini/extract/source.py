@@ -1,6 +1,4 @@
-"""Extract Maya scene."""
-
-import logging
+"""Extract Houdini scene."""
 
 from pathlib import Path
 import shutil
@@ -8,7 +6,6 @@ import shutil
 import hou
 from tik_manager4.dcc.extract_core import ExtractCore
 
-LOG = logging.getLogger(__name__)
 
 # The Collector will only collect classes inherit ExtractCore
 class Source(ExtractCore):
@@ -19,7 +16,6 @@ class Source(ExtractCore):
 
     def __init__(self):
         super(Source, self).__init__()
-        # LOG.info("Houdini Scene Extractor loaded")
 
         # we will keep the original extension. This will be updated in the _extract_default method.
         self.extension = ""

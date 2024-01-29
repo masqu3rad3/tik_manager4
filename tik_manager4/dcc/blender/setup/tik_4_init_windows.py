@@ -5,10 +5,16 @@ bl_info = {
 }
 
 import sys
+from pathlib import Path
 
 import bpy
 
 tik_path = "PATH\\TO\\TIK_MANAGER4\\"
+
+pyside_path = str(Path(tik_path, "tik_manager4\\dcc\\blender\\site-packages"))
+
+if pyside_path not in sys.path:
+    sys.path.insert(0, pyside_path)
 
 if tik_path not in sys.path:
     sys.path.append(tik_path)

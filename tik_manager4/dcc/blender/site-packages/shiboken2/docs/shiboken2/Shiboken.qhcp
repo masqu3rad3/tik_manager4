@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<QHelpCollectionProject version="1.0">
+    <assistant>
+        <title>Shiboken  documentation</title>
+        <homePage>qthelp://org.sphinx.shiboken/doc/index.html</homePage>
+        <startPage>qthelp://org.sphinx.shiboken/doc/index.html</startPage>
+    </assistant>
+    <docFiles>
+        <generate>
+            <file>
+                <input>Shiboken.qhp</input>
+                <output>Shiboken.qch</output>
+            </file>
+        </generate>
+        <register>
+            <file>Shiboken.qch</file>
+        </register>
+    </docFiles>
+</QHelpCollectionProject>

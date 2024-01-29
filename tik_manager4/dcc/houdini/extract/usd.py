@@ -1,4 +1,4 @@
-"""Extract Alembic from Maya scene"""
+"""Extract USD from Houdini scene."""
 
 import logging
 
@@ -11,7 +11,7 @@ LOG = logging.getLogger(__name__)
 
 
 class Usd(ExtractCore):
-    """Extract Alembic from Maya scene."""
+    """Extract USD from Houdini scene."""
 
     nice_name = "Usd"
     optional = False

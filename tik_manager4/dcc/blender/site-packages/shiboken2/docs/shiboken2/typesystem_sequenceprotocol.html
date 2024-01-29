@@ -1,0 +1,116 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Sequence Protocol</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pyside.css" />
+    <link rel="next" title="Examples" href="examples/index.html" />
+    <link rel="prev" title="Solving compilation problems" href="typesystem_solving_compilation.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png"/></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="examples/index.html" title="Examples"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="typesystem_solving_compilation.html" title="Solving compilation problems"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="typesystem.html" accesskey="U">Type System Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Sequence Protocol</a></li> 
+      </ul>
+    </div>
+    </div>
+</div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="sequence-protocol">
+<h1>Sequence Protocol</h1>
+<p>Support for the sequence protocol is achieved adding functions with special
+names, this is done using the add-function tag.</p>
+<p>The special function names are:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 47%" />
+<col style="width: 20%" />
+<col style="width: 19%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function name</p></th>
+<th class="head"><p>Parameters</p></th>
+<th class="head"><p>Return type</p></th>
+<th class="head"><p>CPython equivalent</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>__len__</p></td>
+<td><p>PyObject* self</p></td>
+<td><p>Py_ssize_t</p></td>
+<td><p>PySequence_Size</p></td>
+</tr>
+<tr class="row-odd"><td><p>__getitem__</p></td>
+<td><p>PyObject* self, Py_ssize_t _i</p></td>
+<td><p>PyObject*</p></td>
+<td><p>PySequence_GetItem</p></td>
+</tr>
+<tr class="row-even"><td><p>__setitem__</p></td>
+<td><p>PyObject* self, Py_ssize_t _i, PyObject* _value</p></td>
+<td><p>int</p></td>
+<td><p>PySequence_SetItem</p></td>
+</tr>
+<tr class="row-odd"><td><p>__contains__</p></td>
+<td><p>PyObject* self, PyObject* _value</p></td>
+<td><p>int</p></td>
+<td><p>PySequence_Contains</p></td>
+</tr>
+<tr class="row-even"><td><p>__concat__</p></td>
+<td><p>PyObject* self, PyObject* _other</p></td>
+<td><p>PyObject*</p></td>
+<td><p>PySequence_Concat</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>You just need to inform the function name to the add-function tag, without any
+parameter or return type information, when you do it, Shiboken will create a C
+function with parameters and return type defined by the table above.</p>
+<p>The function needs to follow the same semantics of the <em>CPython equivalent</em>
+function, the only way to do it is using the
+<a class="reference internal" href="typesystem_codeinjection.html#codeinjectionsemantics"><span class="std std-ref">inject-code</span></a> tag.</p>
+<p>A concrete example how to add sequence protocol support to a class can be found
+on shiboken tests, more precisely in the definition of the Str class in
+<code class="docutils literal notranslate"><span class="pre">tests/samplebinding/typesystem_sample.xml</span></code>.</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

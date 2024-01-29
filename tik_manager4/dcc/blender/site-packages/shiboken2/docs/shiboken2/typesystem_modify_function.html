@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Modifying Functions</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pyside.css" />
+    <link rel="next" title="Manipulating Object and Value Types" href="typesystem_manipulating_objects.html" />
+    <link rel="prev" title="Using Code Templates" href="typesystem_templates.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png"/></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="typesystem_manipulating_objects.html" title="Manipulating Object and Value Types"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="typesystem_templates.html" title="Using Code Templates"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="typesystem.html" accesskey="U">Type System Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Modifying Functions</a></li> 
+      </ul>
+    </div>
+    </div>
+</div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="modifying-functions">
+<span id="id1"></span><h1>Modifying Functions</h1>
+<section id="modify-argument">
+<span id="id2"></span><h2>modify-argument</h2>
+<blockquote>
+<div><p>The modify-argument node specifies which of the given function’s arguments the
+modification affects, and is a child of the modify-function node. Use the
+remove-argument, replace-default-expression, remove-default-expression,
+replace-type, reference-count and define-ownership nodes to specify the details
+of the modification.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-function&gt;</span>
+    <span class="nt">&lt;modify-argument</span> <span class="na">index=</span><span class="s">&quot;return | this | 1 ...&quot;</span> <span class="nt">&gt;</span>
+        // modifications
+    <span class="nt">&lt;/modify-argument&gt;</span>
+<span class="nt">&lt;/modify-function&gt;</span>
+</pre></div>
+</div>
+<p>Set the <code class="docutils literal notranslate"><span class="pre">index</span></code> attribute to “1” for the first argument, “2” for the second
+one and so on. Alternatively, set it to “return” or “this” if you want to
+modify the function’s return value or the object the function is called upon,
+respectively.</p>
+</div></blockquote>
+</section>
+<section id="remove">
+<span id="id3"></span><h2>remove</h2>
+<blockquote>
+<div><p>The remove node removes the given method from the generated target language
+API, and it is a child of the modify-function node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-function&gt;</span>
+    <span class="nt">&lt;remove</span> <span class="na">class=</span><span class="s">&quot;all&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/modify-function&gt;</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This tag is deprecated, use the <code class="docutils literal notranslate"><span class="pre">remove</span></code> attribute from <a class="reference internal" href="typesystem_manipulating_objects.html#modify-function"><span class="std std-ref">modify-function</span></a> tag instead.</p>
+</div>
+</div></blockquote>
+</section>
+<section id="access">
+<span id="id4"></span><h2>access</h2>
+<blockquote>
+<div><p>The access node changes the access privileges of the given function in the
+generated target language API, and it is a child of the modify-function node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-function&gt;</span>
+    <span class="nt">&lt;access</span> <span class="na">modifier=</span><span class="s">&quot;public | protected | private&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/modify-function&gt;</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This tag is deprecated, use the <code class="docutils literal notranslate"><span class="pre">access</span></code> attribute from <a class="reference internal" href="typesystem_manipulating_objects.html#modify-function"><span class="std std-ref">modify-function</span></a> tag instead.</p>
+</div>
+</div></blockquote>
+</section>
+<section id="rename">
+<span id="id5"></span><h2>rename</h2>
+<blockquote>
+<div><p>The rename node changes the name of the given function in the generated target
+language API, and it is a child of the modify-function node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-function&gt;</span>
+    <span class="nt">&lt;rename</span> <span class="na">to=</span><span class="s">&quot;...&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/modify-function&gt;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">to</span></code> attribute is the new name of the function.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This tag is deprecated, use the <code class="docutils literal notranslate"><span class="pre">rename</span></code> attribute from <a class="reference internal" href="typesystem_manipulating_objects.html#modify-function"><span class="std std-ref">modify-function</span></a> tag instead.</p>
+</div>
+</div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

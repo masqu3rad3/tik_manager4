@@ -71,6 +71,8 @@ class Publisher:
         extracts = _category_definitons.properties.get(
             self._work_object.category, {}
         ).get("extracts", [])
+        print("extracts", extracts)
+        print("extract_keys", list(self._dcc_handler.extracts.keys()))
         validations = _category_definitons.properties.get(
             self._work_object.category, {}
         ).get("validations", [])

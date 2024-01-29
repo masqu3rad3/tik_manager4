@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<QtHelpProject version="1.0">
+    <namespace>org.sphinx.shiboken</namespace>
+    <virtualFolder>doc</virtualFolder>
+    <customFilter name="Shiboken ">
+        <filterAttribute>Shiboken</filterAttribute>
+        <filterAttribute></filterAttribute>
+    </customFilter>
+    <filterSection>
+        <filterAttribute>Shiboken</filterAttribute>
+        <filterAttribute></filterAttribute>
+        <toc>
+            <section title="Shiboken  documentation" ref="index.html">
+                <section title="Python Module Index" ref="py-modindex.html"/>
+            </section>
+        </toc>
+        <keywords>
+            <keyword name="delete() (in module shiboken)" ref="shibokenmodule.html#shiboken.delete"/>
+            <keyword name="dump() (in module shiboken)" ref="shibokenmodule.html#shiboken.dump"/>
+            <keyword name="getCppPointer() (in module shiboken)" ref="shibokenmodule.html#shiboken.getCppPointer"/>
+            <keyword name="isOwnedByPython() (in module shiboken)" ref="shibokenmodule.html#shiboken.isOwnedByPython"/>
+            <keyword name="isValid() (in module shiboken)" ref="shibokenmodule.html#shiboken.isValid"/>
+            <keyword name="shiboken" ref="shibokenmodule.html#module-shiboken"/>
+            <keyword name="module" ref="shibokenmodule.html#module-shiboken"/>
+            <keyword name="wasCreatedByPython() (in module shiboken)" ref="shibokenmodule.html#shiboken.wasCreatedByPython"/>
+            <keyword name="wrapInstance() (in module shiboken)" ref="shibokenmodule.html#shiboken.wrapInstance"/>
+        </keywords>
+        <files>
+            <file>considerations.html</file>
+            <file>gettingstarted.html</file>
+            <file>index.html</file>
+            <file>py-modindex.html</file>
+            <file>shibokengenerator.html</file>
+            <file>shibokenmodule.html</file>
+            <file>typesystem.html</file>
+            <file>typesystem_arguments.html</file>
+            <file>typesystem_codegeneration.html</file>
+            <file>typesystem_codeinjection.html</file>
+            <file>typesystem_conversionrule.html</file>
+            <file>typesystem_converters.html</file>
+            <file>typesystem_documentation.html</file>
+            <file>typesystem_manipulating_objects.html</file>
+            <file>typesystem_modify_function.html</file>
+            <file>typesystem_ownership.html</file>
+            <file>typesystem_sequenceprotocol.html</file>
+            <file>typesystem_solving_compilation.html</file>
+            <file>typesystem_specifying_types.html</file>
+            <file>typesystem_templates.html</file>
+            <file>typesystem_variables.html</file>
+            <file>examples/index.html</file>
+            <file>examples/samplebinding.html</file>
+            <file>_images/bindinggen-development.png</file>
+            <file>_images/converter.png</file>
+            <file>_images/qtforpython-underthehood.png</file>
+            <file>_images/shibokenqtarch.png</file>
+            <file>_static/basic.css</file>
+            <file>_static/classic.css</file>
+            <file>_static/default.css</file>
+            <file>_static/fakebar.png</file>
+            <file>_static/file.png</file>
+            <file>_static/logo_python.jpg</file>
+            <file>_static/logo_qt.png</file>
+            <file>_static/minus.png</file>
+            <file>_static/plus.png</file>
+            <file>_static/pygments.css</file>
+            <file>_static/pyside.css</file>
+            <file>_static/pysidelogo.png</file>
+            <file>_static/relbar_bg.png</file>
+        </files>
+    </filterSection>
+</QtHelpProject>

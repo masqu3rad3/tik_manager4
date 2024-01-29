@@ -1,0 +1,320 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Manipulating Object and Value Types</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pyside.css" />
+    <link rel="next" title="Conversion Rule Tag" href="typesystem_conversionrule.html" />
+    <link rel="prev" title="Modifying Functions" href="typesystem_modify_function.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png"/></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="typesystem_conversionrule.html" title="Conversion Rule Tag"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="typesystem_modify_function.html" title="Modifying Functions"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="typesystem.html" accesskey="U">Type System Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Manipulating Object and Value Types</a></li> 
+      </ul>
+    </div>
+    </div>
+</div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="manipulating-object-and-value-types">
+<span id="id1"></span><h1>Manipulating Object and Value Types</h1>
+<section id="inject-code">
+<span id="id2"></span><h2>inject-code</h2>
+<blockquote>
+<div><p>The inject-code node inserts the given code into the generated code for the
+given type or function, and it is a child of the <a class="reference internal" href="typesystem_specifying_types.html#object-type"><span class="std std-ref">object-type</span></a>, <a class="reference internal" href="typesystem_specifying_types.html#value-type"><span class="std std-ref">value-type</span></a>,
+<a class="reference internal" href="#modify-function"><span class="std std-ref">modify-function</span></a> and <a class="reference internal" href="#add-function"><span class="std std-ref">add-function</span></a> nodes.</p>
+<p>The code can be embedded into XML (be careful to use the correct XML entities
+for characters like ‘&lt;’, ‘&gt;’, ‘&amp;’):</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;value-type&gt;</span>
+    <span class="nt">&lt;inject-code</span> <span class="na">class=</span><span class="s">&quot;native | target | target-declaration&quot;</span>
+        <span class="na">position=</span><span class="s">&quot;beginning | end&quot;</span> <span class="na">since=</span><span class="s">&quot;...&quot;</span><span class="nt">&gt;</span>
+        // the code
+    <span class="nt">&lt;/inject-code&gt;</span>
+<span class="nt">&lt;/value-type&gt;</span>
+</pre></div>
+</div>
+<p>or obtained from an external file:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;value-type&gt;</span>
+    <span class="nt">&lt;inject-code</span> <span class="na">class=</span><span class="s">&quot;native | target | target-declaration&quot;</span>
+        <span class="na">position=</span><span class="s">&quot;beginning | end&quot;</span> <span class="na">since=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">file=</span><span class="s">&quot;external_source.cpp&quot;</span>
+        <span class="na">snippet=</span><span class="s">&quot;label&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/value-type&gt;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">class</span></code> attribute specifies which module of the generated code that
+will be affected by the code injection
+(see <a class="reference internal" href="typesystem_codegeneration.html#codegenerationterminology"><span class="std std-ref">Code Generation Terminology</span></a>). The <code class="docutils literal notranslate"><span class="pre">class</span></code> attribute accepts the
+following values:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>native: The c++ code</p></li>
+<li><p>target: The binding code</p></li>
+<li><p>target-declaration: The code will be injected into the generated header
+file containing the c++ wrapper class definition.</p></li>
+<li><p>file: The file name</p></li>
+<li><p>snippet: The snippet label (optional)</p></li>
+</ul>
+</div></blockquote>
+<p>If the <code class="docutils literal notranslate"><span class="pre">position</span></code> attribute is set to <em>beginning</em> (the default), the code
+is inserted at the beginning of the function. If it is set to <em>end</em>, the code
+is inserted at the end of the function.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">since</span></code> attribute specify the API version where this code was injected.</p>
+<p>If a <code class="docutils literal notranslate"><span class="pre">snippet</span></code> label is given, the code between annotations of the form</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// @snippet label</span>
+<span class="p">...</span><span class="w"></span>
+<span class="c1">// @snippet label</span>
+</pre></div>
+</div>
+<p>will be extracted.</p>
+<p>For a detailed description, see <a class="reference internal" href="typesystem_codeinjection.html#codeinjectionsemantics"><span class="std std-ref">Code Injection Semantics</span></a>.</p>
+</div></blockquote>
+</section>
+<section id="modify-field">
+<h2>modify-field</h2>
+<blockquote>
+<div><p>The modify-field node allows you to alter the access privileges for a given
+C++ field when mapping it onto the target language, and it is a child of an
+<a class="reference internal" href="typesystem_specifying_types.html#object-type"><span class="std std-ref">object-type</span></a> or a <a class="reference internal" href="typesystem_specifying_types.html#value-type"><span class="std std-ref">value-type</span></a> node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;object-type&gt;</span>
+    <span class="nt">&lt;modify-field</span> <span class="na">name=</span><span class="s">&quot;...&quot;</span>
+        <span class="na">write=</span><span class="s">&quot;true | false&quot;</span>
+        <span class="na">read=</span><span class="s">&quot;true | false&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/object-type&gt;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute is the name of the field, the <em>optional</em> <code class="docutils literal notranslate"><span class="pre">write</span></code>
+and <code class="docutils literal notranslate"><span class="pre">read</span></code> attributes specify the field’s access privileges in the target
+language API (both are set to true by default).
+The <code class="docutils literal notranslate"><span class="pre">remove</span></code> attribute is an <em>optional</em> attribute, which can mark the field
+to be discarded on generation; it has the same purpose of the deprecated tag
+<a class="reference internal" href="typesystem_modify_function.html#remove"><span class="std std-ref">remove</span></a>.</p>
+</div></blockquote>
+</section>
+<section id="modify-function">
+<span id="id3"></span><h2>modify-function</h2>
+<blockquote>
+<div><p>The modify-function node allows you to modify a given C++ function when mapping
+it onto the target language, and it is a child of an <a class="reference internal" href="typesystem_specifying_types.html#object-type"><span class="std std-ref">object-type</span></a> or a <a class="reference internal" href="typesystem_specifying_types.html#value-type"><span class="std std-ref">value-type</span></a>
+node. Use the <a class="reference internal" href="typesystem_modify_function.html#modify-argument"><span class="std std-ref">modify-argument</span></a> node to specify which argument the modification
+affects.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;object-type&gt;</span>
+    <span class="nt">&lt;modify-function</span> <span class="na">signature=</span><span class="s">&quot;...&quot;</span>
+                     <span class="na">since=</span><span class="s">&quot;...&quot;</span>
+                     <span class="na">remove=</span><span class="s">&quot;all | c++&quot;</span>
+                     <span class="na">access=</span><span class="s">&quot;public | private | protected&quot;</span>
+                     <span class="na">allow-thread=</span><span class="s">&quot;true | auto | false&quot;</span>
+                     <span class="na">exception-handling=</span><span class="s">&quot;off | auto-off | auto-on | on&quot;</span>
+                     <span class="na">overload-number=</span><span class="s">&quot;number&quot;</span>
+                     <span class="na">rename=</span><span class="s">&quot;...&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/object-type&gt;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">signature</span></code> attribute is a normalized C++ signature, excluding return
+values but including potential const declarations.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">since</span></code> attribute specify the API version when this function was modified.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">allow-thread</span></code> attribute specifies whether a function should be wrapped
+into <code class="docutils literal notranslate"><span class="pre">Py_BEGIN_ALLOW_THREADS</span></code> and <code class="docutils literal notranslate"><span class="pre">Py_END_ALLOW_THREADS</span></code>, that is,
+temporarily release the GIL (global interpreter lock). Doing so is required
+for any thread-related  function (wait operations), functions that might call
+a virtual function (potentially reimplemented in Python), and recommended for
+lengthy I/O operations or similar. It has performance costs, though.
+The value <code class="docutils literal notranslate"><span class="pre">auto</span></code> means that it will be turned off for functions for which
+it is deemed to be safe, for example, simple getters.
+The attribute defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">exception-handling</span></code> attribute specifies whether to generate exception
+handling code (nest the function call into try / catch statements). It accepts
+the following values:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>no, false: Do not generate exception handling code</p></li>
+<li><p>auto-off: Generate exception handling code for functions
+declaring a non-empty <code class="docutils literal notranslate"><span class="pre">throw</span></code> list</p></li>
+<li><p>auto-on: Generate exception handling code unless function
+declares <code class="docutils literal notranslate"><span class="pre">noexcept</span></code></p></li>
+<li><p>yes, true: Always generate exception handling code</p></li>
+</ul>
+</div></blockquote>
+<p>The optional <code class="docutils literal notranslate"><span class="pre">overload-number</span></code> attribute specifies the position of the
+overload when checking arguments. Typically, when a number of overloads
+exists, as for in example in Qt:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">QPainter::drawLine</span><span class="p">(</span><span class="n">QPointF</span><span class="p">,</span><span class="w"> </span><span class="n">QPointF</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">QPainter::drawLine</span><span class="p">(</span><span class="n">QPoint</span><span class="p">,</span><span class="w"> </span><span class="n">QPoint</span><span class="p">);</span><span class="w"></span>
+</pre></div>
+</div>
+<p>they will be reordered such that the check for matching arguments for the
+one taking a <code class="docutils literal notranslate"><span class="pre">QPoint</span></code> is done first. This is to avoid a potentially
+costly implicit conversion from <code class="docutils literal notranslate"><span class="pre">QPoint</span></code> to <code class="docutils literal notranslate"><span class="pre">QPointF</span></code> when using the
+2nd overload. There are cases though in which this is not desired;
+most prominently when a class inherits from a container and overloads exist
+for both types as is the case for the <code class="docutils literal notranslate"><span class="pre">QPolygon</span></code> class:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">QPolygon</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">QList</span><span class="o">&lt;</span><span class="n">QPoint</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{};</span><span class="w"></span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">QPainter::drawPolygon</span><span class="p">(</span><span class="n">QPolygon</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">QPainter::drawPolygon</span><span class="p">(</span><span class="n">QList</span><span class="o">&lt;</span><span class="n">QPoint</span><span class="o">&gt;</span><span class="p">);</span><span class="w"></span>
+</pre></div>
+</div>
+<p>By default, the overload taking a <code class="docutils literal notranslate"><span class="pre">QList</span></code> will be checked first, trying
+to avoid constructing a <code class="docutils literal notranslate"><span class="pre">QPolygon</span></code> from <code class="docutils literal notranslate"><span class="pre">QList</span></code>. The type check for a
+list of points will succeed for a parameter of type <code class="docutils literal notranslate"><span class="pre">QPolygon</span></code>, too,
+since it inherits <code class="docutils literal notranslate"><span class="pre">QList</span></code>. This presents a problem since the sequence
+type check is costly due to it checking that each container element is a
+<code class="docutils literal notranslate"><span class="pre">QPoint</span></code>. It is thus preferable to check for the <code class="docutils literal notranslate"><span class="pre">QPolygon</span></code> overload
+first. This is achieved by specifying numbers as follows:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;object-type</span> <span class="na">name=</span><span class="s">&quot;QPainter&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;modify-function</span> <span class="na">signature=</span><span class="s">&quot;drawPolygon(QPolygon)&quot;</span> <span class="na">overload-number=</span><span class="s">&quot;0&quot;</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;modify-function</span> <span class="na">signature=</span><span class="s">&quot;drawPolygon(QList&amp;lt;QPoint&amp;gt;)&quot;</span> <span class="na">overload-number=</span><span class="s">&quot;1&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/object-type&gt;</span>
+</pre></div>
+</div>
+<p>Numbers should be given for all overloads; otherwise, the order will be in
+declaration order.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">remove</span></code>, <code class="docutils literal notranslate"><span class="pre">access</span></code> and <code class="docutils literal notranslate"><span class="pre">rename</span></code> attributes are <em>optional</em> attributes
+for added convenience; they serve the same purpose as the deprecated tags <a class="reference internal" href="typesystem_modify_function.html#remove"><span class="std std-ref">remove</span></a>, <a class="reference internal" href="typesystem_modify_function.html#access"><span class="std std-ref">access</span></a> and <a class="reference internal" href="typesystem_modify_function.html#rename"><span class="std std-ref">rename</span></a>.</p>
+</div></blockquote>
+</section>
+<section id="add-function">
+<span id="id4"></span><h2>add-function</h2>
+<blockquote>
+<div><p>The add-function node allows you to add a given function onto the target language,
+and it is a child of an <a class="reference internal" href="typesystem_specifying_types.html#object-type"><span class="std std-ref">object-type</span></a> or <a class="reference internal" href="typesystem_specifying_types.html#value-type"><span class="std std-ref">value-type</span></a> nodes if the
+function is supposed to be a method, or <a class="reference internal" href="typesystem_specifying_types.html#namespace"><span class="std std-ref">namespace-type</span></a> and <a class="reference internal" href="typesystem_specifying_types.html#typesystem"><span class="std std-ref">Including Snippets</span></a> if
+the function is supposed to be a function inside a namespace or a global function.</p>
+<p>Typically when adding a function some code must be injected to provide the function
+logic. This can be done using the <a class="reference internal" href="#inject-code"><span class="std std-ref">inject-code</span></a> node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;object-type&gt;</span>
+    <span class="nt">&lt;add-function</span> <span class="na">signature=</span><span class="s">&quot;...&quot;</span> <span class="na">return-type=</span><span class="s">&quot;...&quot;</span> <span class="na">access=</span><span class="s">&quot;public | protected&quot;</span> <span class="na">static=</span><span class="s">&quot;yes | no&quot;</span> <span class="na">since=</span><span class="s">&quot;...&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/object-type&gt;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">return-type</span></code> attribute defaults to <em>void</em>, the <code class="docutils literal notranslate"><span class="pre">access</span></code> to <em>public</em> and the <code class="docutils literal notranslate"><span class="pre">static</span></code> one to <em>no</em>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">since</span></code> attribute specify the API version when this function was added.</p>
+<p>Within the signature, names for the function parameters can be specified by
+enclosing them within the delimiter <em>&#64;</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">foo</span><span class="p">(</span><span class="nb">int</span> <span class="nd">@parameter1</span><span class="o">@</span><span class="p">,</span><span class="nb">float</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="conversion-rule">
+<span id="conversion-rule-on-types"></span><h2>conversion-rule</h2>
+<blockquote>
+<div><p>The conversion-rule node allows you to write customized code to convert the given argument between the target
+language and C++, and is a child of the <a class="reference internal" href="typesystem_specifying_types.html#value-type"><span class="std std-ref">value-type</span></a>, <a class="reference internal" href="typesystem_specifying_types.html#object-type"><span class="std std-ref">object-type</span></a>, <a class="reference internal" href="typesystem_specifying_types.html#primitive-type"><span class="std std-ref">primitive-type</span></a> and
+<a class="reference internal" href="typesystem_specifying_types.html#container-type"><span class="std std-ref">container-type</span></a> nodes.</p>
+<p>The code pointed by the file attribute is very tied to the generator using APIExtractor, so it don’t follow any
+rules, but the generator rules..</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;value-type</span> <span class="na">name=</span><span class="s">&quot;Foo&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;convertion-rule</span> <span class="na">file=</span><span class="s">&quot;my_converter_implementation.h&quot;</span> <span class="na">since=</span><span class="s">&quot;...&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/value-type&gt;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">since</span></code> attribute specify the API version when this conversion rule became valid.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can also use the conversion-rule node to specify <a class="reference internal" href="typesystem_conversionrule.html#conversion-rule"><span class="std std-ref">how the conversion of a single function argument should be done in a function</span></a>.</p>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">file</span></code> and <code class="docutils literal notranslate"><span class="pre">snippet</span></code> attributes are also supported (see <a class="reference internal" href="#inject-code"><span class="std std-ref">inject-code</span></a> nodes).</p>
+</div></blockquote>
+</section>
+<section id="property">
+<h2>property</h2>
+<blockquote>
+<div><p>The <code class="docutils literal notranslate"><span class="pre">property</span></code> element allows you to specify properties consisting of
+a type and getter and setter functions.</p>
+<p>It may appear as a child of a complex type such as <code class="docutils literal notranslate"><span class="pre">object-type</span></code> or
+<code class="docutils literal notranslate"><span class="pre">value-type</span></code>.</p>
+<p>If the PySide2 extension is not present, code will be generated using the
+<code class="docutils literal notranslate"><span class="pre">PyGetSetDef</span></code> struct, similar to what is generated for fields.</p>
+<p>If the PySide2 extension is present, those properties complement the
+properties obtained from the <code class="docutils literal notranslate"><span class="pre">Q_PROPERTY</span></code> macro in Qt-based code.
+The properties will be handled in <code class="docutils literal notranslate"><span class="pre">libpyside</span></code> unless code generation
+is forced.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span>&lt;property name=&quot;...&quot; type=&quot;...&quot; get=&quot;...&quot; set=&quot;...&quot; &quot; generate-getsetdef=&quot;yes | no&quot; since=&quot;...&quot;/&gt;
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute specifies the name of the property, the <code class="docutils literal notranslate"><span class="pre">type</span></code>
+attribute specifies the C++ type and the <code class="docutils literal notranslate"><span class="pre">get</span></code> attribute specifies the
+name of the accessor function.</p>
+<p>The optional <code class="docutils literal notranslate"><span class="pre">set</span></code> attribute specifies name of the setter function.</p>
+<p>The optional <code class="docutils literal notranslate"><span class="pre">generate-getsetdef</span></code> attribute specifies whether to generate
+code for if the PySide2 extension is present (indicating this property is not
+handled by libpyside). It defaults to <em>no</em>.</p>
+<p>The optional <code class="docutils literal notranslate"><span class="pre">since</span></code> attribute specifies the API version when this
+property appears.</p>
+<p>For a typical C++ class, like:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Test</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">getValue</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">setValue</span><span class="p">();</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">value</span></code> can then be specified to be a property:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;value-type</span> <span class="na">name=</span><span class="s">&quot;Test&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;value&quot;</span> <span class="na">type=</span><span class="s">&quot;int&quot;</span> <span class="na">get=</span><span class="s">&quot;getValue&quot;</span> <span class="na">set=</span><span class="s">&quot;setValue&quot;</span><span class="nt">/&gt;</span>
+</pre></div>
+</div>
+<p>With that, a more pythonic style can be used:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">test</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+<span class="n">test</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">42</span>
+</pre></div>
+</div>
+<p>For Qt classes (with the PySide2 extension present), additional setters
+and getters that do not appear as <code class="docutils literal notranslate"><span class="pre">Q_PROPERTY</span></code>, can be specified to
+be properties:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;object-type</span> <span class="na">name=</span><span class="s">&quot;QMainWindow&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;centralWidget&quot;</span> <span class="na">type=</span><span class="s">&quot;QWidget *&quot;</span> <span class="na">get=</span><span class="s">&quot;centralWidget&quot;</span> <span class="na">set=</span><span class="s">&quot;setCentralWidget&quot;</span><span class="nt">/&gt;</span>
+</pre></div>
+</div>
+<p>in addition to the normal properties of <code class="docutils literal notranslate"><span class="pre">QMainWindow</span></code> defined for
+Qt Designer usage.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the <em>Qt</em> coding style, the property name typically conflicts
+with the getter name. It is recommended to exclude the getter from the
+wrapper generation using the <code class="docutils literal notranslate"><span class="pre">remove</span></code> function modification.</p>
+</div>
+</div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>
