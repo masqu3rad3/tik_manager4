@@ -31,8 +31,6 @@ class Dcc(MainCore):
     def save_as(self, file_path):
         """Save the current file to the given path."""
         bpy.ops.wm.save_as_mainfile(filepath=file_path)
-        # with bpy.context.temp_override(**utils.get_override_context()):
-        #     bpy.ops.wm.save_as_mainfile(filepath=file_path)
         return file_path
 
     def open(self, file_path, force=True, **extra_arguments):
