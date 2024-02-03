@@ -14,21 +14,6 @@ Copy the tikManager4 folder under the extensions folder to the Photoshop extensi
 - Locate the index.html in /extensions/tikManager4/client/index.html
 - Replace the "PATH\TO\PARENT\FOLDER\OF\TIKMANAGER4\" with the path of where the tik_manager folder is. Use single slashes between folder names.
 
---------EDIT VBS FILE-----------
-- Locate the saveVersion.vbs file under tik_manager/bin/ Create the file if it does not exist.
-- REPLACE the contents of saveVersion.vbs file with following content:
-
-Set oShell = CreateObject ("Wscript.Shell")
-Dim strArgs
-strArgs = "%comspec% /K ""PATH//TO//TIKWORKS//FOLDER//tik_manager//bin//SmPhotoshop.exe"" saveVersion"
-oShell.Run strArgs, 0, false
-
-- Replace the "PATH//TO//TIKWORKS//FOLDER" with the path of where the tik_manager folder is. Use double BACK Slashes between folder names
-
 --------EDIT HOST (index.jsx) FILE--------
 - Locate the index.jsx file in /extensionFolder/tikManager/host/index.jsx
-- Replace the "PATH//TO//TIKWORKS//FOLDER" with the path of where the tik_manager folder is. Use double BACK Slashes between folder names
-
-
---------EDIT REGISTRY---------
-- Right click > merge playerDebug.reg
+- Replace the "PATH//TO//PARENT//FOLDER//OF//TIKMANAGER4" with the path of where the tik_manager folder is. Use double BACK Slashes between folder names

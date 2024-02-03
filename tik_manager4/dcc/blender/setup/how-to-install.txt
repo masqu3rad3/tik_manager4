@@ -11,6 +11,7 @@ Tik Manager 4 Blender Installation Guide
 Change the path to the tik_manager4 folder to match the location where you installed the tik_manager4 folder.
 
 # Linux & macOS Installation:
+
 For Linux and macOs, pySide2 or PyQt5 needs to be installed to the Blender Python environment.
 Essentially, PySide2 can be pip installed to the system Python environment and then copied to the Blender Python environment.
 There are detailed instructions on how to do this here:
