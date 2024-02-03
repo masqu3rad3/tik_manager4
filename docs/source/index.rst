@@ -1,22 +1,27 @@
-Welcome to Lumache's documentation!
-===================================
+Welcome to Tik Manager4 Documentation!
+=======================================
 
-**Lumache** (/lu'make/) is a Python library for cooks and food lovers
-that creates recipes mixing random ingredients.
-It pulls data from the `Open Food Facts database <https://world.openfoodfacts.org/>`_
-and offers a *simple* and *intuitive* API.
+**Tik Manager** is a Python-based software designed for VFX and Animation Project Management. The primary objective of Tik Manager 4 is to maintain simplicity for small projects while offering the flexibility needed to handle more complex and larger-scale endeavors.
 
-Check out the :doc:`usage` section for further information, including
-how to :ref:`installation` the project.
+As with its predecessor, Tik Manager v4 remains cross-platform and cross-DCC (Digital Content Creation).
+
+Explore the :doc:`overview` and :doc:`usage` sections for comprehensive information.
 
 .. note::
 
-   This project is under active development.
+   This project is actively under development.
+
+Whether you're diving in for the first time or upgrading from a previous version, we're here to guide you through the features and functionalities of Tik Manager4. Happy managing!
+
+
 
 Contents
 --------
 
 .. toctree::
+   :maxdepth: 1
 
-   usage
+   overview
+   installation
+   getting_started
    api

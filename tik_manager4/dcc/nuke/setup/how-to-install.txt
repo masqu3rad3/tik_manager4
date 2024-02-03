@@ -14,9 +14,9 @@ if not tik_path in sys.path:
     sys.path.append(tik_path)
 # Tik Manager 4 [End]
 
-- open (or create) menu.py and add the following lines:
+- Copy all png files under the tik_manager4/dcc/maya/setup folder to the nuke startup scripts folder
 
-- Copy all png files under the icons folder to the nuke startup scripts folder
+- open (or create) menu.py and add the following lines:
 
 # Tik Manager 4 [Start]
 toolbar = nuke.menu('Nodes')

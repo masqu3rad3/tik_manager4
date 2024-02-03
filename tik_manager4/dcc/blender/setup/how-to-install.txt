@@ -6,8 +6,8 @@ Tik Manager 4 Blender Installation Guide
 - Find the Blender User directory on your system.
     - Windows: %USERPROFILE%\AppData\Roaming\Blender Foundation\Blender\<BLENDER-VERSION>\
 
-- Create the <BLENDER-USER-DIRECTORY>/scripts/startup folder if it does not exist and copy the tik_4_init.py file into it.
-- With a text editor, open the tik_4_init.py file, locate the tik_path = "PATH\\TO\\TIK_MANAGER4\\" line.
+- Create the <BLENDER-USER-DIRECTORY>/scripts/startup folder if it does not exist and copy the tik_4_init_windows.py file into it.
+- With a text editor, open the tik_4_init_windows.py file, locate the tik_path = "PATH\\TO\\PARENT\\FOLDER\\OF\\TIKMANAGER4\\" line.
 Change the path to the tik_manager4 folder to match the location where you installed the tik_manager4 folder.
 
 # Linux & macOS Installation:
@@ -24,3 +24,6 @@ After PySide2 is installed, the process is similar as for Windows:
     - Linux: /Users/$USER/Library/Application Support/Blender/<BLENDER-VERSION>/
     - macOS: /Users/$USER/Library/Application Support/Blender/<BLENDER-VERSION>/
 
+- If it is not already exist, create the ``/scripts/startup`` folder under the **Blender User Directory**. Copy the tik_4_init.py file into this folder.
+- With a text editor, open the tik_4_init.py file, find the line tik_path = "PATH\\TO\\PARENT\\FOLDER\\OF\\TIKMANAGER4\\".
+Change the path to the tik_manager4 folder to match the location where you installed the tik_manager4 folder.

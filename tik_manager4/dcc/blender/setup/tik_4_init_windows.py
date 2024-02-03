@@ -9,7 +9,7 @@ from pathlib import Path
 
 import bpy
 
-tik_path = "PATH\\TO\\TIK_MANAGER4\\"
+tik_path = "PATH\\TO\\PARENT\\FOLDER\\OF\\TIKMANAGER4\\"
 
 pyside_path = str(Path(tik_path, "tik_manager4\\dcc\\blender\\site-packages"))
 
