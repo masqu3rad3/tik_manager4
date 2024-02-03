@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Using Code Templates</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pyside.css" />
+    <link rel="next" title="Modifying Functions" href="typesystem_modify_function.html" />
+    <link rel="prev" title="User Defined Type Conversion" href="typesystem_converters.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png"/></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="typesystem_modify_function.html" title="Modifying Functions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="typesystem_converters.html" title="User Defined Type Conversion"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="typesystem.html" accesskey="U">Type System Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Using Code Templates</a></li> 
+      </ul>
+    </div>
+    </div>
+</div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="using-code-templates">
+<span id="id1"></span><h1>Using Code Templates</h1>
+<section id="template">
+<h2>template</h2>
+<blockquote>
+<div><p>The template node registers a template that can be used to avoid duplicate
+code when extending the generated code, and it is a child of the typesystem
+node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;typesystem&gt;</span>
+    <span class="nt">&lt;template</span> <span class="na">name=</span><span class="s">&quot;my_template&quot;</span><span class="nt">&gt;</span>
+        // the code
+    <span class="nt">&lt;/template&gt;</span>
+<span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+<p>Use the insert-template node to insert the template code (identified by the
+template’s <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute) into the generated code base.</p>
+</div></blockquote>
+</section>
+<section id="insert-template">
+<h2>insert-template</h2>
+<blockquote>
+<div><p>The insert-template node includes the code template identified by the name
+attribute, and it can be a child of the inject-code, conversion-rule, template,
+custom-constructor and custom-destructor nodes.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;inject-code</span> <span class="na">class=</span><span class="s">&quot;target&quot;</span> <span class="na">position=</span><span class="s">&quot;beginning&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;insert-template</span> <span class="na">name=</span><span class="s">&quot;my_template&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/inject-code&gt;</span>
+</pre></div>
+</div>
+<p>Use the replace node to modify the template code.</p>
+</div></blockquote>
+</section>
+<section id="replace">
+<h2>replace</h2>
+<blockquote>
+<div><p>The replace node allows you to modify template code before inserting it into
+the generated code, and it can be a child of the insert-template node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;insert-template</span> <span class="na">name=</span><span class="s">&quot;my_template&quot;</span><span class="nt">&gt;</span>
+   <span class="nt">&lt;replace</span> <span class="na">from=</span><span class="s">&quot;...&quot;</span> <span class="na">to=</span><span class="s">&quot;...&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/insert-template&gt;</span>
+</pre></div>
+</div>
+<p>This node will replace the attribute <code class="docutils literal notranslate"><span class="pre">from</span></code> with the value pointed by
+<code class="docutils literal notranslate"><span class="pre">to</span></code>.</p>
+</div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

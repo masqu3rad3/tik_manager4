@@ -1,0 +1,21 @@
+Tik Manager 4 Houdini Installation Guide
+
+- Add following lines to 456.py under scripts in HOUDINI_PATH. If there is no 456.py file, create it.
+        Default Windows location is %programfiles%\Side Effects Software\<HOUDINI VERSION>\houdini\scripts
+        or
+        %UserProfile%\Documents\<HOUDINI VERSION>\scripts
+
+# Tik Manager 4 [Start]
+import sys
+tik_path = "PATH//TO//PARENT//FOLDER//OF//TIKMANAGER4//"
+if not tik_path in sys.path:
+    sys.path.append(tik_path)
+# Tik Manager 4 [End]
+
+- Replace the "PATH//TO//PARENT//FOLDER//OF//TIKMANAGER4//" with the path of where the tik_manager folder is. Use double BACK Slashes between folder names
+
+- Restart Houdini
+- Run the following command from python shell:
+from tik_manager4.dcc.houdini.setup
+
+- Click the + button at the end of the shelf set. From dropdown menu select Shelves and check “Tik Manager4”

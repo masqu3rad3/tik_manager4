@@ -6,7 +6,7 @@ from tik_manager4.dcc.extract_core import ExtractCore
 
 # The Collector will only collect classes inherit ExtractCore
 class Source(ExtractCore):
-    """Extract Source Maya scene"""
+    """Extract Source Maya scene."""
 
     nice_name = "Source Scene"
     color = (255, 255, 255)

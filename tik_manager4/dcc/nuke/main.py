@@ -125,8 +125,8 @@ class Dcc(MainCore):
             reformat_node = nuke.createNode("Reformat")
             reformat_node["type"].setValue(1)
             reformat_node["box_fixed"].setValue(1)
-            reformat_node["box_width"].setValue(221)
-            reformat_node["box_height"].setValue(124)
+            reformat_node["box_width"].setValue(width)
+            reformat_node["box_height"].setValue(height)
             reformat_node["black_outside"].setValue(1)
             reformat_node.setInput(0, active_node)
 

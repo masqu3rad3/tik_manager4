@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Getting started</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pyside.css" />
+    <link rel="next" title="Generator Overview" href="shibokengenerator.html" />
+    <link rel="prev" title="Shiboken" href="index.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png"/></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="shibokengenerator.html" title="Generator Overview"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Shiboken"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Getting started</a></li> 
+      </ul>
+    </div>
+    </div>
+</div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="getting-started">
+<h1>Getting started</h1>
+<section id="building-from-source">
+<h2>Building from source</h2>
+<p>This step is focused on building Shiboken from source, both the Generator and Python module.
+Please notice that these are built when you are building PySide from source too, so there is no
+need to continue if you already have a built PySide.</p>
+<section id="general-requirements">
+<h3>General Requirements</h3>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>Python</strong>: 3.5+ and 2.7</p></li>
+<li><p><strong>Qt:</strong> 5.12+ (5.15 is recommended)</p></li>
+<li><p><strong>libclang:</strong> The libclang library, recommended: version 10 for Shiboken2 5.15.
+Prebuilt versions of it can be <a class="reference external" href="http://download.qt.io/development_releases/prebuilt/libclang/">downloaded here</a>.</p></li>
+<li><p><strong>CMake:</strong> 3.1+ is needed.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="simple-build">
+<h3>Simple build</h3>
+<p>If you need only Shiboken Generator, a simple build run would look like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># For the required libraries (this will also build the shiboken2 python module)</span>
+<span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span> <span class="o">--</span><span class="n">qmake</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">qmake</span> \
+                        <span class="o">--</span><span class="n">build</span><span class="o">-</span><span class="n">tests</span> \
+                        <span class="o">--</span><span class="n">verbose</span><span class="o">-</span><span class="n">build</span> \
+                        <span class="o">--</span><span class="n">internal</span><span class="o">-</span><span class="n">build</span><span class="o">-</span><span class="nb">type</span><span class="o">=</span><span class="n">shiboken2</span>
+
+<span class="c1"># For the executable</span>
+<span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span> <span class="o">--</span><span class="n">qmake</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">qmake</span> \
+                        <span class="o">--</span><span class="n">build</span><span class="o">-</span><span class="n">tests</span> \
+                        <span class="o">--</span><span class="n">verbose</span><span class="o">-</span><span class="n">build</span> \
+                        <span class="o">--</span><span class="n">internal</span><span class="o">-</span><span class="n">build</span><span class="o">-</span><span class="nb">type</span><span class="o">=</span><span class="n">shiboken2</span><span class="o">-</span><span class="n">generator</span>
+</pre></div>
+</div>
+<p>The same can be used for the module, changing the value of <code class="docutils literal notranslate"><span class="pre">internal-build-type</span></code> to
+<code class="docutils literal notranslate"><span class="pre">shiboken2-module</span></code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you are planning to use PySide too, for examples like
+‘scriptableapplication’ you need to have build it as well.  The main issue is
+that your PySide and Shiboken needs to be build using the same dependencies
+from Qt and libclang.</p>
+</div>
+</section>
+</section>
+<section id="using-the-wheels">
+<h2>Using the wheels</h2>
+<p>Installing <code class="docutils literal notranslate"><span class="pre">pyside2</span></code> or <code class="docutils literal notranslate"><span class="pre">shiboken2</span></code> from pip <strong>does not</strong> install <code class="docutils literal notranslate"><span class="pre">shiboken2_generator</span></code>,
+because the wheels are not on PyPi.</p>
+<p>You can get the <code class="docutils literal notranslate"><span class="pre">shiboken2_generator</span></code> wheels from Qt servers, and you can still install it
+via <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> \
+    <span class="o">--</span><span class="n">index</span><span class="o">-</span><span class="n">url</span><span class="o">=</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">download</span><span class="o">.</span><span class="n">qt</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">official_releases</span><span class="o">/</span><span class="n">QtForPython</span><span class="o">/</span> \
+    <span class="o">--</span><span class="n">trusted</span><span class="o">-</span><span class="n">host</span> <span class="n">download</span><span class="o">.</span><span class="n">qt</span><span class="o">.</span><span class="n">io</span> \
+    <span class="n">shiboken2</span> <span class="n">pyside2</span> <span class="n">shiboken2_generator</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">whl</span></code> package cannot automatically discover in your system the location for:</p>
+<ul class="simple">
+<li><p>Clang installation,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qmake</span></code> location with the same version as the one described in the wheel,</p></li>
+<li><p>Qt libraries with the same package version.</p></li>
+</ul>
+<p>So using this process requires you to manually modify the variables:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CLANG_INSTALL_DIR</span></code> must be set to where the libraries are,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PATH</span></code> must include the location for a <code class="docutils literal notranslate"><span class="pre">qmake</span></code> with the same Qt version as the package,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LD_LIBRARY_PATH</span></code> including the Qt libraries and Clang libraries paths.</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

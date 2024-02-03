@@ -126,7 +126,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
     def _load_pre_checks(self, work_obj):
         """Metadata and scene compare checks before loading."""
-        if work_obj.dcc != work_obj.guard.dcc:
+        if work_obj.dcc.lower() != work_obj.guard.dcc.lower():
             self.feedback.pop_info(
                 title="DCC mismatch",
                 text=f"{work_obj.dcc} scenes cannot loaded into {work_obj.guard.dcc}.",
@@ -149,7 +149,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
     def on_load(self):
         """Load the current version."""
-
         if not self.base:
             self.feedback.pop_info(
                 title="No work or publish selected.",

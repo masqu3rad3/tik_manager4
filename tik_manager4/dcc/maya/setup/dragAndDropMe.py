@@ -13,6 +13,11 @@ except ImportError:
 
 
 def onMayaDroppedPythonFile(*args, **kwargs):
+    # check the pyhon interpreter version
+    if sys.version_info.major < 3:
+        cmds.confirmDialog(title='ERROR:', message="Tik Manager requires Python version 3.6 and higher. Current Maya Python interpreter is not compatible. \n\nAborting.", button=['OK'],
+                       defaultButton='OK')
+        return
     _add_module()
 
 

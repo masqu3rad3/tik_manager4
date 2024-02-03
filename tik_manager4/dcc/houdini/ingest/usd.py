@@ -1,11 +1,11 @@
-"""Ingest Alembic."""
+"""Ingest Usd."""
 
 from pathlib import Path
 import hou
 from tik_manager4.dcc.ingest_core import IngestCore
 
 class Usd(IngestCore):
-    """Ingest Alembic."""
+    """Ingest Usd."""
 
     nice_name =  "Ingest Usd"
     valid_extensions = [".usd", ".usda", ".usdc", ".usdz", ".usdnc"]
@@ -35,6 +35,6 @@ class Usd(IngestCore):
         usd_import_node.parm("filepath1").set(str(_file_path))
 
     def _reference_default(self):
-        """Reference Alembic File."""
+        """Reference Usd File."""
         # identical to bring in
         self._bring_in_default()

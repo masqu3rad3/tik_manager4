@@ -6,7 +6,7 @@ from tik_manager4.ui.Qt import QtCore, QtGui
 
 # if it is frozen,
 _FROZEN = getattr(sys, 'frozen', False)
-DIRECTORY = Path(__file__).parent if not _FROZEN else Path(sys.executable).parent / "ui"
+DIRECTORY = Path(__file__).parent if not _FROZEN else Path(sys.executable).parent / "_internal" /"ui"
 IMAGES_FOLDER = DIRECTORY / "images"
 THEME_FOLDER = DIRECTORY / "theme"
 # ICON_FOLDER = DIRECTORY / "icons"

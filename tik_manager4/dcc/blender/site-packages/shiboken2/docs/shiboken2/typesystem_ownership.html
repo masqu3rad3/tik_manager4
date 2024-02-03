@@ -1,0 +1,259 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Object ownership</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pyside.css" />
+    <link rel="next" title="Solving compilation problems" href="typesystem_solving_compilation.html" />
+    <link rel="prev" title="Type System Variables" href="typesystem_variables.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png"/></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="typesystem_solving_compilation.html" title="Solving compilation problems"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="typesystem_variables.html" title="Type System Variables"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="typesystem.html" accesskey="U">Type System Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Object ownership</a></li> 
+      </ul>
+    </div>
+    </div>
+</div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="object-ownership">
+<span id="objectownership"></span><h1>Object ownership</h1>
+<p>One of the main things a binding developer should have in mind is
+how the C++ instances lives will cope with Python’s reference count.
+The last thing you want is to crash a program due to a segfault
+when your C++ instance was deleted and the
+wrapper object tries to access the invalid memory there.</p>
+<p>In this section we’ll show how Shiboken deals with object ownership
+and parentship, taking advantage of the information provided by the
+APIExtractor.</p>
+<section id="ownership-basics">
+<h2>Ownership basics</h2>
+<p>As any python binding, Shiboken-based bindings uses reference counting
+to handle the life of the wrapper object (the Python object that contains the
+C++ object, do not confuse with the <em>wrapped</em> C++ object).
+When a reference count reaches zero, the wrapper is deleted by Python garbage
+collector and tries to delete the wrapped instance, but sometimes the wrapped
+C++ object is already deleted, or maybe the C++ object should not be freed after
+the Python wrapper go out of scope and die, because C++ is already taking care of
+the wrapped instance.</p>
+<p>In order to handle this, you should tell the
+generator whether the instance’s ownership belongs to the binding or
+to the C++ Library. When belonging to the binding, we are sure that the C++ object
+won’t be deleted by C++ code and we can call the C++ destructor when the refcount
+reaches 0. Otherwise, instances owned by C++ code can be destroyed arbitrarily,
+without notifying the Python wrapper of its destruction.</p>
+</section>
+<section id="invalidating-objects">
+<h2>Invalidating objects</h2>
+<p>To prevent segfaults and double frees, the wrapper objects are invalidated.
+An invalidated can’t be passed as argument or have an attribute or method accessed.
+Trying to do this will raise RuntimeError.</p>
+<p>The following situations can invalidate an object:</p>
+<section id="c-taking-ownership">
+<h3>C++ taking ownership</h3>
+<blockquote>
+<div><p>When an object is passed to a function or method that takes ownership of it, the wrapper
+is invalidated as we can’t be sure of when the object is destroyed, unless it has a
+<a class="reference internal" href="#ownership-virt-method"><span class="std std-ref">virtual destructor</span></a> or the transfer is due to the special case
+of <a class="reference internal" href="#ownership-parent"><span class="std std-ref">parent ownership</span></a>.</p>
+<p>Besides being passed as argument, the called object can have its ownership changed, like
+the <cite>setParent</cite> method in Qt’s <cite>QObject</cite>.</p>
+</div></blockquote>
+</section>
+<section id="invalidate-after-use">
+<h3>Invalidate after use</h3>
+<blockquote>
+<div><p>Objects marked with <em>invalidate-after-use</em> in the type system description always are
+virtual method arguments provided by a C++ originated call. They should be
+invalidated right after the Python function returns.</p>
+</div></blockquote>
+</section>
+<section id="objects-with-virtual-methods">
+<span id="ownership-virt-method"></span><h3>Objects with virtual methods</h3>
+<blockquote>
+<div><p>A little bit of implementation details:
+virtual methods are supported by creating a C++ class, the <strong>shell</strong>, that inherits
+from the class with virtual methods, the native one, and override those methods to check if
+any derived class in Python also override it.</p>
+<p>If the class has a virtual destructor (and C++ classes with virtual methods should have), this
+C++ instance invalidates the wrapper only when the overridden destructor is called.</p>
+<p>One exception to this rule is when the object is created in C++, like in a
+factory method. This way the wrapped object is a C++ instance of the native
+class, not the shell one, and we cannot know when it is destroyed.</p>
+</div></blockquote>
+</section>
+</section>
+<section id="parent-child-relationship">
+<span id="ownership-parent"></span><h2>Parent-child relationship</h2>
+<p>One special type of ownership is the parent-child relationship.
+Being a child of an object means that when the object’s parent dies,
+the C++ instance also dies, so the Python references will be invalidated.
+Qt’s QObject system, for example, implements this behavior, but this is valid
+for any C++ library with similar behavior.</p>
+<section id="parentship-heuristics">
+<span id="ownership-parent-heuristics"></span><h3>Parentship heuristics</h3>
+<blockquote>
+<div><p>As the parent-child relationship is very common, Shiboken tries to automatically
+infer what methods falls into the parent-child scheme, adding the extra
+directives related to ownership.</p>
+<p>This heuristic will be triggered when generating code for a method and:</p>
+<ul class="simple">
+<li><p>The function is a constructor.</p></li>
+<li><p>The argument name is <cite>parent</cite>.</p></li>
+<li><p>The argument type is a pointer to an object.</p></li>
+</ul>
+<p>When triggered, the heuristic will set the argument named “parent”
+as the parent of the object being created by the constructor.</p>
+<p>The main focus of this process was to remove a lot of hand written code from
+type system when binding Qt libraries. For Qt, this heuristic works in all cases,
+but be aware that it might not when binding your own libraries.</p>
+<p>To activate this heuristic, use the <a class="reference internal" href="shibokengenerator.html#parent-heuristic"><span class="std std-ref">–enable-parent-ctor-heuristic</span></a>
+command line switch.</p>
+</div></blockquote>
+</section>
+<section id="return-value-heuristics">
+<span id="id1"></span><h3>Return value heuristics</h3>
+<blockquote>
+<div><p>When enabled, object returned as pointer in C++ will become child of the object on which the method
+was called.</p>
+<p>To activate this heuristic, use the <a class="reference internal" href="shibokengenerator.html#return-heuristic"><span class="std std-ref">–enable-return-value-heuristic</span></a></p>
+</div></blockquote>
+</section>
+</section>
+<section id="common-pitfalls">
+<h2>Common pitfalls</h2>
+<section id="not-saving-unowned-objects-references">
+<h3>Not saving unowned objects references</h3>
+<blockquote>
+<div><p>Sometimes when you pass an instance as argument to a method and the receiving
+instance will need that object to live indefinitely, but will not take ownership
+of the argument instance. In this case, you should hold a reference to the argument
+instance.</p>
+<p>For example, let’s say that you have a renderer class that will use a source class
+in a setSource method but will not take ownership of it. The following code is wrong,
+because when <cite>render</cite> is called the <cite>Source</cite> object created during the call to <cite>setSource</cite>
+is already destroyed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">renderer</span><span class="o">.</span><span class="n">setModel</span><span class="p">(</span><span class="n">Source</span><span class="p">())</span>
+<span class="n">renderer</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To solve this, you should hold a reference to the source object, like in</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">()</span>
+<span class="n">renderer</span><span class="o">.</span><span class="n">setSource</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+<span class="n">renderer</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+</section>
+<section id="ownership-management-in-the-typesystem">
+<h2>Ownership Management in  the Typesystem</h2>
+<p>For the possible values of the <code class="docutils literal notranslate"><span class="pre">class</span></code> attribute, see
+<a class="reference internal" href="typesystem_codegeneration.html#codegenerationterminology"><span class="std std-ref">Code Generation Terminology</span></a>.</p>
+<section id="ownership-transfer-from-c-to-target">
+<h3>Ownership transfer from C++ to target</h3>
+<blockquote>
+<div><p>When an object currently owned by C++ has its ownership transferred
+back to the target language, the binding can know for sure when the object will be deleted and
+tie the C++ instance existence to the wrapper, calling the C++ destructor normally when the
+wrapper is deleted.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-argument</span> <span class="na">index=</span><span class="s">&quot;1&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;define-ownership</span> <span class="na">class=</span><span class="s">&quot;target&quot;</span> <span class="na">owner=</span><span class="s">&quot;target&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/modify-argument&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="ownership-transfer-from-target-to-c">
+<h3>Ownership transfer from target to C++</h3>
+<blockquote>
+<div><p>In the opposite direction, when an object ownership is transferred from the target language
+to C++, the native code takes full control of the object life and you don’t
+know when that object will be deleted, rendering the wrapper object invalid,
+unless you’re wrapping an object with a virtual destructor,
+so you can override it and be notified of its destruction.</p>
+<p>By default it’s safer to just render the wrapper
+object invalid and raise some error if the user tries to access
+one of this objects members or pass it as argument to some function, to avoid unpleasant segfaults.
+Also you should avoid calling the C++ destructor when deleting the wrapper.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-argument</span> <span class="na">index=</span><span class="s">&quot;1&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;define-ownership</span> <span class="na">class=</span><span class="s">&quot;target&quot;</span> <span class="na">owner=</span><span class="s">&quot;c++&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/modify-argument&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="id2">
+<h3>Parent-child relationship</h3>
+<p>One special type of relationship is the parent-child. When an object is called
+the parent of another object (the child), the former is in charge of deleting its
+child when deleted and the target language can trust that the child will be alive
+as long as the parent is, unless some other method can take the C++ ownership away from the parent.</p>
+<p>One of the main uses of this scheme is Qt’s object system, with ownership among QObject-derived
+classes, creating “trees” of instances.</p>
+<blockquote>
+<div><div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-argument</span> <span class="na">index=</span><span class="s">&quot;this&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;parent</span> <span class="na">index=</span><span class="s">&quot;1&quot;</span> <span class="na">action=</span><span class="s">&quot;add&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/modify-argument&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>In this example, the instance with the method that is being invoked (indicated by ‘index=”this”’ on
+modify-argument) will be marked as a child
+of the first argument using the <cite>parent</cite> tag. To remove ownership, just use “remove” in the action attribute. <strong>Removing
+parentship also transfers the ownership back to python.</strong></p>
+</section>
+<section id="invalidation-after-use">
+<h3>Invalidation after use</h3>
+<p>Sometimes an object is created as a virtual method call argument and destroyed after the
+call returned. In this case, you should use the <code class="docutils literal notranslate"><span class="pre">invalidate-after-use</span></code> attribute in the
+<code class="docutils literal notranslate"><span class="pre">modify-argument</span></code> tag to mark the wrapper as invalid right after the virtual method returns.</p>
+<blockquote>
+<div><div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-argument</span> <span class="na">index=</span><span class="s">&quot;2&quot;</span> <span class="na">invalidate-after-use=</span><span class="s">&quot;yes&quot;</span><span class="nt">/&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>In this example the second argument will be invalidated after this method call.</p>
+<p>See <a class="reference external" href="http://doc.qt.io/qt-5/objecttrees.html">Object Trees and Object Ownership</a>.</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

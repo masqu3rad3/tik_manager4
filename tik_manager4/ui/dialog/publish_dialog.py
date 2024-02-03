@@ -59,6 +59,7 @@ from tik_manager4.ui.layouts.settings_layout import (
 )
 from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
 from tik_manager4.ui.dialog.feedback import Feedback
+from tik_manager4.ui import pick
 
 LOG = logging.getLogger(__name__)
 
@@ -69,6 +70,10 @@ class PublishSceneDialog(QtWidgets.QDialog):
     def __init__(self, project_object, *args, **kwargs):
         """Initialize the PublishSceneDialog."""
         super(PublishSceneDialog, self).__init__(*args, **kwargs)
+
+        # set style
+        _style_file = pick.style_file()
+        self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
 
         # DYNAMIC ATTRIBUTES
         self._validator_widgets = []
@@ -333,10 +338,12 @@ class PublishSceneDialog(QtWidgets.QDialog):
                 if q == "cancel":
                     self.project.publisher.discard()
                     # self.__init__(self.project)
-                    raise Exception("Extraction Failed")
+                    return False
+                    # raise Exception("Extraction Failed")
                 if q == "continue":
                     continue
             QtWidgets.QApplication.processEvents()
+        return True
 
     def reset_validators(self):
         """If the scene is modified it will reset all the validators."""
@@ -409,7 +416,10 @@ class PublishSceneDialog(QtWidgets.QDialog):
         # reserve the slot
         self.project.publisher.reserve()
         # extract the elements
-        self.extract_all()
+        state = self.extract_all()
+        if not state:
+            # user cancellation due to failed extracts
+            return
 
         # finalize publish
         self.project.publisher.publish(notes=self.notes_text.toPlainText())
@@ -421,6 +431,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
         self.feedback.pop_info(title="Publish Successful", text=msg)
         self.close()
         self.deleteLater()
+        return
 
 
 class ValidateRow(QtWidgets.QHBoxLayout):
@@ -702,9 +713,12 @@ if __name__ == "__main__":
 
     app = QtWidgets.QApplication(sys.argv)
 
-    _style_file = pick.style_file()
+    # _style_file = pick.style_file()
+    # dialog = PublishSceneDialog(
+    #     tik.project, styleSheet=str(_style_file.readAll(), "utf-8")
+    # )
     dialog = PublishSceneDialog(
-        tik.project, styleSheet=str(_style_file.readAll(), "utf-8")
+        tik.project
     )
 
     dialog.show()

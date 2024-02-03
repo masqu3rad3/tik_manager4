@@ -71,6 +71,8 @@ class Publisher:
         extracts = _category_definitons.properties.get(
             self._work_object.category, {}
         ).get("extracts", [])
+        print("extracts", extracts)
+        print("extract_keys", list(self._dcc_handler.extracts.keys()))
         validations = _category_definitons.properties.get(
             self._work_object.category, {}
         ).get("validations", [])
@@ -239,6 +241,15 @@ class Publisher:
 
     def discard(self):
         """Discard the reserved slot."""
+        # find any extracted files and delete them
+        for _extract_type_name, extract_object in self._resolved_extractors.items():
+            if extract_object.state == "failed":
+                continue
+            _extracted_file_path = Path(extract_object.resolve_output())
+            if _extracted_file_path.exists():
+                # remove the write protection
+                _extracted_file_path.chmod(0o777)
+                _extracted_file_path.unlink()
 
         # delete the publish file
         _publish_file_path = (

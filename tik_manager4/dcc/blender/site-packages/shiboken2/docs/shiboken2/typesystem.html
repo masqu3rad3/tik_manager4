@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Type System Reference</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pyside.css" />
+    <link rel="next" title="Specifying Types" href="typesystem_specifying_types.html" />
+    <link rel="prev" title="Shiboken module" href="shibokenmodule.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png"/></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="typesystem_specifying_types.html" title="Specifying Types"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="shibokenmodule.html" title="Shiboken module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Type System Reference</a></li> 
+      </ul>
+    </div>
+    </div>
+</div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="type-system-reference">
+<h1>Type System Reference</h1>
+<p>The typesystem is used by a binding generator or any other software using the APIExtractor library
+to map a C++ library API onto a higher level language.</p>
+<p>The typesystem specification is a handwritten XML document listing the types
+that will be available in the generated target language API; types that are not
+declared in the specification will be ignored along with everything depending on
+them. In addition, it is possible to manipulate and modify types and functions.
+It is even possible to use the typesystem specification to inject arbitrary
+code into the source files, such as an extra member function.</p>
+<p>Below there is a complete reference guide to the various nodes (XML tags) of the typesystem.
+For usage examples, take a look at the typesystem files used to generate PySide2. These files
+can be found in the PySide2/&lt;QT_MODULE_NAME&gt; directory of the PySide2 package.</p>
+<section id="define-types">
+<h2>Define types</h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_specifying_types.html">Specifying Types</a></li>
+</ul>
+</div>
+</section>
+<section id="code-generation">
+<h2>Code generation</h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_codegeneration.html">Code Generation Terminology</a></li>
+</ul>
+</div>
+</section>
+<section id="modifying-types">
+<h2>Modifying types</h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_arguments.html">Modifying Arguments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_codeinjection.html">Code Injection Semantics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_converters.html">User Defined Type Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_templates.html">Using Code Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_modify_function.html">Modifying Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_manipulating_objects.html">Manipulating Object and Value Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_conversionrule.html">Conversion Rule Tag</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_documentation.html">Manipulating Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_variables.html">Type System Variables</a></li>
+</ul>
+</div>
+</section>
+<section id="object-ownership">
+<h2>Object ownership</h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_ownership.html">Object ownership</a></li>
+</ul>
+</div>
+</section>
+<section id="extra-options-and-python-caveats">
+<h2>Extra options and Python caveats</h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_solving_compilation.html">Solving compilation problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_sequenceprotocol.html">Sequence Protocol</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

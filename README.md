@@ -1,11 +1,12 @@
-# tik_manager4
-Tik Manager 4
+Welcome to Tik Manager4
+=======================
 
-Tik Manager is an easy-to-use pipeline management toolset.
-V4 is currently a work in progress.
+**Tik Manager** is a Python-based software designed for VFX and Animation Project Management. The primary objective of Tik Manager 4 is to maintain simplicity for small projects while offering the flexibility needed to handle more complex and larger-scale endeavors.
 
-Contact me via ardakutlu@gmail.com if you want to contribute.
+As with its predecessor, Tik Manager v4 remains cross-platform and cross-DCC (Digital Content Creation).
 
+Documentation:
+https://tik-manager4.readthedocs.io/en/latest/
 
 **Powered by**
 

@@ -49,6 +49,12 @@ def load_menu():
     main_ui_command = "from tik_manager4.ui import main as tik4_main\ntik4_main.launch(dcc='Maya')"
     add_to_menu("TikManager", "Main UI", main_ui_command)
 
+    new_version_command = "from tik_manager4.ui import main\ntui = main.launch('Maya', dont_show=True)\ntui.on_new_version()"
+    add_to_menu("TikManager", "New Version", new_version_command)
+
+    publish_scene_command = "from tik_manager4.ui import main\ntui = main.launch('Maya', dont_show=True)\ntui.on_publish_scene()"
+    add_to_menu("TikManager", "Publish Scene", publish_scene_command)
+
     # add a separator
     cmds.menuItem(divider=True)
     recreate_command = "tik_manager_setup.load_shelves(reset=True)"

@@ -1,0 +1,258 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Modifying Arguments</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pyside.css" />
+    <link rel="next" title="Code Injection Semantics" href="typesystem_codeinjection.html" />
+    <link rel="prev" title="Code Generation Terminology" href="typesystem_codegeneration.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png"/></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="typesystem_codeinjection.html" title="Code Injection Semantics"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="typesystem_codegeneration.html" title="Code Generation Terminology"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="typesystem.html" accesskey="U">Type System Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Modifying Arguments</a></li> 
+      </ul>
+    </div>
+    </div>
+</div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="modifying-arguments">
+<span id="id1"></span><h1>Modifying Arguments</h1>
+<section id="conversion-rule">
+<span id="conversionrule"></span><h2>conversion-rule</h2>
+<blockquote>
+<div><p>The conversion-rule node allows you to write customized code to convert
+the given argument between the target language and C++, and it is a child of the modify-argument node:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-argument</span> <span class="na">index=</span><span class="s">&quot;2&quot;</span><span class="nt">&gt;</span>
+<span class="cm">&lt;!-- for the second argument of the function --&gt;</span>
+<span class="nt">&lt;conversion-rule</span> <span class="na">class=</span><span class="s">&quot;target | native&quot;</span><span class="nt">&gt;</span>
+    // the code
+<span class="nt">&lt;/conversion-rule&gt;</span>
+<span class="nt">&lt;/modify-argument&gt;</span>
+</pre></div>
+</div>
+<p>This node is typically used in combination with the replace-type and
+remove-argument nodes. The given code is used instead of the generator’s
+conversion code.</p>
+<p>Writing %N in the code (where N is a number), will insert the name of the
+nth argument. Alternatively, %in and %out which will be replaced with the
+name of the conversion’s input and output variable, respectively. Note the
+output variable must be declared explicitly, for example:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;conversion-rule</span> <span class="na">class=</span><span class="s">&quot;native&quot;</span><span class="nt">&gt;</span>
+bool %out = (bool) %in;
+<span class="nt">&lt;/conversion-rule&gt;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can also use the conversion-rule node to specify <a class="reference internal" href="typesystem_manipulating_objects.html#conversion-rule-on-types"><span class="std std-ref">a conversion code which will be used instead of the generator’s conversion code everywhere for a given type</span></a>.</p>
+</div>
+</div></blockquote>
+</section>
+<section id="remove-argument">
+<span id="id2"></span><h2>remove-argument</h2>
+<blockquote>
+<div><p>The remove-argument node removes the given argument from the function’s
+signature, and it is a child of the modify-argument node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-argument&gt;</span>
+    <span class="nt">&lt;remove-argument</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/modify-argument&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="rename-to">
+<span id="id3"></span><h2>rename to</h2>
+<blockquote>
+<div><p>The ‘rename to’ node is used to rename a argument and use this new name in the generated code.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-argument&gt;</span>
+    <span class="nt">&lt;rename</span> <span class="na">to=</span><span class="s">&#39;...&#39;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/modify-argument&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="remove-default-expression">
+<span id="id4"></span><h2>remove-default-expression</h2>
+<blockquote>
+<div><p>The remove-default-expression node disables the use of the default expression
+for the given argument, and it is a child of the modify-argument node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-argument...&gt;</span>
+    <span class="nt">&lt;remove-default-expression</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/modify-argument&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="replace-default-expression">
+<span id="id5"></span><h2>replace-default-expression</h2>
+<blockquote>
+<div><p>The replace-default-expression node replaces the specified argument with the
+expression specified by the <code class="docutils literal notranslate"><span class="pre">with</span></code> attribute, and it is a child of the
+modify-argument node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-argument&gt;</span>
+    <span class="nt">&lt;replace-default-expression</span> <span class="na">with=</span><span class="s">&quot;...&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/modify-argument&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="replace-type">
+<span id="id6"></span><h2>replace-type</h2>
+<blockquote>
+<div><p>The replace-type node replaces the type of the given argument to the one
+specified by the <code class="docutils literal notranslate"><span class="pre">modified-type</span></code> attribute, and it is a child of the
+modify-argument node.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-argument&gt;</span>
+    <span class="nt">&lt;replace-type</span> <span class="na">modified-type=</span><span class="s">&quot;...&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/modify-argument&gt;</span>
+</pre></div>
+</div>
+<p>If the new type is a class, the <code class="docutils literal notranslate"><span class="pre">modified-type</span></code> attribute must be set to
+the fully qualified name (including name of the package as well as the class
+name).</p>
+</div></blockquote>
+</section>
+<section id="define-ownership">
+<span id="id7"></span><h2>define-ownership</h2>
+<blockquote>
+<div><p>The define-ownership tag indicates that the function changes the ownership
+rules of the argument object. The <code class="docutils literal notranslate"><span class="pre">class</span></code> attribute specifies the class of
+function where to inject the ownership altering code
+(see <a class="reference internal" href="typesystem_codegeneration.html#codegenerationterminology"><span class="std std-ref">Code Generation Terminology</span></a>). The <code class="docutils literal notranslate"><span class="pre">owner</span></code> attribute
+specifies the new ownership of the object. It accepts the following values:</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>target: the target language will assume full ownership of the object.</dt><dd><p>The native resources will be deleted when the target language
+object is finalized.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>c++: The native code assumes full ownership of the object. The target</dt><dd><p>language object will not be garbage collected.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>default: The object will get default ownership, depending on how it</dt><dd><p>was created.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-argument&gt;</span>
+      <span class="nt">&lt;define-ownership</span> <span class="na">class=</span><span class="s">&quot;target | native&quot;</span>
+                        <span class="na">owner=</span><span class="s">&quot;target | c++ | default&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/modify-argument&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="reference-count">
+<span id="id8"></span><h2>reference-count</h2>
+<blockquote>
+<div><p>The reference-count tag dictates how an argument should be handled by the
+target language reference counting system (if there is any), it also indicates
+the kind of relationship the class owning the function being modified has with
+the argument. For instance, in a model/view relation a view receiving a model
+as argument for a <strong>setModel</strong> method should increment the model’s reference
+counting, since the model should be kept alive as much as the view lives.
+Remember that out hypothetical view could not become parent of the model,
+since the said model could be used by other views as well.
+The <code class="docutils literal notranslate"><span class="pre">action</span></code> attribute specifies what should be done to the argument
+reference counting when the modified method is called. It accepts the
+following values:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add: increments the argument reference counter.</p></li>
+<li><p>add-all: increments the reference counter for each item in a collection.</p></li>
+<li><p>remove: decrements the argument reference counter.</p></li>
+<li><p>set: will assign the argument to the variable containing the reference.</p></li>
+<li><dl class="simple">
+<dt>ignore: does nothing with the argument reference counter</dt><dd><dl class="simple">
+<dt>(sounds worthless, but could be used in situations</dt><dd><p>where the reference counter increase is mandatory
+by default).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-argument&gt;</span>
+      <span class="nt">&lt;reference-count</span> <span class="na">action=</span><span class="s">&quot;add|add-all|remove|set|ignore&quot;</span> <span class="na">variable-name=</span><span class="s">&quot;...&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/modify-argument&gt;</span>
+</pre></div>
+</div>
+<p>The variable-name attribute specifies the name used for the variable that
+holds the reference(s).</p>
+</div></blockquote>
+</section>
+<section id="replace-value">
+<span id="id9"></span><h2>replace-value</h2>
+<blockquote>
+<div><p>The <code class="docutils literal notranslate"><span class="pre">replace-value</span></code> attribute lets you replace the return statement of a
+function with a fixed string. This attribute can only be used for the
+argument at <code class="docutils literal notranslate"><span class="pre">index</span></code> 0, which is always the function’s return value.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-argument</span> <span class="na">index=</span><span class="s">&quot;0&quot;</span> <span class="na">replace-value=</span><span class="s">&quot;this&quot;</span><span class="nt">/&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="parent">
+<span id="id10"></span><h2>parent</h2>
+<blockquote>
+<div><p>The parent node lets you define the argument parent which will
+take ownership of argument and will destroy the C++ child object when the
+parent is destroyed.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;modify-argument</span> <span class="na">index=</span><span class="s">&quot;1&quot;</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;parent</span> <span class="na">index=</span><span class="s">&quot;this&quot;</span> <span class="na">action=</span><span class="s">&quot;add | remove&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/modify-argument&gt;</span>
+</pre></div>
+</div>
+<p>In the <code class="docutils literal notranslate"><span class="pre">index</span></code> argument you must specify the parent argument. The action
+<em>add</em> creates a parent link between objects, while <em>remove</em> will undo the
+parentage relationship.</p>
+</div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

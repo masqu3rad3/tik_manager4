@@ -1,0 +1,48 @@
+// Tik Manager ZScript  //
+
+[VarDef, attempt, 0]
+[VarSet,dllPath,"MyPluginData\ZFileUtils64.dll"]
+[VarSet,appPath,"D:\dev\tik_manager4\tik_manager4\dist\tik4\tik4_standalone.exe"]
+[VarSet, filePath, "D:\testEx.txt"]
+
+[ISubPalette, "ZPlugin:Tik Manager"]
+
+[IButton, "ZPlugin:Tik Manager:Main UI",
+    "Launch the Tik Manager Main UI", // popup info
+    [FileExecute,[Var,dllPath],“LaunchAppWithFile”,#appPath]
+	// New code: File-checking loop
+
+    [Loop, 999999999,
+        [If, [FileExists, filePath],
+            // File found, break out of the loop
+            [Note, "File found. Exiting loop.",,1]
+            [LoopExit]
+        ]
+        [Sleep, 100] // Sleep for 100 milliseconds before checking again
+    ],
+    , // initially disabled
+    50, // button width
+    , // optional hotkey
+    "icons/tik4_main_ui.psd", // optional icon path
+    50// button height
+]
+
+[IButton, "ZPlugin:Tik Manager:New Version",
+    "Create a new version", // popup info
+    [Note, "temp note for debugging - New Version",,1],
+    , // initially disabled
+    50, // button width
+    , // optional hotkey
+    "icons/tik4_new_version.psd", // optional icon path
+    50// button height
+]
+
+[IButton, "ZPlugin:Tik Manager:Publish",
+    "Publish", // popup info
+    [Note, "temp note for debugging - Publish",,1],
+    , // initially disabled
+    50, // button width
+    , // optional hotkey
+    "icons/tik4_publish.psd", // optional icon path
+    50// button height
+]

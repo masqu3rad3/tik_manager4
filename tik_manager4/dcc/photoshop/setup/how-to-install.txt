@@ -1,0 +1,19 @@
+Tik Manager 4 Photoshop Installation Guide
+
+Copy the tikManager4 folder under the extensions folder to the Photoshop extension directory
+    Photoshop extension directory default location:
+
+    Per-user extension folder
+        - Win: C:\Users\<USERNAME>\AppData\Roaming\Adobe\CEP\extensions
+
+    Reference:
+    https://github.com/Adobe-CEP/CEP-Resources/blob/master/CEP_8.x/Documentation/CEP%208.0%20HTML%20Extension%20Cookbook.md#extension-folders
+
+
+--------EDIT HTML FILE----------
+- Locate the index.html in /extensions/tikManager4/client/index.html
+- Replace the "PATH\TO\PARENT\FOLDER\OF\TIKMANAGER4\" with the path of where the tik_manager folder is. Use single slashes between folder names.
+
+--------EDIT HOST (index.jsx) FILE--------
+- Locate the index.jsx file in /extensionFolder/tikManager/host/index.jsx
+- Replace the "PATH//TO//PARENT//FOLDER//OF//TIKMANAGER4" with the path of where the tik_manager folder is. Use double BACK Slashes between folder names
