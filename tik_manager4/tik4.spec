@@ -35,7 +35,6 @@ st_exe = EXE(
 ps_a = Analysis(
     [
         'dcc\\photoshop\\tik4_ps_main_ui.py',
-        'dcc\\photoshop\\extract\\exr.py',
         'dcc\\photoshop\\extract\\jpg.py',
         'dcc\\photoshop\\extract\\png.py',
         'dcc\\photoshop\\extract\\source.py',

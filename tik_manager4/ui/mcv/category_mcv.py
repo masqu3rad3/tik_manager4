@@ -50,7 +50,7 @@ class TikWorkItem(QtGui.QStandardItem):
 
     def dcc_check(self):
         """Checks if the dcc of the work matches the dcc of the current session"""
-        return self.tik_obj.dcc == self.tik_obj.guard.dcc
+        return self.tik_obj.dcc.lower() == self.tik_obj.guard.dcc.lower()
 
 
 class TikPublishItem(QtGui.QStandardItem):
