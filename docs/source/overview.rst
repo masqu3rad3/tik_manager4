@@ -30,7 +30,7 @@ The straightforward, plugin-based extract and validation mechanism empower Techn
 ------------------
 
 - Cross-platform support: Windows, Linux, macOS (macOS under testing)
-- DCC support: Autodesk Maya, Sidefx Houdini, Autodesk 3dsMax, Foundry Nuke, Adobe Photoshop (with more to follow)
+- DCC support: Autodesk Maya, Sidefx Houdini, Autodesk 3dsMax, Foundry Nuke, Adobe Photoshop, Blender (with more to follow)
 - Built-in validation & publish methodology
 - User-friendly: No technical skills required. Learn in minutes, master in a couple of hours
 - Fully extendable and customizable to meet individual requirements.
