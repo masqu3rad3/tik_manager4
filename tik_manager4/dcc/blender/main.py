@@ -64,6 +64,13 @@ class Dcc(MainCore):
 
     def generate_thumbnail(self, file_path, width, height):
         """Generate a thumbnail for the scene."""
+        # store the initial settings from the scene to restore them later
+        initial_file_format = bpy.context.scene.render.image_settings.file_format
+        initial_filepath = bpy.context.scene.render.filepath
+        initial_resolution_x = bpy.context.scene.render.resolution_x
+        initial_resolution_y = bpy.context.scene.render.resolution_y
+        initial_resolution_percentage = bpy.context.scene.render.resolution_percentage
+
         bpy.context.scene.render.image_settings.file_format = 'JPEG'
         bpy.context.scene.render.filepath = file_path
         bpy.context.scene.render.resolution_x = width
@@ -73,6 +80,14 @@ class Dcc(MainCore):
 
         # Render the single frame
         bpy.ops.render.render(write_still=True)
+
+        # Restore the initial settings
+        bpy.context.scene.render.image_settings.file_format = initial_file_format
+        bpy.context.scene.render.filepath = initial_filepath
+        bpy.context.scene.render.resolution_x = initial_resolution_x
+        bpy.context.scene.render.resolution_y = initial_resolution_y
+        bpy.context.scene.render.resolution_percentage = initial_resolution_percentage
+
         return file_path
 
     @staticmethod
