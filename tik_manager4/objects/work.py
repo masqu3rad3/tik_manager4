@@ -278,7 +278,9 @@ class Work(Settings, Entity):
             return False
 
     def _convert_preview(self, preview_file_abs_path, ffmpeg, overwrite=False):
-        # TODO: Format validation
+
+        compatible_videos = [".avi", ".mov", ".mp4", ".flv", ".webm", ".mkv", ".mp4"]
+        compatible_images = [".tga", ".jpg", ".exr", ".png", ".pic"]
 
         # get the conversion lut
         presetLUT = {
@@ -292,8 +294,10 @@ class Work(Settings, Entity):
 
         # set output file
         _file_path = Path(preview_file_abs_path)
+        is_image_seq = _file_path.suffix in compatible_images
         # change the extension to mp4
         output_file = _file_path.with_suffix(".mp4")
+        output_file_str = str(output_file)
 
         # deal with the existing output
         if output_file.exists():
@@ -301,9 +305,16 @@ class Work(Settings, Entity):
                 output_file.unlink()
             else:
                 return
-
-        flag_start = [ffmpeg, "-i", str(_file_path)]
-
+        # if the suffix is in compatible videos, use the video conversion settings
+        if not is_image_seq:
+            flag_start = [ffmpeg, "-i", str(_file_path)]
+        else:
+            # get the frame rate from dcc
+            fps = self._dcc_handler.get_scene_fps()
+            # the incoming _file_path needs to have %04d in it in order to be recognized as a sequence
+            flag_start = [ffmpeg, "-r", str(fps), '-i', str(_file_path)]
+            # remove the digits section from the file name e.g. test_v001.0001.jpg -> test_v001.jpg
+            output_file_str = str(output_file).replace(output_file.suffixes[0], "")
         full_flag_list = (
             flag_start
             + presetLUT["videoCodec"].split()
@@ -311,15 +322,16 @@ class Work(Settings, Entity):
             + presetLUT["audioCodec"].split()
             + presetLUT["resolution"].split()
             + presetLUT["foolproof"].split()
-            + [str(output_file)]
+            + [output_file_str]
         )
-
         if platform.system() == "Windows":
             subprocess.check_call(full_flag_list, shell=False)
         else:
             subprocess.check_call(full_flag_list)
-        _file_path.unlink()
-        return str(output_file)
+        if _file_path.suffix in compatible_videos:
+            _file_path.unlink()
+        # TODO: Delete the file sequences too
+        return output_file_str
 
     def _check_ffmpeg(self):
         """Checks if the FFMPEG present in the system"""
@@ -331,7 +343,7 @@ class Work(Settings, Entity):
             if not ffmpeg.exists():
                 return False
             else:
-                return ffmpeg
+                return str(ffmpeg)
         else:
             try:
                 v = subprocess.call(
