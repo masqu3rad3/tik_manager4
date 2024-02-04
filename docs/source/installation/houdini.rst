@@ -27,6 +27,8 @@ Houdini Integration
    
 ::
 
-    from tik_manager4.dcc.houdini.setup
+    import tik_manager4
+    tik_manager4.initialize("houdini")
+    from tik_manager4.dcc.houdini import setup
 
 6. Click the **+** button at the end of the shelf set. From dropdown menu select Shelves and check **Tik Manager4** to reveal the Tik Manager shelf
