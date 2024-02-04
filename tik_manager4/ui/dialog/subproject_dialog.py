@@ -24,6 +24,7 @@ class EditSubprojectDialog(QtWidgets.QDialog):
 
         self.primary_definition = self.define_primary_ui()
         self.secondary_definition, self.tertiary_definition = self.define_other_ui()
+        # self.init_definitions()
 
         self.primary_data = Settings()
         self.secondary_data = Settings()
@@ -46,6 +47,11 @@ class EditSubprojectDialog(QtWidgets.QDialog):
         self.resize(400, 600)
 
         # print(self.secondary_data.properties)
+
+    # def init_definitions(self):
+    #     """Isolate the definition initialization."""
+    #     self.primary_definition = self.define_primary_ui()
+    #     self.secondary_definition, self.tertiary_definition = self.define_other_ui()
 
     def build_ui(self):
         """Initialize the UI."""

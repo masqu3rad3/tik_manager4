@@ -200,11 +200,12 @@ class NewProjectDialog(EditSubprojectDialog):
 
     def __init__(self, main_object, *args, **kwargs):
         self.main_object = main_object
+        # print("debug")
+        # print(self.main_object.project.metadata_definitions)
         self.structure_list = list(
             self.main_object.user.commons.structures.properties.values()
         )
         super(NewProjectDialog, self).__init__(main_object.project, *args, **kwargs)
-
         self.structure_data = None
 
         self.setWindowTitle("Create New Project")
@@ -284,10 +285,10 @@ class NewProjectDialog(EditSubprojectDialog):
 
     def on_structure_template_changed(self, index):
         """Override the function to update the metadata."""
-
         # find the structure template in self.structure_dictionary by name
         self.structure_data = self.structure_list[index]
         self.secondary_ui, _ = self.define_other_ui(self.structure_data)
+        self.secondary_content.clear()
         self.secondary_content.initialize(self.secondary_ui, self.secondary_data)
 
     def build_ui(self):
