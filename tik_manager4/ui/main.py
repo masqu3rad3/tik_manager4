@@ -48,29 +48,30 @@ WINDOW_NAME = "Tik Manager {}".format(version.__version__)
 
 
 def launch(dcc="Standalone", dont_show=False):
+    window_name = f"Tik Manager {version.__version__} - {dcc}"
     all_widgets = QtWidgets.QApplication.allWidgets()
     tik = tik_manager4.initialize(dcc)
     parent = tik.dcc.get_main_window()
     for entry in all_widgets:
         try:
-            if entry.objectName() == WINDOW_NAME:
+            if entry.objectName() == window_name:
                 entry.close()
                 entry.deleteLater()
         except (AttributeError, TypeError):
             pass
-    m = MainUI(tik, parent=parent)
+    m = MainUI(tik, parent=parent, window_name=window_name)
     if not dont_show:
         m.show()
     return m
 
 
 class MainUI(QtWidgets.QMainWindow):
-    def __init__(self, main_object, **kwargs):
+    def __init__(self, main_object, window_name=WINDOW_NAME, **kwargs):
         super(MainUI, self).__init__(**kwargs)
         self.tik = main_object
 
-        self.setWindowTitle(WINDOW_NAME)
-        self.setObjectName(WINDOW_NAME)
+        self.setWindowTitle(window_name)
+        self.setObjectName(window_name)
 
         self.feedback = Feedback(self)
         # set window size

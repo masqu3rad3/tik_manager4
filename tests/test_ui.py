@@ -7,17 +7,16 @@ if IN_GITHUB_ACTIONS:
     pytest.skip("Skipping UI tests in GitHub Actions", allow_module_level=True)
 
 from pathlib import Path
-import shutil
 import sys
 from tik_manager4.core import utils
 
-import tik_manager4
 from tik_manager4.ui import main
-from tik_manager4.ui.Qt import QtWidgets, QtGui
+from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui import pick
-from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog
+from tik_manager4.ui.dialog.work_dialog import NewVersionDialog
 from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
-from tik_manager4.ui.dialog.project_dialog import SetProjectDialog
+from tik_manager4.ui.dialog.project_dialog import SetProjectDialog, NewProjectDialog
+from tik_manager4.ui.dialog.subproject_dialog import NewSubprojectDialog, EditSubprojectDialog
 from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
 from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
 from tik_manager4.ui.dialog.user_dialog import NewUserDialog
@@ -48,8 +47,8 @@ class TestUI:
     def test_launch_main_ui(self, qtbot):
         m = main.launch(dcc="Standalone")
         qtbot.addWidget(m)
-        assert m.windowTitle() == main.WINDOW_NAME
-        assert m.objectName() == main.WINDOW_NAME
+        assert m.windowTitle() == f"{main.WINDOW_NAME} - Standalone"
+        assert m.objectName() == f"{main.WINDOW_NAME} - Standalone"
 
     def test_launch_ui_with_wrong_dcc(self, qtbot):
         # make sure all the modules are reloaded
@@ -119,6 +118,30 @@ class TestUI:
 
     def test_project_dialog(self, qtbot, main_object):
         dialog = SetProjectDialog(main_object)
+        qtbot.addWidget(dialog)
+        style_file = pick.style_file()
+        dialog.setStyleSheet(str(style_file.readAll(), "utf-8"))
+        dialog.show()
+        # qtbot.stop()
+
+    def test_new_project_dialog(self, qtbot, main_object):
+        dialog = NewProjectDialog(main_object)
+        qtbot.addWidget(dialog)
+        style_file = pick.style_file()
+        dialog.setStyleSheet(str(style_file.readAll(), "utf-8"))
+        dialog.show()
+        # qtbot.stop()
+
+    def test_new_subproject_dialog(self, qtbot, main_object):
+        dialog = NewSubprojectDialog(main_object.project)
+        qtbot.addWidget(dialog)
+        style_file = pick.style_file()
+        dialog.setStyleSheet(str(style_file.readAll(), "utf-8"))
+        dialog.show()
+        # qtbot.stop()
+
+    def test_edit_subproject_dialog(self, qtbot, main_object):
+        dialog = EditSubprojectDialog(main_object.project)
         qtbot.addWidget(dialog)
         style_file = pick.style_file()
         dialog.setStyleSheet(str(style_file.readAll(), "utf-8"))
