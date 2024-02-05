@@ -167,8 +167,7 @@ class Dcc(MainCore):
     @staticmethod
     def get_scene_cameras():
         """
-        Return all the cameras in the scene.
-        Returns: (list) List of camera names
+        Return a dictionary of all the cameras in the scene where key is the camera name and value is the camera path.
         """
         cameras = hou.nodeType(hou.objNodeTypeCategory(), "cam").instances()
         _dict = {}

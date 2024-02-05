@@ -92,9 +92,14 @@ class Dcc(MainCore):
 
     @staticmethod
     def get_scene_cameras():
-        """Return a list of cameras in the scene."""
-        # TODO: Implement this method
-        pass
+        """
+        Return a dictionary of all the cameras in the scene where key is the camera name and value is the camera path.
+        """
+        all_camera_nodes = [node for node in bpy.context.scene.objects if node.type == 'CAMERA']
+        camera_dict = {}
+        for camera in all_camera_nodes:
+            camera_dict[camera.name] = camera
+        return camera_dict
 
     @staticmethod
     def get_current_camera():
