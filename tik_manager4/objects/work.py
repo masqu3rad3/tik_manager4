@@ -253,7 +253,8 @@ class Work(Settings, Entity):
             settings=preview_settings,
         )
         if preview_file_abs_path:
-            if settings.get("PostConversion", False):
+            suffix = Path(preview_file_abs_path).suffix
+            if settings.get("PostConversion", False) and suffix != ".mp4":
                 ffmpeg = self._check_ffmpeg()
                 if ffmpeg:
                     preview_file_abs_path = self._convert_preview(

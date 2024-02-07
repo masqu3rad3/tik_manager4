@@ -1,6 +1,7 @@
 """Main module for Maya DCC integration."""
 
 import logging
+from pathlib import Path
 
 import bpy
 
@@ -11,11 +12,14 @@ from tik_manager4.dcc.blender import ingest
 from tik_manager4.dcc.blender import utils
 
 LOG = logging.getLogger(__name__)
+
+
+
 class Dcc(MainCore):
     """Maya DCC class."""
 
-    name = "NAME OF THE DCC"
-    formats = [".blender"]  # File formats supported by the DCC
+    name = "Blender"
+    formats = [".blend"]  # File formats supported by the DCC
     preview_enabled = False  # Whether or not to enable the preview in the UI
     validations = validate.classes
     extracts = extract.classes
@@ -70,16 +74,32 @@ class Dcc(MainCore):
         initial_resolution_x = bpy.context.scene.render.resolution_x
         initial_resolution_y = bpy.context.scene.render.resolution_y
         initial_resolution_percentage = bpy.context.scene.render.resolution_percentage
+        initial_use_file_extension = bpy.context.scene.render.use_file_extension
 
         bpy.context.scene.render.image_settings.file_format = 'JPEG'
         bpy.context.scene.render.filepath = file_path
-        bpy.context.scene.render.resolution_x = width
-        bpy.context.scene.render.resolution_y = height
+        bpy.context.scene.render.resolution_x = width * 10
+        bpy.context.scene.render.resolution_y = height * 10
         bpy.context.scene.render.resolution_percentage = 100
         bpy.context.scene.frame_set(self.get_current_frame())
 
         # Render the single frame
-        bpy.ops.render.render(write_still=True)
+        # bpy.ops.render.render(write_still=True)
+        context = utils.get_override_context()
+        with bpy.context.temp_override(**context):
+            bpy.ops.render.opengl(write_still=True)
+
+        # we saved the image 10 times bigger than the desired size, so we need to resize it
+        # load
+        bpy.ops.image.open(filepath=file_path)
+        # get the loaded image
+        file_name = Path(file_path).name
+        image = bpy.data.images[file_name]
+
+        image.scale(width, height)
+        image.save()
+        # remove it from the scene data
+        bpy.data.images.remove(image)
 
         # Restore the initial settings
         bpy.context.scene.render.image_settings.file_format = initial_file_format
@@ -103,14 +123,45 @@ class Dcc(MainCore):
 
     @staticmethod
     def get_current_camera():
-        """Return the current camera."""
-        # TODO: Implement this method
-        pass
+        """Return the current camera name and node."""
+        camera_node = bpy.context.scene.camera
+        if camera_node:
+            return camera_node.name, camera_node
+        return "View", ""
 
-    @staticmethod
-    def generate_preview(name, folder, camera=None, resolution=None, settings_file=None):
-        """Generate a preview for the scene."""
-        # TODO: Implement this method
+
+    def generate_preview(self, name, folder, camera_code, resolution, range, settings=None):
+        """
+        Create a preview from the current scene
+        Args:
+            name: (String) Name of the preview
+            folder: (String) Folder to save the preview
+            camera_code: (String) Camera code. In Maya, this is the UUID of the camera transform node.
+            resolution: (list) Resolution of the preview
+            range: (list) Range of the preview
+            settings: (dict) Global Settings dictionary
+        """
+
+        # store the initial settings from the scene to restore them later
+        initial_file_format = bpy.context.scene.render.image_settings.file_format
+        initial_filepath = bpy.context.scene.render.filepath
+        initial_resolution_x = bpy.context.scene.render.resolution_x
+        initial_resolution_y = bpy.context.scene.render.resolution_y
+        initial_resolution_percentage = bpy.context.scene.render.resolution_percentage
+        initial_frame_start = bpy.context.scene.frame_start
+        initial_frame_end = bpy.context.scene.frame_end
+
+        extension = "mp4" # blender is smart...
+
+        file_path = str(Path(folder) / f"{name}.{extension}")
+
+        bpy.context.scene.render.image_settings.file_format = 'FFMPEG'
+        bpy.context.scene.render.filepath = file_path
+        bpy.context.scene.render.resolution_x = resolution[0]
+        bpy.context.scene.render.resolution_y = resolution[1]
+        bpy.context.scene.render.resolution_percentage = 100
+        bpy.context.scene.frame_set(self.get_current_frame())
+
         pass
 
     @staticmethod
