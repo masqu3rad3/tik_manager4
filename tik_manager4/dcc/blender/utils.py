@@ -47,10 +47,30 @@ def keep_scene_settings(func):
 
         audio_codec = bpy.context.scene.render.ffmpeg.audio_codec
 
+        # metadata
+        metadata_input = bpy.context.scene.render.metadata_input
+        use_stamp_date = bpy.context.scene.render.use_stamp_date
+        use_stamp_time = bpy.context.scene.render.use_stamp_time
+        use_stamp_render_time = bpy.context.scene.render.use_stamp_render_time
+        use_stamp_frame = bpy.context.scene.render.use_stamp_frame
+        use_stamp_frame_range = bpy.context.scene.render.use_stamp_frame_range
+        use_stamp_memory = bpy.context.scene.render.use_stamp_memory
+        use_stamp_hostname = bpy.context.scene.render.use_stamp_hostname
+        use_stamp_camera = bpy.context.scene.render.use_stamp_camera
+        use_stamp_lens = bpy.context.scene.render.use_stamp_lens
+        use_stamp_scene = bpy.context.scene.render.use_stamp_scene
+        use_stamp_marker = bpy.context.scene.render.use_stamp_marker
+        use_stamp_filename = bpy.context.scene.render.use_stamp_filename
+        use_stamp_sequencer_strip = bpy.context.scene.render.use_stamp_sequencer_strip
+        use_stamp_note = bpy.context.scene.render.use_stamp_note
+        stamp_note_text = bpy.context.scene.render.stamp_note_text
+        use_stamp = bpy.context.scene.render.use_stamp # burn it inot the image
+
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            traceback.print_exc(e)
+            # traceback.print_exc(e)
+            raise e
         finally:
             bpy.context.scene.render.resolution_x = resolution_x
             bpy.context.scene.render.resolution_y = resolution_y
@@ -90,6 +110,24 @@ def keep_scene_settings(func):
             bpy.context.scene.render.ffmpeg.ffmpeg_preset = ffmpeg_preset
 
             bpy.context.scene.render.ffmpeg.audio_codec = audio_codec
+
+            bpy.context.scene.render.metadata_input = metadata_input
+            bpy.context.scene.render.use_stamp_date = use_stamp_date
+            bpy.context.scene.render.use_stamp_time = use_stamp_time
+            bpy.context.scene.render.use_stamp_render_time = use_stamp_render_time
+            bpy.context.scene.render.use_stamp_frame = use_stamp_frame
+            bpy.context.scene.render.use_stamp_frame_range = use_stamp_frame_range
+            bpy.context.scene.render.use_stamp_memory = use_stamp_memory
+            bpy.context.scene.render.use_stamp_hostname = use_stamp_hostname
+            bpy.context.scene.render.use_stamp_camera = use_stamp_camera
+            bpy.context.scene.render.use_stamp_lens = use_stamp_lens
+            bpy.context.scene.render.use_stamp_scene = use_stamp_scene
+            bpy.context.scene.render.use_stamp_marker = use_stamp_marker
+            bpy.context.scene.render.use_stamp_filename = use_stamp_filename
+            bpy.context.scene.render.use_stamp_sequencer_strip = use_stamp_sequencer_strip
+            bpy.context.scene.render.use_stamp_note = use_stamp_note
+            bpy.context.scene.render.stamp_note_text = stamp_note_text
+            bpy.context.scene.render.use_stamp = use_stamp
 
     return _keepfunc
 
