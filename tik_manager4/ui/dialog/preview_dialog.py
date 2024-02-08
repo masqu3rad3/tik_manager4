@@ -103,17 +103,30 @@ class PreviewDialog(QtWidgets.QDialog):
 
     def create_preview(self):
         """Create the preview."""
+        # Create a QMessageBox instance
+        message_box = CustomMessageBox(parent=self)
+        message_box.setText("Creating preview. Please wait...")
+        message_box.show()
+        # allow some time for the message box to show
+        QtWidgets.QApplication.processEvents()
+
         _name = self.preview_name_le.text()
         _camera = self.cameras_combo.currentText()
         # _camera_code = self.work._dcc_handler.get_scene_cameras()[_camera]
         _resolution = [self.resolution_x_sp.value(), self.resolution_y_sp.value()]
         _range = [self.range_start_sp.value(), self.range_end_sp.value()]
+
         state = self.work.make_preview(self.version, _camera, _resolution, _range, label=_name, settings=self.work.guard.preview_settings.properties)
+        message_box.close()
         if state:
             self.close()
         else:
             self.feedback.pop_info("Preview not created", "Preview not created. Cancelled by user.")
 
 
-
+class CustomMessageBox(QtWidgets.QMessageBox):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.addButton(QtWidgets.QMessageBox.Ok)  # Add a button
+        self.button(QtWidgets.QMessageBox.Ok).hide()  # Hide the button
 

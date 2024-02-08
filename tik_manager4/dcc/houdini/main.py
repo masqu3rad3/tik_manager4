@@ -167,8 +167,7 @@ class Dcc(MainCore):
     @staticmethod
     def get_scene_cameras():
         """
-        Return all the cameras in the scene.
-        Returns: (list) List of camera names
+        Return a dictionary of all the cameras in the scene where key is the camera name and value is the camera path.
         """
         cameras = hou.nodeType(hou.objNodeTypeCategory(), "cam").instances()
         _dict = {}
@@ -243,18 +242,23 @@ class Dcc(MainCore):
         if camera_code != "":  # if camera is not perspective
             hou.GeometryViewport.setCamera(viewport, camera_code)
 
-        file_path = Path(folder) / f"{name}.$F4.{extension}"
+        file_path = str(Path(folder) / f"{name}.$F4.{extension}")
 
         flip_options = scene_view.flipbookSettings().stash()
 
         flip_options.output(file_path)
-        flip_options.rameRange((range[0], range[1]))
+        flip_options.frameRange((range[0], range[1]))
         flip_options.outputToMPlay(not settings["PostConversion"])
         flip_options.useResolution(True)
         flip_options.resolution((resolution[0], resolution[1]))
         scene_view.flipbook(viewport, flip_options)
 
-        return file_path
+        # we don't want to pass the $F4, we want to pass the starting frame
+        # format the start frame to 4 digits string
+        start_frame_as_string = str(range[0]).zfill(4)
+        return_file_path = file_path.replace("$F4", "%04d")
+
+        return return_file_path
 
     @staticmethod
     def get_dcc_version():

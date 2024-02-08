@@ -154,14 +154,16 @@ class MainCore():
         return None
 
     @staticmethod
-    def generate_preview(name, folder, camera=None, resolution=None, settings_file=None):
+    def generate_preview(name, folder, camera_code, resolution, range, settings=None):
         """
         Create a preview from the current scene
         Args:
-            file_path: (String) File path to save the preview
-
-        Returns: (String) File path of the preview
-
+            name: (String) Name of the preview
+            folder: (String) Folder to save the preview
+            camera_code: (String) Camera code. In Maya, this is the UUID of the camera transform node.
+            resolution: (list) Resolution of the preview
+            range: (list) Range of the preview
+            settings: (dict) Global Settings dictionary
         """
         pass
 

@@ -1,6 +1,7 @@
 """Main module for Maya DCC integration."""
 
 import logging
+from pathlib import Path
 
 import bpy
 
@@ -11,12 +12,18 @@ from tik_manager4.dcc.blender import ingest
 from tik_manager4.dcc.blender import utils
 
 LOG = logging.getLogger(__name__)
+
+
+# def render_complete():
+#     """Handler function to flag that the render is complete."""
+#     return True
+
 class Dcc(MainCore):
     """Maya DCC class."""
 
-    name = "NAME OF THE DCC"
-    formats = [".blender"]  # File formats supported by the DCC
-    preview_enabled = False  # Whether or not to enable the preview in the UI
+    name = "Blender"
+    formats = [".blend"]  # File formats supported by the DCC
+    preview_enabled = True  # Whether or not to enable the preview in the UI
     validations = validate.classes
     extracts = extract.classes
     ingests = ingest.classes
@@ -62,51 +69,181 @@ class Dcc(MainCore):
         """Return the current frame."""
         return bpy.context.scene.frame_current
 
+    @utils.keep_scene_settings
     def generate_thumbnail(self, file_path, width, height):
         """Generate a thumbnail for the scene."""
-        # store the initial settings from the scene to restore them later
-        initial_file_format = bpy.context.scene.render.image_settings.file_format
-        initial_filepath = bpy.context.scene.render.filepath
-        initial_resolution_x = bpy.context.scene.render.resolution_x
-        initial_resolution_y = bpy.context.scene.render.resolution_y
-        initial_resolution_percentage = bpy.context.scene.render.resolution_percentage
 
         bpy.context.scene.render.image_settings.file_format = 'JPEG'
         bpy.context.scene.render.filepath = file_path
-        bpy.context.scene.render.resolution_x = width
-        bpy.context.scene.render.resolution_y = height
+        bpy.context.scene.render.resolution_x = width * 10
+        bpy.context.scene.render.resolution_y = height * 10
         bpy.context.scene.render.resolution_percentage = 100
         bpy.context.scene.frame_set(self.get_current_frame())
+        bpy.context.scene.render.use_file_extension = True
 
         # Render the single frame
-        bpy.ops.render.render(write_still=True)
+        # bpy.ops.render.render(write_still=True)
+        context = utils.get_override_context()
+        with bpy.context.temp_override(**context):
+            bpy.ops.render.opengl(write_still=True)
 
-        # Restore the initial settings
-        bpy.context.scene.render.image_settings.file_format = initial_file_format
-        bpy.context.scene.render.filepath = initial_filepath
-        bpy.context.scene.render.resolution_x = initial_resolution_x
-        bpy.context.scene.render.resolution_y = initial_resolution_y
-        bpy.context.scene.render.resolution_percentage = initial_resolution_percentage
+        # we saved the image 10 times bigger than the desired size, so we need to resize it
+        # load
+        bpy.ops.image.open(filepath=file_path)
+        # get the loaded image
+        file_name = Path(file_path).name
+        image = bpy.data.images[file_name]
+
+        image.scale(width, height)
+        image.save()
+        # remove it from the scene data
+        bpy.data.images.remove(image)
 
         return file_path
 
     @staticmethod
     def get_scene_cameras():
-        """Return a list of cameras in the scene."""
-        # TODO: Implement this method
-        pass
+        """
+        Return a dictionary of all the cameras in the scene where key is the camera name and value is the camera path.
+        """
+        all_camera_nodes = [node for node in bpy.context.scene.objects if node.type == 'CAMERA']
+        camera_dict = {"active": ""}
+        for camera in all_camera_nodes:
+            camera_dict[camera.name] = camera
+        return camera_dict
 
     @staticmethod
     def get_current_camera():
-        """Return the current camera."""
-        # TODO: Implement this method
-        pass
+        """Return the current camera name and node."""
+        camera_node = bpy.context.scene.camera
+        if camera_node:
+            return camera_node.name, camera_node
+        return "active", ""
 
     @staticmethod
-    def generate_preview(name, folder, camera=None, resolution=None, settings_file=None):
-        """Generate a preview for the scene."""
-        # TODO: Implement this method
-        pass
+    def set_camera(camera_node):
+        """Set the viewport camera to the given camera."""
+        if not camera_node == "":
+            bpy.context.scene.camera = camera_node
+            for window in bpy.context.window_manager.windows:
+                for area in window.screen.areas:
+                    if area.type == "VIEW_3D":
+                        area.spaces[0].region_3d.view_perspective = "CAMERA"
+                        return
+        return
+
+    @utils.keep_scene_settings
+    def generate_preview(self, name, folder, camera_code, resolution, range, settings=None):
+        """
+        Create a preview from the current scene
+        Args:
+            name: (String) Name of the preview
+            folder: (String) Folder to save the preview
+            camera_code: (String) Camera code. In Maya, this is the UUID of the camera transform node.
+            resolution: (list) Resolution of the preview
+            range: (list) Range of the preview
+            settings: (dict) Global Settings dictionary
+        """
+
+        extension = "mp4" # blender is smart...
+
+        settings = settings or {
+            "DisplayFieldChart": False,
+            "DisplayGateMask": False,
+            "DisplayFilmGate": False,
+            "DisplayFilmOrigin": False,
+            "DisplayFilmPivot": False,
+            "DisplayResolution": False,
+            "DisplaySafeAction": False,
+            "DisplaySafeTitle": False,
+            "DisplayAppearance": "smoothShaded",
+            "ClearSelection": True,
+            "ShowFrameNumber": True,
+            "ShowFrameRange": True,
+            "CrfValue": 23,
+            "Format": "video",
+            "PostConversion": True,
+            "ShowFPS": True,
+            "PolygonOnly": True,
+            "Percent": 100,
+            "DisplayTextures": True,
+            "ShowGrid": False,
+            "ShowSceneName": False,
+            "UseDefaultMaterial": False,
+            "ViewportAsItIs": False,
+            "HudsAsItIs": False,
+            "WireOnShaded": False,
+            "Codec": "png",
+            "ShowCategory": False,
+            "Quality": 100,
+        }
+
+        file_path = str(Path(folder) / f"{name}.{extension}")
+
+        bpy.context.scene.render.resolution_x = resolution[0]
+        bpy.context.scene.render.resolution_y = resolution[1]
+        bpy.context.scene.render.resolution_percentage = 100
+        bpy.context.scene.render.pixel_aspect_x = 1.0
+        bpy.context.scene.render.pixel_aspect_y = 1.0
+        bpy.context.scene.render.use_border = False
+        bpy.context.scene.render.fps = self.get_scene_fps()
+
+        utils.set_ranges(range)
+        bpy.context.scene.frame_step = 1
+        bpy.context.scene.render.frame_map_old = 100
+        bpy.context.scene.render.frame_map_new = 100
+        bpy.context.scene.render.filepath = file_path
+        bpy.context.scene.render.use_file_extension = True
+        bpy.context.scene.render.use_render_cache = False
+        bpy.context.scene.render.image_settings.file_format = "FFMPEG"
+        bpy.context.scene.render.image_settings.color_mode = "RGB"
+        # TODO: This can be set from the settings if there is a metadata for it
+        bpy.context.scene.render.image_settings.color_management = "FOLLOW_SCENE"
+        bpy.context.scene.render.ffmpeg.format = "MPEG4"
+        bpy.context.scene.render.ffmpeg.constant_rate_factor = "HIGH"
+        bpy.context.scene.render.ffmpeg.ffmpeg_preset = 'GOOD'
+        bpy.context.scene.render.ffmpeg.audio_codec = 'AAC'
+
+        # set the existing metadatas as per the settings
+        bpy.context.scene.render.metadata_input = "SCENE"
+        bpy.context.scene.render.use_stamp_date = False
+        bpy.context.scene.render.use_stamp_time = False
+        bpy.context.scene.render.use_stamp_render_time = False
+        bpy.context.scene.render.use_stamp_frame = settings.get("ShowFrameNumber", False)
+        bpy.context.scene.render.use_stamp_frame_range = settings.get("ShowFrameRange", False)
+        bpy.context.scene.render.use_stamp_memory = False
+        bpy.context.scene.render.use_stamp_hostname = False
+        bpy.context.scene.render.use_stamp_camera = False
+        bpy.context.scene.render.use_stamp_lens = False
+        bpy.context.scene.render.use_stamp_scene = False
+        bpy.context.scene.render.use_stamp_marker = False
+        bpy.context.scene.render.use_stamp_filename = False
+        bpy.context.scene.render.use_stamp_sequencer_strip = False
+        # we will use the note section to show the FPS
+        if settings.get('ShowFPS', False):
+            bpy.context.scene.render.use_stamp_note = True
+            bpy.context.scene.render.stamp_note_text = f"FPS: {self.get_scene_fps()}"
+
+        else:
+            bpy.context.scene.render.use_stamp_note = False
+
+        bpy.context.scene.render.use_stamp = True
+
+        self.set_camera(camera_code)
+
+        # register the handler
+        # bpy.app.handlers.render_complete.append(render_complete)
+
+        context = utils.get_override_context()
+        with bpy.context.temp_override(**context):
+            bpy.ops.render.opengl(animation=True, view_context=True)
+            # the reason we are not using the 'INVOKE_DEFAULT' is because render_complete handler is not working
+            # with opengl render and there is no easy way to know when the render is complete or canceled.
+            # If this feature fixed in the future:
+            # TODO: use the 'INVOKE_DEFAULT' and use the render_complete handler
+            # bpy.ops.render.opengl('INVOKE_DEFAULT', animation=True, view_context=True)
+
+        return file_path
 
     @staticmethod
     def get_dcc_version():
