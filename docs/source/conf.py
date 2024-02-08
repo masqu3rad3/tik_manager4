@@ -2,12 +2,12 @@
 
 # -- Project information
 
-project = 'Lumache'
-copyright = '2021, Graziella'
-author = 'Graziella'
+project = 'Tik Manager4'
+copyright = '2023, Arda Kutlu'
+author = 'Arda Kutlu'
 
 release = '0.1'
-version = '0.1.0'
+version = '4.0.2'
 
 # -- General configuration
 
