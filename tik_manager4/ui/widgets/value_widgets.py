@@ -122,6 +122,7 @@ class SpinnerFloat(QtWidgets.QDoubleSpinBox):
         self.valueChanged.connect(self.value_change_event)
         self.disables = disables or []
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setDecimals(3)
 
     def value_change_event(self, e):
         self.value = e

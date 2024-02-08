@@ -1,6 +1,135 @@
 """ This module contains utility functions for Blender. """
 
+from functools import wraps
+import traceback
 import bpy
+
+def keep_scene_settings(func):
+    """Decorator method to keep the current render settings."""
+    @wraps(func)
+    def _keepfunc(*args, **kwargs):
+        resolution_x = bpy.context.scene.render.resolution_x
+        resolution_y = bpy.context.scene.render.resolution_y
+        resolution_percentage = bpy.context.scene.render.resolution_percentage
+        pixel_aspect_x = bpy.context.scene.render.pixel_aspect_x
+        pixel_aspect_y = bpy.context.scene.render.pixel_aspect_y
+        use_border = bpy.context.scene.render.use_border
+        use_crop_to_border = bpy.context.scene.render.use_crop_to_border
+        fps = bpy.context.scene.render.fps
+
+        ranges = get_ranges()
+        step = bpy.context.scene.frame_step
+        frame_map_old = bpy.context.scene.render.frame_map_old
+        frame_map_new = bpy.context.scene.render.frame_map_new
+
+        use_multiview = bpy.context.scene.render.use_multiview
+        views_format = bpy.context.scene.render.views_format
+
+        filepath = bpy.context.scene.render.filepath
+        use_file_extension = bpy.context.scene.render.use_file_extension
+        use_render_cache = bpy.context.scene.render.use_render_cache
+        file_format = bpy.context.scene.render.image_settings.file_format
+        color_mode = bpy.context.scene.render.image_settings.color_mode
+
+        color_management = bpy.context.scene.render.image_settings.color_management
+        display_device = bpy.context.scene.display_settings.display_device
+        view_transform = bpy.context.scene.view_settings.view_transform
+        look = bpy.context.scene.view_settings.look
+        exposure = bpy.context.scene.view_settings.exposure
+        gamma = bpy.context.scene.view_settings.gamma
+        use_curve_mapping = bpy.context.scene.view_settings.use_curve_mapping
+
+        ffmpeg_format = bpy.context.scene.render.ffmpeg.format
+        use_autosplit = bpy.context.scene.render.ffmpeg.use_autosplit
+        ffmpeg_codec = bpy.context.scene.render.ffmpeg.codec
+        constant_rate_factor = bpy.context.scene.render.ffmpeg.constant_rate_factor
+        ffmpeg_preset = bpy.context.scene.render.ffmpeg.ffmpeg_preset
+
+        audio_codec = bpy.context.scene.render.ffmpeg.audio_codec
+
+        # metadata
+        metadata_input = bpy.context.scene.render.metadata_input
+        use_stamp_date = bpy.context.scene.render.use_stamp_date
+        use_stamp_time = bpy.context.scene.render.use_stamp_time
+        use_stamp_render_time = bpy.context.scene.render.use_stamp_render_time
+        use_stamp_frame = bpy.context.scene.render.use_stamp_frame
+        use_stamp_frame_range = bpy.context.scene.render.use_stamp_frame_range
+        use_stamp_memory = bpy.context.scene.render.use_stamp_memory
+        use_stamp_hostname = bpy.context.scene.render.use_stamp_hostname
+        use_stamp_camera = bpy.context.scene.render.use_stamp_camera
+        use_stamp_lens = bpy.context.scene.render.use_stamp_lens
+        use_stamp_scene = bpy.context.scene.render.use_stamp_scene
+        use_stamp_marker = bpy.context.scene.render.use_stamp_marker
+        use_stamp_filename = bpy.context.scene.render.use_stamp_filename
+        use_stamp_sequencer_strip = bpy.context.scene.render.use_stamp_sequencer_strip
+        use_stamp_note = bpy.context.scene.render.use_stamp_note
+        stamp_note_text = bpy.context.scene.render.stamp_note_text
+        use_stamp = bpy.context.scene.render.use_stamp # burn it inot the image
+
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            # traceback.print_exc(e)
+            raise e
+        finally:
+            bpy.context.scene.render.resolution_x = resolution_x
+            bpy.context.scene.render.resolution_y = resolution_y
+            bpy.context.scene.render.resolution_percentage = resolution_percentage
+            bpy.context.scene.render.pixel_aspect_x = pixel_aspect_x
+            bpy.context.scene.render.pixel_aspect_y = pixel_aspect_y
+            bpy.context.scene.render.use_border = use_border
+            bpy.context.scene.render.use_crop_to_border = use_crop_to_border
+            bpy.context.scene.render.fps = fps
+
+            bpy.context.scene.render.use_multiview = use_multiview
+            bpy.context.scene.render.views_format = views_format
+
+            set_ranges(ranges)
+            bpy.context.scene.frame_step = step
+            bpy.context.scene.render.frame_map_old = frame_map_old
+            bpy.context.scene.render.frame_map_new = frame_map_new
+
+            bpy.context.scene.render.filepath = filepath
+            bpy.context.scene.render.use_file_extension = use_file_extension
+            bpy.context.scene.render.use_render_cache = use_render_cache
+            bpy.context.scene.render.image_settings.file_format = file_format
+            bpy.context.scene.render.image_settings.color_mode = color_mode
+
+            bpy.context.scene.render.image_settings.color_management = color_management
+            bpy.context.scene.display_settings.display_device = display_device
+            bpy.context.scene.view_settings.view_transform = view_transform
+            bpy.context.scene.view_settings.look = look
+            bpy.context.scene.view_settings.exposure = exposure
+            bpy.context.scene.view_settings.gamma = gamma
+            bpy.context.scene.view_settings.use_curve_mapping = use_curve_mapping
+
+            bpy.context.scene.render.ffmpeg.format = ffmpeg_format
+            bpy.context.scene.render.ffmpeg.use_autosplit = use_autosplit
+            bpy.context.scene.render.ffmpeg.codec = ffmpeg_codec
+            bpy.context.scene.render.ffmpeg.constant_rate_factor = constant_rate_factor
+            bpy.context.scene.render.ffmpeg.ffmpeg_preset = ffmpeg_preset
+
+            bpy.context.scene.render.ffmpeg.audio_codec = audio_codec
+
+            bpy.context.scene.render.metadata_input = metadata_input
+            bpy.context.scene.render.use_stamp_date = use_stamp_date
+            bpy.context.scene.render.use_stamp_time = use_stamp_time
+            bpy.context.scene.render.use_stamp_render_time = use_stamp_render_time
+            bpy.context.scene.render.use_stamp_frame = use_stamp_frame
+            bpy.context.scene.render.use_stamp_frame_range = use_stamp_frame_range
+            bpy.context.scene.render.use_stamp_memory = use_stamp_memory
+            bpy.context.scene.render.use_stamp_hostname = use_stamp_hostname
+            bpy.context.scene.render.use_stamp_camera = use_stamp_camera
+            bpy.context.scene.render.use_stamp_lens = use_stamp_lens
+            bpy.context.scene.render.use_stamp_scene = use_stamp_scene
+            bpy.context.scene.render.use_stamp_marker = use_stamp_marker
+            bpy.context.scene.render.use_stamp_filename = use_stamp_filename
+            bpy.context.scene.render.use_stamp_sequencer_strip = use_stamp_sequencer_strip
+            bpy.context.scene.render.use_stamp_note = use_stamp_note
+            bpy.context.scene.render.stamp_note_text = stamp_note_text
+            bpy.context.scene.render.use_stamp = use_stamp
+
+    return _keepfunc
 
 
 def get_ranges():
@@ -15,30 +144,30 @@ def set_ranges(range_list):
     bpy.context.scene.frame_end = range_list[-1]
 
 def get_override_context(context=None):
-    ctx = bpy.context.copy()
+    context = bpy.context.copy()
 
     for window in bpy.context.window_manager.windows:
-        ctx["window"] = window
+        context["window"] = window
         screen = window.screen
-        ctx["screen"] = screen
+        context["screen"] = screen
 
         if context:
             for area in screen.areas:
                 if area.type == context:
-                    ctx["area"] = area
+                    context["area"] = area
                     for region in area.regions:
                         if region.type == "WINDOW":
-                            ctx["region"] = region
-                            return ctx
+                            context["region"] = region
+                            return context
 
         for area in screen.areas:
             if area.type == "VIEW_3D":
-                ctx["area"] = area
-                return ctx
+                context["area"] = area
+                return context
 
         for area in screen.areas:
             if area.type == "IMAGE_EDITOR":
-                ctx["area"] = area
-                return ctx
+                context["area"] = area
+                return context
 
-    return ctx
+    return context
