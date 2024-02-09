@@ -54,7 +54,7 @@ By enforcing standards and best practices, Tik Manager helps mitigate risks asso
 
 Tik Manager is open-source, meaning it's free to use and can be customized to suit individual requirements. The community can contribute to its development, and it can be adapted to meet the specific needs of different projects.
 
-**Powered by**
+**Sponsored by**
 
 <a href="https://www.jetbrains.com/pycharm" style="display:inline-block;">
   <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/PyCharm.png" width="200" style="float:left; margin-right:10px;">
