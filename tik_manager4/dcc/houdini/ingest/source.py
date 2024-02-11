@@ -12,6 +12,7 @@ class Source(IngestCore):
 
     nice_name = "Ingest Source Scene"
     valid_extensions = [".hipnc", ".hiplc", ".hip"]
+    referenceable = False
 
     def __init__(self):
         super(Source, self).__init__()

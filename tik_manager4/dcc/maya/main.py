@@ -7,9 +7,9 @@ import platform
 from maya import cmds
 from maya import mel
 import maya.OpenMaya as om
-from tik_manager4.ui.Qt import QtWidgets, QtCompat
 from maya import OpenMayaUI as omui
 
+from tik_manager4.ui.Qt import QtWidgets, QtCompat
 from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.dcc.maya import utils
 from tik_manager4.dcc.maya import panels
@@ -32,8 +32,7 @@ class Dcc(MainCore):
 
     @staticmethod
     def get_main_window():
-        """
-        Gets the memory adress of the main window to connect Qt dialog to it.
+        """Get the memory adress of the main window to connect Qt dialog to it.
         Returns:
             (long or int) Memory Adress
         """
@@ -51,13 +50,11 @@ class Dcc(MainCore):
 
     @staticmethod
     def save_as(file_path):
-        """
-        Saves the file to the given path
+        """Save the current scene as a new file.
         Args:
-            file_path: (String) File path that will be written
-
+            file_path (str): The file path to save the scene to.
         Returns:
-
+            (str) The file path that the scene was saved to.
         """
         extension = Path(file_path).suffix
         file_format = "mayaAscii" if extension == ".ma" else "mayaBinary"
@@ -69,19 +66,17 @@ class Dcc(MainCore):
     def save_prompt():
         """Pop up the save prompt."""
         cmds.SaveScene()
-        return True # this is important or else will be an indefinite loop
+        return True  # this is important or else will be an indefinite loop
 
     @staticmethod
-    def open(file_path, force=True, **extra_arguments):
-        """
-        Opens the given file path
+    def open(file_path, force=True, **_extra_arguments):
+        """Open the given file path
         Args:
             file_path: (String) File path to open
             force: (Bool) if true any unsaved changes on current scene will be lost
-            **extra_arguments: Compatibility arguments for other DCCs
+            **_extra_arguments: Compatibility arguments for other DCCs
 
         Returns: None
-
         """
         cmds.file(file_path, open=True, force=force)
 
@@ -138,8 +133,8 @@ class Dcc(MainCore):
         # a file open and it's named after the untitledFileName we should still
         # be able to return the path.
         if (
-            file_name.startswith(untitled_file_name)
-            and cmds.file(q=1, sceneName=1) == ""
+                file_name.startswith(untitled_file_name)
+                and cmds.file(q=1, sceneName=1) == ""
         ):
             return ""
         return path

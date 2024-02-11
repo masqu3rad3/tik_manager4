@@ -12,6 +12,7 @@ class Fbx(IngestCore):
 
     nice_name = "Ingest fbx"
     valid_extensions = [".fbx"]
+    referenceable = True
 
     def __init__(self):
         super().__init__()

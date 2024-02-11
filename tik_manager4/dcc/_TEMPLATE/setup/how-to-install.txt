@@ -1,1 +1,1 @@
-Tik Manager 4 <DCC NAME> Installation Guide
+Tik Manager 4 <template_dcc_name> Installation Guide

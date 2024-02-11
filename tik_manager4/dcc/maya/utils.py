@@ -6,14 +6,13 @@ To prevent circular imports, these methods are collected here.
 """
 
 from functools import wraps
-from maya import cmds
-from maya import mel
+from maya import cmds  # pylint: disable=import-error
+from maya import mel  # pylint: disable=import-error
 
 
 def get_ranges():
-    """
-    Get the viewport ranges.
-    Returns: (list) [<absolute range start>, <user range start>, <user range end>,
+    """Get the viewport ranges.
+    Returns (list): [<absolute range start>, <user range start>, <user range end>,
     <absolute range end>
     """
     r_ast = cmds.playbackOptions(query=True, animationStartTime=True)
@@ -22,16 +21,14 @@ def get_ranges():
     r_aet = cmds.playbackOptions(query=True, animationEndTime=True)
     return [r_ast, r_min, r_max, r_aet]
 
-def set_ranges(range_list):
-    """
-    Set the timeline ranges.
 
+def set_ranges(range_list):
+    """Set the timeline ranges.
     Args:
         range_list: list of ranges as [<animation start>, <user min>, <user max>,
                                         <animation end>]
 
     Returns: None
-
     """
     cmds.playbackOptions(
         animationStartTime=range_list[0],
@@ -40,9 +37,12 @@ def set_ranges(range_list):
         animationEndTime=range_list[3],
     )
 
+
 def get_scene_fps():
     """Return the current FPS value set by DCC. None if not supported."""
     return mel.eval("currentTimeUnitToFPS")
+
+
 def set_scene_fps(fps_value):
     """
     Set the FPS value in DCC if supported.
@@ -62,7 +62,7 @@ def set_scene_fps(fps_value):
     except RuntimeError as exc:
         raise RuntimeError("Invalid FPS value") from exc
 
-# decorator to keep the current selection
+
 def keepselection(func):
     """Decorator method to keep the current selection. Useful where
     the wrapped method messes with the current selection"""
@@ -74,9 +74,8 @@ def keepselection(func):
         try:
             # start an undo chunk
             return func(*args, **kwargs)
-        except Exception as e:
-            # log.error(e)
-            raise
+        except Exception as exc:
+            raise exc
         finally:
             # after calling the func, end the undo chunk and undo
             cmds.selectMode(object=object_state, component=component_state)

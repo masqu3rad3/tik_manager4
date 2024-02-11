@@ -96,9 +96,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.reference_btn.setEnabled(False)
 
         # SIGNALS
-        self.element_combo.currentIndexChanged.connect(
-            lambda x: self.button_states(self.base)
-        )
+        # self.element_combo.currentIndexChanged.connect(
+        #     lambda x: self.button_states(self.base)
+        # )
         self.element_combo.currentTextChanged.connect(self.element_type_changed)
         self.version_combo.currentIndexChanged.connect(self.version_changed)
         self.import_btn.clicked.connect(self.on_import)
@@ -255,13 +255,18 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.import_btn.setEnabled(base.dcc == base.guard.dcc)
             self.reference_btn.setEnabled(base.dcc == base.guard.dcc)
             return
-        # import button is only enabled if the dcc ingests supports the element type
-        if element_type in base._dcc_handler.ingests.keys():
-            self.import_btn.setEnabled(True)
-            self.reference_btn.setEnabled(True)
+
+        # if the ingest combo is empty, disable the import and reference buttons
+        _ingestor = self.get_selected_ingestor()
+        if not _ingestor:
+            self.import_btn.setEnabled(False)
+            self.reference_btn.setEnabled(False)
             return
-        self.import_btn.setEnabled(False)
-        self.reference_btn.setEnabled(False)
+        # finally, check the ingestors importable and referencable status
+        _importable = self.base._dcc_handler.ingests[_ingestor].importable
+        _referenceable = self.base._dcc_handler.ingests[_ingestor].referenceable
+        self.import_btn.setEnabled(_importable)
+        self.reference_btn.setEnabled(_referenceable)
         return
 
     def button_states(self, base):
@@ -377,6 +382,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         # if there is an ingestor with the same name as the element type, select it
         if element_type in _available_ingests:
             self.ingest_with_combo.setCurrentText(element_type)
+
+        # update the buttons
+        self.button_states(self.base)
         return
 
     def set_version(self, combo_value):

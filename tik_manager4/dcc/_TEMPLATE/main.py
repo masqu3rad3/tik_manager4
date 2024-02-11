@@ -1,4 +1,4 @@
-"""Main module for Maya DCC integration."""
+"""Main module for <template_dcc_name> DCC integration."""
 
 import logging
 
@@ -9,10 +9,10 @@ from tik_manager4.dcc._TEMPLATE import ingest
 
 LOG = logging.getLogger(__name__)
 class Dcc(MainCore):
-    """Maya DCC class."""
+    """<template_dcc_name> DCC class."""
 
-    name = "NAME OF THE DCC"
-    formats = [".Extension1", ".Extension2"]  # File formats supported by the DCC
+    name = "<template_dcc_name>"
+    formats = [".<template_dcc_extension>"]  # File formats supported by the DCC
     preview_enabled = False  # Whether or not to enable the preview in the UI
     validations = validate.classes
     extracts = extract.classes
