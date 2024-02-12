@@ -11,6 +11,7 @@ class Alembic(IngestCore):
 
     nice_name = "Ingest Alembic"
     valid_extensions = [".abc"]
+    referenceable = False
 
     def __init__(self):
         super(Alembic, self).__init__()

@@ -7,7 +7,8 @@ class Source(IngestCore):
     """Ingest Source Blender Scene."""
 
     nice_name = "Ingest Source Scene"
-    valid_extensions = [".blender"]
+    valid_extensions = [".blend"]
+    referenceable = True
 
     def __init__(self):
         super(Source, self).__init__()

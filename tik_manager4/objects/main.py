@@ -16,11 +16,7 @@ if __name__ == "__main__":
 class Main():
     """Main Tik Manager class. Handles User and Project related functions."""
 
-
-
     # set the dcc to the guard object
-
-
     dcc = dcc.Dcc()
     log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 

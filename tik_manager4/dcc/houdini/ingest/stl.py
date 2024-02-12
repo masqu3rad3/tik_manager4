@@ -12,6 +12,7 @@ class Stl(IngestCore):
     nice_name = "Ingest STL"
     valid_extensions = [".stl"]
     bundled = True
+    referenceable = False
 
     def __init__(self):
         super(Stl, self).__init__()

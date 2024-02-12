@@ -73,7 +73,6 @@ class TestMayaProject():
         assert list(test_task.categories.keys()) == ["Model", "Rig", "LookDev"]
         assert test_task.path == "test_subproject"
 
-    # @pytest.mark.parametrize("category", ["Model", "Rig", "LookDev"])
     def test_create_a_work(self, project, category="Model"):
         """Tests creating a work"""
         work_obj, test_task = self._create_work(project, category=category)
@@ -81,11 +80,11 @@ class TestMayaProject():
         assert work_obj.name == f"test_task_{category}_test_cube"
         assert work_obj.creator == "Admin"
         assert work_obj.category == category
-        assert work_obj.dcc == "Maya"
+        assert work_obj.dcc == "maya"
         assert len(work_obj.versions) == 1
         assert work_obj.task_name == "test_task"
         assert work_obj.task_id == test_task.id
-        assert work_obj.path == f"test_subproject/test_task/{category}/Maya"
+        assert work_obj.path == f"test_subproject/test_task/{category}/maya"
         assert work_obj.state == "working"
 
         # iterate a version with .ma format
@@ -137,8 +136,8 @@ class TestMayaProject():
             #     assert project.publisher.validation_names == ["unique_names", "forbidden_nodes"]
             # TODO add the extracts and validations as they are implemented
 
-            assert project.publisher.relative_data_path == f"tikDatabase/test_subproject/test_task/{category}/Maya/publish/test_task_{category}_test_cube"
-            assert project.publisher.relative_scene_path == f"test_subproject/test_task/{category}/Maya/publish/test_task_{category}_test_cube"
+            assert project.publisher.relative_data_path == f"tikDatabase/test_subproject/test_task/{category}/maya/publish/test_task_{category}_test_cube"
+            assert project.publisher.relative_scene_path == f"test_subproject/test_task/{category}/maya/publish/test_task_{category}_test_cube"
 
             # RESERVE
             project.publisher.reserve()
@@ -148,11 +147,11 @@ class TestMayaProject():
             assert project.publisher._published_object.get_property("name") == f"test_task_{category}_test_cube"
             assert project.publisher._published_object.get_property("creator") == "Admin"
             assert project.publisher._published_object.get_property("category") == category
-            assert project.publisher._published_object.get_property("dcc") == "Maya"
+            assert project.publisher._published_object.get_property("dcc") == "maya"
             assert project.publisher._published_object.get_property("version_number") == count
             assert project.publisher._published_object.get_property("work_version") == 1
             assert project.publisher._published_object.get_property("task_name") == "test_task"
-            assert project.publisher._published_object.get_property("path") == f"test_subproject/test_task/{category}/Maya/publish"
+            assert project.publisher._published_object.get_property("path") == f"test_subproject/test_task/{category}/maya/publish"
 
             assert isinstance(project.publisher.publish_name, str)
             _data_path = Path(project.publisher.absolute_data_path)

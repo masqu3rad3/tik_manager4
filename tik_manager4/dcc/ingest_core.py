@@ -14,6 +14,8 @@ class IngestCore:
     nice_name: str = ""
     valid_extensions: list = []
     bundled: bool = False
+    importable: bool = True
+    referenceable: bool = True
 
     def __init__(self):
         self.name = str(Path(__file__).stem)

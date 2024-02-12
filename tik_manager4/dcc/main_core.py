@@ -1,7 +1,6 @@
 """Template class for all available DCC commands.
 These commands will be overriden in DCCs.
 """
-import pathlib
 
 class MainCore():
     name = ""
@@ -141,17 +140,9 @@ class MainCore():
 
     @staticmethod
     def generate_thumbnail(file_path, width, height):
-        """
-        Grabs a thumbnail from the current scene
-        Args:
-            file_path: (String) File path to save the thumbnail
-            width: (Int) Width of the thumbnail
-            height: (Int) Height of the thumbnail
+        """Generate a thumbnail for the given file path."""
+        pass
 
-        Returns: (String) File path of the thumbnail (None if not supported)
-
-        """
-        return None
 
     @staticmethod
     def generate_preview(name, folder, camera_code, resolution, range, settings=None):
