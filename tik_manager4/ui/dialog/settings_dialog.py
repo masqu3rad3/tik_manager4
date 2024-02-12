@@ -23,20 +23,9 @@ from tik_manager4.ui.layouts.settings_layout import (
     convert_to_ui_definition,
     guess_data_type,
 )
+from tik_manager4.ui.dialog.data_containers import MainLayout
 
 LOG = logging.getLogger(__name__)
-
-
-@dataclasses.dataclass
-class MainLayout:
-    """Main layout structure for the settings dialog and contents."""
-
-    master_layout: (QtWidgets.QVBoxLayout, QtWidgets.QHBoxLayout) = None
-    header_layout: QtWidgets.QVBoxLayout = None
-    splitter: QtWidgets.QSplitter = None
-    left_v_lay: QtWidgets.QVBoxLayout = None
-    right_v_lay: QtWidgets.QVBoxLayout = None
-    button_box_lay: QtWidgets.QHBoxLayout = None
 
 
 class SettingsDialog(QtWidgets.QDialog):
