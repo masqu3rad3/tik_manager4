@@ -9,6 +9,7 @@ from tik_manager4.ui.widgets.common import TikButtonBox
 
 
 class NewWorkDialog(QtWidgets.QDialog):
+    """Dialog for creating new work files."""
     def __init__(
         self,
         main_object,
