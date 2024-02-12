@@ -24,7 +24,6 @@ class EditSubprojectDialog(QtWidgets.QDialog):
 
         self.primary_definition = self.define_primary_ui()
         self.secondary_definition, self.tertiary_definition = self.define_other_ui()
-        # self.init_definitions()
 
         self.primary_data = Settings()
         self.secondary_data = Settings()
@@ -45,13 +44,6 @@ class EditSubprojectDialog(QtWidgets.QDialog):
         self.build_ui()
 
         self.resize(400, 600)
-
-        # print(self.secondary_data.properties)
-
-    # def init_definitions(self):
-    #     """Isolate the definition initialization."""
-    #     self.primary_definition = self.define_primary_ui()
-    #     self.secondary_definition, self.tertiary_definition = self.define_other_ui()
 
     def build_ui(self):
         """Initialize the UI."""
@@ -90,13 +82,9 @@ class EditSubprojectDialog(QtWidgets.QDialog):
             self.primary_definition, self.primary_data, parent=self
         )
         self.primary_layout.contents_layout.addLayout(self.primary_content)
-        # print("before", self.secondary_data.properties)
-        # print(self.secondary_definition)
         self.secondary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
             self.secondary_definition, self.secondary_data, parent=self
         )
-        # print("after", self.secondary_data.properties)
-        # print(self.secondary_definition)
         self.secondary_definition
         self.secondary_layout.contents_layout.addLayout(self.secondary_content)
         self.tertiary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(

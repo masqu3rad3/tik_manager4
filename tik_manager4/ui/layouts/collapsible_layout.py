@@ -116,19 +116,6 @@ QPushButton
         self._expanded = False
         self.expand_toggled.emit(self._expanded)
 
-    # def toggle_expand_button(self):
-    #     if self.expanded == True:
-    #         self.expand_button.set_icon("arrow_right")
-    #         self.contents_widget.setVisible(False)
-    #         self.expanded = False
-    #     else:
-    #         self.expand_button.set_icon("arrow_down")
-    #         self.contents_widget.setVisible(True)
-    #         self.expanded = True
-    #
-    #     # emit the signal
-    #     self.expand_toggled.emit(self.expanded)
-
     def set_hidden(self, state=True):
         self.expand_button.setHidden(state)
         self.contents_widget.setHidden(state)
