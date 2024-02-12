@@ -210,9 +210,13 @@ class NewProjectDialog(EditSubprojectDialog):
 
         self.setWindowTitle("Create New Project")
         self.setMinimumSize(300, 200)
-        self.resize(400, 650)
+        self.resize(600, 650)
         self.primary_layout.set_hidden(False)
         self.tertiary_layout.set_hidden(True)
+
+        self.secondary_layout.label.setText("Root Properties")
+        self.tertiary_layout.label.setHidden(True)
+
 
     def _get_metadata_override(self, key):
         """Override the function to return always False."""
