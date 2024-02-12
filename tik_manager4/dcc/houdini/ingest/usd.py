@@ -15,7 +15,7 @@ class Usd(IngestCore):
         super(Usd, self).__init__()
 
     def _bring_in_default(self):
-        """Import Alembic File.
+        """Import USD File.
         This method is used for all categories where no specific method is defined.
         """
         # get the project path

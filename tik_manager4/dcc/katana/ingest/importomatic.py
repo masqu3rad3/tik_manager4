@@ -26,9 +26,10 @@ class Importomatic(IngestCore):
 
     def __bring_in_alembic(self):
         # reuse if there is already an importomatic node
-        impo_node = NodegraphAPI.GetNode('importomatic_node')
+        impo_node = NodegraphAPI.GetNode('importomatic_tik_manager')
         if not impo_node:
             impo_node = NodegraphAPI.CreateNode("Importomatic", NodegraphAPI.GetRootNode())
+            impo_node.setName("importomatic_tik_manager")
 
         # Create alembic group node
         abc_grp = NodegraphAPI.CreateNode('Group', NodegraphAPI.GetRootNode())

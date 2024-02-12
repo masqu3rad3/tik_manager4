@@ -2,9 +2,6 @@
 These commands will be overriden in DCCs.
 """
 
-from tik_manager4.ui.Qt import QtWidgets, QtCore
-from tik_manager4.ui.main import MainUI as tik_main_ui
-
 class MainCore():
     name = ""
     preview_enabled = True
@@ -141,47 +138,10 @@ class MainCore():
         """
         pass
 
-    def get_tik_manager_main_ui(self):
-        """Return the Tik Manager main UI instance"""
-        app = QtWidgets.QApplication.instance()
-        for tik_main in app.topLevelWidgets():
-            if isinstance(tik_main, tik_main_ui):
-                return tik_main
-
     @staticmethod
     def generate_thumbnail(file_path, width, height):
         """Generate a thumbnail for the given file path."""
-
-        # find the main window
-        app = QtWidgets.QApplication.instance()
-        window = app.activeWindow()
-        # momenterarly minimize the window before taking the screenshot
-        window.showMinimized()
-        window.setVisible(False)
-
-        # wait for the window to be minimized
-        QtWidgets.QApplication.processEvents()
-        screenshot = QtWidgets.QApplication.primaryScreen().grabWindow(QtWidgets.QApplication.desktop().winId())
-
-        ratio = width / height
-        new_height = int(width / ratio)
-
-        # Apply scaling directly to the screenshot pixmap and save it
-        screenshot_resized = screenshot.scaled(width*2, new_height*2, QtCore.Qt.KeepAspectRatio,
-                                               QtCore.Qt.SmoothTransformation)
-        screenshot_resized.save(file_path, 'jpg', quality=95)  # Adjust quality as needed
-
-        QtWidgets.QApplication.processEvents()
-
-        # bring back the window
-        window.setVisible(True)
-        window.showNormal()
-
-        # make sure the window focus is back
-        window.activateWindow()
-
-        return file_path
-
+        pass
 
 
     @staticmethod
