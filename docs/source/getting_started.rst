@@ -38,6 +38,8 @@ Creating Project
 
     Each project can have its list of metadata. Check the **settings** area to learn more about how to define metadata.
 
+.. |settings| test
+
 Creating Sub-Projects
 ---------------------
 Sub-Projects are the primary building blocks of Tik Manager4, serving as containers for tasks and other sub-projects.
