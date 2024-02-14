@@ -98,7 +98,7 @@ iterating another version into the selected work container.
 
 This is essentially the same behaviour since the currently open scene and selected work container are the same.
 
-.. image:: images/Ingest_and_increment.gif
+.. image:: images/ingest_and_increment.gif
 
 Publish
 -------
