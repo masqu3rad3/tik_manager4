@@ -61,4 +61,5 @@ Contents
    overview
    installation
    getting_started
-   api
+   user_guide
+   developers_guide

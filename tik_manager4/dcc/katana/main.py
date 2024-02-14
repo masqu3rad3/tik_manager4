@@ -6,6 +6,7 @@ import logging
 from tik_manager4.ui.Qt import QtWidgets, QtGui, QtCore
 from Katana import KatanaFile  # pylint: disable=import-error
 from Katana import NodegraphAPI  # pylint: disable=import-error
+from Katana import UI4  # pylint: disable=import-error
 
 from tik_manager4.ui.main import MainUI as tik_main_ui_class
 from tik_manager4.dcc.katana import utils
@@ -45,7 +46,7 @@ class Dcc(MainCore):
     @staticmethod
     def save_scene():
         """Save the current scene."""
-        pass
+        UI4.Util.FileHelpers.Save()
 
     @staticmethod
     def save_as(file_path):
@@ -61,8 +62,8 @@ class Dcc(MainCore):
     @staticmethod
     def save_prompt():
         """Pop up the save prompt."""
-        # TODO: We need to find a way to invoke the File > Save command in Katana
-        pass
+        UI4.Util.FileHelpers.Save()
+        return True  # this is important or else will be an indefinite loop
 
     @staticmethod
     def open(file_path, **_extra_arguments):
