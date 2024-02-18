@@ -1,26 +1,49 @@
-import subprocess
 
+from pathlib import Path
+import subprocess
+import shutil
+
+import logging
 from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.ui.Qt import QtWidgets, QtCore
+from tik_manager4.dcc.standalone import extract
 
+LOG = logging.getLogger(__name__)
 
 class Dcc(MainCore):
-    formats = [".txt", ".log"]
+    formats = [""] # This means all formats.
     preview_enabled = False
+    extracts = extract.classes
 
     @staticmethod
-    def save_as(file_path):
+    def save_as(file_path, source_path=None, **extra_arguments):
         """Save (mockup) the file.
         Args:
             file_path: (String) File path that will be written
-            file_format: (String) File format
+            source_path: (String) Source file or folder path
             **extra_arguments: Compatibility arguments
 
         Returns:
+            (String) File path of the saved file
 
         """
-        with open(file_path, "w") as f:
-            f.write("test")
+        if not source_path:
+            LOG.warning("Source path is not defined. Creating Test File.")
+            with open(file_path, "w") as f:
+                f.write("test")
+            return file_path
+
+        # check if the source path is a file or a folder
+        if not Path(source_path).exists():
+            LOG.warning(f"Source path does not exist: {source_path}")
+            return None
+
+        if Path(source_path).is_file():
+            # if it is a file, copy it to the destination
+            shutil.copyfile(source_path, file_path)
+        else:
+            # if it is a folder, copy it to the destination
+            shutil.copytree(source_path, file_path)
 
         return file_path
 

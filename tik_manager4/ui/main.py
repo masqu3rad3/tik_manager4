@@ -34,7 +34,7 @@ from tik_manager4.ui.mcv.category_mcv import TikCategoryLayout
 from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog, SetProjectDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
-from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog
+from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog, SaveAnyFileDialog
 from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
 from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
 from tik_manager4.ui.dialog.feedback import Feedback
@@ -253,7 +253,7 @@ class MainUI(QtWidgets.QMainWindow):
         if self.tik.dcc.name == "Houdini":
             self.categories_mcv.category_tab_widget.setMaximumSize(QtCore.QSize(16777215, 30))
 
-        self.versions_mcv = TikVersionLayout(parent=self)
+        self.versions_mcv = TikVersionLayout(self.tik.project, parent=self)
         self.version_layout.addLayout(self.versions_mcv)
 
         self.project_mcv.set_project_btn.clicked.connect(self.on_set_project)
@@ -381,6 +381,11 @@ class MainUI(QtWidgets.QMainWindow):
         new_user = QtWidgets.QAction(pick.icon("user"), "&Add New User", self)
         file_menu.addAction(new_user)
         file_menu.addSeparator()
+        save_file_as_work = QtWidgets.QAction("&Save File as Work    ", self)
+        file_menu.addAction(save_file_as_work)
+        save_folder_as_work = QtWidgets.QAction("&Save Folder as Work    ", self)
+        file_menu.addAction(save_folder_as_work)
+        file_menu.addSeparator()
         save_new_work = QtWidgets.QAction(pick.icon("save"), "&Save New Work", self)
         file_menu.addAction(save_new_work)
         increment_version = QtWidgets.QAction("&Increment Version", self)
@@ -408,6 +413,7 @@ class MainUI(QtWidgets.QMainWindow):
         # make the menu bar items wide enough to show the icons and all text
         # Tools Menu
 
+
         # Help Menu
         about = QtWidgets.QAction("&About", self)
         help_menu.addAction(about)
@@ -430,12 +436,12 @@ class MainUI(QtWidgets.QMainWindow):
         exit_action.triggered.connect(self.close)
 
         save_new_work.triggered.connect(self.on_new_work)
+        save_file_as_work.triggered.connect(lambda: self.on_save_any_file(folder=False))
+        save_folder_as_work.triggered.connect(lambda: self.on_save_any_file(folder=True))
         increment_version.triggered.connect(self.on_new_version)
         ingest_version.triggered.connect(self.on_ingest_version)
         publish_scene.triggered.connect(self.on_publish_scene)
-        # load_item.triggered.connect(self.load_work)
         load_item.triggered.connect(self.versions_mcv.on_load)
-        # import_item.triggered.connect(self.import_work)
         import_item.triggered.connect(self.versions_mcv.on_import)
 
         # check if the tik.main.dcc has a preview method
@@ -497,6 +503,61 @@ class MainUI(QtWidgets.QMainWindow):
         for msg in self.categories_mcv.work_tree_view.metadata_pre_checks(self.tik.dcc, subproject.metadata):
             yield msg
 
+    def on_save_any_file(self, folder=False):
+        """Launch the save any file dialog."""
+        if not self._pre_check(level=1):
+            return
+
+        # Launch a file dialog to select the save file or folder
+        dialog = QtWidgets.QFileDialog(self)
+        # change the title to "Save File" or "Save Folder"
+        dialog_title = "Select a Single File to save as a Work" if not folder else "Select a Folder to save as a Work"
+        dialog.setWindowTitle(dialog_title)
+        # set the project root as start directory
+        dialog.setDirectory(self.tik.project.absolute_path)
+
+        # dialog.setOption(QtWidgets.QFileDialog.DontUseNativeDialog, True)
+        # dialog.setOption(QtWidgets.QFileDialog.DontResolveSymlinks, True)
+        if folder:
+            dialog.setFileMode(QtWidgets.QFileDialog.Directory)
+            dialog.setOption(QtWidgets.QFileDialog.ShowDirsOnly, True)
+        file_path = None
+        if dialog.exec_():
+            file_path = dialog.selectedFiles()[0]
+            print(file_path)
+        if not file_path:
+            return
+
+        # first try to get the active category, and reach the task and subproject
+        category = self.categories_mcv.get_active_category()
+        if category:
+            task = category.parent_task
+            subproject = task.parent_sub
+        else:
+            # get the active task
+            task = self.tasks_mcv.get_active_task()
+            if not task:
+                self.feedback.pop_info(
+                    title="No tasks found.",
+                    text="Selected Sub-object does not have any tasks under it.\n"
+                    "Please create a task before creating a work.",
+                    critical=True,
+                )
+                return
+            subproject = task.parent_sub
+
+        save_any_dialog = SaveAnyFileDialog(
+            self.tik, file_or_folder_path=file_path, parent=self, subproject=subproject, task_object=task, category_object=category
+        )
+        state = save_any_dialog.exec_()
+        if state:
+            self.set_last_state()
+            self.refresh_versions()
+            self.status_bar.showMessage("New work created successfully.", 5000)
+            self.resume_last_state()
+
+        # dialog = SaveAnyFileDialog(self.tik, parent=self)
+        # dialog.show()
 
     def on_new_work(self):
         """Create a new work."""
@@ -535,7 +596,7 @@ class MainUI(QtWidgets.QMainWindow):
         #     return
 
         dialog = NewWorkDialog(
-            self.tik, parent=self, subproject=subproject, task=task, category=category
+            self.tik, parent=self, subproject=subproject, task_object=task, category_object=category
         )
         state = dialog.exec_()
         if state:

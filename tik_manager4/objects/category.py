@@ -63,6 +63,36 @@ class Category(Entity):
         """Check if the category is empty"""
         return not bool(self.works)
 
+    def create_work_from_path(self, name, file_path, notes="", ignore_checks=True):
+        """Register a given path (file or folder) as a work"""
+
+        constructed_name = self.construct_name(name)
+        # creating work from an arbitrary path is always considered as a 'standalone' process
+        abs_path = self.get_abs_database_path("standalone", f"{constructed_name}.twork")
+        if Path(abs_path).exists():
+            # in that case instantiate the work and iterate the version.
+            work = Work(absolute_path=abs_path, parent_task=self.parent_task)
+            work.new_version_from_path(file_path=file_path, notes=notes, ignore_checks=ignore_checks)
+            return work
+
+        relative_path = self.get_relative_work_path(override_dcc="standalone")
+        work = Work(abs_path, name=constructed_name, path=relative_path, parent_task=self.parent_task)
+
+        work.add_property("name", constructed_name)
+        work.add_property("creator", self.guard.user)
+        work.add_property("category", self.name)
+        work.add_property("dcc", "standalone")
+        work.add_property("dcc_version", "NA")
+        work.add_property("versions", [])
+        work.add_property("work_id", work.generate_id())
+        work.add_property("task_name", self.parent_task.name)
+        work.add_property("task_id", self.parent_task.id)
+        work.add_property("path", relative_path)
+        work.add_property("state", "working")
+        work.init_properties()
+        work.new_version_from_path(file_path=file_path, notes=notes, ignore_checks=ignore_checks)
+        return work
+
     def create_work(self, name, file_format=None, notes="", ignore_checks=True):
         """Creates a task under the category"""
 
@@ -72,8 +102,6 @@ class Category(Entity):
             return -1
 
         constructed_name = self.construct_name(name)
-        relative_path = self.get_relative_work_path()
-        # relative_path = Path(self.path).as_posix()
         abs_path = self.get_abs_database_path(self.guard.dcc, f"{constructed_name}.twork")
         # abs_path = self.get_abs_database_path(f"{constructed_name}.twork")
         if Path(abs_path).exists():
@@ -81,6 +109,8 @@ class Category(Entity):
             work = Work(absolute_path=abs_path, parent_task=self.parent_task)
             work.new_version(file_format=file_format, notes=notes, ignore_checks=ignore_checks)
             return work
+
+        relative_path = self.get_relative_work_path()
         work = Work(abs_path, name=constructed_name, path=relative_path, parent_task=self.parent_task)
         if not ignore_checks:
             # check if there is a mismatch with the current dcc version
@@ -106,9 +136,10 @@ class Category(Entity):
         work.new_version(file_format=file_format, notes=notes, ignore_checks=ignore_checks)
         return work
 
-    def get_relative_work_path(self):
+    def get_relative_work_path(self, override_dcc=None):
         """Return the relative path of the category"""
-        return Path(self.path, self.guard.dcc).as_posix()
+        dcc = override_dcc or self.guard.dcc
+        return Path(self.path, dcc).as_posix()
 
 
     def construct_name(self, name):

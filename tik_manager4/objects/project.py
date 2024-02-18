@@ -1,10 +1,10 @@
 from pathlib import Path
+from tik_manager4 import dcc
+from tik_manager4.objects.publisher import Publisher, SnapshotPublisher
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.subproject import Subproject
 from tik_manager4.objects.work import Work
-from tik_manager4 import dcc
-from tik_manager4.objects.publisher import Publisher
 
 class Project(Subproject):
     log = filelog.Filelog(logname=__name__, filename="tik_manager4")
@@ -12,6 +12,7 @@ class Project(Subproject):
     def __init__(self, path=None, name=None, resolution=None, fps=None):
         super(Project, self).__init__()
         self.publisher = Publisher(self)
+        self.snapshot_publisher = SnapshotPublisher(self)
         self.structure = Settings()
         self.settings = Settings()
         self.preview_settings = Settings()

@@ -9,10 +9,12 @@ from tik_manager4.core import filelog
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 from tik_manager4 import dcc
+from tik_manager4.dcc.standalone import main as standalone
 from tik_manager4.objects.publish import PublishVersion
 
 
 class Publisher:
+    """Publisher class to handle the publish process."""
     _dcc_handler = dcc.Dcc()
 
     def __init__(self, project_object):
@@ -71,8 +73,6 @@ class Publisher:
         extracts = _category_definitons.properties.get(
             self._work_object.category, {}
         ).get("extracts", [])
-        print("extracts", extracts)
-        print("extract_keys", list(self._dcc_handler.extracts.keys()))
         validations = _category_definitons.properties.get(
             self._work_object.category, {}
         ).get("validations", [])
@@ -308,3 +308,61 @@ class Publisher:
             )
         else:
             return None
+
+class SnapshotPublisher(Publisher):
+    """Separate publisher to handle arbitrary file and folder publishing.
+
+    Handles automatically creating a new work version if the current work is not there.
+    """
+    _dcc_handler = standalone.Dcc()
+
+    @property
+    def work_object(self):
+        """Return the work object."""
+        return self._work_object
+
+    @work_object.setter
+    def work_object(self, value):
+        """Set the work object."""
+        self._work_object = value
+
+    @property
+    def work_version(self):
+        """Return the work version."""
+        return self._work_version
+
+    @work_version.setter
+    def work_version(self, value):
+        """Set the work version."""
+        self._work_version = value
+
+    def resolve(self):
+        """Resolve the validations, extracts, variables, etc."""
+
+        snapshot_extractor = self._dcc_handler.extracts["snapshot"]()
+        snapshot_extractor.category = self._work_object.category  # define the category
+
+        version_dictionary = self._work_object.get_version(self._work_version)
+        relative_path = version_dictionary.get("scene_path")
+        abs_path = self._work_object.get_abs_project_path(relative_path)
+        snapshot_extractor.source_path = abs_path
+        snapshot_extractor.extension = Path(abs_path).suffix
+
+        self._resolved_extractors = {"snapshot": snapshot_extractor}
+        self._resolved_validators = {}
+
+
+        latest_publish_version = self._work_object.publish.get_last_version()
+
+        self._abs_publish_data_folder = (
+            self._work_object.publish.get_publish_data_folder()
+        )
+        self._abs_publish_scene_folder = (
+            self._work_object.publish.get_publish_project_folder()
+        )
+        self._publish_version = latest_publish_version + 1
+        self._publish_file_name = (
+            f"{self._work_object.name}_v{self._publish_version:03d}.tpub"
+        )
+        return self._publish_file_name
+

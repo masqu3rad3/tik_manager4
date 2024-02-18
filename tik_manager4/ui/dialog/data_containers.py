@@ -13,6 +13,6 @@ class MainLayout:
     header_layout: QtWidgets.QVBoxLayout = None
     body_layout: QtWidgets.QVBoxLayout = None
     splitter: QtWidgets.QSplitter = None
-    left_v_lay: QtWidgets.QVBoxLayout = None
-    right_v_lay: QtWidgets.QVBoxLayout = None
-    button_box_lay: QtWidgets.QHBoxLayout = None
+    left_layout: QtWidgets.QVBoxLayout = None
+    right_layout: QtWidgets.QVBoxLayout = None
+    buttons_layout: QtWidgets.QHBoxLayout = None

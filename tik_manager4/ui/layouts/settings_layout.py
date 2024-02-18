@@ -173,10 +173,6 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 # if it is a group, add a new row as a separator with the name
                 _group_label = QtWidgets.QLabel(text=_display_name)
                 _group_label.setStyleSheet("font-weight: bold;")
-                # self.addRow(_group_label, _group_label)
-
-                #override the _label with an empty label
-                # _label.setText("")
 
                 group_properties = properties.get("value", {})
                 _layout = QtWidgets.QVBoxLayout()
@@ -201,6 +197,7 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 _widget.com.valueChanged.connect(lambda x, n=name: self._setting_data_modified(n, x))
                 self.addRow(_label, _widget)
                 _widgets.append(_widget)
+            _widget.label = _label
 
         return _widgets
 

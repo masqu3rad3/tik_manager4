@@ -11,12 +11,11 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class TikVersionLayout(QtWidgets.QVBoxLayout):
-    def __init__(self, *args, **kwargs):
+    """Layout for versioning work and publish objects."""
+    def __init__(self, project_object, *args, **kwargs):
         """Initialize the TikVersionLayout."""
-        # self.parent = parent
         super().__init__()
-        # super(TikVersionLayout, self).__init__(*args, **kwargs)
-
+        self.project = project_object
         self.base = None  # this is work or publish object
         # get the parent widget
         self.parent = kwargs.get("parent")
@@ -485,9 +484,39 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         right_click_menu.addAction(delete_version_action)
         delete_version_action.triggered.connect(self.delete_version)
 
+        right_click_menu.addSeparator()
+        if self.base.object_type == "work":
+            publish_snapshot_act = right_click_menu.addAction(
+                self.tr("Publish Snapshot")
+            )
+            publish_snapshot_act.triggered.connect(
+                self.publish_snapshot
+            )
+            # work_obj = self.base.work_object
+
         right_click_menu.exec_((QtGui.QCursor.pos()))
 
-
+    def publish_snapshot(self):
+        """Publish a snapshot of the current work."""
+        if not self.base.object_type == "work":
+            LOG.warning("Publish snapshot is only available for work objects.")
+            return -1
+        # snapshot_publisher = SnapshotPublisher(self.base, self.get_selected_version())
+        self.project.snapshot_publisher.work_object = self.base
+        self.project.snapshot_publisher.work_version = self.get_selected_version()
+        self.project.snapshot_publisher.resolve()
+        self.project.snapshot_publisher.reserve()
+        self.project.snapshot_publisher.extract()
+        self.project.snapshot_publisher.publish()
+        # if not self.base:
+        #     self.feedback.pop_info(
+        #         title="No work selected.",
+        #         text="Please select a work to publish a snapshot.",
+        #         critical=True,
+        #     )
+        #     return
+        # _version = self.get_selected_version()
+        # self.base.publish_snapshot(_version)
 
 class ImageWidget(QtWidgets.QLabel):
     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""

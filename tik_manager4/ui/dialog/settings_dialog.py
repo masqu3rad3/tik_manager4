@@ -65,15 +65,15 @@ class SettingsDialog(QtWidgets.QDialog):
         self.layouts.splitter = QtWidgets.QSplitter(self)
 
         left_widget = QtWidgets.QWidget(self.layouts.splitter)
-        self.layouts.left_v_lay = QtWidgets.QVBoxLayout(left_widget)
-        self.layouts.left_v_lay.setContentsMargins(0, 0, 0, 0)
+        self.layouts.left_layout = QtWidgets.QVBoxLayout(left_widget)
+        self.layouts.left_layout.setContentsMargins(0, 0, 0, 0)
 
         right_widget = QtWidgets.QWidget(self.layouts.splitter)
-        self.layouts.right_v_lay = QtWidgets.QVBoxLayout(right_widget)
-        self.layouts.right_v_lay.setContentsMargins(0, 0, 0, 0)
+        self.layouts.right_layout = QtWidgets.QVBoxLayout(right_widget)
+        self.layouts.right_layout.setContentsMargins(0, 0, 0, 0)
         self.layouts.master_layout.addWidget(self.layouts.splitter)
-        self.layouts.button_box_lay = QtWidgets.QHBoxLayout()
-        self.layouts.master_layout.addLayout(self.layouts.button_box_lay)
+        self.layouts.buttons_layout = QtWidgets.QHBoxLayout()
+        self.layouts.master_layout.addLayout(self.layouts.buttons_layout)
 
     def build_static_widgets(self):
         """Build static widgets."""
@@ -82,10 +82,10 @@ class SettingsDialog(QtWidgets.QDialog):
         self.menu_tree_widget.setRootIsDecorated(True)
         self.menu_tree_widget.setHeaderHidden(True)
         self.menu_tree_widget.header().setVisible(False)
-        self.layouts.left_v_lay.addWidget(self.menu_tree_widget)
+        self.layouts.left_layout.addWidget(self.menu_tree_widget)
 
         tik_button_box = TikButtonBox(parent=self)
-        self.layouts.button_box_lay.addWidget(tik_button_box)
+        self.layouts.buttons_layout.addWidget(tik_button_box)
         self.apply_button = tik_button_box.addButton("Apply", tik_button_box.ApplyRole)
         self.apply_button.setEnabled(False)
         cancel_button = tik_button_box.addButton("Cancel", tik_button_box.RejectRole)
@@ -96,7 +96,7 @@ class SettingsDialog(QtWidgets.QDialog):
         cancel_button.clicked.connect(self.close)
         ok_button.clicked.connect(lambda: self.apply_settings(close_dialog=True))
 
-        self.layouts.button_box_lay.addWidget(tik_button_box)
+        self.layouts.buttons_layout.addWidget(tik_button_box)
 
     def create_content(self):
         """Create the content."""
@@ -186,7 +186,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 content_layout.addWidget(button)
 
             content_layout.addStretch()
-            self.layouts.right_v_lay.addWidget(content_widget)
+            self.layouts.right_layout.addWidget(content_widget)
             # add it to the item
             root_item.content = content_widget
 
@@ -264,7 +264,7 @@ class SettingsDialog(QtWidgets.QDialog):
     ):
         """Create a generic settings layout."""
         content_widget = QtWidgets.QWidget()
-        self.layouts.right_v_lay.addWidget(content_widget)
+        self.layouts.right_layout.addWidget(content_widget)
 
         settings_v_lay = QtWidgets.QVBoxLayout(content_widget)
 
@@ -322,7 +322,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
         # hide by default
         project_category_definitions_widget.setVisible(False)
-        self.layouts.right_v_lay.addWidget(project_category_definitions_widget)
+        self.layouts.right_layout.addWidget(project_category_definitions_widget)
 
         # SIGNALS
         project_category_definitions_widget.modified.connect(self.check_changes)
@@ -338,7 +338,7 @@ class SettingsDialog(QtWidgets.QDialog):
             settings_data, title="Metadata Definitions", parent=self
         )
         metadata_widget.setVisible(False)
-        self.layouts.right_v_lay.addWidget(metadata_widget)
+        self.layouts.right_layout.addWidget(metadata_widget)
 
         # SIGNALS
         metadata_widget.modified.connect(self.check_changes)
@@ -354,7 +354,7 @@ class SettingsDialog(QtWidgets.QDialog):
             settings_data, title="Metadata Definitions (Common)", parent=self
         )
         common_metadata_widget.setVisible(False)
-        self.layouts.right_v_lay.addWidget(common_metadata_widget)
+        self.layouts.right_layout.addWidget(common_metadata_widget)
 
         # SIGNALS
         common_metadata_widget.modified.connect(self.check_changes)
@@ -373,7 +373,7 @@ class SettingsDialog(QtWidgets.QDialog):
             parent=self,
         )
         common_category_definitions_widget.setVisible(False)
-        self.layouts.right_v_lay.addWidget(common_category_definitions_widget)
+        self.layouts.right_layout.addWidget(common_category_definitions_widget)
 
         # SIGNALS
         common_category_definitions_widget.modified.connect(self.check_changes)
@@ -422,12 +422,12 @@ class MetadataDefinitions(QtWidgets.QWidget):
         self.layouts.splitter = QtWidgets.QSplitter(self)
 
         left_widget = QtWidgets.QWidget(self.layouts.splitter)
-        self.layouts.left_v_lay = QtWidgets.QVBoxLayout(left_widget)
-        self.layouts.left_v_lay.setContentsMargins(0, 0, 0, 0)
+        self.layouts.left_layout = QtWidgets.QVBoxLayout(left_widget)
+        self.layouts.left_layout.setContentsMargins(0, 0, 0, 0)
 
         right_widget = QtWidgets.QWidget(self.layouts.splitter)
-        self.layouts.right_v_lay = QtWidgets.QVBoxLayout(right_widget)
-        self.layouts.right_v_lay.setContentsMargins(0, 0, 0, 0)
+        self.layouts.right_layout = QtWidgets.QVBoxLayout(right_widget)
+        self.layouts.right_layout.setContentsMargins(0, 0, 0, 0)
 
         self.layouts.master_layout.addWidget(self.layouts.splitter)
 
@@ -449,11 +449,11 @@ class MetadataDefinitions(QtWidgets.QWidget):
         self.switch_tree_widget.setRootIsDecorated(False)
         self.switch_tree_widget.setHeaderHidden(True)
         self.switch_tree_widget.header().setVisible(False)
-        self.layouts.left_v_lay.addWidget(self.switch_tree_widget)
+        self.layouts.left_layout.addWidget(self.switch_tree_widget)
 
         # add 'add' and 'remove' buttons in a horizontal layout
         add_remove_buttons_layout = QtWidgets.QHBoxLayout()
-        self.layouts.left_v_lay.addLayout(add_remove_buttons_layout)
+        self.layouts.left_layout.addLayout(add_remove_buttons_layout)
         add_metadata_button = TikButton(text="Add New Metadata", parent=self)
         add_remove_buttons_layout.addWidget(add_metadata_button)
         remove_metadata_button = TikButton(text="Delete Metadata", parent=self)
@@ -548,7 +548,7 @@ class MetadataDefinitions(QtWidgets.QWidget):
     def _delete_value_widget(self, widget_item):
         """Deletes the value widget and removes it from the layout."""
         widget_item.content.deleteLater()
-        self.layouts.right_v_lay.removeWidget(widget_item.content)
+        self.layouts.right_layout.removeWidget(widget_item.content)
         widget_item.content = None
 
     def _add_value_widget(self, name, data):
@@ -602,7 +602,7 @@ class MetadataDefinitions(QtWidgets.QWidget):
             )
 
         content_widget.setVisible(False)
-        self.layouts.right_v_lay.addWidget(content_widget)
+        self.layouts.right_layout.addWidget(content_widget)
         widget_item.content = content_widget
 
     def build_value_widgets(self):
@@ -645,12 +645,12 @@ class CategoryDefinitions(QtWidgets.QWidget):
         self.layouts.splitter = QtWidgets.QSplitter(self)
 
         left_widget = QtWidgets.QWidget(self.layouts.splitter)
-        self.layouts.left_v_lay = QtWidgets.QVBoxLayout(left_widget)
-        self.layouts.left_v_lay.setContentsMargins(0, 0, 0, 0)
+        self.layouts.left_layout = QtWidgets.QVBoxLayout(left_widget)
+        self.layouts.left_layout.setContentsMargins(0, 0, 0, 0)
 
         right_widget = QtWidgets.QWidget(self.layouts.splitter)
-        self.layouts.right_v_lay = QtWidgets.QVBoxLayout(right_widget)
-        self.layouts.right_v_lay.setContentsMargins(0, 0, 0, 0)
+        self.layouts.right_layout = QtWidgets.QVBoxLayout(right_widget)
+        self.layouts.right_layout.setContentsMargins(0, 0, 0, 0)
 
         self.layouts.master_layout.addWidget(self.layouts.splitter)
 
@@ -673,11 +673,11 @@ class CategoryDefinitions(QtWidgets.QWidget):
         self.switch_tree_widget.setRootIsDecorated(False)
         self.switch_tree_widget.setHeaderHidden(True)
         self.switch_tree_widget.header().setVisible(False)
-        self.layouts.left_v_lay.addWidget(self.switch_tree_widget)
+        self.layouts.left_layout.addWidget(self.switch_tree_widget)
 
         # add 'add' and 'remove' buttons in a horizontal layout
         add_remove_buttons_layout = QtWidgets.QHBoxLayout()
-        self.layouts.left_v_lay.addLayout(add_remove_buttons_layout)
+        self.layouts.left_layout.addLayout(add_remove_buttons_layout)
         add_metadata_button = TikButton(text="Add New Category", parent=self)
         add_remove_buttons_layout.addWidget(add_metadata_button)
         remove_metadata_button = TikButton(text="Delete Category", parent=self)
@@ -760,7 +760,7 @@ class CategoryDefinitions(QtWidgets.QWidget):
     def _delete_value_widget(self, widget_item):
         """Deletes the value widget and removes it from the layout."""
         widget_item.content.deleteLater()
-        self.layouts.right_v_lay.removeWidget(widget_item.content)
+        self.layouts.right_layout.removeWidget(widget_item.content)
         widget_item.content = None
 
     def __add_type(self, form_layout, data):
@@ -887,7 +887,7 @@ class CategoryDefinitions(QtWidgets.QWidget):
 
         # link the content widget to the item for visibility switching
         content_widget.setVisible(False)
-        self.layouts.right_v_lay.addWidget(content_widget)
+        self.layouts.right_layout.addWidget(content_widget)
         widget_item.content = content_widget
 
     def _remove_item(self, validations_model, validations_list, list_data):

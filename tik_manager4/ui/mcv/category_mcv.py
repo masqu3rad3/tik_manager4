@@ -355,6 +355,14 @@ class TikCategoryView(QtWidgets.QTreeView):
             ingest_act = right_click_menu.addAction(self.tr("Ingest Here"))
             ingest_act.triggered.connect(lambda _=None, x=item: self.ingest_here(item))
             right_click_menu.addSeparator()
+            # if item.tik_obj.dcc == "standalone":
+            #     publish_snapshot_act = right_click_menu.addAction(
+            #         self.tr("Publish Snapshot")
+            #     )
+            #     publish_snapshot_act.triggered.connect(
+            #         lambda _=None, x=item: self.publish_snapshot(item)
+            #     )
+
         load_act = right_click_menu.addAction(self.tr("Load"))
         load_act.triggered.connect(self.load_event.emit)
         import_act = right_click_menu.addAction(self.tr("Import To the Scene"))
@@ -468,6 +476,14 @@ class TikCategoryView(QtWidgets.QTreeView):
         if state:
             # emit a version_created signal to update the main window
             self.version_created.emit()
+
+    def publish_snapshot(self, item):
+        """Publish snapshot.
+
+        Simplified version of publish. Copy and protect the selected version."""
+
+        print(item)
+        print(item.tik_obj)
 
     def open_database_folder(self, item):
         """Opens the database folder for the given item"""
