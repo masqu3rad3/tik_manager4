@@ -178,29 +178,20 @@ class Work(Settings, Entity):
         Path(abs_version_path).parent.mkdir(parents=True, exist_ok=True)
 
         # save the file
-        # TODO: save the file or folder to the project
         output_path = self._standalone_handler.save_as(abs_version_path, source_path=file_path)
-        # output_path = self._dcc_handler.save_as(abs_version_path)
 
-        # # on some occasions the save as method may return a different path.
-        # # for example, if the file cannot be saved with specified file format,
-        # # extractor logic may decide to force something else.
-        # if output_path != abs_version_path:
-        #     version_name = Path(output_path).name  # e.g. "test_v001.ma"
-        #     file_format = Path(output_path).suffix  # e.g. ".ma"
-
-        # # generate thumbnail
-        # # create the thumbnail folder if it doesn't exist
-        # Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
-        # self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
+        # generate thumbnail
+        # create the thumbnail folder if it doesn't exist
+        Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
 
         # add it to the versions
-        # TODO: thumbnail?
+        extension = Path(output_path).suffix or "Folder"
+        self._standalone_handler.text_to_image(extension, thumbnail_path, 220, 124)
         version = {
             "version_number": version_number,
             "workstation": socket.gethostname(),
             "notes": notes,
-            "thumbnail": "",
+            "thumbnail": Path("thumbnails", thumbnail_name).as_posix(),
             "scene_path": Path(self.name, str(version_name)).as_posix(),
             "user": self.guard.user,
             "previews": {},
@@ -523,7 +514,12 @@ class Work(Settings, Entity):
         purgatory_scene_dir = Path(self.get_purgatory_project_path())
         purgatory_scene_dir.mkdir(parents=True, exist_ok=True)
 
-        shutil.move(self.get_abs_project_path(self.name), self.get_purgatory_project_path(self.name), copy_function=shutil.copytree)
+        purgatory_path = self.get_purgatory_project_path(self.name)
+        # if the purgatory path exists, delete it first
+        if Path(purgatory_path).exists():
+            shutil.rmtree(purgatory_path)
+        shutil.move(self.get_abs_project_path(self.name), purgatory_path,
+                    copy_function=shutil.copytree)
 
         thumbnails_dir = Path(self.get_abs_database_path("thumbnails"))
         # collect all thumbnails starting with the work name

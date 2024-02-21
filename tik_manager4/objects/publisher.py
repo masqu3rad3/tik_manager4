@@ -11,6 +11,7 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 from tik_manager4 import dcc
 from tik_manager4.dcc.standalone import main as standalone
 from tik_manager4.objects.publish import PublishVersion
+from tik_manager4.ui import pick
 
 
 class Publisher:
@@ -226,7 +227,23 @@ class Publisher:
             notes = "[Auto Generated]"
         self._published_object.add_property("notes", notes)
 
-        # generate the thumbnail
+        self._generate_thumbnail()
+        # # generate the thumbnail
+        # thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.png"
+        # thumbnail_path = self._published_object.get_abs_database_path(
+        #     "thumbnails", thumbnail_name
+        # )
+        # Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
+        # self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
+        # self._published_object.add_property(
+        #     "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
+        # )
+
+        self._published_object.apply_settings(force=True)
+        return self._published_object
+
+    def _generate_thumbnail(self):
+        """Generate the thumbnail."""
         thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.png"
         thumbnail_path = self._published_object.get_abs_database_path(
             "thumbnails", thumbnail_name
@@ -236,8 +253,6 @@ class Publisher:
         self._published_object.add_property(
             "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
         )
-
-        self._published_object.apply_settings(force=True)
 
     def discard(self):
         """Discard the reserved slot."""
@@ -366,3 +381,15 @@ class SnapshotPublisher(Publisher):
         )
         return self._publish_file_name
 
+    def _generate_thumbnail(self):
+        """Generate the thumbnail."""
+        thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.png"
+        thumbnail_path = self._published_object.get_abs_database_path(
+            "thumbnails", thumbnail_name
+        )
+        Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
+        extension = self._resolved_extractors["snapshot"].extension or "Folder"
+        self._dcc_handler.text_to_image(extension, thumbnail_path, 220, 124, color="cyan")
+        self._published_object.add_property(
+            "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
+        )

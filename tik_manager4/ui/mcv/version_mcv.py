@@ -507,7 +507,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.project.snapshot_publisher.resolve()
         self.project.snapshot_publisher.reserve()
         self.project.snapshot_publisher.extract()
-        self.project.snapshot_publisher.publish()
+        published_object = self.project.snapshot_publisher.publish()
+        if published_object:
+            self.feedback.pop_info(
+                title="Snapshot Published",
+                text=f"Snapshot published.\nName: {published_object.name}\nPath: {published_object.path}",
+                critical=False,
+            )
         # if not self.base:
         #     self.feedback.pop_info(
         #         title="No work selected.",

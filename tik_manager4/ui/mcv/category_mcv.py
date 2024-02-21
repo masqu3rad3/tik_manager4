@@ -173,6 +173,7 @@ class TikCategoryModel(QtGui.QStandardItemModel):
 class TikCategoryView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
     version_created = QtCore.Signal()
+    file_dropped = QtCore.Signal(str)
     load_event = (
         QtCore.Signal()
     )  # the signal for main UI importing the selected version of the selected work
@@ -210,9 +211,31 @@ class TikCategoryView(QtWidgets.QTreeView):
         self.header().setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.header().customContextMenuRequested.connect(self.header_right_click_menu)
 
-        # self.clicked.connect(self.item_clicked)
+        self.setAcceptDrops(True)
 
         self.expandAll()
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+            # Extract file path from dropped URLs
+            for url in event.mimeData().urls():
+                file_path = url.toLocalFile()
+                self.file_dropped.emit(file_path)
+        else:
+            event.ignore()
 
     def select_by_id(self, unique_id):
         """Selects the item with the given id"""
@@ -355,13 +378,6 @@ class TikCategoryView(QtWidgets.QTreeView):
             ingest_act = right_click_menu.addAction(self.tr("Ingest Here"))
             ingest_act.triggered.connect(lambda _=None, x=item: self.ingest_here(item))
             right_click_menu.addSeparator()
-            # if item.tik_obj.dcc == "standalone":
-            #     publish_snapshot_act = right_click_menu.addAction(
-            #         self.tr("Publish Snapshot")
-            #     )
-            #     publish_snapshot_act.triggered.connect(
-            #         lambda _=None, x=item: self.publish_snapshot(item)
-            #     )
 
         load_act = right_click_menu.addAction(self.tr("Load"))
         load_act.triggered.connect(self.load_event.emit)
@@ -414,7 +430,6 @@ class TikCategoryView(QtWidgets.QTreeView):
         metadata_start_frame = metadata.get_value("start_frame", None)
         metadata_end_frame = metadata.get_value("end_frame", None)
         raw_frame_range = dcc_handler.get_ranges()
-        print("raw_frame_range", raw_frame_range)
         start_mismatch = False
         end_mismatch = False
         if any([metadata_start_frame,
@@ -476,14 +491,6 @@ class TikCategoryView(QtWidgets.QTreeView):
         if state:
             # emit a version_created signal to update the main window
             self.version_created.emit()
-
-    def publish_snapshot(self, item):
-        """Publish snapshot.
-
-        Simplified version of publish. Copy and protect the selected version."""
-
-        print(item)
-        print(item.tik_obj)
 
     def open_database_folder(self, item):
         """Opens the database folder for the given item"""
@@ -618,8 +625,6 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.category_tab_widget.currentChanged.connect(self.on_category_change)
         self.work_radio_button.clicked.connect(self.on_mode_change)
         self.publish_radio_button.clicked.connect(self.on_mode_change)
-        # self.work_radio_button.toggled.connect(self.on_mode_change)
-        # self.publish_radio_button.toggled.connect(self.on_mode_change)
 
         # TODO: get this from the last state of the user
         self._last_category = None

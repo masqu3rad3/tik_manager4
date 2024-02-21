@@ -470,11 +470,22 @@ class SaveAnyFileDialog(NewWorkDialog):
     def define_primary_ui(self):
         _primary_ui = super().define_primary_ui()
         # override the format with the defined file paths extension
-        update_dict = {"file_format": {
+        _path_obj = Path(self._file_or_folder_path)
+        stem = _path_obj.stem
+        # replace all non-alphanumeric characters with underscores
+        _name = "".join([x if x.isalnum() else "_" for x in stem])
+        update_dict = {
+            "name": {
+                "display_name": "Name",
+                "type": "validatedString",
+                "value": _name,
+                "tooltip": "Name of the work file",
+            },
+            "file_format": {
             "display_name": "File Format",
             "type": "combo",
-            "items": [Path(self._file_or_folder_path).suffix],
-            "value": Path(self._file_or_folder_path).suffix,
+            "items": [_path_obj.suffix],
+            "value": _path_obj.suffix,
             }
         }
         _primary_ui.update(update_dict)
