@@ -79,8 +79,10 @@ class Dcc(MainCore):
         if app:
             window = app.activeWindow()
             # momenterarly minimize the window before taking the screenshot
-            window.showMinimized()
-            window.setVisible(False)
+            if hasattr(window, "showMinimized"):
+                window.showMinimized()
+            if hasattr(window, "setVisible"):
+                window.setVisible(False)
 
             # wait for the window to be minimized
             QtWidgets.QApplication.processEvents()
@@ -98,11 +100,14 @@ class Dcc(MainCore):
 
 
             # bring back the window
-            window.setVisible(True)
-            window.showNormal()
+            if hasattr(window, "setVisible"):
+                window.setVisible(True)
+            if hasattr(window, "showMinimized"):
+                window.showNormal()
 
             # make sure the window focus is back
-            window.activateWindow()
+            if hasattr(window, "activateWindow"):
+                window.activateWindow()
             return file_path
 
         return None
