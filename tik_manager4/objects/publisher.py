@@ -9,10 +9,13 @@ from tik_manager4.core import filelog
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 from tik_manager4 import dcc
+from tik_manager4.dcc.standalone import main as standalone
 from tik_manager4.objects.publish import PublishVersion
+from tik_manager4.ui import pick
 
 
 class Publisher:
+    """Publisher class to handle the publish process."""
     _dcc_handler = dcc.Dcc()
 
     def __init__(self, project_object):
@@ -71,8 +74,6 @@ class Publisher:
         extracts = _category_definitons.properties.get(
             self._work_object.category, {}
         ).get("extracts", [])
-        print("extracts", extracts)
-        print("extract_keys", list(self._dcc_handler.extracts.keys()))
         validations = _category_definitons.properties.get(
             self._work_object.category, {}
         ).get("validations", [])
@@ -226,7 +227,23 @@ class Publisher:
             notes = "[Auto Generated]"
         self._published_object.add_property("notes", notes)
 
-        # generate the thumbnail
+        self._generate_thumbnail()
+        # # generate the thumbnail
+        # thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.png"
+        # thumbnail_path = self._published_object.get_abs_database_path(
+        #     "thumbnails", thumbnail_name
+        # )
+        # Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
+        # self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
+        # self._published_object.add_property(
+        #     "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
+        # )
+
+        self._published_object.apply_settings(force=True)
+        return self._published_object
+
+    def _generate_thumbnail(self):
+        """Generate the thumbnail."""
         thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.png"
         thumbnail_path = self._published_object.get_abs_database_path(
             "thumbnails", thumbnail_name
@@ -236,8 +253,6 @@ class Publisher:
         self._published_object.add_property(
             "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
         )
-
-        self._published_object.apply_settings(force=True)
 
     def discard(self):
         """Discard the reserved slot."""
@@ -308,3 +323,73 @@ class Publisher:
             )
         else:
             return None
+
+class SnapshotPublisher(Publisher):
+    """Separate publisher to handle arbitrary file and folder publishing.
+
+    Handles automatically creating a new work version if the current work is not there.
+    """
+    _dcc_handler = standalone.Dcc()
+
+    @property
+    def work_object(self):
+        """Return the work object."""
+        return self._work_object
+
+    @work_object.setter
+    def work_object(self, value):
+        """Set the work object."""
+        self._work_object = value
+
+    @property
+    def work_version(self):
+        """Return the work version."""
+        return self._work_version
+
+    @work_version.setter
+    def work_version(self, value):
+        """Set the work version."""
+        self._work_version = value
+
+    def resolve(self):
+        """Resolve the validations, extracts, variables, etc."""
+
+        snapshot_extractor = self._dcc_handler.extracts["snapshot"]()
+        snapshot_extractor.category = self._work_object.category  # define the category
+
+        version_dictionary = self._work_object.get_version(self._work_version)
+        relative_path = version_dictionary.get("scene_path")
+        abs_path = self._work_object.get_abs_project_path(relative_path)
+        snapshot_extractor.source_path = abs_path
+        snapshot_extractor.extension = Path(abs_path).suffix
+
+        self._resolved_extractors = {"snapshot": snapshot_extractor}
+        self._resolved_validators = {}
+
+
+        latest_publish_version = self._work_object.publish.get_last_version()
+
+        self._abs_publish_data_folder = (
+            self._work_object.publish.get_publish_data_folder()
+        )
+        self._abs_publish_scene_folder = (
+            self._work_object.publish.get_publish_project_folder()
+        )
+        self._publish_version = latest_publish_version + 1
+        self._publish_file_name = (
+            f"{self._work_object.name}_v{self._publish_version:03d}.tpub"
+        )
+        return self._publish_file_name
+
+    def _generate_thumbnail(self):
+        """Generate the thumbnail."""
+        thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.png"
+        thumbnail_path = self._published_object.get_abs_database_path(
+            "thumbnails", thumbnail_name
+        )
+        Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
+        extension = self._resolved_extractors["snapshot"].extension or "Folder"
+        self._dcc_handler.text_to_image(extension, thumbnail_path, 220, 124, color="cyan")
+        self._published_object.add_property(
+            "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
+        )

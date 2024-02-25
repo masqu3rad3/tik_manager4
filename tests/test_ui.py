@@ -152,7 +152,6 @@ class TestUI:
         # create a new work
         main_object.project.scan_tasks()
         work = main_object.project.tasks["main"].categories["Model"].create_work("test_work")
-        # main_object.project.publisher._work_object = work
         monkeypatch.setattr(main_object.project, "get_current_work", lambda: (work, 1))
         main_object.project.publisher.resolve()
         dialog = PublishSceneDialog(main_object.project)

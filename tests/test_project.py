@@ -550,12 +550,12 @@ class TestProject:
 
         # create a work
         bizarro_task.categories["Model"].create_work("default")
-        bizarro_task.categories["Model"].create_work("main", file_format=".txt", notes="This is a note. Very default.")
-        bizarro_task.categories["Model"].create_work("lod300", file_format=".txt", notes="This is a note. Lod300.")
+        bizarro_task.categories["Model"].create_work("main", file_format="", notes="This is a note. Very default.")
+        bizarro_task.categories["Model"].create_work("lod300", file_format="", notes="This is a note. Lod300.")
 
         bizarro_task.categories["Rig"].create_work("default")
-        bizarro_task.categories["Rig"].create_work("main", file_format=".txt", notes="This is a note. Very default Rig.")
-        bizarro_task.categories["Rig"].create_work("lod300", file_format=".txt", notes="This is a note. Lod300 Rig.")
+        bizarro_task.categories["Rig"].create_work("main", file_format="", notes="This is a note. Very default Rig.")
+        bizarro_task.categories["Rig"].create_work("lod300", file_format="", notes="This is a note. Lod300 Rig.")
 
         ultraman_task.categories["Model"].create_work("varA", notes="This is a Model note for varA")
         ultraman_task.categories["Model"].create_work("varB", notes="This is a Model note for varB")

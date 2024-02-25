@@ -6,6 +6,7 @@ import platform
 import subprocess
 from pathlib import Path
 from tik_manager4.core import utils
+from tik_manager4.dcc.standalone.main import Dcc as StandaloneDcc
 from tik_manager4.core.settings import Settings
 from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
@@ -19,6 +20,7 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class Work(Settings, Entity):
     _dcc_handler = dcc.Dcc()
+    _standalone_handler = StandaloneDcc()
     object_type = "work"
 
     def __init__(self, absolute_path, name=None, path=None, parent_task=None):
@@ -149,6 +151,57 @@ class Work(Settings, Entity):
         for version in self._versions:
             if version.get("version_number") == version_number:
                 return version
+
+    def new_version_from_path(self, file_path, notes="", ignore_checks=True):
+        """Register a given path (file or folder) as a new version of the work.
+
+        Args:
+            file_path (str): The file path of the source file. This will be copied to the project.
+            notes (str): Notes for the version.
+            ignore_checks (bool): If True, skip all pre-checks.
+
+        Returns:
+            dict: The version dictionary.
+        """
+
+
+        state = self.check_permissions(level=1)
+        if state != 1:
+            return -1
+
+        file_format = Path(file_path).suffix
+        # get filepath of current version
+        version_number, version_name, thumbnail_name = self.construct_names(file_format)
+
+        abs_version_path = self.get_abs_project_path(self.name, version_name)
+        thumbnail_path = self.get_abs_database_path("thumbnails", thumbnail_name)
+        Path(abs_version_path).parent.mkdir(parents=True, exist_ok=True)
+
+        # save the file
+        output_path = self._standalone_handler.save_as(abs_version_path, source_path=file_path)
+
+        # generate thumbnail
+        # create the thumbnail folder if it doesn't exist
+        Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
+
+        # add it to the versions
+        extension = Path(output_path).suffix or "Folder"
+        self._standalone_handler.text_to_image(extension, thumbnail_path, 220, 124)
+        version = {
+            "version_number": version_number,
+            "workstation": socket.gethostname(),
+            "notes": notes,
+            "thumbnail": Path("thumbnails", thumbnail_name).as_posix(),
+            "scene_path": Path(self.name, str(version_name)).as_posix(),
+            "user": self.guard.user,
+            "previews": {},
+            "file_format": file_format,
+            "dcc_version": "NA",
+        }
+        self._versions.append(version)
+        self.edit_property("versions", self._versions)
+        self.apply_settings(force=True)
+        return version
 
     def new_version(self, file_format=None, notes="", ignore_checks=True):
         """Create a new version of the work.
@@ -461,7 +514,12 @@ class Work(Settings, Entity):
         purgatory_scene_dir = Path(self.get_purgatory_project_path())
         purgatory_scene_dir.mkdir(parents=True, exist_ok=True)
 
-        shutil.move(self.get_abs_project_path(self.name), self.get_purgatory_project_path(self.name), copy_function=shutil.copytree)
+        purgatory_path = self.get_purgatory_project_path(self.name)
+        # if the purgatory path exists, delete it first
+        if Path(purgatory_path).exists():
+            shutil.rmtree(purgatory_path)
+        shutil.move(self.get_abs_project_path(self.name), purgatory_path,
+                    copy_function=shutil.copytree)
 
         thumbnails_dir = Path(self.get_abs_database_path("thumbnails"))
         # collect all thumbnails starting with the work name
@@ -508,15 +566,17 @@ class Work(Settings, Entity):
         version_obj = self.get_version(version_number)
         if version_obj:
             relative_path = version_obj.get("scene_path")
-            abs_path = version_obj.get_abs_project_path(relative_path)
-            dest_path = version_obj.get_purgatory_project_path(relative_path)
-            shutil.move(abs_path, dest_path, copy_function=shutil.copytree)
+            abs_path = self.get_abs_project_path(relative_path)
+            dest_path = self.get_purgatory_project_path(relative_path)
+            # shutil.move(abs_path, dest_path, copy_function=shutil.copytree)
+            Path(dest_path).parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(abs_path, dest_path)
 
             # move the thumbnail
             thumbnail_relative_path = version_obj.get("thumbnail", None)
             if thumbnail_relative_path:
-                thumbnail_abs_path = version_obj.get_abs_database_path(thumbnail_relative_path)
-                thumbnail_dest_path = version_obj.get_purgatory_database_path(thumbnail_relative_path)
+                thumbnail_abs_path = self.get_abs_database_path(thumbnail_relative_path)
+                thumbnail_dest_path = self.get_purgatory_database_path(thumbnail_relative_path)
                 Path(thumbnail_dest_path).parent.mkdir(parents=True, exist_ok=True)
                 shutil.move(thumbnail_abs_path, thumbnail_dest_path, copy_function=shutil.copytree)
 

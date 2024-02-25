@@ -2,17 +2,6 @@ import os
 
 NAME = os.getenv("TIK_DCC").lower()
 
-dcc_dict = {
-    "maya": "Maya",
-    "3dsmax": "3ds Max",
-    "houdini": "Houdini",
-    "nuke": "Nuke",
-    "katana": "Katana",
-    "blender": "Blender",
-    "standalone": "Standalone",
-    "photoshop": "Photoshop",
-}
-
 if NAME == "3dsmax":
     from tik_manager4.dcc.max.main import Dcc
 elif NAME == "blender":

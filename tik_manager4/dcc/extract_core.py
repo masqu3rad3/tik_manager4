@@ -12,7 +12,6 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class ExtractCore:
     """Core class for extracting elements from the scene."""
-
     nice_name: str = ""
     color: tuple = (255, 255, 255)  # RGB
     exposed_settings: dict = {}
@@ -154,7 +153,7 @@ class ExtractCore:
     def resolve_output(self):
         """Resolve the output path."""
         if self.bundled:
-            output_path = Path(self.extract_folder) / self._extract_name
+            output_path = Path(self.extract_folder) / f"{self.name.upper()}_{self._extract_name}"
         else:
-            output_path = Path(self.extract_folder) / f"{self._extract_name}{self.extension}"
+            output_path = Path(self.extract_folder) / f"{self.name.upper()}_{self._extract_name}{self.extension}"
         return str(output_path)

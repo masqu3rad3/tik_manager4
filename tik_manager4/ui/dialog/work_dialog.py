@@ -1,12 +1,29 @@
 """Dialogs for creating work files and versions of them."""
+from pathlib import Path
+import dataclasses
 
 from tik_manager4.core.settings import Settings
 from tik_manager4.ui.Qt import QtWidgets, QtCore
+from tik_manager4.ui.dialog.data_containers import MainLayout
 from tik_manager4.ui.widgets.common import HeaderLabel, ResolvedText
 from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4.ui.layouts.settings_layout
 from tik_manager4.ui.widgets.common import TikButtonBox
 
+@dataclasses.dataclass
+class WidgetsData:
+    """Data for the widgets"""
+    header_lbl: QtWidgets.QLabel = None
+    resolved_path_lbl: ResolvedText = None
+    resolved_name_lbl: ResolvedText = None
+    name_le: QtWidgets.QLineEdit = None
+    subproject_widget: QtWidgets.QWidget = None
+    tasks_combo: QtWidgets.QComboBox = None
+    categories_combo: QtWidgets.QComboBox = None
+    notes_lbl: QtWidgets.QLabel = None
+    notes_te: QtWidgets.QPlainTextEdit = None
+    create_btn: QtWidgets.QPushButton = None
+    cancel_btn: QtWidgets.QPushButton = None
 
 class NewWorkDialog(QtWidgets.QDialog):
     """Dialog for creating new work files."""
@@ -14,15 +31,15 @@ class NewWorkDialog(QtWidgets.QDialog):
         self,
         main_object,
         subproject=None,
-        task=None,
-        category=None,
+        task_object=None,
+        category_object=None,
         subproject_id=None,
         task_id=None,
         category_index=None,
         *args,
         **kwargs,
     ):
-        super(NewWorkDialog, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.feedback = Feedback(parent=self)
         self.main_object = main_object
@@ -30,117 +47,109 @@ class NewWorkDialog(QtWidgets.QDialog):
 
         # variables
         self.subproject = subproject
-        self.task = task
-        self.category = category
+        self.task = task_object
+        self.category = category_object
 
-        self.header_layout = None
-        self.left_layout = None
-        self.right_layout = None
-        self.buttons_layout = None
-
-        self.resolved_path_lbl = None
-        self.resolved_name_lbl = None
+        # layouts
+        self.layouts = MainLayout()
+        self.widgets = WidgetsData()
 
         # if no objects are given, try to resolve them from the given data
-        if not any([subproject, task, category]):
+        if not any([subproject, task_object, category_object]):
             self.resolve_objects(subproject_id, task_id, category_index)
 
         self.category_index = category_index or self.main_object.user.last_category
 
         # create the main layout
-        self.master_layout = QtWidgets.QVBoxLayout()
-        self.setLayout(self.master_layout)
 
         self.build_layouts()
 
         self.primary_definition = self.define_primary_ui()
         self.primary_data = Settings()
+        self.primary_content = None
 
         self.build_ui()
 
         self.update_labels(True)
 
-        # self.resize(600, 350)
         # focus on notes widget
-        self.notes_te.setFocus()
+        self.widgets.notes_te.setFocus()
 
     def build_layouts(self):
         """Create the layouts and split the UI into left and right."""
-        self.header_layout = QtWidgets.QVBoxLayout()
-        self.master_layout.addLayout(self.header_layout)
+        self.layouts.master_layout = QtWidgets.QVBoxLayout()
+        self.setLayout(self.layouts.master_layout)
+        self.layouts.header_layout = QtWidgets.QVBoxLayout()
+        self.layouts.master_layout.addLayout(self.layouts.header_layout)
 
-        splitter = QtWidgets.QSplitter(self)
-        splitter.setHandleWidth(10)
-        splitter.setCollapsible(0, False)
-        splitter.setCollapsible(1, False)
+        self.layouts.splitter = QtWidgets.QSplitter(self)
+        self.layouts.splitter.setHandleWidth(10)
+        self.layouts.splitter.setCollapsible(0, False)
+        self.layouts.splitter.setCollapsible(1, False)
 
-        self.master_layout.addWidget(splitter)
-        splitter.setFrameShape(QtWidgets.QFrame.NoFrame)
-        splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.layouts.master_layout.addWidget(self.layouts.splitter)
+        self.layouts.splitter.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.layouts.splitter.setOrientation(QtCore.Qt.Horizontal)
 
         # left widget and layout
-        left_widget = QtWidgets.QWidget(splitter)
-        self.left_layout = QtWidgets.QVBoxLayout(left_widget)
-        self.left_layout.setContentsMargins(10, 2, 2, 10)
+        left_widget = QtWidgets.QWidget(self.layouts.splitter)
+        self.layouts.left_layout = QtWidgets.QVBoxLayout(left_widget)
+        self.layouts.left_layout.setContentsMargins(10, 2, 2, 10)
 
         # right widget and layout
-        right_widget = QtWidgets.QWidget(splitter)
-        self.right_layout = QtWidgets.QVBoxLayout(right_widget)
-        self.right_layout.setContentsMargins(10, 2, 2, 10)
+        right_widget = QtWidgets.QWidget(self.layouts.splitter)
+        self.layouts.right_layout = QtWidgets.QVBoxLayout(right_widget)
+        self.layouts.right_layout.setContentsMargins(10, 2, 2, 10)
 
-        self.buttons_layout = QtWidgets.QHBoxLayout()
-        self.master_layout.addLayout(self.buttons_layout)
+        self.layouts.buttons_layout = QtWidgets.QHBoxLayout()
+        self.layouts.master_layout.addLayout(self.layouts.buttons_layout)
 
     def build_ui(self):
         """Build the UI elements"""
 
-        header = HeaderLabel("New Work")
-        header.set_color("orange")
-        self.header_layout.addWidget(header)
-        self.resolved_path_lbl = ResolvedText("" * 30)
-        self.resolved_path_lbl.set_color("gray")
-        self.header_layout.addWidget(self.resolved_path_lbl)
-        self.resolved_name_lbl = ResolvedText("")
-        self.resolved_name_lbl.set_color("#FF8D1C")
-        self.header_layout.addWidget(self.resolved_name_lbl)
+        self.widgets.header_lbl = HeaderLabel("New Work")
+        self.widgets.header_lbl.set_color("orange")
+        self.layouts.header_layout.addWidget(self.widgets.header_lbl)
+        self.widgets.resolved_path_lbl = ResolvedText("" * 30)
+        self.widgets.resolved_path_lbl.set_color("gray")
+        self.layouts.header_layout.addWidget(self.widgets.resolved_path_lbl)
+        self.widgets.resolved_name_lbl = ResolvedText("")
+        self.widgets.resolved_name_lbl.set_color("#FF8D1C")
+        self.layouts.header_layout.addWidget(self.widgets.resolved_name_lbl)
 
         self.primary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
             self.primary_definition, self.primary_data, parent=self
         )
-        self.left_layout.addLayout(self.primary_content)
-
-        self.name_line_edit = self.primary_content.find("name")
-
-        _browse_subproject_widget = self.primary_content.find("subproject")
-
-        self.tasks_combo = self.primary_content.find("task")
-
-        self.categories_combo = self.primary_content.find("category")
-
-        _file_format = self.primary_content.find("file_format")
+        self.layouts.left_layout.addLayout(self.primary_content)
+        self.widgets.name_le = self.primary_content.find("name")
+        self.widgets.subproject_widget = self.primary_content.find("subproject")
+        self.widgets.tasks_combo = self.primary_content.find("task")
+        self.widgets.categories_combo = self.primary_content.find("category")
+        file_format_combo = self.primary_content.find("file_format")
 
         # create a notes widget for the right side
-        notes_lbl = QtWidgets.QLabel(text="Notes:")
-        self.notes_te = QtWidgets.QPlainTextEdit()
+        self.widgets.notes_lbl = QtWidgets.QLabel(text="Notes:")
+        self.widgets.notes_te = QtWidgets.QPlainTextEdit()
 
-        self.right_layout.addWidget(notes_lbl)
-        self.right_layout.addWidget(self.notes_te)
+        self.layouts.right_layout.addWidget(self.widgets.notes_lbl)
+        self.layouts.right_layout.addWidget(self.widgets.notes_te)
 
         # create a the TikButtonBox
         button_box = TikButtonBox(parent=self)
-        create_work_btn = button_box.addButton(
+        self.widgets.create_btn = button_box.addButton(
             "Create Work", QtWidgets.QDialogButtonBox.AcceptRole
         )
-        _ = button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
-        self.buttons_layout.addWidget(button_box)
+        self.widgets.cancel_btn = button_box.addButton("Cancel",
+                                                       QtWidgets.QDialogButtonBox.RejectRole)
+        self.layouts.buttons_layout.addWidget(button_box)
 
-        _browse_subproject_widget.sub.connect(self.refresh_subproject)
-        self.tasks_combo.currentTextChanged.connect(self.set_task)
-        self.categories_combo.currentTextChanged.connect(self.set_category)
-        self.name_line_edit.validation_changed.connect(self.update_labels)
-        _file_format.currentTextChanged.connect(self.update_labels)
+        self.widgets.subproject_widget.sub.connect(self.refresh_subproject)
+        self.widgets.tasks_combo.currentTextChanged.connect(self.set_task)
+        self.widgets.categories_combo.currentTextChanged.connect(self.set_category)
+        self.widgets.name_le.validation_changed.connect(self.update_labels)
+        file_format_combo.currentTextChanged.connect(self.update_labels)
 
-        self.name_line_edit.add_connected_widget(create_work_btn)
+        self.widgets.name_le.add_connected_widget(self.widgets.create_btn)
 
         button_box.accepted.connect(self.on_create_work)
         button_box.rejected.connect(self.reject)
@@ -149,23 +158,23 @@ class NewWorkDialog(QtWidgets.QDialog):
         """Update the path and name labels."""
         _name = self.primary_content.settings_data.get_property("name")
         if not _name:
-            self.resolved_name_lbl.setText("No Name Entered")
+            self.widgets.resolved_name_lbl.setText("No Name Entered")
             # return
         elif not validation_status:
-            self.resolved_name_lbl.setText("Invalid name")
+            self.widgets.resolved_name_lbl.setText("Invalid name")
             # return
         else:
             _file_format = self.primary_content.settings_data.get_property(
                 "file_format"
             )
             constructed_name = f"{self.category.construct_name(_name)}{_file_format}"
-            self.resolved_name_lbl.setText(constructed_name)
+            self.widgets.resolved_name_lbl.setText(constructed_name)
 
         if not self.category:
-            self.resolved_path_lbl.setText("Path cannot be resolved")
+            self.widgets.resolved_path_lbl.setText("Path cannot be resolved")
         else:
             constructed_path = self.category.get_relative_work_path()
-            self.resolved_path_lbl.setText(constructed_path)
+            self.widgets.resolved_path_lbl.setText(constructed_path)
 
     def resolve_objects(self, subproject_id=None, task_id=None, category_index=None):
         """Try to resolve the objects from the given data or last state."""
@@ -238,8 +247,8 @@ class NewWorkDialog(QtWidgets.QDialog):
     def refresh_subproject(self, subproject):
         """Refresh the subproject and below."""
         self.subproject = subproject
-        self.tasks_combo.clear()
-        self.categories_combo.clear()
+        self.widgets.tasks_combo.clear()
+        self.widgets.categories_combo.clear()
         tasks = subproject.scan_tasks()
 
         if tasks:
@@ -252,7 +261,7 @@ class NewWorkDialog(QtWidgets.QDialog):
         self.primary_content.settings_data.set_data(
             {"name": _name, "file_format": _file_format}
         )
-        self.update_labels()
+        self.update_labels(True)
 
     def refresh_tasks(self, tasks):
         """Refresh the task and below."""
@@ -289,7 +298,7 @@ class NewWorkDialog(QtWidgets.QDialog):
             return
         self.task = self.subproject.tasks[task_name]
         self.refresh_categories(self.task.categories)
-        self.update_labels()
+        self.update_labels(True)
         return self.task
 
     def set_category(self, category_name):
@@ -297,14 +306,14 @@ class NewWorkDialog(QtWidgets.QDialog):
         if not category_name:
             return
         self.category = self.task.categories[category_name]
-        self.update_labels()
+        self.update_labels(True)
         return self.category
 
     def on_create_work(self):
         """Create the work file."""
         name = self.primary_data.get_property("name")
         file_format = self.primary_data.get_property("file_format")
-        notes = self.notes_te.toPlainText()
+        notes = self.widgets.notes_te.toPlainText()
 
         self.category.create_work(name, file_format=file_format, notes=notes)
         self.accept()
@@ -421,6 +430,66 @@ class NewVersionDialog(QtWidgets.QDialog):
             _thumbnail_name,
         ) = self.work_object.construct_names(file_format)
         self.name_label.setText(version_name)
+
+
+class SaveAnyFileDialog(NewWorkDialog):
+    """Dialog to save any file or folder to the tik manager 4 project."""
+    def __init__(self, main_object, file_or_folder_path=None, *args, **kwargs):
+        self._file_or_folder_path = file_or_folder_path
+        super().__init__(main_object, *args, **kwargs)
+
+        if not file_or_folder_path:
+            raise ValueError("file_or_folder_path is not given.")
+
+        self.setWindowTitle("Save Any File or Folder")
+        self.widgets.header_lbl.setText("Save Any File or Folder")
+        self.widgets.header_lbl.set_color("magenta")
+
+
+        self.file_or_folder_path_lbl = ResolvedText(f"Saving: {file_or_folder_path}")
+        self.file_or_folder_path_lbl.set_color("magenta")
+        self.layouts.header_layout.insertWidget(1, self.file_or_folder_path_lbl)
+
+        # find the file_format widget and its label and hide them
+        self.file_format_widget = self.primary_content.find("file_format")
+        self.file_format_widget.hide()
+        self.file_format_widget.label.hide()
+
+        self.resize(500,300)
+        self.layouts.splitter.setSizes([200, 150])
+
+
+    def on_create_work(self):
+        """Create the work file."""
+        name = self.primary_data.get_property("name")
+        notes = self.widgets.notes_te.toPlainText()
+        #
+        self.category.create_work_from_path(name, self._file_or_folder_path, ignore_checks=True, notes=notes)
+        self.accept()
+
+    def define_primary_ui(self):
+        _primary_ui = super().define_primary_ui()
+        # override the format with the defined file paths extension
+        _path_obj = Path(self._file_or_folder_path)
+        stem = _path_obj.stem
+        # replace all non-alphanumeric characters with underscores
+        _name = "".join([x if x.isalnum() else "_" for x in stem])
+        update_dict = {
+            "name": {
+                "display_name": "Name",
+                "type": "validatedString",
+                "value": _name,
+                "tooltip": "Name of the work file",
+            },
+            "file_format": {
+            "display_name": "File Format",
+            "type": "combo",
+            "items": [_path_obj.suffix],
+            "value": _path_obj.suffix,
+            }
+        }
+        _primary_ui.update(update_dict)
+        return _primary_ui
 
 
 # test this dialog
