@@ -44,10 +44,11 @@ import tik_manager4._version as version
 import tik_manager4
 
 LOG = logging.getLogger(__name__)
-WINDOW_NAME = "Tik Manager {}".format(version.__version__)
+WINDOW_NAME = f"Tik Manager {version.__version__}"
 
 
 def launch(dcc="Standalone", dont_show=False):
+    """Launch the main UI."""
     window_name = f"Tik Manager {version.__version__} - {dcc}"
     all_widgets = QtWidgets.QApplication.allWidgets()
     tik = tik_manager4.initialize(dcc)
@@ -66,7 +67,9 @@ def launch(dcc="Standalone", dont_show=False):
 
 
 class MainUI(QtWidgets.QMainWindow):
+    """Main UI for Tik Manager 4."""
     def __init__(self, main_object, window_name=WINDOW_NAME, **kwargs):
+        """Initialize the main UI."""
         super(MainUI, self).__init__(**kwargs)
         self.tik = main_object
 
