@@ -1,4 +1,5 @@
 import os
+from importlib import reload
 
 NAME = os.getenv("TIK_DCC").lower()
 
@@ -18,5 +19,7 @@ elif NAME == "photoshop":
     from tik_manager4.dcc.photoshop.main import Dcc
 elif NAME == "standalone":
     from tik_manager4.dcc.standalone.main import Dcc
+elif NAME == "trigger":
+    from tik_manager4.dcc.trigger.main import Dcc
 else:
     raise ValueError(f"Environment variable 'TIK_DCC' value ({NAME} is not matching any defined DCCs.")

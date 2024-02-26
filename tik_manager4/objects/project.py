@@ -1,10 +1,11 @@
 from pathlib import Path
-from tik_manager4 import dcc
+# from tik_manager4 import dcc
 from tik_manager4.objects.publisher import Publisher, SnapshotPublisher
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.subproject import Subproject
 from tik_manager4.objects.work import Work
+
 
 class Project(Subproject):
     log = filelog.Filelog(logname=__name__, filename="tik_manager4")
@@ -66,7 +67,9 @@ class Project(Subproject):
         _database_path_obj = _absolute_path_obj / "tikDatabase"
         _database_path_obj.mkdir(parents=True, exist_ok=True)
         self._database_path = str(_database_path_obj)
-        self.structure.settings_file = str(_database_path_obj / "project_structure.json")
+        self.structure.settings_file = str(
+            _database_path_obj / "project_structure.json"
+        )
         # self.structure = Settings(file_path=str(_database_path_obj / "project_structure.json"))
         self.set_sub_tree(self.structure.properties)
         self.guard.set_project_root(self.absolute_path)
@@ -76,16 +79,26 @@ class Project(Subproject):
         self.settings.set_fallback(self.guard.commons.project_settings.settings_file)
         self.guard.set_project_settings(self.settings)
         # get preview settings
-        self.preview_settings.settings_file = str(_database_path_obj / "preview_settings.json")
-        self.preview_settings.set_fallback(self.guard.commons.preview_settings.settings_file)
+        self.preview_settings.settings_file = str(
+            _database_path_obj / "preview_settings.json"
+        )
+        self.preview_settings.set_fallback(
+            self.guard.commons.preview_settings.settings_file
+        )
         self.guard.set_preview_settings(self.preview_settings)
 
         # get category definitions
-        self.category_definitions.settings_file = str(_database_path_obj / "category_definitions.json")
-        self.category_definitions.set_fallback(self.guard.commons.category_definitions.settings_file)
+        self.category_definitions.settings_file = str(
+            _database_path_obj / "category_definitions.json"
+        )
+        self.category_definitions.set_fallback(
+            self.guard.commons.category_definitions.settings_file
+        )
         self.guard.set_category_definitions(self.category_definitions)
 
-        self.metadata_definitions.settings_file = str(_database_path_obj / "project_metadata.json")
+        self.metadata_definitions.settings_file = str(
+            _database_path_obj / "project_metadata.json"
+        )
         self.metadata_definitions.set_fallback(
             self.guard.commons.metadata.settings_file
         )
@@ -201,7 +214,6 @@ class Project(Subproject):
 
         Returns: Tuple(<work object>, <version number>)
         """
-
         _file_path_obj = Path(file_path)
         work_path = _file_path_obj.parent
         # get the base name with extension
@@ -227,10 +239,10 @@ class Project(Subproject):
 
         Returns: Tuple(<work object>, <version number>)
         """
-        dcc_handler = dcc.Dcc()
+        # dcc_handler = dcc.Dcc()
+        dcc_handler = self.guard.dcc_handler
         current_scene_path = dcc_handler.get_scene_file()
 
         if not current_scene_path:
             return None, None
         return self.find_work_by_absolute_path(current_scene_path)
-

@@ -165,17 +165,21 @@ class TikButton(QtWidgets.QPushButton, StyleEditor):
 class TikIconButton(TikButton):
     """Button specific for fixed sized icons."""
 
-    def __init__(self, icon_name=None, circle=True, size=22, **kwargs):
+    def __init__(self, icon_name=None, circle=True, size=22, icon_size=None, **kwargs):
         super().__init__(**kwargs)
         self.radius = int(size * 0.5)
         self.circle = circle
         self.set_size(size)
+        self._icon_size = icon_size
 
         if icon_name:
             self.set_icon(icon_name)
 
     def set_icon(self, icon_name):
         self.setIcon(pick.icon(icon_name))
+        #double the size of the icon
+        if self._icon_size:
+            self.setIconSize(QtCore.QSize(self._icon_size, self._icon_size))
 
     def set_size(self, size):
         self.setFixedSize(size, size)
@@ -268,6 +272,9 @@ class TikLabel(QtWidgets.QLabel, StyleEditor):
         }}"""
 
         self._append_style(color_style)
+
+    def set_text(self, text):
+        self.setText(text)
 
 
 class TikLabelButton(TikButton):

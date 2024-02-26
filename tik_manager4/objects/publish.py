@@ -8,7 +8,7 @@ from tik_manager4.core.settings import Settings
 from tik_manager4.objects.entity import Entity
 from tik_manager4.core import filelog
 
-from tik_manager4 import dcc
+# from tik_manager4 import dcc
 
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
@@ -16,10 +16,11 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class Publish(Entity):
     object_type = "publish"
-    try:
-        _dcc_handler = dcc.Dcc()
-    except:
-        _dcc_handler = None
+    # try:
+    #     # _dcc_handler = dcc.Dcc()
+    #     _dcc_handler = dcc.get_dcc_class()
+    # except:
+    #     _dcc_handler = None
     """Class to represent a publish.
 
     This class is not represented by a file. Publish-PublishVersion relationship
@@ -30,6 +31,7 @@ class Publish(Entity):
     def __init__(self, work_object):
         """Initialize the publish object."""
         super(Publish, self).__init__()
+        self._dcc_handler = work_object.guard.dcc_handler
         self.work_object = work_object
 
         self._publish_versions = {}
@@ -260,12 +262,14 @@ class Publish(Entity):
 
 class PublishVersion(Settings, Entity):
     """PublishVersion object class."""
-    _dcc_handler = dcc.Dcc()
+    # _dcc_handler = dcc.Dcc()
+    # _dcc_handler = dcc.get_dcc_class()
 
 
     def __init__(self, absolute_path, name=None, path=None):
         """Initialize the publish version object."""
         super(PublishVersion, self).__init__()
+        self._dcc_handler = self.guard.dcc_handler
         self.settings_file = absolute_path
 
         self._name = name

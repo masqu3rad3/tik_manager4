@@ -1,6 +1,6 @@
 """Global object that holds the state of the application."""
 
-class Guard(object):
+class Guard():
     _user = None
     _permission_level = 0
     _authenticated = False
@@ -17,6 +17,7 @@ class Guard(object):
     project_settings = None
     preview_settings = None
     commons = None
+    _dcc_handler = None
 
     @classmethod
     def set_commons(cls, commons):
@@ -40,6 +41,14 @@ class Guard(object):
     @property
     def dcc(self):
         return self._dcc
+
+    @property
+    def dcc_handler(self):
+        return self._dcc_handler
+
+    @classmethod
+    def set_dcc_handler(cls, handler):
+        cls._dcc_handler = handler
 
     @classmethod
     def set_user(cls, user):
