@@ -32,7 +32,7 @@ from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
 from tik_manager4.ui.mcv.task_mcv import TikTaskLayout
 from tik_manager4.ui.mcv.category_mcv import TikCategoryLayout
 from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
-from tik_manager4.ui.dialog.project_dialog import NewProjectDialog, SetProjectDialog
+from tik_manager4.ui.dialog.project_dialog import NewProjectDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
 from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog, SaveAnyFileDialog
 from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
@@ -236,7 +236,8 @@ class MainUI(QtWidgets.QMainWindow):
 
     def initialize_mcv(self):
         """Initialize the model-control-views."""
-        self.project_mcv = TikProjectLayout(self.tik.project)
+        # self.project_mcv = TikProjectLayout(self.tik.project)
+        self.project_mcv = TikProjectLayout(self.tik)
         self.project_layout.addLayout(self.project_mcv)
 
         self.user_mcv = TikUserLayout(self.tik.user)
@@ -259,8 +260,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.versions_mcv = TikVersionLayout(self.tik.project, parent=self)
         self.version_layout.addLayout(self.versions_mcv)
 
-        self.project_mcv.set_project_btn.clicked.connect(self.on_set_project)
-        self.project_mcv.recent_projects_btn.clicked.connect(self.on_recent_projects)
+        self.project_mcv.project_set.connect(self.on_set_project)
         self.subprojects_mcv.sub_view.item_selected.connect(
             self.tasks_mcv.task_view.set_tasks
         )
@@ -287,7 +287,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def set_last_state(self):
         """Set the last selections for the user"""
-        self.tik.user.last_project = self.tik.project.name
+        # self.tik.user.last_project = self.tik.project.name
         # get the currently selected subproject
         _subproject_item = self.subprojects_mcv.sub_view.get_selected_items()
         if _subproject_item:
@@ -460,7 +460,7 @@ class MainUI(QtWidgets.QMainWindow):
         new_user.triggered.connect(self.on_add_new_user)
         user_login.triggered.connect(self.on_login)
         settings_item.triggered.connect(self.on_settings)
-        set_project.triggered.connect(self.on_set_project)
+        set_project.triggered.connect(self.project_mcv.set_project)
         exit_action.triggered.connect(self.close)
 
         save_new_work.triggered.connect(self.on_new_work)
@@ -739,18 +739,23 @@ class MainUI(QtWidgets.QMainWindow):
         """Refresh the versions' ui."""
         self.versions_mcv.refresh()
 
-    def on_recent_projects(self):
-        dialog = SetProjectDialog(self.tik, parent=self)
-        if dialog.recents_pop_menu():
-            self.refresh_project()
+    # def on_recent_projects(self):
+    #     dialog = SetProjectDialog(self.tik, parent=self)
+    #     if dialog.recents_pop_menu():
+    #         self.refresh_project()
 
-    def on_set_project(self):
-        """Launch the set project dialog."""
-        dialog = SetProjectDialog(self.tik, parent=self)
-        if dialog.exec_():
-            self.tik.project = dialog.main_object
-            self.status_bar.showMessage("Set project successfully")
-        self.refresh_project()
+    def on_set_project(self, message=""):
+        """Show a status message."""
+        self.status_bar.showMessage(message, 3000)
+        self.refresh_subprojects()
+
+    # def on_set_project(self):
+    #     """Launch the set project dialog."""
+    #     dialog = SetProjectDialog(self.tik, parent=self)
+    #     if dialog.exec_():
+    #         self.tik.project = dialog.main_object
+    #         self.status_bar.showMessage("Set project successfully")
+    #     self.refresh_project()
 
     def on_create_new_project(self):
         """Create a new project."""

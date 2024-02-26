@@ -8,18 +8,20 @@ from tik_manager4.core import filelog
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
-from tik_manager4 import dcc
+# from tik_manager4 import dcc
 from tik_manager4.dcc.standalone import main as standalone
 from tik_manager4.objects.publish import PublishVersion
-from tik_manager4.ui import pick
-
+# from tik_manager4.ui import pick
+from tik_manager4.objects.guard import Guard
 
 class Publisher:
     """Publisher class to handle the publish process."""
-    _dcc_handler = dcc.Dcc()
+    # _dcc_handler = dcc.Dcc()
+    guard = Guard()
 
     def __init__(self, project_object):
         """Initialize the Publisher object."""
+        self._dcc_handler = self.guard.dcc_handler
         self._project_object = project_object
         self._work_object = None
         self._work_version = None
@@ -153,6 +155,7 @@ class Publisher:
 
         self._published_object.apply_settings()  # make sure the file is created
         self._published_object.init_properties()  # make sure the properties are initialized
+        self._published_object._dcc_handler.pre_publish()
         # add the publish to the work object
         # self._work_object
 
@@ -240,6 +243,7 @@ class Publisher:
         # )
 
         self._published_object.apply_settings(force=True)
+        self._published_object._dcc_handler.post_publish()
         return self._published_object
 
     def _generate_thumbnail(self):
@@ -329,7 +333,11 @@ class SnapshotPublisher(Publisher):
 
     Handles automatically creating a new work version if the current work is not there.
     """
-    _dcc_handler = standalone.Dcc()
+    # _dcc_handler = standalone.Dcc()
+    def __init__(self, *args):
+        """Initialize the SnapshotPublisher object."""
+        super(SnapshotPublisher, self).__init__(args)
+        self.__dcc_handler = standalone.Dcc()
 
     @property
     def work_object(self):

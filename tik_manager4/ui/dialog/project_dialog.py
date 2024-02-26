@@ -164,7 +164,8 @@ class SetProjectDialog(QtWidgets.QDialog):
             )
             return
         self.main_object.set_project(project_to_set)
-        self.close()
+        self.accept()
+        # self.close()
 
     def on_add_bookmark(self):
         """Called when the add bookmark button is clicked."""

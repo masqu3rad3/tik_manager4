@@ -5,6 +5,11 @@ import sys
 from tik_manager4.core import filelog, settings, utils
 from tik_manager4.objects import user, project
 from tik_manager4 import dcc
+# the reload is necessary to make sure the dcc is reloaded
+# this makes sure when different dcc's are used in the same python session
+# for example, Maya and trigger.
+from importlib import reload
+reload(dcc)
 from tik_manager4.ui.Qt import (
     QtWidgets,
 )  # Only for browsing if the common folder is not defined
@@ -15,9 +20,9 @@ if __name__ == "__main__":
 
 class Main():
     """Main Tik Manager class. Handles User and Project related functions."""
-
     # set the dcc to the guard object
     dcc = dcc.Dcc()
+    # dcc = dcc.get_dcc_class()
     log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
@@ -28,6 +33,7 @@ class Main():
         self.user = user.User(common_directory=common_folder)
         self.project = project.Project()
         self.project.guard.set_dcc(dcc.NAME)
+        self.project.guard.set_dcc_handler(self.dcc)
         self.project.guard.set_commons(self.user.commons)
 
         default_project = Path(utils.get_home_dir(), "TM4_default")
