@@ -2,6 +2,8 @@
 
 import logging
 
+import trigger.version_control.api as trigger
+
 from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.dcc.trigger import validate
 from tik_manager4.dcc.trigger import extract
@@ -18,66 +20,43 @@ class Dcc(MainCore):
     extracts = extract.classes
     ingests = ingest.classes
 
-    trigger_main_window = None
+    trigger_api = trigger.ApiHandler()
 
     def post_save(self):
         """Post save."""
-        if not self.trigger_main_window:
-            raise RuntimeError("Trigger main window is not defined.")
-        self.trigger_main_window.vcs.update_info()
+        self.trigger_api.main_ui.vcs.update_info()
 
     def post_publish(self):
         """Post publish."""
-        if not self.trigger_main_window:
-            raise RuntimeError("Trigger main window is not defined.")
-        self.trigger_main_window.vcs.update_info()
+        self.trigger_api.main_ui.vcs.update_info()
 
     def save_scene(self):
         """Saves the current session."""
-        if not self.trigger_main_window:
-            raise RuntimeError("Trigger main window is not defined.")
-        self.trigger_main_window.save_trigger()
+        self.trigger_api.save_session()
 
     def save_as(self,file_path):
         """Saves the current scene to the given file path."""
-        if not self.trigger_main_window:
-            raise RuntimeError("Trigger main window is not defined.")
-
-        self.trigger_main_window.vcs_save_session(file_path)
+        self.trigger_api.save_session_as(file_path)
         return file_path
 
     def save_prompt(self):
         """Pop up the save prompt."""
-        if not self.trigger_main_window:
-            raise RuntimeError("Trigger main window is not defined.")
-        self.trigger_main_window.save_trigger()
+        self.trigger_api.save_session()
         return True # this is important or else will be an indefinite loop
 
     def open(self, file_path, force=True):
         """Open the given file path."""
-        if not self.trigger_main_window:
-            raise RuntimeError("Trigger main window is not defined.")
-        self.trigger_main_window.open_trigger(file_path, force=force)
+        self.trigger_api.open_session(file_path)
 
     def is_modified(self):
         """Returns True if the scene has unsaved changes"""
-        if not self.trigger_main_window:
-            raise RuntimeError("Trigger main window is not defined.")
-        self.trigger_main_window.actions_handler.is_modified()
+        self.trigger_api.is_modified()
 
     def get_scene_file(self):
         """Get the current trigger session."""
-        if not self.trigger_main_window:
-            raise RuntimeError("Trigger main window is not defined.")
-        return self.trigger_main_window.actions_handler.session_path
+        return self.trigger_api.get_session_file()
 
     def get_dcc_version(self):
         """Return the version of the DCC."""
-        if not self.trigger_main_window:
-            raise RuntimeError("Trigger main window is not defined.")
-        return self.trigger_main_window.get_version()
+        return self.trigger_api.get_trigger_version()
 
-    @classmethod
-    def set_trigger_main_window(cls, trigger_main_window):
-        """Set the trigger main window."""
-        cls.trigger_main_window = trigger_main_window
