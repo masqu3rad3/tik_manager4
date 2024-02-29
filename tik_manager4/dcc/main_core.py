@@ -4,6 +4,7 @@ These commands will be overriden in DCCs.
 
 class MainCore():
     name = ""
+    formats = []
     preview_enabled = True
     validations = {}
     extracts = {}

@@ -95,9 +95,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.reference_btn.setEnabled(False)
 
         # SIGNALS
-        # self.element_combo.currentIndexChanged.connect(
-        #     lambda x: self.button_states(self.base)
-        # )
         self.element_combo.currentTextChanged.connect(self.element_type_changed)
         self.version_combo.currentIndexChanged.connect(self.version_changed)
         self.import_btn.clicked.connect(self.on_import)
@@ -125,6 +122,17 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
     def _load_pre_checks(self, work_obj):
         """Metadata and scene compare checks before loading."""
+        # there are some conditions we may want to skip the checks
+
+        if self.base.object_type == "publish":
+            element_type = self.get_selected_element_type()
+            ingestor = self.get_selected_ingestor()
+            # only check if both ingest and element types are "source"
+            if all([element_type, ingestor]):
+                if element_type != "source" or ingestor != "source":
+                    return True
+
+
         if work_obj.dcc.lower() != work_obj.guard.dcc.lower():
             self.feedback.pop_info(
                 title="DCC mismatch",
@@ -156,6 +164,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             )
             return
 
+        element_type = self.get_selected_element_type()
+        # ingestor = self.get_selected_ingestor()
+
         if self.base.object_type == "publish":
             work_obj = self.base.work_object
         else:
@@ -163,6 +174,19 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         if not self._load_pre_checks(work_obj):
             return
+
+        # if self.base.object_type == "publish":
+        #     work_obj = self.base.work_object
+        #     # only check if both ingest and element types are "source"
+        #     if not all([element_type, ingestor]):
+        #         self._load_pre_checks(work_obj)
+        #     elif element_type == "source" and ingestor == "source":
+        #         self._load_pre_checks(work_obj)
+        #     else:
+        #         pass
+        # else:
+        #     work_obj = self.base
+        #     self._load_pre_checks(work_obj) # always check work object.
 
         _version = self.get_selected_version()
         # check if the current scene is modified.
@@ -189,17 +213,29 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 self.base._dcc_handler.save_scene()
                 return
 
+        read_only = False
         if self.base.object_type == "publish":
-            _publish_version = self.base.get_version(_version)
-            if "source" not in _publish_version.element_types:
-                msg = "This publish version does not have a source element. Only publish versions with source element can be loaded."
-                self.feedback.pop_info(
-                    title="No source element.",
-                    text=msg,
-                    critical=True,
-                )
-                return
-            else:
+            # _publish_version = self.base.get_version(_version)
+            # if "source" not in _publish_version.element_types:
+            #     msg = "This publish version does not have a source element. Only publish versions with source element can be loaded."
+            #     self.feedback.pop_info(
+            #         title="No source element.",
+            #         text=msg,
+            #         critical=True,
+            #     )
+            #     return
+            # else:
+            #     question = "Publish versions are protected. The file will be loaded and saved as a new WORK version immediately.\n Do you want to continue?"
+            #     state = self.feedback.pop_question(
+            #         title="Load publish version?",
+            #         text=question,
+            #         buttons=["yes", "cancel"],
+            #     )
+            #     if state == "cancel":
+            #         return
+
+
+            if self.base.dcc.lower() == self.base.guard.dcc.lower():
                 question = "Publish versions are protected. The file will be loaded and saved as a new WORK version immediately.\n Do you want to continue?"
                 state = self.feedback.pop_question(
                     title="Load publish version?",
@@ -208,8 +244,19 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 )
                 if state == "cancel":
                     return
+            else:
+                question = f"Publish versions are protected. Do you want to continue with read-only mode?"
+                state = self.feedback.pop_question(
+                    title="Load publish version?",
+                    text=question,
+                    buttons=["yes", "cancel"],
+                )
+                if state == "cancel":
+                    return
+                else:
+                    read_only = True
 
-        self.base.load_version(_version, force=True)
+        self.base.load_version(_version, force=True, element_type=element_type, read_only=read_only)
 
     def on_reference(self):
         """Reference the current version."""
@@ -245,6 +292,15 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         if element_type == "source" or not element_type:
             self.load_btn.setEnabled(base.dcc == base.guard.dcc)
         else:
+            _ingestor = self.get_selected_ingestor()
+            if not _ingestor:
+                self.load_btn.setEnabled(False)
+                return
+            dcc_extensions = base._dcc_handler.formats
+            element_version_extension = self.__get_element_suffix(element_type)
+            if element_version_extension in dcc_extensions:
+                self.load_btn.setEnabled(True)
+                return
             self.load_btn.setEnabled(False)
 
     def __import_and_reference_btn_states(self, base, element_type):
@@ -282,7 +338,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
     def set_base(self, base):
         """Set the base object. This can be work or publish object."""
         self.version_combo.blockSignals(True)
-        # self.button_states(state=bool(base))
         self.button_states(base)
         if not base:
             self.version_combo.clear()
@@ -361,20 +416,27 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.element_combo.blockSignals(False)
         self.ingest_with_combo.blockSignals(False)
 
+    def __get_element_suffix(self, element_type):
+        """Find the extension for the given element type of selected version."""
+        _version_number = self.get_selected_version()
+        _version_object = self.base.get_version(_version_number)
+        return _version_object.get_element_suffix(element_type)
+
     def element_type_changed(self, element_type):
         """Update the rest when element type is changed."""
         self.ingest_with_combo.clear()
         if not element_type:
             return
-        _version_number = self.get_selected_version()
-        _version_object = self.base.get_version(_version_number)
-        is_bundled = _version_object.is_element_bundled(element_type)
-        if is_bundled == False:  # this is for backwards compatibility
-            element_version_extension = Path(
-                _version_object.get_element_path(element_type)
-            ).suffix
-        else:
-            element_version_extension = _version_object.get_element_suffix(element_type)
+        # _version_number = self.get_selected_version()
+        # _version_object = self.base.get_version(_version_number)
+        # is_bundled = _version_object.is_element_bundled(element_type)
+        # if is_bundled == False:  # this is for backwards compatibility
+        #     element_version_extension = Path(
+        #         _version_object.get_element_path(element_type)
+        #     ).suffix
+        # else:
+        #     element_version_extension = _version_object.get_element_suffix(element_type)
+        element_version_extension = self.__get_element_suffix(element_type)
         _available_ingests = self._resolve_available_ingests(element_version_extension)
         # update the ingest with combo
         self.ingest_with_combo.addItems(_available_ingests)
@@ -492,7 +554,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             publish_snapshot_act.triggered.connect(
                 self.publish_snapshot
             )
-            # work_obj = self.base.work_object
 
         right_click_menu.exec_((QtGui.QCursor.pos()))
 
@@ -501,7 +562,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         if not self.base.object_type == "work":
             LOG.warning("Publish snapshot is only available for work objects.")
             return -1
-        # snapshot_publisher = SnapshotPublisher(self.base, self.get_selected_version())
         self.project.snapshot_publisher.work_object = self.base
         self.project.snapshot_publisher.work_version = self.get_selected_version()
         self.project.snapshot_publisher.resolve()
@@ -514,15 +574,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 text=f"Snapshot published.\nName: {published_object.name}\nPath: {published_object.path}",
                 critical=False,
             )
-        # if not self.base:
-        #     self.feedback.pop_info(
-        #         title="No work selected.",
-        #         text="Please select a work to publish a snapshot.",
-        #         critical=True,
-        #     )
-        #     return
-        # _version = self.get_selected_version()
-        # self.base.publish_snapshot(_version)
+
 
 class ImageWidget(QtWidgets.QLabel):
     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
