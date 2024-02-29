@@ -8,19 +8,11 @@ from tik_manager4.core.settings import Settings
 from tik_manager4.objects.entity import Entity
 from tik_manager4.core import filelog
 
-# from tik_manager4 import dcc
-
-
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Publish(Entity):
     object_type = "publish"
-    # try:
-    #     # _dcc_handler = dcc.Dcc()
-    #     _dcc_handler = dcc.get_dcc_class()
-    # except:
-    #     _dcc_handler = None
     """Class to represent a publish.
 
     This class is not represented by a file. Publish-PublishVersion relationship
@@ -138,20 +130,21 @@ class Publish(Entity):
                 return version
         return None
 
-    def load_version(self, version_number, force=False):
+    def load_version(self, version_number, force=False, element_type="source", read_only=False):
         """Load the publish version."""
         # loading published files is not safe, therefore we are loading the file and immediately save it
         # as a new working version.
         version_obj = self.get_version(version_number)
         if version_obj:
-            if "source" in version_obj.element_types:
-                relative_path = version_obj.get_element_path("source")
+            if element_type in version_obj.element_types:
+                relative_path = version_obj.get_element_path(element_type)
                 abs_path = self.get_abs_project_path(relative_path)
                 suffix = Path(abs_path).suffix
                 self._dcc_handler.open(abs_path, force=force)
-                self.work_object.new_version(notes=f"Auto Saved from publish version {version_obj.version}", file_format=suffix)
+                if not read_only:
+                    self.work_object.new_version(notes=f"Auto Saved from publish version {version_obj.version}", file_format=suffix)
             else:
-                raise ValueError("Source element is not found in the publish version.")
+                raise ValueError(f"{element_type} element is not found in the publish version.")
 
     def import_version(self, version_number, element_type=None, ingestor=None):
         """Import the given version of the work to the scene."""
