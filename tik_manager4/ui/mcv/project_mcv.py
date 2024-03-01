@@ -9,8 +9,9 @@ class TikProjectLayout(QtWidgets.QHBoxLayout):
     """Layout for displaying project information"""
     project_set = QtCore.Signal(str)
 
-    def __init__(self, main_object):
+    def __init__(self, main_object, parent=None):
         super().__init__()
+        self.parent = parent
         self.main_object = main_object
 
         _project_lbl = QtWidgets.QLabel()
@@ -49,7 +50,7 @@ class TikProjectLayout(QtWidgets.QHBoxLayout):
         self.project_set.emit(f"{project_name} set successfully.")
     def set_project(self):
         """Set the project"""
-        dialog = SetProjectDialog(self.main_object)
+        dialog = SetProjectDialog(self.main_object, parent=self.parent)
         state = dialog.exec_()
         # state = dialog.show()
         if state:
@@ -60,7 +61,7 @@ class TikProjectLayout(QtWidgets.QHBoxLayout):
 
     def set_recent_project(self):
         """Set the recent project"""
-        dialog = SetProjectDialog(self.main_object)
+        dialog = SetProjectDialog(self.main_object, parent=self.parent)
         if dialog.recents_pop_menu():
             self.__register_project(dialog.main_object.project.name)
         return dialog.main_object.project.name

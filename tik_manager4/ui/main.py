@@ -237,7 +237,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def initialize_mcv(self):
         """Initialize the model-control-views."""
-        self.project_mcv = TikProjectLayout(self.tik)
+        self.project_mcv = TikProjectLayout(self.tik, parent=self)
         self.project_layout.addLayout(self.project_mcv)
 
         self.user_mcv = TikUserLayout(self.tik.user)
