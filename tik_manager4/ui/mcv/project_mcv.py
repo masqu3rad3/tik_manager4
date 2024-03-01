@@ -10,7 +10,7 @@ class TikProjectLayout(QtWidgets.QHBoxLayout):
     project_set = QtCore.Signal(str)
 
     def __init__(self, main_object):
-        super(TikProjectLayout, self).__init__()
+        super().__init__()
         self.main_object = main_object
 
         _project_lbl = QtWidgets.QLabel()

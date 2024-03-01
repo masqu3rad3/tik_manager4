@@ -8,15 +8,12 @@ from tik_manager4.core import filelog
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
-# from tik_manager4 import dcc
 from tik_manager4.dcc.standalone import main as standalone
 from tik_manager4.objects.publish import PublishVersion
-# from tik_manager4.ui import pick
 from tik_manager4.objects.guard import Guard
 
 class Publisher:
     """Publisher class to handle the publish process."""
-    # _dcc_handler = dcc.Dcc()
     guard = Guard()
 
     def __init__(self, project_object):
@@ -156,8 +153,6 @@ class Publisher:
         self._published_object.apply_settings()  # make sure the file is created
         self._published_object.init_properties()  # make sure the properties are initialized
         self._published_object._dcc_handler.pre_publish()
-        # add the publish to the work object
-        # self._work_object
 
     def validate(self):
         """Validate the scene."""
@@ -231,16 +226,6 @@ class Publisher:
         self._published_object.add_property("notes", notes)
 
         self._generate_thumbnail()
-        # # generate the thumbnail
-        # thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.png"
-        # thumbnail_path = self._published_object.get_abs_database_path(
-        #     "thumbnails", thumbnail_name
-        # )
-        # Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
-        # self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
-        # self._published_object.add_property(
-        #     "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
-        # )
 
         self._published_object.apply_settings(force=True)
         self._published_object._dcc_handler.post_publish()
