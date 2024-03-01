@@ -271,11 +271,11 @@ class NewWorkDialog(QtWidgets.QDialog):
         categories = self.task.categories
 
         # block the signals
-        self.tasks_combo.blockSignals(True)
-        self.tasks_combo.clear()
-        self.tasks_combo.addItems(task_names)
-        self.tasks_combo.setCurrentIndex(0)
-        self.tasks_combo.blockSignals(False)
+        self.widgets.tasks_combo.blockSignals(True)
+        self.widgets.tasks_combo.clear()
+        self.widgets.tasks_combo.addItems(task_names)
+        self.widgets.tasks_combo.setCurrentIndex(0)
+        self.widgets.tasks_combo.blockSignals(False)
 
         if categories:
             self.refresh_categories(categories)
@@ -286,11 +286,11 @@ class NewWorkDialog(QtWidgets.QDialog):
         category_names = self.task.get_property("categories")
         self.category = categories[category_names[0]]
         # block the signals
-        self.categories_combo.blockSignals(True)
-        self.categories_combo.clear()
-        self.categories_combo.addItems(category_names)
-        self.categories_combo.setCurrentIndex(0)
-        self.categories_combo.blockSignals(False)
+        self.widgets.categories_combo.blockSignals(True)
+        self.widgets.categories_combo.clear()
+        self.widgets.categories_combo.addItems(category_names)
+        self.widgets.categories_combo.setCurrentIndex(0)
+        self.widgets.categories_combo.blockSignals(False)
 
     def set_task(self, task_name):
         """Set the task from the index."""

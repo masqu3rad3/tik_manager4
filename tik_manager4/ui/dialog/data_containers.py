@@ -16,3 +16,4 @@ class MainLayout:
     left_layout: QtWidgets.QVBoxLayout = None
     right_layout: QtWidgets.QVBoxLayout = None
     buttons_layout: QtWidgets.QHBoxLayout = None
+

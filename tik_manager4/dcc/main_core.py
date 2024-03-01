@@ -4,10 +4,32 @@ These commands will be overriden in DCCs.
 
 class MainCore():
     name = ""
+    formats = []
     preview_enabled = True
     validations = {}
     extracts = {}
     ingests = {}
+
+    @staticmethod
+    def pre_publish():
+        """Actions to be done before publishing."""
+        pass
+
+    @staticmethod
+    def post_publish():
+        """Actions to be done after publishing."""
+        pass
+
+    @staticmethod
+    def pre_save():
+        """Actions to be done before saving."""
+        pass
+
+    @staticmethod
+    def post_save():
+        """Actions to be done after saving."""
+        pass
+
     @staticmethod
     def get_main_window():
         """Returns the main window of the DCC"""
@@ -166,6 +188,6 @@ class MainCore():
     @staticmethod
     def test():
         """Test function"""
-        print("TESTING")
+        pass
 
     # TODO: validation methods for checking the existence and read/write permmisions

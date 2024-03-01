@@ -22,26 +22,25 @@ main.launch(dcc="Maya")
 """
 import logging
 
+import tik_manager4
+import tik_manager4._version as version
 from tik_manager4.core import utils
+from tik_manager4.ui import pick
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
-
+from tik_manager4.ui.dialog.feedback import Feedback
+from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
+from tik_manager4.ui.dialog.project_dialog import NewProjectDialog
 from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
-from tik_manager4.ui.mcv.user_mcv import TikUserLayout
+from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
+from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
+from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog, SaveAnyFileDialog
+from tik_manager4.ui.mcv.category_mcv import TikCategoryLayout
 from tik_manager4.ui.mcv.project_mcv import TikProjectLayout
 from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
 from tik_manager4.ui.mcv.task_mcv import TikTaskLayout
-from tik_manager4.ui.mcv.category_mcv import TikCategoryLayout
+from tik_manager4.ui.mcv.user_mcv import TikUserLayout
 from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
-from tik_manager4.ui.dialog.project_dialog import NewProjectDialog, SetProjectDialog
-from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
-from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog, SaveAnyFileDialog
-from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
-from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
-from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator
-from tik_manager4.ui import pick
-import tik_manager4._version as version
-import tik_manager4
 
 LOG = logging.getLogger(__name__)
 WINDOW_NAME = f"Tik Manager {version.__version__}"
@@ -68,8 +67,10 @@ def launch(dcc="Standalone", dont_show=False):
 
 class MainUI(QtWidgets.QMainWindow):
     """Main UI for Tik Manager 4."""
+
     def __init__(self, main_object, window_name=WINDOW_NAME, **kwargs):
         """Initialize the main UI."""
+        # pylint: disable=too-many-statements
         super(MainUI, self).__init__(**kwargs)
         self.tik = main_object
 
@@ -168,7 +169,7 @@ class MainUI(QtWidgets.QMainWindow):
         # subproject
 
         subproject_id = self.tik.user.last_subproject
-        if subproject_id:
+        if subproject_id:  # pylint: disable=too-many-nested-blocks
             state = self.subprojects_mcv.sub_view.select_by_id(subproject_id)
             if state:
                 # if its successfully set, then select the last selected task
@@ -236,7 +237,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def initialize_mcv(self):
         """Initialize the model-control-views."""
-        self.project_mcv = TikProjectLayout(self.tik.project)
+        self.project_mcv = TikProjectLayout(self.tik)
         self.project_layout.addLayout(self.project_mcv)
 
         self.user_mcv = TikUserLayout(self.tik.user)
@@ -259,8 +260,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.versions_mcv = TikVersionLayout(self.tik.project, parent=self)
         self.version_layout.addLayout(self.versions_mcv)
 
-        self.project_mcv.set_project_btn.clicked.connect(self.on_set_project)
-        self.project_mcv.recent_projects_btn.clicked.connect(self.on_recent_projects)
+        self.project_mcv.project_set.connect(self.on_set_project)
         self.subprojects_mcv.sub_view.item_selected.connect(
             self.tasks_mcv.task_view.set_tasks
         )
@@ -276,9 +276,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.doubleClicked.connect(
             self.versions_mcv.on_load
         )
-        # self.categories_mcv.work_tree_view.load_event.connect(self.load_work)
         self.categories_mcv.work_tree_view.load_event.connect(self.versions_mcv.on_load)
-        # self.categories_mcv.work_tree_view.import_event.connect(self.import_work)
         self.categories_mcv.work_tree_view.import_event.connect(
             self.versions_mcv.on_import
         )
@@ -287,7 +285,6 @@ class MainUI(QtWidgets.QMainWindow):
 
     def set_last_state(self):
         """Set the last selections for the user"""
-        self.tik.user.last_project = self.tik.project.name
         # get the currently selected subproject
         _subproject_item = self.subprojects_mcv.sub_view.get_selected_items()
         if _subproject_item:
@@ -326,7 +323,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.tik.user.column_sizes = column_sizes
 
     # override the closeEvent to save the window state
-    def closeEvent(self, event):
+    def closeEvent(self, event):  # pylint: disable=invalid-name
         """Override the close event to save the window state."""
         self.tik.user.last_subproject = None
         self.tik.user.last_task = None
@@ -394,6 +391,8 @@ class MainUI(QtWidgets.QMainWindow):
 
     def build_bars(self):
         """Build the menu bar."""
+        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-statements
         menu_bar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 680, 18))
         self.setMenuBar(menu_bar)
         file_menu = menu_bar.addMenu("File")
@@ -441,7 +440,6 @@ class MainUI(QtWidgets.QMainWindow):
         # make the menu bar items wide enough to show the icons and all text
         # Tools Menu
 
-
         # Help Menu
         about = QtWidgets.QAction("&About", self)
         help_menu.addAction(about)
@@ -460,7 +458,7 @@ class MainUI(QtWidgets.QMainWindow):
         new_user.triggered.connect(self.on_add_new_user)
         user_login.triggered.connect(self.on_login)
         settings_item.triggered.connect(self.on_settings)
-        set_project.triggered.connect(self.on_set_project)
+        set_project.triggered.connect(self.project_mcv.set_project)
         exit_action.triggered.connect(self.close)
 
         save_new_work.triggered.connect(self.on_new_work)
@@ -485,9 +483,9 @@ class MainUI(QtWidgets.QMainWindow):
     def _main_button_states(self):
         """Toggle the states of the main buttons according to certain conditions."""
         # if the mode is set to "work", then enable the ingest button
-        if self.categories_mcv.mode == 0: # work mode
+        if self.categories_mcv.mode == 0:  # work mode
             self.ingest_version_btn.setEnabled(True)
-        elif self.categories_mcv.mode == 1: # publish mode
+        elif self.categories_mcv.mode == 1:  # publish mode
             self.ingest_version_btn.setEnabled(False)
 
     def _ingest_success(self):
@@ -524,8 +522,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.versions_mcv.publish_snapshot()
 
-
-
     def on_ingest_version(self):
         """Iterate a version over the selected work in the ui."""
         selected_work_item = self.categories_mcv.work_tree_view.get_selected_item()
@@ -537,6 +533,7 @@ class MainUI(QtWidgets.QMainWindow):
             )
             return
         self.categories_mcv.work_tree_view.ingest_here(selected_work_item)
+
     #
     def _new_work_pre_checks(self, subproject):
         """Collection of pre-checks for the new work method."""
@@ -545,11 +542,12 @@ class MainUI(QtWidgets.QMainWindow):
         metadata_dcc_version = subproject.metadata.get_value(f"{dcc_name.lower()}_version", None)
         if metadata_dcc_version:
             if current_dcc_version != metadata_dcc_version:
-                msg = f"The current dcc version ({current_dcc_version}) does not match with the defined dcc version ({metadata_dcc_version})."
+                msg = f"The current dcc version ({current_dcc_version}) \
+                does not match with the defined dcc version ({metadata_dcc_version})."
                 yield msg
 
-        # for msg in self.__metadata_pre_checks(subproject.metadata):
-        for msg in self.categories_mcv.work_tree_view.metadata_pre_checks(self.tik.dcc, subproject.metadata):
+        for msg in self.categories_mcv.work_tree_view.metadata_pre_checks(
+                self.tik.dcc, subproject.metadata):
             yield msg
 
     def on_save_any_file(self, file_path=None, folder=False):
@@ -562,13 +560,12 @@ class MainUI(QtWidgets.QMainWindow):
             # Launch a file dialog to select the save file or folder
             dialog = QtWidgets.QFileDialog(self)
             # change the title to "Save File" or "Save Folder"
-            dialog_title = "Select a Single File to save as a Work" if not folder else "Select a Folder to save as a Work"
+            dialog_title = "Select a Single File to save as a Work" \
+                if not folder else "Select a Folder to save as a Work"
             dialog.setWindowTitle(dialog_title)
             # set the project root as start directory
             dialog.setDirectory(self.tik.project.absolute_path)
 
-            # dialog.setOption(QtWidgets.QFileDialog.DontUseNativeDialog, True)
-            # dialog.setOption(QtWidgets.QFileDialog.DontResolveSymlinks, True)
             if folder:
                 dialog.setFileMode(QtWidgets.QFileDialog.Directory)
                 dialog.setOption(QtWidgets.QFileDialog.ShowDirsOnly, True)
@@ -590,14 +587,17 @@ class MainUI(QtWidgets.QMainWindow):
                 self.feedback.pop_info(
                     title="No tasks found.",
                     text="Selected Sub-object does not have any tasks under it.\n"
-                    "Please create a task before creating a work.",
+                         "Please create a task before creating a work.",
                     critical=True,
                 )
                 return
             subproject = task.parent_sub
 
         save_any_dialog = SaveAnyFileDialog(
-            self.tik, file_or_folder_path=file_path, parent=self, subproject=subproject, task_object=task, category_object=category
+            self.tik, file_or_folder_path=file_path,
+            parent=self, subproject=subproject,
+            task_object=task,
+            category_object=category
         )
         state = save_any_dialog.exec_()
         if state:
@@ -605,9 +605,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.refresh_versions()
             self.status_bar.showMessage("New work created successfully.", 5000)
             self.resume_last_state()
-
-        # dialog = SaveAnyFileDialog(self.tik, parent=self)
-        # dialog.show()
 
     def on_new_work(self):
         """Create a new work."""
@@ -626,7 +623,7 @@ class MainUI(QtWidgets.QMainWindow):
                 self.feedback.pop_info(
                     title="No tasks found.",
                     text="Selected Sub-object does not have any tasks under it.\n"
-                    "Please create a task before creating a work.",
+                         "Please create a task before creating a work.",
                     critical=True,
                 )
                 return
@@ -659,9 +656,10 @@ class MainUI(QtWidgets.QMainWindow):
         """Collection of pre-checks for the new version method."""
         dcc_version_mismatch = work_obj.check_dcc_version_mismatch()
         if dcc_version_mismatch:
-            msg = ("The current DCC version does not match the version of the work or metadata definition.\n\n"
-                f"Current DCC version: {dcc_version_mismatch[1]}\n"
-                f"Defined DCC version: {dcc_version_mismatch[0]}\n\n")
+            msg = ("The current DCC version does not match the version "
+                   "of the work or metadata definition.\n\n"
+                   f"Current DCC version: {dcc_version_mismatch[1]}\n"
+                   f"Defined DCC version: {dcc_version_mismatch[0]}\n\n")
             yield msg
 
         for msg in self.categories_mcv.work_tree_view.metadata_pre_checks(self.tik.dcc, metadata):
@@ -676,8 +674,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(
                 title="Scene file cannot be found.",
                 text="Scene file cannot be found. "
-                "Please either save your scene by creating a new work or "
-                "ingest it into an existing one.",
+                     "Please either save your scene by creating a new work or "
+                     "ingest it into an existing one.",
                 critical=True,
             )
             return
@@ -687,8 +685,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(
                 title="Work object cannot be found.",
                 text="Work cannot be found. Versions can only saved on work objects.\n"
-                "If there is no work associated with current scene either create a work "
-                "or use the ingest method to save it into an existing work",
+                     "If there is no work associated with current scene either create a work "
+                     "or use the ingest method to save it into an existing work",
                 critical=True,
             )
             return
@@ -706,7 +704,6 @@ class MainUI(QtWidgets.QMainWindow):
             )
             if question == "cancel":
                 return
-
 
         dialog = NewVersionDialog(work_object=work, parent=self)
         state = dialog.exec_()
@@ -739,18 +736,10 @@ class MainUI(QtWidgets.QMainWindow):
         """Refresh the versions' ui."""
         self.versions_mcv.refresh()
 
-    def on_recent_projects(self):
-        dialog = SetProjectDialog(self.tik, parent=self)
-        if dialog.recents_pop_menu():
-            self.refresh_project()
-
-    def on_set_project(self):
-        """Launch the set project dialog."""
-        dialog = SetProjectDialog(self.tik, parent=self)
-        if dialog.exec_():
-            self.tik.project = dialog.main_object
-            self.status_bar.showMessage("Set project successfully")
-        self.refresh_project()
+    def on_set_project(self, message=""):
+        """Show a status message."""
+        self.status_bar.showMessage(message, 3000)
+        self.refresh_subprojects()
 
     def on_create_new_project(self):
         """Create a new project."""
@@ -763,6 +752,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.status_bar.showMessage("Project created successfully")
 
     def on_add_new_user(self):
+        """Launch add new user dialog."""
         if not self._pre_check(level=3):
             return
         dialog = NewUserDialog(self.tik.user, parent=self)
@@ -771,7 +761,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.status_bar.showMessage("User created successfully")
 
     def on_login(self):
-        """Login."""
+        """Launch login dialog."""
         dialog = LoginDialog(self.tik.user, parent=self)
         dialog.show()
 
@@ -783,8 +773,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(
                 title="Scene file cannot be found.",
                 text="Scene file cannot be found. "
-                "Please either save your scene by creating a new work or "
-                "ingest it into an existing one.",
+                     "Please either save your scene by creating a new work or "
+                     "ingest it into an existing one.",
                 critical=True,
             )
             return
@@ -793,8 +783,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(
                 title="Work object cannot be found.",
                 text="Work cannot be found. Versions can only saved on work objects.\n"
-                "If there is no work associated with current scene either create a work "
-                "or use the ingest method to save it into an existing work",
+                     "If there is no work associated with current scene either create a work "
+                     "or use the ingest method to save it into an existing work",
                 critical=True,
             )
             return
@@ -840,13 +830,14 @@ class MainUI(QtWidgets.QMainWindow):
         if not preview_dict:
             return
         zort_menu = QtWidgets.QMenu(parent=self)
-        for z in list(preview_dict.keys()):
-            tempAction = QtWidgets.QAction(z, self)
-            zort_menu.addAction(tempAction)
-            ## Take note about the usage of lambda "item=z" makes it possible using the loop, ignore -> for discarding emitted value
-            tempAction.triggered.connect(
-                lambda ignore=z, item=_work_item.tik_obj.get_abs_project_path(
-                    preview_dict[z]
+        for z_key in list(preview_dict.keys()):
+            temp_action = QtWidgets.QAction(z_key, self)
+            zort_menu.addAction(temp_action)
+            ## Take note about the usage of lambda "item=z_key" makes it possible using the loop,
+            # ignore -> for discarding emitted value
+            temp_action.triggered.connect(
+                lambda ignore=z_key, item=_work_item.tik_obj.get_abs_project_path(
+                    preview_dict[z_key]
                 ): utils.execute(str(item))
             )
 
@@ -871,5 +862,5 @@ if __name__ == "__main__":
     start = time()
     launch()
     end = time()
-    print("Took {0} seconds".format(end - start))
+    LOG.info("Took %s seconds", (end - start))
     sys.exit(app.exec_())

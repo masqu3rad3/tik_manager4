@@ -13,20 +13,21 @@ from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.publish import Publish
 
 # from tik_manager4.objects.publish import PublishVersion
-from tik_manager4 import dcc
+# from tik_manager4 import dcc
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Work(Settings, Entity):
-    _dcc_handler = dcc.Dcc()
+    # _dcc_handler = dcc.Dcc()
+    # _dcc_handler = dcc.get_dcc_class()
     _standalone_handler = StandaloneDcc()
     object_type = "work"
 
     def __init__(self, absolute_path, name=None, path=None, parent_task=None):
         super(Work, self).__init__()
         self.settings_file = Path(absolute_path)
-
+        self._dcc_handler = self.guard.dcc_handler
         self._name = name
         self._creator = self.guard.user
         self._category = None
@@ -240,6 +241,7 @@ class Work(Settings, Entity):
         thumbnail_path = self.get_abs_database_path("thumbnails", thumbnail_name)
         Path(abs_version_path).parent.mkdir(parents=True, exist_ok=True)
 
+        self._dcc_handler.pre_save()
         # save the file
         output_path = self._dcc_handler.save_as(abs_version_path)
 
@@ -270,6 +272,8 @@ class Work(Settings, Entity):
         self._versions.append(version)
         self.edit_property("versions", self._versions)
         self.apply_settings(force=True)
+
+        self._dcc_handler.post_save()
         return version
 
     def make_preview(
@@ -433,7 +437,7 @@ class Work(Settings, Entity):
         thumbnail_name = f"{self._name}_v{version_number:03d}_thumbnail.jpg"
         return version_number, version_name, thumbnail_name
 
-    def load_version(self, version_number, force=False):
+    def load_version(self, version_number, force=False, **kwargs):
         """Load the given version of the work."""
         version_obj = self.get_version(version_number)
         if version_obj:
@@ -570,7 +574,8 @@ class Work(Settings, Entity):
             dest_path = self.get_purgatory_project_path(relative_path)
             # shutil.move(abs_path, dest_path, copy_function=shutil.copytree)
             Path(dest_path).parent.mkdir(parents=True, exist_ok=True)
-            shutil.move(abs_path, dest_path)
+            if Path(abs_path).exists():
+                shutil.move(abs_path, dest_path)
 
             # move the thumbnail
             thumbnail_relative_path = version_obj.get("thumbnail", None)
@@ -578,7 +583,8 @@ class Work(Settings, Entity):
                 thumbnail_abs_path = self.get_abs_database_path(thumbnail_relative_path)
                 thumbnail_dest_path = self.get_purgatory_database_path(thumbnail_relative_path)
                 Path(thumbnail_dest_path).parent.mkdir(parents=True, exist_ok=True)
-                shutil.move(thumbnail_abs_path, thumbnail_dest_path, copy_function=shutil.copytree)
+                if Path(thumbnail_abs_path).exists():
+                    shutil.move(thumbnail_abs_path, thumbnail_dest_path, copy_function=shutil.copytree)
 
             # remove the version from the versions list
             self._versions.remove(version_obj)
