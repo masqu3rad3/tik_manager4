@@ -12,6 +12,9 @@ Download the latest release from Tik Manager4 `Github releases <https://github.c
 
 Unpack the contents to a folder such as ``C:\Program Files\TikWorks\``
 
+.. note:: 
+    The default **passwords** for all users are **1234**. You can change them in the settings.
+
 Each DCC can be integrated individually.
 
 .. _Maya:
