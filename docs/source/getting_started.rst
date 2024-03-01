@@ -20,6 +20,13 @@ There are four different levels of permissions for users:
 - **Experienced (Level 2)**: Can do everything Generic can do, plus create or edit sub-projects and tasks.
 - **Admin (Level 3)**: Has full control over the project, including adding new users and deleting any data.
 
+Tik Manager comes with a set of predefined users, but it is recommended to add new users to the system.
+The default password for all users is `1234`.
+
+.. note:: 
+
+    The default passwords are **1234**.
+
 Creating Project
 ----------------
 1. In the Tik Manager4 main UI, go to `File Menu -> Create New Project` to start a new Tik Manager4 project.
