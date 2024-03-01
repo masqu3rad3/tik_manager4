@@ -1,8 +1,7 @@
 # pylint: disable=import-error
 """Dialog for settings."""
 
-import dataclasses
-
+import sys
 from pathlib import Path
 import logging
 
@@ -217,18 +216,27 @@ class SettingsDialog(QtWidgets.QDialog):
         # This method is not the best way to do it but it is the most reliable way.
         validations = []
         extracts = []
+
+        is_frozen = getattr(sys, 'frozen', False)
         # get the location of the file
-        _file_path = Path(__file__)
-        # go to the tik_manager4 installation folder from
-        # /tik_manager4/ui/dialog/settings_dialog.py
-        _tik_manager4_path = _file_path.parents[2]
+        if not is_frozen:
+            # get the location of the file. tik_manager/ui/dialog/settings_dialog.py
+            _file_path = Path(__file__)
+            tik_manager4_path = _file_path.parents[2]
+        else:
+            # First get the location of the executable
+            # which is in by default tik_manager4/dist/tik4/<name>.exe
+            _exe_path = Path(sys.executable)
+            # Pick walk up to the tik_manager4 folder. This will be different if the executable is somewhere else.
+            tik_manager4_path = _exe_path.parents[2]
+
         # DCC folder
-        _dcc_folder = _tik_manager4_path / "dcc"
+        _dcc_folder = tik_manager4_path / "dcc"
         # collect all 'extract' and 'validate' folders under _dcc_folder recursively
-        _extract_folders = list(_dcc_folder.glob("**/extract"))
-        _validate_folders = list(_dcc_folder.glob("**/validate"))
+        extract_folders = list(_dcc_folder.glob("**/extract"))
+        validate_folders = list(_dcc_folder.glob("**/validate"))
         # collect all extractors
-        for _extract_folder in _extract_folders:
+        for _extract_folder in extract_folders:
             extracts.extend(
                 [
                     x.stem
@@ -236,7 +244,7 @@ class SettingsDialog(QtWidgets.QDialog):
                     if not x.stem.startswith("_")
                 ]
             )
-        for _validate_folder in _validate_folders:
+        for _validate_folder in validate_folders:
             validations.extend(
                 [
                     x.stem

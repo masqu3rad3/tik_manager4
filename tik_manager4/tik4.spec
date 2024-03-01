@@ -30,6 +30,7 @@ st_exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='ui\\theme\\rc\\tik_main.ico'
 )
 
 ps_a = Analysis(
@@ -70,6 +71,7 @@ ps_exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='ui\\theme\\rc\\ps_mainui.ico'
 )
 
 ps_b = Analysis(
@@ -102,6 +104,7 @@ ps_b_exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='ui\\theme\\rc\\ps_version.ico'
 )
 
 ps_c = Analysis(
@@ -134,6 +137,7 @@ ps_c_exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='ui\\theme\\rc\\ps_publish.ico'
 )
 
 coll = COLLECT(
