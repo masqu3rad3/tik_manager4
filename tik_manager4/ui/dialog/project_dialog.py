@@ -10,9 +10,9 @@ from tik_manager4.ui.dialog.subproject_dialog import EditSubprojectDialog, Filte
 
 
 class SetProjectDialog(QtWidgets.QDialog):
-    def __init__(self, main_object, *args, **kwargs):
+    def __init__(self, main_object, parent=None, *args, **kwargs):
         self.main_object = main_object
-        super(SetProjectDialog, self).__init__(*args, **kwargs)
+        super().__init__(parent=parent)
         self.feedback = Feedback(parent=self)
         self.setWindowTitle("Set Project")
         self.setModal(True)
