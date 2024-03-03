@@ -66,12 +66,12 @@ class NewUserDialog(QtWidgets.QDialog):
         form_layout.addRow(user_name_lbl, self.widgets.user_name_le)
 
         initials_lbl = QtWidgets.QLabel()
-        initials_lbl.setText("Initials:")
+        initials_lbl.setText("Initials :")
         self.widgets.initials_le = ValidatedString(name="initials")
         form_layout.addRow(initials_lbl, self.widgets.initials_le)
 
         permission_level_lbl = QtWidgets.QLabel()
-        permission_level_lbl.setText("Permission Level:")
+        permission_level_lbl.setText("Permission Level :")
         self.widgets.permission_level_combo = QtWidgets.QComboBox()
         self.widgets.permission_level_combo.addItems(
             ["Observer", "Generic", "Experienced", "Admin"])
