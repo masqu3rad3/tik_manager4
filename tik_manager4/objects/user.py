@@ -12,7 +12,7 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 FEED = feedback.Feedback()
 
 
-class User(object):
+class User():
     _guard = Guard()
 
     def __init__(self, common_directory=None):
@@ -28,6 +28,10 @@ class User(object):
 
         self._active_user = None
         self._validate_user_data()
+
+    @property
+    def name(self):
+        return self._active_user
 
     @property
     def is_authenticated(self):

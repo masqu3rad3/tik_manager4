@@ -1,7 +1,7 @@
 # pylint: disable=import-error
 """Dialog for settings."""
 
-import sys
+import sys # This is required for the 'frozen' attribute DO NOT REMOVE
 from pathlib import Path
 import logging
 
@@ -17,6 +17,8 @@ from tik_manager4.ui.widgets.common import (
     TikIconButton,
     VerticalSeparator,
 )
+from tik_manager4.ui.dialog.feedback import Feedback
+from tik_manager4.ui.dialog.user_dialog import NewUserDialog
 from tik_manager4.ui.layouts.settings_layout import (
     SettingsLayout,
     convert_to_ui_definition,
@@ -37,17 +39,21 @@ class SettingsDialog(QtWidgets.QDialog):
         # DYNAMIC VARIABLES
         self._setting_widgets = []
         self.settings_list = []  # list of settings objects
-
+        self.feedback = Feedback(parent=self)
         self.main_object = main_object
         self.layouts = MainLayout()
         self.setWindowTitle("Settings")
-        self.menu_tree_widget = None
-        self.apply_button = None
+        self.menu_tree_widget: QtWidgets.QTreeWidget
+        self.apply_button: QtWidgets.QPushButton
         self._validations_and_extracts = (
             None  # for caching the validations and extracts
         )
+        self.error_count: int = 0
         # Execution
         self.build_ui()
+
+        # expand everything
+        self.menu_tree_widget.expandAll()
 
     def build_ui(self):
         """Build the UI."""
@@ -101,24 +107,126 @@ class SettingsDialog(QtWidgets.QDialog):
     def create_content(self):
         """Create the content."""
         self.menu_tree_widget.clear()
-        self.user_settings()
-        self.project_settings()
-        self.common_settings()
+        self.user_title()
+        self.project_title()
+        self.common_title()
         self.create_content_links()
 
-    def user_settings(self):
+    def user_title(self):
         """Create the user settings."""
         # create the menu items
         user_widget_item = SwitchTreeItem(["User"], permission_level=0)
         self.menu_tree_widget.addTopLevelItem(user_widget_item)
-        # we dont need to add sub-branches for user settings. All can be in root for now.
-        content_widget = self.__create_generic_settings_layout(
+
+        # create sub-branches
+        user_settings_item = SwitchTreeItem(["User Settings"], permission_level=0)
+        user_widget_item.addChild(user_settings_item)
+        user_settings_item.content = self.__create_generic_settings_layout(
             settings_data=self.main_object.user.settings,
             title="User Settings",
         )
-        user_widget_item.content = content_widget
 
-    def project_settings(self):
+        user_password_item = SwitchTreeItem(["Change Password"], permission_level=0)
+        user_widget_item.addChild(user_password_item)
+        user_password_item.content = self.__create_user_password_layout()
+
+    def __create_user_password_layout(self):
+        """Create the widget for changing the user password."""
+        content_widget = QtWidgets.QWidget()
+        self.layouts.right_layout.addWidget(content_widget)
+
+        settings_v_lay = QtWidgets.QVBoxLayout(content_widget)
+        header_layout = QtWidgets.QVBoxLayout()
+        settings_v_lay.addLayout(header_layout)
+
+        # add the title
+        title_label = HeaderLabel("Change User Password")
+        header_layout.addWidget(title_label)
+
+        # add a label to show the path of the settings file
+        path_label = ResolvedText(f"Change user password of {self.main_object.user.name}")
+        header_layout.addWidget(path_label)
+        header_layout.addWidget(VerticalSeparator(color=(255, 141, 28), height=1))
+
+        # form layout
+        form_layout = QtWidgets.QFormLayout()
+        settings_v_lay.addLayout(form_layout)
+
+        old_password_lbl = QtWidgets.QLabel("Old Password :")
+        old_password_le = ValidatedString(name="old_password", allow_special_characters=True)
+        old_password_le.setEchoMode(QtWidgets.QLineEdit.Password)
+        form_layout.addRow(old_password_lbl, old_password_le)
+
+        new_password_lbl = QtWidgets.QLabel("New Password :")
+        new_password_le = ValidatedString(name="new_password", allow_special_characters=True)
+        new_password_le.setEchoMode(QtWidgets.QLineEdit.Password)
+        form_layout.addRow(new_password_lbl, new_password_le)
+
+        new_password2_lbl = QtWidgets.QLabel("New Password Again :")
+        new_password2_le = ValidatedString(name="new_password2", allow_special_characters=True)
+        new_password2_le.setEchoMode(QtWidgets.QLineEdit.Password)
+        form_layout.addRow(new_password2_lbl, new_password2_le)
+
+        # add a button to change the password
+        change_password_button = TikButton(text="Change Password", parent=self)
+        settings_v_lay.addWidget(change_password_button)
+
+        settings_v_lay.addStretch()
+
+        def on_change_password():
+            """Convenience function to change the password."""
+            if new_password_le.text() != new_password2_le.text():
+                self.feedback.pop_info(
+                    title="Cannot change password",
+                    text="New passwords do not match.",
+                    critical=True
+                )
+                return
+            result, msg = self.main_object.user.change_user_password(
+                old_password=old_password_le.text(),
+                new_password=new_password_le.text(),
+            )
+            if result == -1:
+                self.feedback.pop_info(title="Cannot change password", text=msg, critical=True)
+            else:
+                self.feedback.pop_info(title="Password Changed", text=msg)
+                old_password_le.clear()
+                new_password_le.clear()
+                new_password2_le.clear()
+            self.error_count += 1
+
+            if self.error_count == 2:
+                self.feedback.pop_info(
+                    title="Too many errors",
+                    text=f"Friendly reminder: You are trying to change the password for:\n\n {self.main_object.user.name}.",
+                )
+
+            if self.error_count == 5:
+                self.feedback.pop_info(
+                    title="Too many errors",
+                    text="This starting to look suspicious. I am watching you!",
+                )
+
+            if self.error_count == 12:
+                self.feedback.pop_info(
+                    title="Too many errors",
+                    text="This is your last warning.",
+                )
+
+            if self.error_count > 12:
+                self.feedback.pop_info(
+                    title="Too many errors",
+                    text="Thats it. Something fishy going on here. I am closing the window!",
+                )
+                self.close()
+
+        # SIGNALS
+        change_password_button.clicked.connect(on_change_password)
+
+        content_widget.setVisible(False)
+        return content_widget
+
+    def project_title(self):
         """Create the project settings."""
         # create the menu items
         project_widget_item = SwitchTreeItem(["Project"], permission_level=3)
@@ -141,7 +249,7 @@ class SettingsDialog(QtWidgets.QDialog):
         project_widget_item.addChild(metadata)
         metadata.content = self._metadata_content()
 
-    def common_settings(self):
+    def common_title(self):
         """Create the common settings."""
         # create the menu items
         common_widget_item = SwitchTreeItem(["Common"], permission_level=3)
@@ -157,6 +265,10 @@ class SettingsDialog(QtWidgets.QDialog):
         metadata = SwitchTreeItem(["Metadata (Common)"], permission_level=3)
         common_widget_item.addChild(metadata)
         metadata.content = self._common_metadata_content()
+
+        users_management = SwitchTreeItem(["Users Management"], permission_level=3)
+        common_widget_item.addChild(users_management)
+        users_management.content = self.__common_users_management_content()
 
     def create_content_links(self):
         """Create content widgets for all top level items."""
@@ -269,7 +381,6 @@ class SettingsDialog(QtWidgets.QDialog):
         settings_v_lay = QtWidgets.QVBoxLayout(content_widget)
 
         header_layout = QtWidgets.QVBoxLayout()
-        # header_layout.setSpacing(13)
         settings_v_lay.addLayout(header_layout)
 
         # add the title
@@ -279,7 +390,6 @@ class SettingsDialog(QtWidgets.QDialog):
         # add a label to show the path of the settings file
         path_label = ResolvedText(settings_data.settings_file)
         header_layout.addWidget(path_label)
-
         header_layout.addWidget(VerticalSeparator(color=(255, 141, 28), height=1))
 
         # make a scroll area for the main content
@@ -379,6 +489,184 @@ class SettingsDialog(QtWidgets.QDialog):
         common_category_definitions_widget.modified.connect(self.check_changes)
         return common_category_definitions_widget
 
+    def __common_users_management_content(self):
+        """Create the user management content."""
+        settings_data = self.main_object.user.commons.users
+        # add the settings data so it can be checked for alterations within the entire dialog
+        self.settings_list.append(settings_data)
+
+        user_management_widget = UsersDefinitions(
+            self.main_object.user, title="Users Management", parent=self
+        )
+        user_management_widget.setVisible(False) # hide by default
+        self.layouts.right_layout.addWidget(user_management_widget)
+
+        # SIGNALS
+        user_management_widget.modified.connect(self.check_changes)
+        return user_management_widget
+
+
+class UsersDefinitions(QtWidgets.QWidget):
+    """Widget for users definitions management."""
+
+    value_widgets = {
+        "combo": value_widgets.Combo,
+        "string": value_widgets.String,
+    }
+
+    modified = QtCore.Signal(bool)
+    def __init__(self, user_object, *args, title="", **kwargs):
+        """Initiate the class."""
+        super().__init__(*args, **kwargs)
+        self.title = title
+        self.user_object = user_object
+        self.settings_data = user_object.commons.users
+        self.feedback = Feedback(parent=self)
+        self.layouts = MainLayout()
+        self.switch_tree_widget = None
+        self.build_layouts()
+        self.build_static_widgets()
+        self.build_value_widgets()
+        self.layouts.splitter.setSizes([500, 500])
+
+    def build_layouts(self):
+        """Build the layouts."""
+        self.layouts.master_layout = QtWidgets.QVBoxLayout(self)
+        self.layouts.header_layout = QtWidgets.QVBoxLayout()
+        self.layouts.master_layout.addLayout(self.layouts.header_layout)
+
+        self.layouts.splitter = QtWidgets.QSplitter(self)
+
+        left_widget = QtWidgets.QWidget(self.layouts.splitter)
+        self.layouts.left_layout = QtWidgets.QVBoxLayout(left_widget)
+        self.layouts.left_layout.setContentsMargins(0, 0, 0, 0)
+
+        right_widget = QtWidgets.QWidget(self.layouts.splitter)
+        self.layouts.right_layout = QtWidgets.QVBoxLayout(right_widget)
+        self.layouts.right_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.layouts.master_layout.addWidget(self.layouts.splitter)
+
+    def build_static_widgets(self):
+        """Build static widgets."""
+        title_label = HeaderLabel(self.title)
+        self.layouts.header_layout.addWidget(title_label)
+
+        # add a label to show the path of the settings file
+        path_label = ResolvedText(self.settings_data.settings_file)
+        path_label.setMaximumHeight(30)
+        self.layouts.header_layout.addWidget(path_label)
+
+        self.layouts.header_layout.addWidget(
+            VerticalSeparator(color=(255, 141, 28), height=1)
+        )
+
+        self.switch_tree_widget = SwitchTreeWidget()
+        self.switch_tree_widget.setRootIsDecorated(False)
+        self.switch_tree_widget.setHeaderHidden(True)
+        self.switch_tree_widget.header().setVisible(False)
+        self.layouts.left_layout.addWidget(self.switch_tree_widget)
+
+        # add 'add' and 'remove' buttons in a horizontal layout
+        add_remove_buttons_layout = QtWidgets.QHBoxLayout()
+        self.layouts.left_layout.addLayout(add_remove_buttons_layout)
+        add_metadata_button = TikButton(text="Add New User", parent=self)
+        add_remove_buttons_layout.addWidget(add_metadata_button)
+        remove_metadata_button = TikButton(text="Delete User", parent=self)
+        add_remove_buttons_layout.addWidget(remove_metadata_button)
+
+        # SIGNALS
+        add_metadata_button.clicked.connect(self.add_user)
+        remove_metadata_button.clicked.connect(self.remove_user)
+
+    def reinit(self):
+        """Reinitialize the widget."""
+        self.switch_tree_widget.clear()
+        self.build_value_widgets()
+
+    def add_user(self):
+        """Launch the add user dialog."""
+        # refresh the switch tree widget
+        dialog = NewUserDialog(self.user_object, parent=self)
+        state = dialog.exec_()
+        if state:
+            self.reinit()
+
+    def remove_user(self):
+        """Remove the user from the database."""
+        selected_item = self.switch_tree_widget.currentItem()
+        if selected_item is None:
+            return
+        name = selected_item.text(0)
+        are_you_sure = self.feedback.pop_question(
+            title="Delete User",
+            text=f"Are you sure you want to delete the user '{name}'? This action cannot be undone.",
+            buttons=["yes", "cancel"],
+        )
+        if are_you_sure == "cancel":
+            return
+
+        result, msg = self.user_object.delete_user(name)
+        if result == -1:
+            self.feedback.pop_info(title="Cannot delete user", text=msg, critical=True)
+            return
+        self.reinit()
+
+    def _delete_value_widget(self, widget_item):
+        """Deletes the value widget and removes it from the layout."""
+        widget_item.content.deleteLater()
+        self.layouts.right_layout.removeWidget(widget_item.content)
+        widget_item.content = None
+
+    def _add_value_widget(self, name, data):
+        """Add a new value widget to the layout."""
+        # create the widget item
+        widget_item = SwitchTreeItem([name])
+        self.switch_tree_widget.addTopLevelItem(widget_item)
+
+        # create the content widget
+        content_widget = QtWidgets.QWidget()
+        content_layout = QtWidgets.QVBoxLayout()
+        content_widget.setLayout(content_layout)
+
+        form_layout = QtWidgets.QFormLayout()
+        content_layout.addLayout(form_layout)
+        # type label. We don't want to make it editable.
+        # Easier to delete the metadata and add a new one.
+        type_label = QtWidgets.QLabel("Initials: ")
+        type_name = ResolvedText(data["initials"])
+        form_layout.addRow(type_label, type_name)
+
+        # Parse the value to the string
+        permission_levels = ["Observer", "Generic", "Experienced", "Admin"]
+        permission_as_string = permission_levels[data["permissionLevel"]]
+
+        permission_label = QtWidgets.QLabel("Permission Level: ")
+        permission_widget = self.value_widgets["combo"](
+            name="permissionLevel", value=permission_as_string, items=permission_levels
+        )
+        # if this is default Admin user, make it uneditable
+        if name == "Admin":
+            permission_widget.setEnabled(False)
+
+        form_layout.addRow(permission_label, permission_widget)
+        permission_widget.currentIndexChanged.connect(
+            lambda value: data.update({"permissionLevel": value})
+        )
+        permission_widget.com.valueChanged.connect(
+            lambda value: self.modified.emit(True)
+        )
+
+
+        content_widget.setVisible(False)
+        self.layouts.right_layout.addWidget(content_widget)
+        widget_item.content = content_widget
+
+    def build_value_widgets(self):
+        """Build the widgets."""
+
+        for metadata_key, data in self.settings_data.properties.items():
+            self._add_value_widget(metadata_key, data)
 
 class MetadataDefinitions(QtWidgets.QWidget):
     """Widget for metadata definitions management."""
@@ -552,7 +840,7 @@ class MetadataDefinitions(QtWidgets.QWidget):
         widget_item.content = None
 
     def _add_value_widget(self, name, data):
-        """Adds a new value widget to the layout."""
+        """Add a new value widget to the layout."""
         # create the widget item
         widget_item = SwitchTreeItem([name])
         self.switch_tree_widget.addTopLevelItem(widget_item)
@@ -608,7 +896,6 @@ class MetadataDefinitions(QtWidgets.QWidget):
     def build_value_widgets(self):
         """Build the widgets."""
 
-        # _valid_types = list(self.value_widgets.keys())
         for metadata_key, data in self.settings_data.properties.items():
             self._add_value_widget(metadata_key, data)
 
