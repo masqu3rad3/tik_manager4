@@ -1,6 +1,1 @@
-- Make the purgatory system work
-    - Essentially a trash bin which you can bring things back from
-    - This is a good way to handle the "I accidentally deleted this" problem
-- UI item to edit the sub-projects
-- UI item to create/edit the project
-- Make 'New Task' button work
+
