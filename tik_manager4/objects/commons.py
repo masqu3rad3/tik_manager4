@@ -5,7 +5,8 @@ from tik_manager4.core.settings import Settings
 from tik_manager4 import defaults
 
 
-class Commons(object):
+class Commons:
+    """Class to handle the common settings and user data"""
     exportSettings = None
     importSettings = None
     user_defaults = None
@@ -16,10 +17,10 @@ class Commons(object):
     metadata = None
 
     def __init__(self, folder_path):
-        super(Commons, self).__init__()
+        super().__init__()
 
         self._folder_path = folder_path
-        self._validate_commons_folder()
+        self.is_valid = self._validate_commons_folder()
 
     def _validate_commons_folder(self):
         """Makes sure the 'commons folder' contains the necessary setting files"""
@@ -29,7 +30,10 @@ class Commons(object):
             base_name = _default_file_path.name
             _common_file_path = Path(self._folder_path, base_name)
             if not _common_file_path.is_file():
-                shutil.copy(default_file, str(_common_file_path))
+                try:
+                    shutil.copy(default_file, str(_common_file_path))
+                except PermissionError:
+                    return False
 
         self.category_definitions = Settings(
             file_path=str(Path(self._folder_path, "category_definitions.json"))
@@ -55,6 +59,8 @@ class Commons(object):
         self.metadata = Settings(
             file_path=str(Path(self._folder_path, "metadata.json"))
         )
+
+        return True
 
     def check_user_permission_level(self, user_name):
         """Returns the permission level for given user"""
