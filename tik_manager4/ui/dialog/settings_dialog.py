@@ -92,10 +92,10 @@ class SettingsDialog(QtWidgets.QDialog):
 
         tik_button_box = TikButtonBox(parent=self)
         self.layouts.buttons_layout.addWidget(tik_button_box)
-        self.apply_button = tik_button_box.addButton("Apply", tik_button_box.ApplyRole)
+        self.apply_button = tik_button_box.addButton("Apply", QtWidgets.QDialogButtonBox.ApplyRole)
         self.apply_button.setEnabled(False)
-        cancel_button = tik_button_box.addButton("Cancel", tik_button_box.RejectRole)
-        ok_button = tik_button_box.addButton("Ok", tik_button_box.AcceptRole)
+        cancel_button = tik_button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
+        ok_button = tik_button_box.addButton("Ok", QtWidgets.QDialogButtonBox.AcceptRole)
 
         # SIGNALS
         self.apply_button.clicked.connect(self.apply_settings)
@@ -1014,9 +1014,9 @@ class CategoryDefinitions(QtWidgets.QWidget):
         horizontal_layout.addWidget(name_line_edit)
         # create a button box
         button_box = TikButtonBox()
-        add_category_pb = button_box.addButton("Add", button_box.AcceptRole)
+        add_category_pb = button_box.addButton("Add", QtWidgets.QDialogButtonBox.AcceptRole)
         name_line_edit.set_connected_widgets(add_category_pb)
-        _cancel_pb = button_box.addButton("Cancel", button_box.RejectRole)
+        _cancel_pb = button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
         dialog_layout.addWidget(button_box)
         # if user clicks ok return the selected items
         # button_box.accepted.connect(add_category_dialog.accept)
