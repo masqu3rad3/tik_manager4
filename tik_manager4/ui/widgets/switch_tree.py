@@ -24,8 +24,8 @@ class SwitchTreeItem(QtWidgets.QTreeWidgetItem):
     @content.setter
     def content(self, widget):
         """Set the content widget"""
-        # validata if the widget is a QWidget
-        if not isinstance(widget, QtWidgets.QWidget):
+        # validata if the widget is a QWidget or None
+        if widget is not None and not isinstance(widget, QtWidgets.QWidget):
             raise ValueError("The content must be a QWidget")
         self._content = widget
 

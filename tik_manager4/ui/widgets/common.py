@@ -125,9 +125,10 @@ class TikButton(QtWidgets.QPushButton, StyleEditor):
         text_color="#b1b1b1",
         border_color="#1e1e1e",
         background_color="#404040",
+        *args,
         **kwargs,
     ):
-        super(TikButton, self).__init__(**kwargs)
+        super().__init__()
         # make sure the button has a font defined for different OS scales
         self.setText(text)
         self.text_color = text_color
