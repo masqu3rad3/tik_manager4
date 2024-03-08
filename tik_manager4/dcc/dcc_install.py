@@ -6,12 +6,13 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
-class CLI:
+class Installer:
     """A simple command line interface for installing software."""
     def __init__(self, argv):
         self.argv = argv
 
     def main(self):
+        """Decides to launch a CLI or proceed with installation based on arguments."""
         # parse the arguments
         opts, args = getopt.getopt(self.argv, "n:h:v", ["networkpath", "help", "verbose"])
 
@@ -38,7 +39,7 @@ class CLI:
                     assert isinstance(r, str)
 
             software_list = args
-
+            sys.stdout.write(f"software_list: {software_list}")
 
 # def main(argv):
 #     # parse the arguments
@@ -80,5 +81,5 @@ class CLI:
 
 if __name__ == "__main__":
     # main(sys.argv[1:])
-    cli = CLI(sys.argv[1:])
+    cli = Installer(sys.argv[1:])
     cli.main()
