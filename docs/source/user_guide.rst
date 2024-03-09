@@ -106,3 +106,5 @@ After creating the metadata, it is possible to assign a default value to it from
     All Metadatas are passed down to the validatiors and extractors. 
     Any validator or extractor can use these metadatas to make decisions. For example, a validator
     for checking the animation ranges can use the `start_frame` and `end_frame` metadatas to determine the range.
+
+.. image:: images/settings_metadata.gif
