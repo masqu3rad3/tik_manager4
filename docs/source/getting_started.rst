@@ -8,7 +8,7 @@ On first launch, users will be asked to define a **common folder**.
 The purpose of this folder is to share templates and user data between different users of the application.
 Therefore, it is important to define a folder that is accessible to all users.
 
-**Common Folder** can be changed at any time from `File Menu -> Settings -> User`.
+**Common Folder** can be changed at any time from `File Menu -> Settings -> User -> User Settings`.
 
 Adding Users
 ------------
@@ -22,6 +22,12 @@ There are four different levels of permissions for users:
 
 Tik Manager comes with a set of predefined users, but it is recommended to add new users to the system.
 The default password for all users is `1234`.
+
+New users can be added from one of the following locations:
+
+`File Menu -> Add New User`
+
+`File Menu -> Settings -> Common -> Users Management`.
 
 .. note:: 
 
