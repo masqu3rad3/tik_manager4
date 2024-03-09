@@ -63,14 +63,15 @@ class TikColumnItem(QtGui.QStandardItem):
         fnt.setBold(False)
         self.setFont(fnt)
 
-
 class TikSubModel(QtGui.QStandardItemModel):
     def __init__(self, structure_object, search_id=None):
         super(TikSubModel, self).__init__()
+        # self.columns = ["name", "id", "path"] + list(
+        #     guard.Guard.commons.metadata.properties.keys()
+        # )
         self.columns = ["name", "id", "path"] + list(
-            guard.Guard.commons.metadata.properties.keys()
+            structure_object.metadata_definitions.properties.keys()
         )
-
         self.setHorizontalHeaderLabels(self.columns)
 
         self.project = None
@@ -510,6 +511,7 @@ class TikSubView(QtWidgets.QTreeView):
             )
             mapped_index = self.proxy_model.mapToSource(index_under_pointer)
             item = self.model.itemFromIndex(mapped_index)
+            print("debug", item)
         if len(indexes) > 0:
             level = 0
             index = indexes[0]
@@ -525,10 +527,6 @@ class TikSubView(QtWidgets.QTreeView):
         act_edit_sub.triggered.connect(
             lambda _=None, x=item: self.edit_sub_project(item)
         )
-        # if multiple sub-projects are selected, disable the edit action
-        if len(indexes) > 1:
-            act_edit_sub.setEnabled(False)
-            act_new_sub.setEnabled(False)
         act_delete_sub = right_click_menu.addAction(self.tr("Delete Sub-Project(s)"))
         act_delete_sub.triggered.connect(
             lambda _=None, x=item: self.delete_sub_project(item)
