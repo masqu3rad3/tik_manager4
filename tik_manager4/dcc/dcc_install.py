@@ -321,14 +321,10 @@ Choose the software you want to setup Scene Manager:
         opts, args = getopt.getopt(self.argv, "n:h:v", ["networkpath", "help", "verbose"])
 
         if not opts and not args:
-            # cli()
-            # LOG.info("testing: run cli() here")
-            sys.stdout.write("testing: run cli() here")
             self._cli()
+
         else:
             if not opts and args:
-                # print("You must enter -n argument")
-                # LOG.info("You must enter -n argument")
                 print_msg("You must enter -n argument")
                 sys.exit()
 
@@ -336,7 +332,6 @@ Choose the software you want to setup Scene Manager:
             for option, argument in opts:
                 if option == "-n":
                     network_path = argument
-                    # sys.stdout.write("network_path: " + network_path)
                 else:
                     assert False, "unhandled option"
                     # raw_input("Something went wrong.. Try manual installation")
@@ -344,7 +339,6 @@ Choose the software you want to setup Scene Manager:
                     assert isinstance(r, str)
 
             software_list = args
-            # sys.stdout.write(f"software_list: {software_list}")
 
 
 class Injector:
@@ -510,3 +504,9 @@ class Injector:
 if __name__ == "__main__":
     install_handler = Installer(sys.argv[1:])
     install_handler.main()
+
+if __name__ == "__main__":
+    # main(sys.argv[1:])
+    cli = Installer(sys.argv[1:])
+    cli.main()
+
