@@ -62,7 +62,8 @@ class Installer:
         if houdini_folders:
             print_msg("Houdini versions found:\n")
             for folder in houdini_folders:
-                print_msg(folder.name)
+                print_msg(f"{folder.name}\n")
+            print_msg("\n")
         else:
             if prompt:
                 print_msg("No Houdini version can be found in the user's documents directory\n"
@@ -139,7 +140,7 @@ tui.on_publish_scene()
             injector.replace(shelf_content)
             print_msg("Shelf file created\n")
 
-        print(
+        print_msg(
             "\nInside Houdini, Tik Manager shelf should be enabled for the desired shelf set by clicking to '+' icon and selecting 'shelves' sub menu.")
 
         print_msg("Houdini setup completed\n")
@@ -147,9 +148,128 @@ tui.on_publish_scene()
             _r = input("Press Enter to continue...")
             assert isinstance(_r, str)
 
-    def max_setup(self):
+    def max_setup(self, prompt=True):
         """Installs the 3ds Max plugin."""
-        pass
+        print_msg("Starting 3dsmax Setup...\n")
+
+        is_running = self.check_running_instances("3dsmax")
+        if is_running == -1:
+            print_msg("Installation aborted by user\n")
+            return
+
+        user_max_dir = self.user_home / "AppData" / "Local" / "Autodesk" / "3dsMax"
+
+        pack_16a = self.tik_dcc_folder / "max" / "setup" / "icons" / "TikManager4_16a.bmp"
+        pack_16i = self.tik_dcc_folder / "max" / "setup" / "icons" / "TikManager4_16i.bmp"
+        pack_24a = self.tik_dcc_folder / "max" / "setup" / "icons" / "TikManager4_24a.bmp"
+        pack_24i = self.tik_dcc_folder / "max" / "setup" / "icons" / "TikManager4_24i.bmp"
+
+        work_space_injection ="""        <Window name="Tik Manager4" type="T" rank="0" subRank="2" hidden="0" dPanel="1" tabbed="0" curTab="-1" cType="1" toolbarRows="1" toolbarType="3">
+            <FRect left="198" top="125" right="350" bottom="199" />
+            <DRect left="1395" top="53" right="1504" bottom="92" />
+            <DRectPref left="2147483647" top="2147483647" right="-2147483648" bottom="-2147483648" />
+            <CurPos left="198" top="125" right="600" bottom="199" floating="1" panelID="16" />
+            <Items>
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="tik4Main`Tik Manager4" tip="Tik Manager 4 - Main UI" label="Tik4 Main UI" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="tik4NewVersion`Tik Manager4" tip="Tik Manager 4 - New Version" label="New Version" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="tik4Publish`Tik Manager4" tip="Tik Manager 4 - Publish" label="Publish" />
+            </Items>
+        </Window>\n"""
+
+        max_folders = [x for x in user_max_dir.iterdir() if x.is_dir()]
+
+        if max_folders:
+            print_msg("3dsMax versions found:\n")
+            for folder in max_folders:
+                print_msg(f"{folder.name}\n")
+            print_msg("\n")
+        else:
+            if prompt:
+                print_msg("No 3dsMax version can be found in the 3ds Max user directory\n"
+                               "Make sure 3ds Max is installed and try again. Alternatively you can try manual install."
+                               "Check the documentation for more information.\n")
+                _r = input("Press Enter to continue...")
+                assert isinstance(_r, str)
+            return
+
+        for version in max_folders:
+            print_msg(f"Setting up {version.name}...\n")
+            scripts_folder = user_max_dir / version / "ENU" / "scripts" / "startup"
+            scripts_folder.mkdir(parents=True, exist_ok=True)
+            icons_folder = user_max_dir / version / "ENU" / "usericons"
+            icons_folder.mkdir(parents=True, exist_ok=True)
+            macros_folder = user_max_dir / version / "ENU" / "usermacros"
+            macros_folder.mkdir(parents=True, exist_ok=True)
+            print_msg("Copying icons...\n")
+            shutil.copy(pack_16a, icons_folder / "TikManager4_16a.bmp")
+            shutil.copy(pack_16i, icons_folder / "TikManager4_16i.bmp")
+            shutil.copy(pack_24a, icons_folder / "TikManager4_24a.bmp")
+            shutil.copy(pack_24i, icons_folder / "TikManager4_24i.bmp")
+
+            workspace_folder = user_max_dir / version / "ENU" / "en-US" / "UI" / "Workspaces" / "usersave"
+            workspace_folder.mkdir(parents=True, exist_ok=True)
+            workspace_file = workspace_folder / "Workspace1__usersave__.cuix"
+
+            print_msg("Creating MacroScripts...\n")
+            main_ui_macro = """
+macroScript tik4Main
+category: "Tik Manager4"
+tooltip: "Tik Manager4 - Main UI"
+ButtonText: "Main UI"
+icon: #("TikManager4",1)
+(
+	python.Execute "from tik_manager4.ui import main as tik4_main"
+	python.Execute "tik4_main.launch(dcc='3dsmax')"
+)"""
+            new_version_macro = """
+macroScript tik4NewVersion
+category: "Tik Manager4"
+tooltip: "Tik Manager4 - New Version"
+ButtonText: "New Version"
+icon: #("TikManager4",2)
+(
+	python.Execute "from tik_manager4.ui import main as tik4_main"
+	python.Execute "tui = tik4_main.launch(dcc='3dsmax', dont_show=True)"
+	python.Execute "tui.on_new_version()"
+)"""
+            publish_macro = """
+macroScript tik4Publish
+category: "Tik Manager4"
+tooltip: "Tik Manager4 - Publish Scene"
+ButtonText: "Publish"
+icon: #("TikManager4",3)
+(
+	python.Execute "from tik_manager4.ui import main as tik4_main"
+	python.Execute "tui = tik4_main.launch(dcc='3dsmax', dont_show=True)"
+	python.Execute "tui.on_publish_scene()"
+)"""
+            injector = Injector(macros_folder / "Tik Manager4-tik4Main.mcr")
+            injector.replace(main_ui_macro)
+            injector.set_file_path(macros_folder / "Tik Manager4-tik4NewVersion.mcr")
+            injector.replace(new_version_macro)
+            injector.set_file_path(macros_folder / "Tik Manager4-tik4Publish.mcr")
+            injector.replace(publish_macro)
+
+            print_msg("Creating Workspaces...\n")
+            injector.set_file_path(workspace_file)
+            injector.force = False
+            injector.match_mode = "contains"
+            state = injector.inject_between(work_space_injection, start_line='"Tik Manager4"', end_line="</Window>", suppress_warnings=True)
+            if not state: # fresh install
+                state = injector.inject_before(work_space_injection, line="</CUIWindows>")
+                if not state:
+                    print_msg(
+                        "Toolbar cannot be injected to the workplace, you can set toolbar manually within 3ds max\nFailed => 3ds Max Setup\n")
+                    if prompt:
+                        r = input("Press Enter to continue...")
+                        assert isinstance(r, str)
+                    return
+
+            print_msg("3ds Max setup completed\n")
+
+            if prompt:
+                r = input("Press Enter to continue...")
+                assert isinstance(r, str)
 
     def blender_setup(self):
         """Installs the Blender plugin."""
@@ -395,20 +515,23 @@ class Injector:
 
     def __add_content(self, new_content, start_idx, end_idx):
         """Adds the new content to the content list."""
+        if isinstance(new_content, str):
+            new_content = [new_content]
         if self.search_direction == "forward":
             added_content = self.content[:start_idx] + new_content + self.content[end_idx +1:]
         else:
             added_content = self.content[:-end_idx] + new_content + self.content[-start_idx - 1:]
         return added_content
 
-    def inject_between(self, new_content, start_line, end_line):
+    def inject_between(self, new_content, start_line, end_line, suppress_warnings=False):
         """Injects the new content between the start and end lines."""
         if not self.file_path.is_file():
             if self.force:
                 self._dump_content(self.content)
                 print_msg(f"File {self.file_path} created with new content.")
                 return True
-            print_msg(f"File {self.file_path} not found. Aborting.")
+            if not suppress_warnings:
+                print_msg(f"File {self.file_path} not found. Aborting.")
             return False
         start_idx, end_idx = None, None
         start_idx = self._find_index(self.search_list, start_line)
@@ -416,31 +539,36 @@ class Injector:
             end_idx = self._find_index(self.search_list, end_line, begin_from=start_idx)
         if start_idx is None or end_idx is None:
             if self.force:
-                print_msg("Start or end line not found. Injecting at the end of the file.")
+                if not suppress_warnings:
+                    print_msg("Start or end line not found. Injecting at the end of the file.")
                 self._dump_content(self.content + new_content)
                 return True
-            print_msg("Start or end line not found. Aborting.")
+            if not suppress_warnings:
+                print_msg("Start or end line not found. Aborting.")
             return False
         injected_content = self.__add_content(new_content, start_idx, end_idx)
         self._dump_content(injected_content)
         return True
 
-    def inject_after(self, new_content, line):
+    def inject_after(self, new_content, line, suppress_warnings=False):
         """Injects the new content after the line."""
         if not self.file_path.is_file():
             if self.force:
                 self._dump_content(self.content)
                 print_msg(f"File {self.file_path} created with new content.")
                 return True
-            print_msg(f"File {self.file_path} not found. Aborting.")
+            if not suppress_warnings:
+                print_msg(f"File {self.file_path} not found. Aborting.")
             return False
         start_idx = self._find_index(self.search_list, line)
         if not start_idx:
             if self.force:
-                print_msg("Line not found. Injecting at the end of the file.")
+                if not suppress_warnings:
+                    print_msg("Line not found. Injecting at the end of the file.")
                 self._dump_content(self.content + new_content)
                 return True
-            print_msg("Line not found. Aborting.")
+            if not suppress_warnings:
+                print_msg("Line not found. Aborting.")
             return False
         injected_content = self.__add_content(new_content, start_idx, start_idx+1)
         self._dump_content(injected_content)

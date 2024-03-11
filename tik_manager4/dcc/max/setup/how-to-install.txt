@@ -4,7 +4,7 @@ Tik Manager 4 3ds Max Installation Guide
 
 - Replace the "PATH//TO//PARENT//FOLDER//OF//TIKMANAGER4//" with the path of where the tik_manager folder copied. Use double BACK Slashes between folder names
 
-- Save modified smManagerCallback.ms into one of the 3ds Max scripts startup folder.
+- Save modified tik4_path.ms into one of the 3ds Max scripts startup folder.
         The Startup Scripts directory is defined on the Configure System Paths dialog. Common paths for startup scripts are:
         %localappdata%\Autodesk\3dsMax\<YOUR MAX VERSION>\ENU\scripts\startup
         %programfiles%\Autodesk\<YOUR MAX VERSION>\scripts\Startup
