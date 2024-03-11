@@ -12,10 +12,8 @@ def get_home_dir():
     # This returns the true user folder for all platforms and dccs"""
     if CURRENT_PLATFORM == "Windows":
         return os.path.normpath(os.getenv("USERPROFILE"))
-        # return str(Path(os.getenv("USERPROFILE")))
     else:
         return os.path.normpath(os.getenv("HOME"))
-        # return str(Path(os.getenv("HOME")))
 
 def apply_stylesheet(file_path, widget):
     """reads and applies the qss file to the widget"""
