@@ -7,6 +7,7 @@ import logging
 import psutil
 import shutil
 import platform
+import winreg as reg
 
 if platform.system() != "Windows":
     raise OSError("This module currently only works on Windows")
@@ -137,7 +138,7 @@ tui.on_publish_scene()
             shelf_folder.mkdir(parents=True, exist_ok=True)
             shelf_file = shelf_folder / "tik_manager4.shelf"
             injector.set_file_path(shelf_file)
-            injector.replace(shelf_content)
+            injector.replace_all(shelf_content)
             print_msg("Shelf file created\n")
 
         print_msg(
@@ -244,11 +245,11 @@ icon: #("TikManager4",3)
 	python.Execute "tui.on_publish_scene()"
 )"""
             injector = Injector(macros_folder / "Tik Manager4-tik4Main.mcr")
-            injector.replace(main_ui_macro)
+            injector.replace_all(main_ui_macro)
             injector.set_file_path(macros_folder / "Tik Manager4-tik4NewVersion.mcr")
-            injector.replace(new_version_macro)
+            injector.replace_all(new_version_macro)
             injector.set_file_path(macros_folder / "Tik Manager4-tik4Publish.mcr")
-            injector.replace(publish_macro)
+            injector.replace_all(publish_macro)
 
             print_msg("Creating Workspaces...\n")
             injector.set_file_path(workspace_file)
@@ -338,13 +339,153 @@ icon: #("TikManager4",3)
             _r = input("Press Enter to continue...")
             assert isinstance(_r, str)
 
-    def katana_setup(self):
+    def katana_setup(self, prompt=True):
         """Installs the Katana plugin."""
-        pass
+        print_msg("Starting Katana Setup...\n")
 
-    def photoshop_setup(self):
+        is_running = self.check_running_instances("Katana")
+        if is_running == -1:
+            print_msg("Installation aborted by user\n")
+            return
+
+        user_katana_folder = self.user_home / ".katana"
+
+        init_file = user_katana_folder / "init.py"
+        init_content = [
+        "# Tik Manager 4 [Start]",
+        "import sys",
+        f"tik_path = '{self.tik_root.parent.as_posix()}'",
+        "if not tik_path in sys.path:",
+        "    sys.path.append(tik_path)",
+        "# Tik Manager 4 [End]"
+        ]
+
+        print_msg("Updating init.py file...\n")
+        injector = Injector(init_file)
+        injector.inject_between(init_content, start_line="# Tik Manager 4 [Start]", end_line="# Tik Manager 4 [End]")
+
+        print_msg("Creating shelves\n")
+        source_shelf_folder = self.tik_dcc_folder / "katana" / "setup" / "tik4"
+        target_shelf_folder = user_katana_folder / "Shelves" / "tik4"
+
+        if target_shelf_folder.exists():
+            shutil.rmtree(target_shelf_folder)
+        shutil.copytree(source_shelf_folder, target_shelf_folder)
+
+        main_ui_icon = self.tik_dcc_folder / "katana" / "setup" / "icons" / "tik4_main_ui.png"
+        new_version_icon = self.tik_dcc_folder / "katana" / "setup" / "icons" / "tik4_new_version.png"
+        publish_icon = self.tik_dcc_folder / "katana" / "setup" / "icons" / "tik4_publish.png"
+
+        main_ui_py = target_shelf_folder / "main_ui.py"
+        new_version_py = target_shelf_folder / "new_version.py"
+        publish_py = target_shelf_folder / "publish.py"
+
+        injector.set_file_path(main_ui_py)
+        injector.match_mode = "contains"
+        injector.replace_single_line(f"ICON: {main_ui_icon.as_posix()}", line="ICON:")
+        injector.set_file_path(new_version_py)
+        injector.replace_single_line(f"ICON: {new_version_icon.as_posix()}", line="ICON:")
+        injector.set_file_path(publish_py)
+        injector.replace_single_line(f"ICON: {publish_icon.as_posix()}", line="ICON:")
+
+        print_msg("Katana setup completed\n")
+        if prompt:
+            _r = input("Press Enter to continue...")
+            assert isinstance(_r, str)
+
+    def photoshop_setup(self, prompt=True):
         """Installs the Photoshop plugin."""
-        pass
+        print_msg("Starting Photoshop Setup...\n")
+
+        is_running = self.check_running_instances("Photoshop")
+        if is_running == -1:
+            print_msg("Installation aborted by user\n")
+            return
+
+        extensions_source_folder = self.tik_dcc_folder / "photoshop" / "setup" / "extensions" / "tikManager4"
+        extensions_target_folder = self.user_home / "AppData" / "Roaming" / "Adobe" / "CEP" / "extensions" / "tikManager4"
+
+        if not extensions_target_folder.exists():
+            print_msg("No Photoshop version can be found in the user's home directory\n"
+                           "Make sure Photoshop is installed and try again. Alternatively you can try manual install."
+                           "Check the documentation for more information.\n")
+            if prompt:
+                _r = input("Press Enter to continue...")
+                assert isinstance(_r, str)
+            return
+
+        print_msg("Copying extensions...\n")
+        # if the target folder exists, delete it
+        if extensions_target_folder.exists():
+            shutil.rmtree(extensions_target_folder)
+        # copy the source folder and overwrite the target folder
+        shutil.copytree(extensions_source_folder, extensions_target_folder, dirs_exist_ok=True, symlinks=True)
+
+        main_ui_icon = self.tik_dcc_folder / "photoshop" / "setup" / "icons" / "tik4_main_ui.png"
+        new_version_icon = self.tik_dcc_folder / "photoshop" / "setup" / "icons" / "tik4_new_version.png"
+        publish_icon = self.tik_dcc_folder / "photoshop" / "setup" / "icons" / "tik4_publish.png"
+
+        html_file = extensions_target_folder / "client" / "index.html"
+        html_content = f"""<!DOCTYPE html>
+<html>
+<body style="background-color:black;">
+<head>
+    <meta charset="utf-8">
+    <title>Tik Manager4</title>
+</head>
+<body>
+    <input type="image" id="tikManager4-button" src="{main_ui_icon}" />
+    <input type="image" id="newVersion-button" src="{new_version_icon}" />
+    <input type="image" id="publish-button" src="{publish_icon}" />
+    <!-- Do not display this at the moment
+    <button id="open-button">Open</button>
+    -->
+    <script type="text/javascript" src="CSInterface.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+</body>
+</html>"""
+
+        injector = Injector(html_file)
+        injector.replace_all(html_content)
+
+        host_file = extensions_target_folder / "host" / "index.jsx"
+        main_ui_exe = self.tik_root / "dist" / "tik4" / "tik4_photoshop.exe"
+        new_version_exe = self.tik_root / "dist" / "tik4" / "tik4_ps_new_version.exe"
+        publish_exe = self.tik_root / "dist" / "tik4" / "tik4_ps_publish.exe"
+
+        host_content = f"""function tikUI(){{
+    var bat = new File("{main_ui_exe.as_posix()}");
+    bat.execute();
+}}
+function tikSaveVersion(){{
+    var bat = new File("{new_version_exe.as_posix()}");
+    bat.execute();
+}}
+function tikPublish(){{
+    var bat = new File("{publish_exe.as_posix()}");
+    bat.execute();
+}}"""
+        injector.set_file_path(host_file)
+        injector.replace_all(host_content)
+
+        print_msg("Adding registry keys to enable PS plugins...\n")
+        _ = [self.__set_csx_key(x) for x in range(20)]
+
+        print_msg("Photoshop setup completed\n")
+        if prompt:
+            _r = input("Press Enter to continue...")
+            assert isinstance(_r, str)
+
+    def __set_csx_key(self, val):
+        """Convenience function to set the csx key."""
+        try:
+            key = reg.OpenKey(reg.HKEY_CURRENT_USER, r'Software\Adobe\CSXS.%s' % val,
+                              0, reg.KEY_ALL_ACCESS)
+            reg.SetValueEx(key, "PlayerDebugMode", 1, reg.REG_SZ, "1")
+            reg.CloseKey(key)
+            return key
+        except WindowsError:
+            return None
 
     def install_all(self):
         """Installs all the plugins."""
@@ -574,31 +715,66 @@ class Injector:
         self._dump_content(injected_content)
         return True
 
-    def inject_before(self, new_content, line):
+    def inject_before(self, new_content, line, suppress_warnings=False):
         """Injects the new content before the line."""
         if not self.file_path.is_file():
             if self.force:
                 self._dump_content(self.content)
                 print_msg(f"File {self.file_path} created with new content.")
                 return True
-            print_msg(f"File {self.file_path} not found. Aborting.")
+            if not suppress_warnings:
+                print_msg(f"File {self.file_path} not found. Aborting.")
             return False
         start_idx = self._find_index(self.search_list, line)
         if not start_idx:
             if self.force:
-                print_msg("Line not found. Injecting at the end of the file.")
+                if not suppress_warnings:
+                    print_msg("Line not found. Injecting at the end of the file.")
                 self._dump_content(self.content + new_content)
                 return True
-            print_msg("Line not found. Aborting.")
+            if not suppress_warnings:
+                print_msg("Line not found. Aborting.")
             return False
         injected_content = self.__add_content(new_content, start_idx, start_idx-1)
         self._dump_content(injected_content)
         return True
 
-    def replace(self, new_content):
+    def replace_all(self, new_content):
         """Replace the whole file with the new content."""
         self._dump_content(new_content)
         return True
+
+    def replace_single_line(self, new_content, line, suppress_warnings=False):
+        """Replace the given line with the new content."""
+        if isinstance(new_content, str):
+            # if its not ending with a break line add it
+            if not new_content.endswith("\n"):
+                new_content = f"{new_content}\n"
+            new_content = [new_content]
+
+        if not self.file_path.is_file():
+            if self.force:
+                self._dump_content(self.content)
+                print_msg(f"File {self.file_path} created with new content.")
+                return True
+            if not suppress_warnings:
+                print_msg(f"File {self.file_path} not found. Aborting.")
+            return False
+        start_idx = self._find_index(self.search_list, line)
+        if not start_idx:
+            if self.force:
+                if not suppress_warnings:
+                    print_msg("Line not found. Injecting at the end of the file.")
+                self._dump_content(self.content + new_content)
+                return True
+            if not suppress_warnings:
+                print_msg("Line not found. Aborting.")
+            return False
+        injected_content = self.__add_content(new_content, start_idx, start_idx)
+        self._dump_content(injected_content)
+        return True
+
+
 
     def read(self):
         """Reads the file."""
