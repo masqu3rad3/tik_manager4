@@ -42,9 +42,51 @@ class Installer:
 
         self.tik_dcc_folder = self.tik_root / "dcc"
 
-    def maya_setup(self):
+    def install_all(self):
+        """Installs all the plugins."""
+        self.maya_setup(prompt=False)
+        self.houdini_setup(prompt=False)
+        self.max_setup(prompt=False)
+        self.blender_setup(prompt=False)
+        self.nuke_setup(prompt=False)
+        self.katana_setup(prompt=False)
+        self.photoshop_setup(prompt=False)
+        r = input("Setup Completed. Press Enter to Exit...")
+        assert isinstance(r, str)
+        sys.exit()
+
+    def maya_setup(self, prompt=True):
         """Installs the Maya plugin."""
-        pass
+        print_msg("Starting Maya Setup...\n")
+
+        is_running = self.check_running_instances("maya")
+        if is_running == -1:
+            print_msg("Installation aborted by user\n")
+            return
+
+        user_maya_folder = self.user_documents / "maya"
+
+        if not user_maya_folder.exists():
+            print_msg("No Maya version can be found in the user's documents directory\n"
+                           "Make sure Maya is installed and try again. Alternatively you can try manual install."
+                           "Check the documentation for more information.\n")
+            _r = input("Press Enter to continue...")
+            assert isinstance(_r, str)
+            return
+
+        modules_folder = user_maya_folder / "modules"
+        modules_folder.mkdir(parents=True, exist_ok=True)
+        tik_manager_module = self.tik_dcc_folder / "maya" / "setup" / "tik_manager_module"
+
+        module_file = modules_folder / "tik_manager4.mod"
+        module_content = f"+ tik_manager4 4.0.1 {tik_manager_module.as_posix()}"
+        injector = Injector(module_file)
+        injector.replace_all(module_content)
+
+        print_msg("Maya setup completed\n")
+        if prompt:
+            _r = input("Press Enter to continue...")
+            assert isinstance(_r, str)
 
     def houdini_setup(self, prompt=True):
         """Installs the Houdini plugin."""
@@ -272,9 +314,36 @@ icon: #("TikManager4",3)
                 r = input("Press Enter to continue...")
                 assert isinstance(r, str)
 
-    def blender_setup(self):
+    def blender_setup(self, prompt=True):
         """Installs the Blender plugin."""
-        pass
+        print_msg("Starting Blender Setup...\n")
+
+        is_running = self.check_running_instances("Blender")
+        if is_running == -1:
+            print_msg("Installation aborted by user\n")
+            return
+
+        blender_user_folder = self.user_home / "AppData" / "Roaming" / "Blender Foundation" / "Blender"
+        versions = [x for x in blender_user_folder.iterdir() if x.is_dir()]
+        init_source = self.tik_dcc_folder / "blender" / "setup" / "tik_4_init_windows.py"
+
+        for version in versions:
+            print_msg(f"Setting up {version.name}...\n")
+            startup_folder = version / "scripts" / "startup"
+            startup_folder.mkdir(parents=True, exist_ok=True)
+            init_file = startup_folder / "tik_4_init_windows.py"
+            if init_file.exists():
+                init_file.unlink()
+            shutil.copy(init_source, init_file)
+            injector = Injector(init_file)
+            injector.match_mode = "contains"
+            injector.replace_single_line(f"tik_path = '{self.tik_root.parent.as_posix()}'", line="tik_path = ")
+
+        print_msg("Blender setup completed\n")
+
+        if prompt:
+            _r = input("Press Enter to continue...")
+            assert isinstance(_r, str)
 
     def nuke_setup(self, prompt=True):
         """Installs the Nuke plugin."""
@@ -486,10 +555,6 @@ function tikPublish(){{
             return key
         except WindowsError:
             return None
-
-    def install_all(self):
-        """Installs all the plugins."""
-        pass
 
     def _no_cli(self, network_path, software_list):
         """Installs software without launching a CLI."""
