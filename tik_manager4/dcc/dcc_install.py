@@ -1,13 +1,16 @@
+# pylint: disable=too-many-locals, line-too-long, too-many-statements
+
 """Convenience functions for installing and integrating DCCs."""
-import sys
-import os
-from pathlib import Path
 import getopt
 import logging
-import psutil
-import shutil
+import os
 import platform
+import shutil
+import sys
 import winreg as reg
+from pathlib import Path
+
+import psutil
 
 if platform.system() != "Windows":
     raise OSError("This module currently only works on Windows")
@@ -22,7 +25,7 @@ FROZEN = getattr(sys, 'frozen', False)
 
 def print_msg(msg):
     """Prints a message to the console."""
-    sys.stdout.write(msg)
+    sys.stdout.write(f"{msg}\n")
 
 class Installer:
     """A simple command line interface for installing software."""
@@ -42,6 +45,19 @@ class Installer:
 
         self.tik_dcc_folder = self.tik_root / "dcc"
 
+        # when changing the mapping, the install all function should be updated
+        # Any changes here also needs to be reflected to the package/release_package.py
+        # and packacge/tik_manager4_innosetup.iss
+        self.dcc_mapping = {
+        "Maya": self.maya_setup,
+        "Houdini": self.houdini_setup,
+        "3dsMax": self.max_setup,
+        "Blender": self.blender_setup,
+        "Nuke": self.nuke_setup,
+        "Katana": self.katana_setup,
+        "Photoshop": self.photoshop_setup
+        }
+
     def install_all(self):
         """Installs all the plugins."""
         self.maya_setup(prompt=False)
@@ -51,27 +67,28 @@ class Installer:
         self.nuke_setup(prompt=False)
         self.katana_setup(prompt=False)
         self.photoshop_setup(prompt=False)
-        r = input("Setup Completed. Press Enter to Exit...")
-        assert isinstance(r, str)
+        ret = input("Setup Completed. Press Enter to Exit...")
+        assert isinstance(ret, str)
         sys.exit()
 
     def maya_setup(self, prompt=True):
         """Installs the Maya plugin."""
-        print_msg("Starting Maya Setup...\n")
+        print_msg("Starting Maya Setup...")
 
-        is_running = self.check_running_instances("maya")
-        if is_running == -1:
-            print_msg("Installation aborted by user\n")
+        if self.check_running_instances("maya") == -1:
+            print_msg("Installation aborted by user.")
             return
 
         user_maya_folder = self.user_documents / "maya"
 
         if not user_maya_folder.exists():
-            print_msg("No Maya version can be found in the user's documents directory\n"
-                           "Make sure Maya is installed and try again. Alternatively you can try manual install."
-                           "Check the documentation for more information.\n")
-            _r = input("Press Enter to continue...")
-            assert isinstance(_r, str)
+            print_msg("No Maya version can be found in the user's documents directory")
+            print_msg("Make sure Maya is installed and try again. "
+                      "Alternatively you can try manual install. "
+                      "Check the documentation for more information.")
+            if prompt:
+                _r = input("Press Enter to continue...")
+                assert isinstance(_r, str)
             return
 
         modules_folder = user_maya_folder / "modules"
@@ -83,37 +100,36 @@ class Installer:
         injector = Injector(module_file)
         injector.replace_all(module_content)
 
-        print_msg("Maya setup completed\n")
+        print_msg("Maya setup completed.")
         if prompt:
             _r = input("Press Enter to continue...")
             assert isinstance(_r, str)
 
     def houdini_setup(self, prompt=True):
         """Installs the Houdini plugin."""
-        print_msg("Starting Houdini Setup...\n")
+        print_msg("Starting Houdini Setup...")
 
-        is_running = self.check_running_instances("houdini")
-        if is_running == -1:
-            print_msg("Installation aborted by user\n")
+        if self.check_running_instances("houdini") == -1:
+            print_msg("Installation aborted by user.")
             return
 
-        print_msg("Finding Houdini Versions...\n")
+        print_msg("Finding Houdini Versions...")
 
         # find all folders under user documents folder that start with "houdini"
         houdini_folders = [x for x in self.user_documents.iterdir() if x.is_dir() and x.name.startswith("houdini")]
 
         if houdini_folders:
-            print_msg("Houdini versions found:\n")
+            print_msg("Houdini versions found:")
             for folder in houdini_folders:
-                print_msg(f"{folder.name}\n")
-            print_msg("\n")
+                print_msg(f"{folder.name}")
         else:
             if prompt:
-                print_msg("No Houdini version can be found in the user's documents directory\n"
-                               "Make sure Houdini is installed and try again. Alternatively you can try manual install."
-                               "Check the documentation for more information.\n")
-                _r = input("Press Enter to continue...")
-                assert isinstance(_r, str)
+                print_msg("No Houdini version can be found in the user's documents directory.")
+                print_msg("Make sure Houdini is installed and try again. Alternatively you can try manual install. "
+                          "Check the documentation for more information.")
+                if prompt:
+                    _r = input("Press Enter to continue...")
+                    assert isinstance(_r, str)
             return
 
         main_ui_icon = self.tik_dcc_folder / "houdini" / "setup" / "icons" / "tik4_main_ui.png"
@@ -167,37 +183,39 @@ tui.on_publish_scene()
 </shelfDocument>
 """
         for version in houdini_folders:
-            print_msg(f"Setting up {version.name}...\n")
+            print_msg(f"Setting up {version.name}...")
             scripts_folder = version / "scripts"
             scripts_folder.mkdir(parents=True, exist_ok=True)
             script456_file = scripts_folder / "456.py"
-            print_msg("Path configuration added to 456.py\n")
+            print_msg("Path configuration added to 456.py")
 
             injector = Injector(script456_file)
-            injector.inject_between(script456_content, start_line="# Tik Manager 4 [Start]\n", end_line="# Tik Manager 4 [End]\n")
+            injector.inject_between(script456_content,
+                                    start_line="# Tik Manager 4 [Start]\n",
+                                    end_line="# Tik Manager 4 [End]\n")
 
             shelf_folder = version / "toolbar"
             shelf_folder.mkdir(parents=True, exist_ok=True)
             shelf_file = shelf_folder / "tik_manager4.shelf"
             injector.set_file_path(shelf_file)
             injector.replace_all(shelf_content)
-            print_msg("Shelf file created\n")
+            print_msg("Shelf file created.")
 
-        print_msg(
-            "\nInside Houdini, Tik Manager shelf should be enabled for the desired shelf set by clicking to '+' icon and selecting 'shelves' sub menu.")
+        print_msg("Inside Houdini, Tik Manager shelf should be enabled "
+                  "for the desired shelf set by clicking to '+' "
+                  "icon and selecting 'shelves' sub menu.")
 
-        print_msg("Houdini setup completed\n")
+        print_msg("Houdini setup completed.")
         if prompt:
             _r = input("Press Enter to continue...")
             assert isinstance(_r, str)
 
     def max_setup(self, prompt=True):
         """Installs the 3ds Max plugin."""
-        print_msg("Starting 3dsmax Setup...\n")
+        print_msg("Starting 3dsmax Setup...")
 
-        is_running = self.check_running_instances("3dsmax")
-        if is_running == -1:
-            print_msg("Installation aborted by user\n")
+        if self.check_running_instances("3dsmax") == -1:
+            print_msg("Installation aborted by user.")
             return
 
         user_max_dir = self.user_home / "AppData" / "Local" / "Autodesk" / "3dsMax"
@@ -222,28 +240,28 @@ tui.on_publish_scene()
         max_folders = [x for x in user_max_dir.iterdir() if x.is_dir()]
 
         if max_folders:
-            print_msg("3dsMax versions found:\n")
+            print_msg("3dsMax versions found:")
             for folder in max_folders:
-                print_msg(f"{folder.name}\n")
-            print_msg("\n")
+                print_msg(f"{folder.name}")
         else:
             if prompt:
-                print_msg("No 3dsMax version can be found in the 3ds Max user directory\n"
-                               "Make sure 3ds Max is installed and try again. Alternatively you can try manual install."
-                               "Check the documentation for more information.\n")
-                _r = input("Press Enter to continue...")
-                assert isinstance(_r, str)
+                print_msg("No 3dsMax version can be found in the 3ds Max user directory")
+                print_msg("Make sure 3ds Max is installed and try again. Alternatively you can try manual install. "
+                          "Check the documentation for more information.")
+                if prompt:
+                    ret = input("Press Enter to continue...")
+                    assert isinstance(ret, str)
             return
 
         for version in max_folders:
-            print_msg(f"Setting up {version.name}...\n")
+            print_msg(f"Setting up {version.name}...")
             scripts_folder = user_max_dir / version / "ENU" / "scripts" / "startup"
             scripts_folder.mkdir(parents=True, exist_ok=True)
             icons_folder = user_max_dir / version / "ENU" / "usericons"
             icons_folder.mkdir(parents=True, exist_ok=True)
             macros_folder = user_max_dir / version / "ENU" / "usermacros"
             macros_folder.mkdir(parents=True, exist_ok=True)
-            print_msg("Copying icons...\n")
+            print_msg("Copying icons...")
             shutil.copy(pack_16a, icons_folder / "TikManager4_16a.bmp")
             shutil.copy(pack_16i, icons_folder / "TikManager4_16i.bmp")
             shutil.copy(pack_24a, icons_folder / "TikManager4_24a.bmp")
@@ -253,7 +271,7 @@ tui.on_publish_scene()
             workspace_folder.mkdir(parents=True, exist_ok=True)
             workspace_file = workspace_folder / "Workspace1__usersave__.cuix"
 
-            print_msg("Creating MacroScripts...\n")
+            print_msg("Creating MacroScripts...")
             main_ui_macro = """
 macroScript tik4Main
 category: "Tik Manager4"
@@ -293,42 +311,44 @@ icon: #("TikManager4",3)
             injector.set_file_path(macros_folder / "Tik Manager4-tik4Publish.mcr")
             injector.replace_all(publish_macro)
 
-            print_msg("Creating Workspaces...\n")
+            print_msg("Creating Workspaces...")
             injector.set_file_path(workspace_file)
             injector.force = False
             injector.match_mode = "contains"
-            state = injector.inject_between(work_space_injection, start_line='"Tik Manager4"', end_line="</Window>", suppress_warnings=True)
+            state = injector.inject_between(work_space_injection, start_line='"Tik Manager4"',
+                                            end_line="</Window>", suppress_warnings=True)
             if not state: # fresh install
                 state = injector.inject_before(work_space_injection, line="</CUIWindows>")
                 if not state:
-                    print_msg(
-                        "Toolbar cannot be injected to the workplace, you can set toolbar manually within 3ds max\nFailed => 3ds Max Setup\n")
+                    print_msg("Toolbar cannot be injected to the workplace, "
+                              "you can set toolbar manually within 3ds max\n")
+                    print_msg("3ds Max Setup FAILED.")
                     if prompt:
-                        r = input("Press Enter to continue...")
-                        assert isinstance(r, str)
+                        ret = input("Press Enter to continue...")
+                        assert isinstance(ret, str)
                     return
 
-            print_msg("3ds Max setup completed\n")
+            print_msg("3ds Max setup completed.")
 
             if prompt:
-                r = input("Press Enter to continue...")
-                assert isinstance(r, str)
+                ret = input("Press Enter to continue...")
+                assert isinstance(ret, str)
 
     def blender_setup(self, prompt=True):
         """Installs the Blender plugin."""
-        print_msg("Starting Blender Setup...\n")
+        print_msg("Starting Blender Setup...")
 
-        is_running = self.check_running_instances("Blender")
-        if is_running == -1:
-            print_msg("Installation aborted by user\n")
+        if self.check_running_instances("Blender") == -1:
+            print_msg("Installation aborted by user.")
             return
 
-        blender_user_folder = self.user_home / "AppData" / "Roaming" / "Blender Foundation" / "Blender"
+        blender_user_folder = (self.user_home / "AppData" / "Roaming" /
+                               "Blender Foundation" / "Blender")
         versions = [x for x in blender_user_folder.iterdir() if x.is_dir()]
         init_source = self.tik_dcc_folder / "blender" / "setup" / "tik_4_init_windows.py"
 
         for version in versions:
-            print_msg(f"Setting up {version.name}...\n")
+            print_msg(f"Setting up {version.name}...")
             startup_folder = version / "scripts" / "startup"
             startup_folder.mkdir(parents=True, exist_ok=True)
             init_file = startup_folder / "tik_4_init_windows.py"
@@ -337,9 +357,10 @@ icon: #("TikManager4",3)
             shutil.copy(init_source, init_file)
             injector = Injector(init_file)
             injector.match_mode = "contains"
-            injector.replace_single_line(f"tik_path = '{self.tik_root.parent.as_posix()}'", line="tik_path = ")
+            injector.replace_single_line(f"tik_path = '{self.tik_root.parent.as_posix()}'",
+                                         line="tik_path = ")
 
-        print_msg("Blender setup completed\n")
+        print_msg("Blender setup completed.")
 
         if prompt:
             _r = input("Press Enter to continue...")
@@ -347,22 +368,22 @@ icon: #("TikManager4",3)
 
     def nuke_setup(self, prompt=True):
         """Installs the Nuke plugin."""
-        print_msg("Starting Nuke Setup...\n")
+        print_msg("Starting Nuke Setup...")
 
-        is_running = self.check_running_instances("Nuke")
-        if is_running == -1:
-            print_msg("Installation aborted by user\n")
+        if self.check_running_instances("Nuke") == -1:
+            print_msg("Installation aborted by user.")
             return
 
         user_nuke_folder = self.user_home / ".nuke"
 
         if not user_nuke_folder.exists():
             if prompt:
-                print_msg("No Nuke version can be found in the user's home directory\n"
-                               "Make sure Nuke is installed and try again. Alternatively you can try manual install."
-                               "Check the documentation for more information.\n")
-                _r = input("Press Enter to continue...")
-                assert isinstance(_r, str)
+                print_msg("No Nuke version can be found in the user's home directory")
+                print_msg("Make sure Nuke is installed and try again. Alternatively you can try manual install. "
+                          "Check the documentation for more information.")
+                if prompt:
+                    _r = input("Press Enter to continue...")
+                    assert isinstance(_r, str)
             return
 
         init_file = user_nuke_folder / "init.py"
@@ -387,7 +408,7 @@ icon: #("TikManager4",3)
 
         injector = Injector(init_file)
         injector.inject_between(init_content, start_line="# Tik Manager 4 [Start]\n", end_line="# Tik Manager 4 [End]\n")
-        print_msg("init.py file updated\n")
+        print_msg("init.py file updated.")
 
         menu_content = [
         "# Tik Manager 4 [Start]\n",
@@ -400,21 +421,21 @@ icon: #("TikManager4",3)
         ]
 
         injector.set_file_path(menu_file)
-        injector.inject_between(menu_content, start_line="# Tik Manager 4 [Start]\n", end_line="# Tik Manager 4 [End]\n")
-        print_msg("menu.py file updated\n")
+        injector.inject_between(menu_content, start_line="# Tik Manager 4 [Start]\n",
+                                end_line="# Tik Manager 4 [End]\n")
+        print_msg("menu.py file updated.")
 
-        print_msg("Nuke setup completed\n")
+        print_msg("Nuke setup completed.")
         if prompt:
             _r = input("Press Enter to continue...")
             assert isinstance(_r, str)
 
     def katana_setup(self, prompt=True):
         """Installs the Katana plugin."""
-        print_msg("Starting Katana Setup...\n")
+        print_msg("Starting Katana Setup...")
 
-        is_running = self.check_running_instances("Katana")
-        if is_running == -1:
-            print_msg("Installation aborted by user\n")
+        if self.check_running_instances("Katana") == -1:
+            print_msg("Installation aborted by user.")
             return
 
         user_katana_folder = self.user_home / ".katana"
@@ -429,11 +450,12 @@ icon: #("TikManager4",3)
         "# Tik Manager 4 [End]"
         ]
 
-        print_msg("Updating init.py file...\n")
+        print_msg("Updating init.py file...")
         injector = Injector(init_file)
-        injector.inject_between(init_content, start_line="# Tik Manager 4 [Start]", end_line="# Tik Manager 4 [End]")
+        injector.inject_between(init_content, start_line="# Tik Manager 4 [Start]",
+                                end_line="# Tik Manager 4 [End]")
 
-        print_msg("Creating shelves\n")
+        print_msg("Creating shelves.")
         source_shelf_folder = self.tik_dcc_folder / "katana" / "setup" / "tik4"
         target_shelf_folder = user_katana_folder / "Shelves" / "tik4"
 
@@ -441,9 +463,12 @@ icon: #("TikManager4",3)
             shutil.rmtree(target_shelf_folder)
         shutil.copytree(source_shelf_folder, target_shelf_folder)
 
-        main_ui_icon = self.tik_dcc_folder / "katana" / "setup" / "icons" / "tik4_main_ui.png"
-        new_version_icon = self.tik_dcc_folder / "katana" / "setup" / "icons" / "tik4_new_version.png"
-        publish_icon = self.tik_dcc_folder / "katana" / "setup" / "icons" / "tik4_publish.png"
+        main_ui_icon = (self.tik_dcc_folder / "katana" / "setup" / "icons" /
+                        "tik4_main_ui.png")
+        new_version_icon = (self.tik_dcc_folder / "katana" / "setup" / "icons" /
+                            "tik4_new_version.png")
+        publish_icon = (self.tik_dcc_folder / "katana" / "setup" / "icons" /
+                        "tik4_publish.png")
 
         main_ui_py = target_shelf_folder / "main_ui.py"
         new_version_py = target_shelf_folder / "new_version.py"
@@ -457,41 +482,45 @@ icon: #("TikManager4",3)
         injector.set_file_path(publish_py)
         injector.replace_single_line(f"ICON: {publish_icon.as_posix()}", line="ICON:")
 
-        print_msg("Katana setup completed\n")
+        print_msg("Katana setup completed.")
         if prompt:
             _r = input("Press Enter to continue...")
             assert isinstance(_r, str)
 
     def photoshop_setup(self, prompt=True):
         """Installs the Photoshop plugin."""
-        print_msg("Starting Photoshop Setup...\n")
+        print_msg("Starting Photoshop Setup...")
 
-        is_running = self.check_running_instances("Photoshop")
-        if is_running == -1:
-            print_msg("Installation aborted by user\n")
+        if self.check_running_instances("Photoshop") == -1:
+            print_msg("Installation aborted by user.")
             return
 
-        extensions_source_folder = self.tik_dcc_folder / "photoshop" / "setup" / "extensions" / "tikManager4"
-        extensions_target_folder = self.user_home / "AppData" / "Roaming" / "Adobe" / "CEP" / "extensions" / "tikManager4"
+        extensions_source_folder = (self.tik_dcc_folder / "photoshop" / "setup" /
+                                    "extensions" / "tikManager4")
+        extensions_target_folder = (self.user_home / "AppData" / "Roaming" / "Adobe" /
+                                    "CEP" / "extensions" / "tikManager4")
 
         if not extensions_target_folder.exists():
-            print_msg("No Photoshop version can be found in the user's home directory\n"
-                           "Make sure Photoshop is installed and try again. Alternatively you can try manual install."
-                           "Check the documentation for more information.\n")
+            print_msg("No Photoshop version can be found in the user's home directory.")
+            print_msg("Make sure Photoshop is installed and try again. "
+                      "Alternatively you can try manual install. "
+                      "Check the documentation for more information.")
             if prompt:
-                _r = input("Press Enter to continue...")
-                assert isinstance(_r, str)
+                ret = input("Press Enter to continue...")
+                assert isinstance(ret, str)
             return
 
-        print_msg("Copying extensions...\n")
+        print_msg("Copying extensions...")
         # if the target folder exists, delete it
         if extensions_target_folder.exists():
             shutil.rmtree(extensions_target_folder)
         # copy the source folder and overwrite the target folder
-        shutil.copytree(extensions_source_folder, extensions_target_folder, dirs_exist_ok=True, symlinks=True)
+        shutil.copytree(extensions_source_folder, extensions_target_folder,
+                        dirs_exist_ok=True, symlinks=True)
 
         main_ui_icon = self.tik_dcc_folder / "photoshop" / "setup" / "icons" / "tik4_main_ui.png"
-        new_version_icon = self.tik_dcc_folder / "photoshop" / "setup" / "icons" / "tik4_new_version.png"
+        new_version_icon = (self.tik_dcc_folder / "photoshop" / "setup" /
+                            "icons" / "tik4_new_version.png")
         publish_icon = self.tik_dcc_folder / "photoshop" / "setup" / "icons" / "tik4_publish.png"
 
         html_file = extensions_target_folder / "client" / "index.html"
@@ -537,29 +566,24 @@ function tikPublish(){{
         injector.set_file_path(host_file)
         injector.replace_all(host_content)
 
-        print_msg("Adding registry keys to enable PS plugins...\n")
+        print_msg("Adding registry keys to enable PS plugins...")
         _ = [self.__set_csx_key(x) for x in range(20)]
 
-        print_msg("Photoshop setup completed\n")
+        print_msg("Photoshop setup completed.")
         if prompt:
-            _r = input("Press Enter to continue...")
-            assert isinstance(_r, str)
+            ret = input("Press Enter to continue...")
+            assert isinstance(ret, str)
 
     def __set_csx_key(self, val):
         """Convenience function to set the csx key."""
         try:
-            key = reg.OpenKey(reg.HKEY_CURRENT_USER, r'Software\Adobe\CSXS.%s' % val,
+            key = reg.OpenKey(reg.HKEY_CURRENT_USER, fr"Software\Adobe\CSXS.{val}",
                               0, reg.KEY_ALL_ACCESS)
             reg.SetValueEx(key, "PlayerDebugMode", 1, reg.REG_SZ, "1")
             reg.CloseKey(key)
             return key
         except WindowsError:
             return None
-
-    def _no_cli(self, network_path, software_list):
-        """Installs software without launching a CLI."""
-        pass
-
 
     def _ok_cancel(self, msg):
         """Displays a message box with OK and Cancel buttons."""
@@ -569,10 +593,9 @@ function tikPublish(){{
 
         if reply[0] == "y":
             return True
-        elif reply[0] == "n":
+        if reply[0] == "n":
             return False
-        else:
-            return self._ok_cancel(msg)
+        return self._ok_cancel(msg)
 
     def _cli(self):
         """Launches a command line interface."""
@@ -582,33 +605,29 @@ function tikPublish(){{
 Tik Manager v{_version.__version__} - DCC Installer
 -----------------------------------"""
 
-        menu_items = [
-            {"Maya": self.maya_setup},
-            {"Houdini": self.houdini_setup},
-            {"3ds Max": self.max_setup},
-            {"Blender": self.blender_setup},
-            {"Nuke": self.nuke_setup},
-            {"Katana": self.katana_setup},
-            {"Photoshop": self.photoshop_setup},
-            {"Install All": self.install_all},
-            {"Exit": sys.exit}
-        ]
-
+        self.dcc_mapping.update({
+            "Install All": self.install_all,
+            "Exit": sys.exit
+        })
         print_msg(header)
 
         while True:
             print_msg("""
 Choose the software you want to setup Scene Manager:
-----------------------------------------------------\n""")
+----------------------------------------------------""")
+
+            # convert the self.dcc_mapping into a list of dictionaries for the menu
+            menu_items = [{k: v} for k, v in self.dcc_mapping.items()]
 
             for item in menu_items:
-                print_msg(f"[{menu_items.index(item)}] {list(item.keys())[0]}\n")
+                print_msg(f"[{menu_items.index(item)}] {list(item.keys())[0]}")
 
             choice = input(">> ")
             assert isinstance(choice, str)
 
             try:
-                if int(choice) < 0: raise ValueError
+                if int(choice) < 0:
+                    raise ValueError
                 key = list(menu_items[int(choice)])[0]
                 cmd = menu_items[int(choice)][key]
                 cmd()
@@ -618,6 +637,7 @@ Choose the software you want to setup Scene Manager:
                 pass
 
     def check_running_instances(self, instance_name):
+        """Checks if the instance is running. If it is, asks the user to close it."""
         running = True
         aborted = False
 
@@ -641,30 +661,29 @@ Choose the software you want to setup Scene Manager:
             return -1
         return 1
 
+    def _no_cli(self, dcc_list):
+        """Installs software without launching a CLI."""
+        for item in dcc_list:
+            func = self.dcc_mapping.get(item, None)
+            if not func:
+                print_msg(f"Software {item} not found in the list. Skipping...")
+                continue
+            func(prompt=False)
+        _r = input("Setup Completed. Press Enter to Exit...")
+        assert isinstance(_r, str)
+
     def main(self):
         """Decides to launch a CLI or proceed with installation based on arguments."""
         # parse the arguments
-        opts, args = getopt.getopt(self.argv, "n:h:v", ["networkpath", "help", "verbose"])
+        opts, args = getopt.getopt(self.argv, "b", ["batchMode"])
 
         if not opts and not args:
             self._cli()
 
+        elif args:
+            self._no_cli(args)
         else:
-            if not opts and args:
-                print_msg("You must enter -n argument")
-                sys.exit()
-
-            network_path = ""
-            for option, argument in opts:
-                if option == "-n":
-                    network_path = argument
-                else:
-                    assert False, "unhandled option"
-                    # raw_input("Something went wrong.. Try manual installation")
-                    r = input("Something went wrong.. Try manual installation")
-                    assert isinstance(r, str)
-
-            software_list = args
+            sys.exit()
 
 
 class Injector:
@@ -846,7 +865,7 @@ class Injector:
         if not self.file_path.is_file():
             self._dump_content([])
             return []
-        with open(self.file_path, "r") as file_data:
+        with open(self.file_path, "r", encoding="utf-8") as file_data:
             if file_data.mode != "r":
                 return None
             content_list = file_data.readlines()
@@ -855,7 +874,7 @@ class Injector:
     def _dump_content(self, list_of_lines):
         """Write the content to the file."""
         temp_file_path = self.file_path.parent / f"{self.file_path.stem}_TMP{self.file_path.suffix}"
-        with open(temp_file_path, "w+") as temp_file:
+        with open(temp_file_path, "w+", encoding="utf-8") as temp_file:
             temp_file.writelines(list_of_lines)
         shutil.move(temp_file_path, self.file_path)
 
@@ -873,9 +892,3 @@ class Injector:
 if __name__ == "__main__":
     install_handler = Installer(sys.argv[1:])
     install_handler.main()
-
-if __name__ == "__main__":
-    # main(sys.argv[1:])
-    cli = Installer(sys.argv[1:])
-    cli.main()
-
