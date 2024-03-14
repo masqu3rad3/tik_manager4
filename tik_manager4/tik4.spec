@@ -140,6 +140,38 @@ ps_c_exe = EXE(
     icon='ui\\theme\\rc\\ps_publish.ico'
 )
 
+dcc_a = Analysis(
+    ['dcc\\dcc_install.py'],
+    pathex=[],
+    binaries=[],
+    datas=[],
+    hiddenimports=[],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[],
+    noarchive=False,
+)
+dcc_pyz = PYZ(dcc_a.pure)
+
+dcc_exe = EXE(
+    dcc_pyz,
+    dcc_a.scripts,
+    [],
+    exclude_binaries=True,
+    name='install_dccs',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    console=True,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+)
+
 coll = COLLECT(
     ps_exe,
     ps_a.binaries,
@@ -153,6 +185,9 @@ coll = COLLECT(
     st_exe,
     st_a.binaries,
     st_a.datas,
+    dcc_exe,
+    dcc_a.binaries,
+    dcc_a.datas,
     strip=False,
     upx=True,
     upx_exclude=[],

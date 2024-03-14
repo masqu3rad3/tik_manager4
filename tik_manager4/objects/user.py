@@ -172,18 +172,6 @@ class User():
     def __set_category_definitions(cls, category_definitions):
         cls._guard.set_category_definitions(category_definitions)
 
-    @classmethod
-    def __set_asset_categories(cls, asset_categories):
-        cls._guard.set_asset_categories(asset_categories)
-
-    @classmethod
-    def __set_shot_categories(cls, shot_categories):
-        cls._guard.set_shot_categories(shot_categories)
-
-    @classmethod
-    def __set_null_categories(cls, empty_categories):
-        cls._guard.set_null_categories(empty_categories)
-
     def _validate_user_data(self):
         """Finds or creates user directories and files"""
 
@@ -227,6 +215,21 @@ class User():
         self.settings.apply_settings()
 
         self.commons = Commons(self.common_directory)
+        if not self.commons.is_valid:
+            answer = FEED.pop_question(
+                title="Commons Directory is not valid",
+                text="Commons Directory doesn't contain all of the necessary "
+                     "files and it is write protected.\n"
+                     "Do you want to define a new Commons Directory?",
+                buttons=["yes", "cancel"]
+            )
+            if answer == "yes":
+                self.common_directory = FEED.browse_directory()
+                self.commons = Commons(self.common_directory)
+                self.settings.edit_property("commonFolder", self.common_directory)
+                self.settings.apply_settings()
+            else:
+                raise Exception("Commons Directory is not valid. Exiting...")
         self.__set_category_definitions(self.commons.category_definitions)
 
         for key, val in self.commons.user_defaults.get_property("bookmarks").items():
@@ -240,7 +243,7 @@ class User():
 
         # set the active user
         active_user = self.resume.get_property("user")
-        state, msg = self.set(active_user, save_to_db=False)
+        state, _msg = self.set(active_user, save_to_db=False)
         if state == -1:
             self.set("Generic", save_to_db=False)
 

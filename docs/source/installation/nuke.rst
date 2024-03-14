@@ -31,9 +31,9 @@ Nuke Integration
     # Tik Manager 4 [Start]
     toolbar = nuke.menu('Nodes')
     smMenu = toolbar.addMenu('SceneManager', icon='tik4_main_ui.png')
-    smMenu.addCommand('Main UI', 'from tik_manager4.ui import main as tik4_main\ntik4_main.launch(dcc="Nuke")', icon='tik4_main_ui.png')
-    smMenu.addCommand('New Version', 'from tik_manager4.ui import main\ntui = main.launch("Maya", dont_show=True)\ntui.on_new_version()', icon='tik4_new_version.png')
-    smMenu.addCommand('Publish', 'from tik_manager4.ui import main\ntui = main.launch("Maya", dont_show=True)\ntui.on_publish_scene()', icon='tik4_publish.png')
+    smMenu.addCommand('Main UI', 'from tik_manager4.ui import main as tik4_main\ntik4_main.launch(dcc='Nuke')', icon='tik4_main_ui.png')
+    smMenu.addCommand('New Version', 'from tik_manager4.ui import main\ntui = main.launch(dcc='Nuke', dont_show=True)\ntui.on_new_version()', icon='tik4_new_version.png')
+    smMenu.addCommand('Publish', 'from tik_manager4.ui import main\ntui = main.launch(dcc='Nuke', dont_show=True)\ntui.on_publish_scene()', icon='tik4_publish.png')
     # Tik Manager 4 [End]
 
 5. Copy all **.png** files under the ``tik_manager4/dcc/maya/setup`` folder to the nuke startup scripts folder
