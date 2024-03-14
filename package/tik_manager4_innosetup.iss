@@ -11,7 +11,7 @@ UninstallDisplayIcon={app}\MyProg.exe
 Compression=lzma2
 SolidCompression=yes
 OutputBaseFilename=TikManager4_v{#appVersion}
-SetupIconFile=D:\dev\tik_manager4\tik_manager4\ui\theme\rc\tik_main.ico
+SetupIconFile=..\tik_manager4\ui\theme\rc\tik_main.ico
 WizardStyle=modern
 OutputDir="."
 
