@@ -442,12 +442,12 @@ icon: #("TikManager4",3)
 
         init_file = user_katana_folder / "init.py"
         init_content = [
-        "# Tik Manager 4 [Start]",
-        "import sys",
-        f"tik_path = '{self.tik_root.parent.as_posix()}'",
-        "if not tik_path in sys.path:",
-        "    sys.path.append(tik_path)",
-        "# Tik Manager 4 [End]"
+        "# Tik Manager 4 [Start]\n",
+        "import sys\n",
+        f"tik_path = '{self.tik_root.parent.as_posix()}'\n",
+        "if not tik_path in sys.path:\n",
+        "    sys.path.append(tik_path)\n",
+        "# Tik Manager 4 [End]\n"
         ]
 
         print_msg("Updating init.py file...")
