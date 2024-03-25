@@ -23,6 +23,9 @@ https://tik-manager4.readthedocs.io/en/latest/installation.html
 Documentation:
 https://tik-manager4.readthedocs.io/en/latest/
 
+Quick-demo:
+https://vimeo.com/manage/videos/918641699
+
 Why Tik Manager?
 ------------------------------------
 
