@@ -94,6 +94,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.load_btn.setEnabled(False)
         self.reference_btn.setEnabled(False)
 
+        self.ingest_mapping = {} # mapping of ingestor nice name to ingestor name
+        self.element_mapping = {} # mapping of element type nice name to element type name
+
         # SIGNALS
         self.element_combo.currentTextChanged.connect(self.element_type_changed)
         self.version_combo.currentIndexChanged.connect(self.version_changed)
@@ -334,12 +337,15 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
     def _resolve_available_ingests(self, version_extension):
         """Resolve the available ingestors for the given extension."""
+        self.ingest_mapping = {}
         all_ingests = self.base._dcc_handler.ingests
         # go through all the ingests and check if the version extension is supported
         available_ingests = []
         for ingest_name, fn in all_ingests.items():
             if version_extension in fn.valid_extensions:
-                available_ingests.append(ingest_name)
+                # available_ingests.append(ingest_name)
+                self.ingest_mapping[fn.nice_name] = ingest_name
+                available_ingests.append(fn.nice_name)
         return available_ingests
 
     def version_changed(self):
@@ -360,11 +366,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         _version = self.base.get_version(version_number)
         self.element_combo.clear()
+        self.element_mapping.clear()
         if self.base.object_type == "publish":
             self.show_preview_btn.setEnabled(False)
             self.element_combo.setEnabled(True)
             self.ingest_with_combo.setEnabled(True)
-            self.element_combo.addItems(_version.element_types)
+            self.element_mapping = _version.element_mapping
+            # self.element_combo.addItems(_version.element_types)
+            self.element_combo.addItems(list(self.element_mapping.keys()))
             # trigger the element type changed manually
             self.element_type_changed(self.element_combo.currentText())
         else:  # WORK
@@ -390,20 +399,12 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         _version_object = self.base.get_version(_version_number)
         return _version_object.get_element_suffix(element_type)
 
-    def element_type_changed(self, element_type):
+    def element_type_changed(self, element_name):
         """Update the rest when element type is changed."""
+        element_type = self.element_mapping[element_name]
         self.ingest_with_combo.clear()
         if not element_type:
             return
-        # _version_number = self.get_selected_version()
-        # _version_object = self.base.get_version(_version_number)
-        # is_bundled = _version_object.is_element_bundled(element_type)
-        # if is_bundled == False:  # this is for backwards compatibility
-        #     element_version_extension = Path(
-        #         _version_object.get_element_path(element_type)
-        #     ).suffix
-        # else:
-        #     element_version_extension = _version_object.get_element_suffix(element_type)
         element_version_extension = self.__get_element_suffix(element_type)
         _available_ingests = self._resolve_available_ingests(element_version_extension)
         # update the ingest with combo
@@ -434,14 +435,18 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
     def get_selected_element_type(self):
         """Return the current element."""
         if self.element_combo.isEnabled():
-            return self.element_combo.currentText()
+            # return self.element_combo.currentText()
+            key = self.element_combo.currentText()
+            return self.element_mapping.get(key, None)
         else:
             return None
 
     def get_selected_ingestor(self):
         """Return the selected ingestor."""
         if self.ingest_with_combo.isEnabled():
-            return self.ingest_with_combo.currentText()
+            # return self.ingest_with_combo.currentText()
+            key = self.ingest_with_combo.currentText()
+            return self.ingest_mapping.get(key, None)
         else:
             return None
 
@@ -542,6 +547,26 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 text=f"Snapshot published.\nName: {published_object.name}\nPath: {published_object.path}",
                 critical=False,
             )
+
+# class ComboItem(str):
+#     """Custom class for combo box items."""
+#     def __init__(self, *_args):
+#         super().__init__()
+#         self.data=None
+
+
+# class ComboItem:
+#     """Custom class for combo box items."""
+#
+#     def __init__(self, nice_name, value=None):
+#         self.nice_name = nice_name
+#         self.value = value
+#
+#     def __str__(self):
+#         return self.nice_name
+#
+#     def __repr__(self):
+#         return self.nice_name
 
 
 class ImageWidget(QtWidgets.QLabel):

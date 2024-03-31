@@ -1,5 +1,7 @@
 """Create a new Mari project with the given object."""
 
+from pathlib import Path
+
 import mari
 
 from tik_manager4.dcc.ingest_core import IngestCore
@@ -13,15 +15,15 @@ class Create(IngestCore):
     bundled = False
     referencable = False
 
-    # def __init__(self):
-    #     super().__init__()
-
-
     def _bring_in_default(self):
         """Create Mari Project."""
 
         # This is the simplest project creation method with default settings.
         # Default method merges the objects and ASSUMES MULTI-UDIMs exists.
+
+        project = mari.projects.current()
+        if project:
+            project.close()
 
         scalar_config = mari.ColorspaceConfig()
         scalar_config.setScalar(True)
@@ -41,6 +43,5 @@ class Create(IngestCore):
         if end_frame:
             project_meta_options["EndFrame"] = end_frame
 
-        # project_meta_options["MergeType"] = mari.geo.MERGETYPE_JUST_MERGE_NODES
-
-        mari.projects.create("test", self.ingest_path, empty_channels, [], project_meta_options)
+        name = Path(self.ingest_path).stem
+        mari.projects.create(name, self.ingest_path, empty_channels, [], project_meta_options)

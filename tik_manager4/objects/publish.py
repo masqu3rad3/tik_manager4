@@ -358,10 +358,15 @@ class PublishVersion(Settings, Entity):
         """Return the elements of the publish."""
         return self._elements
 
+    # @property
+    # def element_types(self):
+    #     """Return the element types of the publish."""
+    #     return [element["type"] for element in self.elements]
+
     @property
-    def element_types(self):
-        """Return the element types of the publish."""
-        return [element["type"] for element in self.elements]
+    def element_mapping(self):
+        """Return the element mapping of the publish."""
+        return {element.get("name", element["type"]): element["type"] for element in self.elements}
 
     def is_promoted(self):
         """Check the 'promoted' file in the publish folder. If the content is matching with the publish id, return True"""
