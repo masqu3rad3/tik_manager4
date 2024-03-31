@@ -14,10 +14,10 @@ class Stl(IngestCore):
     nice_name = "Ingest STL"
     valid_extensions = [".stl"]
     bundled = True
-    referenceable = False
+    referencable = False
 
     def __init__(self):
-        super(Stl, self).__init__()
+        super().__init__()
         if not cmds.pluginInfo("stlTranslator", loaded=True, query=True):
             try:
                 cmds.loadPlugin("stlTranslator")

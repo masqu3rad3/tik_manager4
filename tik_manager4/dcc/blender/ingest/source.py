@@ -8,7 +8,7 @@ class Source(IngestCore):
 
     nice_name = "Ingest Source Scene"
     valid_extensions = [".blend"]
-    referenceable = True
+    referencable = True
 
     def __init__(self):
         super(Source, self).__init__()

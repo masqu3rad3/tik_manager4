@@ -629,6 +629,12 @@ class MainUI(QtWidgets.QMainWindow):
                 return
             subproject = task.parent_sub
 
+        # check the dcc for any issues that may prevent saving.
+        dcc_issues = category.guard.dcc_handler.pre_save_issues()
+        if dcc_issues:
+            self.feedback.pop_info(title="DCC Error", text=dcc_issues, critical=True)
+            return
+
         pre_checks = self._new_work_pre_checks(subproject)
         for check_msg in pre_checks:
             question = self.feedback.pop_question(
@@ -638,9 +644,6 @@ class MainUI(QtWidgets.QMainWindow):
             )
             if question == "cancel":
                 return
-
-        # if not self._new_work_pre_checks(subproject):
-        #     return
 
         dialog = NewWorkDialog(
             self.tik, parent=self, subproject=subproject, task_object=task, category_object=category
@@ -689,6 +692,12 @@ class MainUI(QtWidgets.QMainWindow):
                      "or use the ingest method to save it into an existing work",
                 critical=True,
             )
+            return
+
+        # check the dcc for any issues that may prevent saving.
+        dcc_issues = work.guard.dcc_handler.pre_save_issues()
+        if dcc_issues:
+            self.feedback.pop_info(title="DCC Error", text=dcc_issues, critical=True)
             return
 
         # get the metadata for the checks.

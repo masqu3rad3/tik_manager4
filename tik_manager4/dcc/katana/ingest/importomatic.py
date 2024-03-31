@@ -12,7 +12,7 @@ class Importomatic(IngestCore):
     nice_name = "Ingest To Importomatic"
     # TODO: Currently only Alembic is supported. Check if there are other file types that can be ingested.
     valid_extensions = [".abc"]
-    referenceable = False
+    referencable = False
     def __init__(self):
         super(Importomatic, self).__init__()
 

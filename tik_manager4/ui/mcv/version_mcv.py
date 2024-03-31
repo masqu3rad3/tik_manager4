@@ -175,19 +175,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         if not self._load_pre_checks(work_obj):
             return
 
-        # if self.base.object_type == "publish":
-        #     work_obj = self.base.work_object
-        #     # only check if both ingest and element types are "source"
-        #     if not all([element_type, ingestor]):
-        #         self._load_pre_checks(work_obj)
-        #     elif element_type == "source" and ingestor == "source":
-        #         self._load_pre_checks(work_obj)
-        #     else:
-        #         pass
-        # else:
-        #     work_obj = self.base
-        #     self._load_pre_checks(work_obj) # always check work object.
-
         _version = self.get_selected_version()
         # check if the current scene is modified.
         # if it is, ask if the user wants to save it
@@ -215,25 +202,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         read_only = False
         if self.base.object_type == "publish":
-            # _publish_version = self.base.get_version(_version)
-            # if "source" not in _publish_version.element_types:
-            #     msg = "This publish version does not have a source element. Only publish versions with source element can be loaded."
-            #     self.feedback.pop_info(
-            #         title="No source element.",
-            #         text=msg,
-            #         critical=True,
-            #     )
-            #     return
-            # else:
-            #     question = "Publish versions are protected. The file will be loaded and saved as a new WORK version immediately.\n Do you want to continue?"
-            #     state = self.feedback.pop_question(
-            #         title="Load publish version?",
-            #         text=question,
-            #         buttons=["yes", "cancel"],
-            #     )
-            #     if state == "cancel":
-            #         return
-
 
             if self.base.dcc.lower() == self.base.guard.dcc.lower():
                 question = "Publish versions are protected. The file will be loaded and saved as a new WORK version immediately.\n Do you want to continue?"
@@ -319,7 +287,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             return
         # finally, check the ingestors importable and referencable status
         _importable = self.base._dcc_handler.ingests[_ingestor].importable
-        _referenceable = self.base._dcc_handler.ingests[_ingestor].referenceable
+        _referenceable = self.base._dcc_handler.ingests[_ingestor].referencable
         self.import_btn.setEnabled(_importable)
         self.reference_btn.setEnabled(_referenceable)
         return

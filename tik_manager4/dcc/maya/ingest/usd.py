@@ -15,7 +15,7 @@ class USD(IngestCore):
 
     nice_name =  "Ingest USD"
     valid_extensions = [".usd", ".usda", ".usdc"]
-    referenceable = True
+    referencable = True
 
     def __init__(self):
         super(USD, self).__init__()
