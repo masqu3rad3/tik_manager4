@@ -3,7 +3,8 @@ Installation
 
 Automatic Installation
 ----------------------
-Coming soon.
+Currently Automatic installation is only available for Windows.
+Download the exe installer from the latest release and follow the instructions.
 
 Manual Installation
 -------------------
@@ -27,5 +28,6 @@ Each DCC can be integrated individually.
     /installation/houdini
     /installation/katana
     /installation/maya
+    /installation/mari
     /installation/nuke
     /installation/photoshop

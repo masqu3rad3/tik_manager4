@@ -1,5 +1,5 @@
 #define appName "Tik Manager4"
-#define appVersion "4.0.6"
+#define appVersion "4.0.8"
 
 [Setup]
 AppId={{0BAFF3AF-5D10-4CA9-9232-428F16D17175}
@@ -41,8 +41,9 @@ Name: "Houdini"; Description: "Houdini"; Flags: checkedonce
 Name: "Max"; Description: "3dsMax"; Flags: checkedonce
 Name: "Blender"; Description: "Blender"; Flags: checkedonce
 Name: "Nuke"; Description: "Nuke"; Flags: checkedonce
-Name: "Katana"; Description: "Katana"; Flags: checkedonce
 Name: "Photoshop"; Description: "Photoshop"; Flags: checkedonce
+Name: "Katana"; Description: "Katana"; Flags: checkedonce
+Name: "Mari"; Description: "Mari"; Flags: checkedonce
 
 [Code]
 type
@@ -86,10 +87,12 @@ begin
       strFlag := strFlag + ' ' + 'Blender';
     if WizardIsTaskSelected('Nuke') then
       strFlag := strFlag + ' ' + 'Nuke';
-    if WizardIsTaskSelected('Katana') then
-      strFlag := strFlag + ' ' + 'Katana';
     if WizardIsTaskSelected('Photoshop') then
       strFlag := strFlag + ' ' + 'Photoshop';
+    if WizardIsTaskSelected('Katana') then
+      strFlag := strFlag + ' ' + 'Katana';
+    if WizardIsTaskSelected('Mari') then
+      strFlag := strFlag + ' ' + 'Mari';
 result := strFlag;
 end;
 
@@ -159,7 +162,3 @@ end;
 [Run]
 Filename: "{app}\dist\tik4\install_dccs.exe"; Parameters: "-b {code:GetActiveTasks}";
 
-
-
-
-#define appVersion "4.0.5"
