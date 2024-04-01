@@ -8,7 +8,6 @@ from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.work import Work
 from tik_manager4.core import filelog
 
-
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 

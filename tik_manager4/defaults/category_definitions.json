@@ -12,7 +12,7 @@
   "LookDev": {
     "type": "asset",
     "validations": ["forbidden_nodes", "turtle"],
-    "extracts": ["source"]
+    "extracts": ["archive", "texture_bundle"]
   },
   "Rig": {
     "type": "asset",

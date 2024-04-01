@@ -31,6 +31,21 @@ class MainCore():
         pass
 
     @staticmethod
+    def pre_open_issues():
+        """Checks to be done before opening a file."""
+        pass
+
+    @staticmethod
+    def pre_save_issues():
+        """Checks to be done before saving a file."""
+        pass
+
+    @staticmethod
+    def pre_publish_issues():
+        """Checks to be done before publishing."""
+        pass
+
+    @staticmethod
     def get_main_window():
         """Returns the main window of the DCC"""
         pass

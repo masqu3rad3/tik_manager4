@@ -209,6 +209,7 @@ class Publisher:
             if extract_object.state == "failed" or extract_object.state == "unavailable":
                 continue
             element = {
+                "name": extract_object.nice_name,
                 "type": extract_object.name,
                 "suffix": extract_object.extension,
                 "path": Path(extract_object.resolve_output())

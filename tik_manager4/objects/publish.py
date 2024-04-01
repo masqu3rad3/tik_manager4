@@ -160,6 +160,7 @@ class Publish(Entity):
             if not _func:
                 raise ValueError(f"Element type not supported: {element_type}")
             _import_obj = _func()
+            _import_obj.metadata = self.work_object.get_metadata(self.work_object.parent_task)
             _import_obj.category = self.work_object.category
             _import_obj.ingest_path = abs_path # This path can be a folder if its a bundled type.
             _import_obj.bring_in()
@@ -357,10 +358,15 @@ class PublishVersion(Settings, Entity):
         """Return the elements of the publish."""
         return self._elements
 
+    # @property
+    # def element_types(self):
+    #     """Return the element types of the publish."""
+    #     return [element["type"] for element in self.elements]
+
     @property
-    def element_types(self):
-        """Return the element types of the publish."""
-        return [element["type"] for element in self.elements]
+    def element_mapping(self):
+        """Return the element mapping of the publish."""
+        return {element.get("name", element["type"]): element["type"] for element in self.elements}
 
     def is_promoted(self):
         """Check the 'promoted' file in the publish folder. If the content is matching with the publish id, return True"""

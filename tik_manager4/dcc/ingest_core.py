@@ -15,7 +15,7 @@ class IngestCore:
     valid_extensions: list = []
     bundled: bool = False
     importable: bool = True
-    referenceable: bool = True
+    referencable: bool = True
 
     def __init__(self):
         self.name = str(Path(__file__).stem)
@@ -23,7 +23,6 @@ class IngestCore:
         self._status: str = "idle"
         self._file_path: str = ""
         self._namespace: str = ""
-        # self._bundled: bool = False
         self._metadata: Metadata
         self.category_functions: dict = {}
         self.category_reference_functions: dict = {}

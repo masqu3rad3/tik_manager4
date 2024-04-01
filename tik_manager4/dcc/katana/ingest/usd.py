@@ -18,7 +18,7 @@ class Usd(IngestCore):
 
     nice_name =  "Ingest Usd"
     valid_extensions = [".usd", ".usda", ".usdc", ".usdz"]
-    referenceable = False
+    referencable = False
 
     def _bring_in_default(self):
         """Import Usd File."""

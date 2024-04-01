@@ -11,6 +11,8 @@ elif NAME == "houdini":
     from tik_manager4.dcc.houdini.main import Dcc
 elif NAME == "katana":
     from tik_manager4.dcc.katana.main import Dcc
+elif NAME == "mari":
+    from tik_manager4.dcc.mari.main import Dcc
 elif NAME == "maya":
     from tik_manager4.dcc.maya.main import Dcc
 elif NAME == "nuke":

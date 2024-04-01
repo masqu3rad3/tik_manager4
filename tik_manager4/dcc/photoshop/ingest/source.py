@@ -9,7 +9,7 @@ class Source(IngestCore):
 
     nice_name = "Ingest Source Photoshop Scene"
     valid_extensions = [".psd", ".psb"]
-    referenceable = False
+    referencable = False
 
     def __init__(self):
         super(Source, self).__init__()
