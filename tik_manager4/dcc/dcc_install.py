@@ -54,8 +54,9 @@ class Installer:
         "3dsMax": self.max_setup,
         "Blender": self.blender_setup,
         "Nuke": self.nuke_setup,
+        "Photoshop": self.photoshop_setup,
         "Katana": self.katana_setup,
-        "Photoshop": self.photoshop_setup
+        "Mari": self.mari_setup,
         }
 
     def install_all(self):
@@ -65,8 +66,9 @@ class Installer:
         self.max_setup(prompt=False)
         self.blender_setup(prompt=False)
         self.nuke_setup(prompt=False)
-        self.katana_setup(prompt=False)
         self.photoshop_setup(prompt=False)
+        self.katana_setup(prompt=False)
+        self.mari_setup(prompt=False)
         ret = input("Setup Completed. Press Enter to Exit...")
         assert isinstance(ret, str)
         sys.exit()
@@ -487,8 +489,36 @@ icon: #("TikManager4",3)
             _r = input("Press Enter to continue...")
             assert isinstance(_r, str)
 
+    def mari_setup(self, prompt=True):
+        """Install Mari."""
+        print_msg("Starting Mari Setup...")
+
+        if self.check_running_instances("Mari") == -1:
+            print_msg("Installation aborted by user.")
+            return
+
+        user_mari_scripts_folder = self.user_home / "Documents" / "Mari" / "Scripts"
+        user_mari_scripts_folder.mkdir(parents=True, exist_ok=True)
+
+        source_script = self.tik_dcc_folder / "mari" / "setup" / "tikmanager4_init.py"
+
+        # copy the source to the user's scripts folder
+        init_file = user_mari_scripts_folder / "tikmanager4_init.py"
+        shutil.copy(source_script, init_file)
+
+        injector = Injector(init_file)
+        injector.match_mode = "contains"
+        injector.replace_single_line(f"tik_path = '{self.tik_root.parent.as_posix()}'",
+                                     line="tik_path = ")
+
+        print_msg("Mari setup completed.")
+        if prompt:
+            _r = input("Press Enter to continue...")
+            assert isinstance(_r, str)
+
+
     def photoshop_setup(self, prompt=True):
-        """Installs the Photoshop plugin."""
+        """Install the Photoshop plugin."""
         print_msg("Starting Photoshop Setup...")
 
         if self.check_running_instances("Photoshop") == -1:

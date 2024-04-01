@@ -27,5 +27,6 @@ Each DCC can be integrated individually.
     /installation/houdini
     /installation/katana
     /installation/maya
+    /installation/mari
     /installation/nuke
     /installation/photoshop
