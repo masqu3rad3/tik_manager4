@@ -401,7 +401,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
     def element_type_changed(self, element_name):
         """Update the rest when element type is changed."""
-        element_type = self.element_mapping[element_name]
+        element_type = self.element_mapping.get(element_name, None)
         self.ingest_with_combo.clear()
         if not element_type:
             return
