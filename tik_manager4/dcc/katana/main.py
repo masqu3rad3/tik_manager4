@@ -4,6 +4,7 @@ import logging
 
 # from PyQt5 import QtWidgets, QtGui, QtCore
 from tik_manager4.ui.Qt import QtWidgets, QtGui, QtCore
+import Katana
 from Katana import KatanaFile  # pylint: disable=import-error
 from Katana import NodegraphAPI  # pylint: disable=import-error
 from Katana import UI4  # pylint: disable=import-error
@@ -171,4 +172,4 @@ class Dcc(MainCore):
     @staticmethod
     def get_dcc_version():
         """Return the version of the DCC."""
-        return NodegraphAPI.Version.KatanaInfo.version
+        return ".".join([str(x) for x in Katana.version])
