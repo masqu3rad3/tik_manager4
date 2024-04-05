@@ -454,8 +454,8 @@ icon: #("TikManager4",3)
 
         print_msg("Updating init.py file...")
         injector = Injector(init_file)
-        injector.inject_between(init_content, start_line="# Tik Manager 4 [Start]",
-                                end_line="# Tik Manager 4 [End]")
+        injector.inject_between(init_content, start_line="# Tik Manager 4 [Start]\n",
+                                end_line="# Tik Manager 4 [End]\n")
 
         print_msg("Creating shelves.")
         source_shelf_folder = self.tik_dcc_folder / "katana" / "setup" / "tik4"
@@ -790,7 +790,7 @@ class Injector:
             return False
         start_idx, end_idx = None, None
         start_idx = self._find_index(self.search_list, start_line)
-        if start_idx:
+        if start_idx is not None:
             end_idx = self._find_index(self.search_list, end_line, begin_from=start_idx)
         if start_idx is None or end_idx is None:
             if self.force:
