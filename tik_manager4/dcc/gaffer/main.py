@@ -35,6 +35,10 @@ class Dcc(MainCore):
         """Get the main window of the DCC."""
         return self.gaffer.script_window._qtWidget()
 
+    def save_scene(self):
+        """Save the current scene."""
+        self.gaffer.script.save()
+
     def save_as(self, file_path):
         """Save the current scene as the given file path."""
         self.gaffer.script["fileName"].setValue(file_path)
@@ -44,6 +48,11 @@ class Dcc(MainCore):
             GafferUI.FileMenu.addRecentFile(self.gaffer.application, file_path)
 
         return file_path
+
+    def save_prompt(self):
+        """Pop up the save prompt."""
+        GafferUI.FileMenu.save(self.gaffer.menu)
+        return True  # this is important or else will be an indefinite loop
 
     def open(self, file_path, force=True, **_extra_arguments):
         """Open the given file path
@@ -56,6 +65,10 @@ class Dcc(MainCore):
         """
         self.gaffer.script["fileName"].setValue(file_path)
         self.gaffer.script.load()
+
+    def is_modified(self):
+        """Check if the current scene is modified."""
+        return self.gaffer.script["unsavedChanges"].getValue()
 
     def get_scene_file(self):
         """Get the current scene file path."""
@@ -72,6 +85,10 @@ class Dcc(MainCore):
         r_aet = self.gaffer.script["frameRange"]["end"].getValue()
         return [r_ast, r_min, r_max, r_aet]
 
+    def get_current_frame(self):
+        """Get the current frame."""
+        return self.gaffer.script["frame"].getValue()
+
     def set_ranges(self, range_list):
         """Set the viewport ranges."""
         self.gaffer.script["frameRange"]["start"].setValue(range_list[0])
@@ -83,6 +100,14 @@ class Dcc(MainCore):
         GafferUI.WidgetAlgo.grab(self.gaffer.script_window, file_path)
         # TODO: figure out a way to resize/crop the image to the width and height
         return file_path
+
+    def get_scene_fps(self):
+        """Get the FPS of the scene."""
+        return self.gaffer.script["framesPerSecond"].getValue()
+
+    def set_scene_fps(self, fps_value):
+        """Set the FPS of the scene."""
+        self.gaffer.script["framesPerSecond"].setValue(fps_value)
 
     @staticmethod
     def get_dcc_version():

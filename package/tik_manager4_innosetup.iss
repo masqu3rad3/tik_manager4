@@ -44,6 +44,7 @@ Name: "Nuke"; Description: "Nuke"; Flags: checkedonce
 Name: "Photoshop"; Description: "Photoshop"; Flags: checkedonce
 Name: "Katana"; Description: "Katana"; Flags: checkedonce
 Name: "Mari"; Description: "Mari"; Flags: checkedonce
+Name: "Gaffer"; Description: "Gaffer"; Flags: checkedonce
 
 [Code]
 type
@@ -93,6 +94,8 @@ begin
       strFlag := strFlag + ' ' + 'Katana';
     if WizardIsTaskSelected('Mari') then
       strFlag := strFlag + ' ' + 'Mari';
+    if WizardIsTaskSelected('Gaffer') then
+      strFlag := strFlag + ' ' + 'Gaffer';
 result := strFlag;
 end;
 
