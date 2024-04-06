@@ -57,6 +57,7 @@ class Installer:
         "Photoshop": self.photoshop_setup,
         "Katana": self.katana_setup,
         "Mari": self.mari_setup,
+        "Gaffer": self.gaffer_setup,
         }
 
     def install_all(self):
@@ -69,6 +70,7 @@ class Installer:
         self.photoshop_setup(prompt=False)
         self.katana_setup(prompt=False)
         self.mari_setup(prompt=False)
+        self.gaffer_setup(prompt=False)
         ret = input("Setup Completed. Press Enter to Exit...")
         assert isinstance(ret, str)
         sys.exit()
@@ -516,7 +518,6 @@ icon: #("TikManager4",3)
             _r = input("Press Enter to continue...")
             assert isinstance(_r, str)
 
-
     def photoshop_setup(self, prompt=True):
         """Install the Photoshop plugin."""
         print_msg("Starting Photoshop Setup...")
@@ -603,6 +604,57 @@ function tikPublish(){{
         if prompt:
             ret = input("Press Enter to continue...")
             assert isinstance(ret, str)
+
+    def gaffer_setup(self, prompt=True):
+        """Install Gaffer integration."""
+        print_msg("Starting Gaffer Setup...")
+
+        # find the gaffer installation folder.
+        places_to_look = ["C:/Program Files", "C:/Program Files (x86)", "C:/opt", "C:/software"]
+
+        gaffer_versions = []
+        for place in places_to_look:
+            # it the place doesn't exist, skip it
+            if not Path(place).exists():
+                continue
+            # look for folders that starts with "gaffer" and append them to the list
+            for x in Path(place).iterdir():
+                # print("path", x)
+                if x.is_dir() and x.name.startswith("gaffer"):
+                    print("gaffer", x)
+                    gaffer_versions.append(x)
+            # gaffer_versions.extend([x for x in Path(place).iterdir() if x.is_dir() and x.name.startswith("gaffer")])
+
+        # for each gaffer version check for the startup/gui folders. If they don't exist, skip the version
+        for version in list(gaffer_versions):
+            gui_folder = version / "startup" / "gui"
+            if not gui_folder.exists():
+                gaffer_versions.remove(version)
+        if not gaffer_versions:
+            print_msg("No Gaffer version can be found.")
+            print_msg(f"Make sure Gaffer is installed in one of the following folder and try again. {places_to_look}"
+                      "Alternatively you can try manual install. "
+                      "Check the documentation for more information.")
+            if prompt:
+                ret = input("Press Enter to continue...")
+                assert isinstance(ret, str)
+            return
+        source_init_file = self.tik_dcc_folder / "gaffer" / "setup" / "tik_4_init.py"
+
+        for version in gaffer_versions:
+            print_msg(f"Setting up {version.name}...")
+            gui_folder = version / "startup" / "gui"
+            init_file = gui_folder / "tik_4_init.py"
+            shutil.copy(source_init_file, init_file)
+            injector = Injector(init_file)
+            injector.match_mode = "contains"
+            injector.replace_single_line(f"tik_path = '{self.tik_root.parent.as_posix()}'",
+                                         line="tik_path = ")
+
+        print_msg("Gaffer setup completed.")
+        if prompt:
+            _r = input("Press Enter to continue...")
+            assert isinstance(_r, str)
 
     def __set_csx_key(self, val):
         """Convenience function to set the csx key."""
@@ -887,8 +939,6 @@ class Injector:
         injected_content = self.__add_content(new_content, start_idx, start_idx)
         self._dump_content(injected_content)
         return True
-
-
 
     def read(self):
         """Reads the file."""

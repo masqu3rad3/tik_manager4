@@ -7,6 +7,8 @@ if NAME == "3dsmax":
     from tik_manager4.dcc.max.main import Dcc
 elif NAME == "blender":
     from tik_manager4.dcc.blender.main import Dcc
+elif NAME == "gaffer":
+    from tik_manager4.dcc.gaffer.main import Dcc
 elif NAME == "houdini":
     from tik_manager4.dcc.houdini.main import Dcc
 elif NAME == "katana":

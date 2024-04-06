@@ -358,10 +358,10 @@ class PublishVersion(Settings, Entity):
         """Return the elements of the publish."""
         return self._elements
 
-    # @property
-    # def element_types(self):
-    #     """Return the element types of the publish."""
-    #     return [element["type"] for element in self.elements]
+    @property
+    def element_types(self):
+        """Return the element types of the publish."""
+        return [element["type"] for element in self.elements]
 
     @property
     def element_mapping(self):
