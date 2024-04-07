@@ -23,6 +23,8 @@ elif NAME == "photoshop":
     from tik_manager4.dcc.photoshop.main import Dcc
 elif NAME == "standalone":
     from tik_manager4.dcc.standalone.main import Dcc
+elif NAME == "substance":
+    from tik_manager4.dcc.substance.main import Dcc
 elif NAME == "trigger":
     from tik_manager4.dcc.trigger.main import Dcc
 else:

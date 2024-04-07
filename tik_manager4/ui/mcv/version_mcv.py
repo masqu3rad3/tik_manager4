@@ -201,7 +201,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                         self.on_load()
                     return
                 self.base._dcc_handler.save_scene()
-                return
 
         read_only = False
         if self.base.object_type == "publish":
