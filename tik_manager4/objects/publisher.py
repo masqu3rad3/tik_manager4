@@ -77,8 +77,10 @@ class Publisher:
             self._work_object.category, {}
         ).get("validations", [])
         # collect the matching extracts and validations from the dcc_handler.
-        for extract in extracts:
-            if extract in list(self._dcc_handler.extracts.keys()):
+        # dcc_extracts = [x.lower() for x in list(self._dcc_handler.extracts.keys())]
+        category_extracts = [x.lower() for x in extracts]
+        for extract in list(self._dcc_handler.extracts.keys()):
+            if extract.lower() in category_extracts:
                 self._resolved_extractors[extract] = self._dcc_handler.extracts[extract]()
                 # define the category
                 self._resolved_extractors[extract].category = self._work_object.category

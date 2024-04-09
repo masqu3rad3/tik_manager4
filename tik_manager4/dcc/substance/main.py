@@ -4,7 +4,7 @@ import logging
 
 import substance_painter
 
-from tik_manager4.ui.Qt import QtGui
+from tik_manager4.ui.Qt import QtCore
 
 from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.dcc.substance import validate
@@ -22,26 +22,6 @@ class Dcc(MainCore):
     validations = validate.classes
     extracts = extract.classes
     ingests = ingest.classes
-
-    # Override the applicable methods from the MainCore class
-
-    # def __get_save_project_action(self):
-    #     """Return the QAction which triggers Substance Painter's save project action."""
-    #
-    #     main_window = self.get_main_window()
-    #
-    #     menubar = main_window.menuBar()
-    #     save_action = None
-    #     for action in menubar.actions():
-    #         menu = action.menu()
-    #         if not menu:
-    #             continue
-    #         if menu.objectName() != "file":
-    #             continue
-    #
-    #         save_action = next(action for action in menu.actions() if action.shortcut() == QtGui.QKeySequence.Save)
-    #         break
-    #     return save_action
 
     @staticmethod
     def get_main_window():
@@ -93,7 +73,22 @@ class Dcc(MainCore):
     @staticmethod
     def get_scene_file():
         """Get the scene file path."""
-        utils.get_scene_path()
+        return utils.get_scene_path()
+
+    @staticmethod
+    def generate_thumbnail(file_path, width, height):
+        """Generate a thumbnail for the given file."""
+        main_window = substance_painter.ui.get_main_window()
+        screenshot = main_window.grab()
+
+        ratio = width / height
+        new_height = int(width / ratio)
+
+        screenshot_resized = screenshot.scaled(width * 2, new_height * 2, QtCore.Qt.KeepAspectRatio,
+                                               QtCore.Qt.SmoothTransformation)
+
+        screenshot_resized.save(file_path, 'jpg', quality=95)
+
     @staticmethod
     def get_dcc_version():
         """Get the DCC version."""
