@@ -464,7 +464,7 @@ class Subproject(Entity):
             if state != 1:
                 return -1
 
-        parent_path = str(Path(kill_sub.path).parent) or ""
+        parent_path = (Path(kill_sub.path).parent).as_posix() or ""
         parent_sub = self.find_sub_by_path(parent_path)
         del parent_sub.subs[kill_sub.name]
 
