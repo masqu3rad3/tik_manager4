@@ -87,7 +87,7 @@ class Dcc(MainCore):
         screenshot_resized = screenshot.scaled(width * 2, new_height * 2, QtCore.Qt.KeepAspectRatio,
                                                QtCore.Qt.SmoothTransformation)
 
-        screenshot_resized.save(file_path, 'jpg', quality=95)
+        screenshot_resized.save(file_path, 'jpg', quality=100)
 
     @staticmethod
     def get_dcc_version():

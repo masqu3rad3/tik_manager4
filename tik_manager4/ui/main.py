@@ -723,7 +723,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.set_last_state()
             self.refresh_versions()
             self.status_bar.showMessage("New version created successfully.", 5000)
-            self.resume_last_state()
+            # self.resume_last_state()
 
     def refresh_project(self):
         """Refresh the project ui."""
