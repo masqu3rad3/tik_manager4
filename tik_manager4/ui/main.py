@@ -256,6 +256,9 @@ class MainUI(QtWidgets.QMainWindow):
         # if it is houdini, make an exception on the category tab widget
         if self.tik.dcc.name == "Houdini":
             self.categories_mcv.category_tab_widget.setMaximumSize(QtCore.QSize(16777215, 30))
+        if self.tik.dcc.name == "Substance Painter":
+            self.categories_mcv.category_tab_widget.setMaximumSize(QtCore.QSize(16777215, 30))
+            self.categories_mcv.category_tab_widget.setStyleSheet("QTabBar::tab { font-size: 10px; spacing: 5px; }")
 
         self.versions_mcv = TikVersionLayout(self.tik.project, parent=self)
         self.version_layout.addLayout(self.versions_mcv)

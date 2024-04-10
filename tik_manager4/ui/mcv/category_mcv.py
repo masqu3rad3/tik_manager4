@@ -611,6 +611,9 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.category_tab_widget.setElideMode(QtCore.Qt.ElideNone)
         self.category_tab_widget.setUsesScrollButtons(True)
         self.category_tab_widget.setObjectName("category_tab_widget")
+
+
+
         self.addWidget(self.category_tab_widget)
 
         self.work_tree_view = TikCategoryView()
