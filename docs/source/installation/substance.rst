@@ -1,4 +1,3 @@
-Tik Manager 4 <template_dcc_name> Installation Guide
 Substance Integration
 =====================
 
@@ -11,7 +10,7 @@ Substance Integration
 
 3. Open the copied ``tik_4_init.py`` with a text editor and replace the ``PATH\\TO\\PARENT\\FOLDER\\OF\\TIKMANAGER4\\`` with the extracted parent of the tik_manager4 folder.
 
-.. attention::
+.. attention:: 
     The Path MUST be the parent of the tik_manager4 folder. If you extracted the contents directly from the zip file it will be something like ``tik_manager4-4.0.7-beta``.
 
 4. Open Substance and you should see the Tik Manager menu in the top menu bar.
