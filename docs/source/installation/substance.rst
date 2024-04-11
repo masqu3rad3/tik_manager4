@@ -1,0 +1,16 @@
+Substance Integration
+=====================
+
+1. Locate the Substance python startup folder.
+
+.. tip::
+    | On Windows: ``%USERPROFILE%\Documents\Adobe\Adobe Substance 3D Painter\python\startup``
+
+2. Find the ``tik_4_init.py`` file in the ``tik_manager4/dcc/substance/setup`` folder and copy it to the substance startup folder.
+
+3. Open the copied ``tik_4_init.py`` with a text editor and replace the ``PATH\\TO\\PARENT\\FOLDER\\OF\\TIKMANAGER4\\`` with the extracted parent of the tik_manager4 folder.
+
+.. attention:: 
+    The Path MUST be the parent of the tik_manager4 folder. If you extracted the contents directly from the zip file it will be something like ``tik_manager4-4.0.7-beta``.
+
+4. Open Substance and you should see the Tik Manager menu in the top menu bar.

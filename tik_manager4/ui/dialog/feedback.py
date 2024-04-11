@@ -11,6 +11,7 @@ if __name__ == "__main__":
 class Feedback:
     def __init__(self, parent=None, *args, **kwargs):
         self.parent = parent
+        self.result = None
 
     def pop_info(
         self,
@@ -72,6 +73,7 @@ class Feedback:
         ret = q.exec_()
         for key, value in button_dict.items():
             if ret == eval(value):
+                self.result = key
                 return key
 
     def browse_directory(self, modal=True):

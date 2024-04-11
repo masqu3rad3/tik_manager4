@@ -58,6 +58,7 @@ class Installer:
         "Katana": self.katana_setup,
         "Mari": self.mari_setup,
         "Gaffer": self.gaffer_setup,
+        "Substance": self.substance_setup,
         }
 
     def install_all(self):
@@ -71,13 +72,17 @@ class Installer:
         self.katana_setup(prompt=False)
         self.mari_setup(prompt=False)
         self.gaffer_setup(prompt=False)
+        self.substance_setup(prompt=False)
         ret = input("Setup Completed. Press Enter to Exit...")
         assert isinstance(ret, str)
         sys.exit()
 
     def maya_setup(self, prompt=True):
         """Installs the Maya plugin."""
+        print_msg("\n")
+        print_msg("**********************")
         print_msg("Starting Maya Setup...")
+        print_msg("**********************")
 
         if self.check_running_instances("maya") == -1:
             print_msg("Installation aborted by user.")
@@ -111,7 +116,10 @@ class Installer:
 
     def houdini_setup(self, prompt=True):
         """Installs the Houdini plugin."""
+        print_msg("\n")
+        print_msg("*************************")
         print_msg("Starting Houdini Setup...")
+        print_msg("*************************")
 
         if self.check_running_instances("houdini") == -1:
             print_msg("Installation aborted by user.")
@@ -216,7 +224,10 @@ tui.on_publish_scene()
 
     def max_setup(self, prompt=True):
         """Installs the 3ds Max plugin."""
+        print_msg("\n")
+        print_msg("************************")
         print_msg("Starting 3dsmax Setup...")
+        print_msg("************************")
 
         if self.check_running_instances("3dsmax") == -1:
             print_msg("Installation aborted by user.")
@@ -340,7 +351,10 @@ icon: #("TikManager4",3)
 
     def blender_setup(self, prompt=True):
         """Installs the Blender plugin."""
+        print_msg("\n")
+        print_msg("*************************")
         print_msg("Starting Blender Setup...")
+        print_msg("*************************")
 
         if self.check_running_instances("Blender") == -1:
             print_msg("Installation aborted by user.")
@@ -372,7 +386,10 @@ icon: #("TikManager4",3)
 
     def nuke_setup(self, prompt=True):
         """Installs the Nuke plugin."""
+        print_msg("\n")
+        print_msg("**********************")
         print_msg("Starting Nuke Setup...")
+        print_msg("**********************")
 
         if self.check_running_instances("Nuke") == -1:
             print_msg("Installation aborted by user.")
@@ -436,7 +453,10 @@ icon: #("TikManager4",3)
 
     def katana_setup(self, prompt=True):
         """Installs the Katana plugin."""
+        print_msg("\n")
+        print_msg("************************")
         print_msg("Starting Katana Setup...")
+        print_msg("************************")
 
         if self.check_running_instances("Katana") == -1:
             print_msg("Installation aborted by user.")
@@ -493,13 +513,27 @@ icon: #("TikManager4",3)
 
     def mari_setup(self, prompt=True):
         """Install Mari."""
+        print_msg("\n")
+        print_msg("**********************")
         print_msg("Starting Mari Setup...")
+        print_msg("**********************")
 
         if self.check_running_instances("Mari") == -1:
             print_msg("Installation aborted by user.")
             return
 
-        user_mari_scripts_folder = self.user_home / "Documents" / "Mari" / "Scripts"
+        mari_folder = self.user_home / "Documents" / "Mari"
+        if not mari_folder.exists():
+            print_msg("No Mari version can be found in the user's documents directory.")
+            print_msg("Make sure Mari is installed and try again. "
+                      "Alternatively you can try manual install. "
+                      "Check the documentation for more information.")
+            if prompt:
+                ret = input("Press Enter to continue...")
+                assert isinstance(ret, str)
+            return
+
+        user_mari_scripts_folder = mari_folder / "Scripts"
         user_mari_scripts_folder.mkdir(parents=True, exist_ok=True)
 
         source_script = self.tik_dcc_folder / "mari" / "setup" / "tikmanager4_init.py"
@@ -520,7 +554,10 @@ icon: #("TikManager4",3)
 
     def photoshop_setup(self, prompt=True):
         """Install the Photoshop plugin."""
+        print_msg("\n")
+        print_msg("***************************")
         print_msg("Starting Photoshop Setup...")
+        print_msg("***************************")
 
         if self.check_running_instances("Photoshop") == -1:
             print_msg("Installation aborted by user.")
@@ -607,7 +644,10 @@ function tikPublish(){{
 
     def gaffer_setup(self, prompt=True):
         """Install Gaffer integration."""
+        print_msg("\n")
+        print_msg("************************")
         print_msg("Starting Gaffer Setup...")
+        print_msg("************************")
 
         # find the gaffer installation folder.
         places_to_look = ["C:/Program Files", "C:/Program Files (x86)", "C:/opt", "C:/software"]
@@ -652,6 +692,39 @@ function tikPublish(){{
                                          line="tik_path = ")
 
         print_msg("Gaffer setup completed.")
+        if prompt:
+            _r = input("Press Enter to continue...")
+            assert isinstance(_r, str)
+
+    def substance_setup(self, prompt=True):
+        """Install Substance integration."""
+        print_msg("\n")
+        print_msg("**************************************")
+        print_msg("Starting Substance 3d Painter Setup...")
+        print_msg("**************************************")
+
+        # find the substance installation folder.
+        substance_startup_folder = self.user_home / "Documents" / "Adobe" / "Adobe Substance 3D Painter" / "python" / "startup"
+
+        if not substance_startup_folder.exists():
+            print_msg("No Substance version can be found. Automatic installer supports version 7.2 and above.")
+            print_msg("Make sure Substance is installed and try again. "
+                      "Alternatively you can try manual install. "
+                      "Check the documentation for more information.")
+            if prompt:
+                ret = input("Press Enter to continue...")
+                assert isinstance(ret, str)
+            return
+
+        source_script = self.tik_dcc_folder / "substance" / "setup" / "tik_4_init.py"
+        init_file = substance_startup_folder / "tik_4_init.py"
+        shutil.copy(source_script, init_file)
+
+        injector = Injector(init_file)
+        injector.match_mode = "contains"
+        injector.replace_single_line(f"tik_path = '{self.tik_root.parent.as_posix()}'", line="tik_path = ")
+
+        print_msg("Substance setup completed.")
         if prompt:
             _r = input("Press Enter to continue...")
             assert isinstance(_r, str)

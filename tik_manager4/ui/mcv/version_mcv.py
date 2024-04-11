@@ -201,7 +201,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                         self.on_load()
                     return
                 self.base._dcc_handler.save_scene()
-                return
 
         read_only = False
         if self.base.object_type == "publish":
@@ -277,10 +276,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
     def __import_and_reference_btn_states(self, base, element_type):
         """Resolve the import button state."""
 
-        if element_type == "source" or not element_type:
-            self.import_btn.setEnabled(base.dcc == base.guard.dcc)
-            self.reference_btn.setEnabled(base.dcc == base.guard.dcc)
-            return
+        # if element_type == "source" or not element_type:
+        #     self.import_btn.setEnabled(base.dcc == base.guard.dcc)
+        #     self.reference_btn.setEnabled(base.dcc == base.guard.dcc)
+        #     return
 
         # if the ingest combo is empty, disable the import and reference buttons
         _ingestor = self.get_selected_ingestor()

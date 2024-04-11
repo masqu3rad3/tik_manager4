@@ -25,9 +25,11 @@ Each DCC can be integrated individually.
 
     /installation/3dsmax
     /installation/blender
+    /installation/gaffer
     /installation/houdini
     /installation/katana
     /installation/maya
     /installation/mari
     /installation/nuke
     /installation/photoshop
+    /installation/substance
