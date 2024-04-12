@@ -12,7 +12,7 @@ As with its predecessor, Tik Manager v4 remains cross-platform and cross-DCC (Di
 Main Features
 -------------
 - Cross-platform support: Windows, Linux, macOS (macOS under testing)
-- DCC support: Autodesk Maya, Sidefx Houdini, Autodesk 3dsMax, Foundry Nuke, Foundry Katana, Adobe Photoshop, Blender (with more to follow)
+- DCC support: Autodesk Maya, 3dsMax, Sidefx Houdini, Foundry Nuke, Katana, Mari, Adobe Photoshop, Substance 3d Painter, Blender, Gaffer (with more to follow)
 - Built-in validation & publish methodology 
 - User-friendly: No technical skills required. Learn in minutes, master in a couple of hours 
 - Fully extendable and customizable to meet individual requirements.
