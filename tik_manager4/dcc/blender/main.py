@@ -73,7 +73,11 @@ class Dcc(MainCore):
     def generate_thumbnail(self, file_path, width, height):
         """Generate a thumbnail for the scene."""
 
-        bpy.context.scene.render.image_settings.file_format = 'JPEG'
+        # get the extension from the file path
+        extension = Path(file_path).suffix
+        extension_map = {".jpg": 'JPEG', ".png": 'PNG'}
+
+        bpy.context.scene.render.image_settings.file_format = extension_map.get(extension, 'JPEG')
         bpy.context.scene.render.filepath = file_path
         bpy.context.scene.render.resolution_x = width * 10
         bpy.context.scene.render.resolution_y = height * 10
@@ -84,7 +88,11 @@ class Dcc(MainCore):
         # Render the single frame
         # bpy.ops.render.render(write_still=True)
         context = utils.get_override_context()
-        with bpy.context.temp_override(**context):
+        try:
+            with bpy.context.temp_override(**context):
+                bpy.ops.render.opengl(write_still=True)
+        except TypeError:
+            # the override context is not working in the newer versions of blender
             bpy.ops.render.opengl(write_still=True)
 
         # we saved the image 10 times bigger than the desired size, so we need to resize it
