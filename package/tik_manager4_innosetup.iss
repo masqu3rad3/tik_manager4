@@ -1,5 +1,5 @@
 #define appName "Tik Manager4"
-#define appVersion "4.0.9"
+#define appVersion "4.0.91"
 
 [Setup]
 AppId={{0BAFF3AF-5D10-4CA9-9232-428F16D17175}
@@ -13,7 +13,7 @@ SolidCompression=yes
 OutputBaseFilename=TikManager4_v{#appVersion}
 SetupIconFile=..\tik_manager4\ui\theme\rc\tik_main.ico
 WizardStyle=modern
-OutputDir="."
+OutputDir=".\build"
 
 DisableWelcomePage=no
 LicenseFile="..\LICENSE"

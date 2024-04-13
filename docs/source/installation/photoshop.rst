@@ -1,7 +1,7 @@
 Photoshop Integration
 =====================
 
-1. Locate the ``tik_manager4/dcc/maya/setup/extensions/tikManager4`` folder.
+1. Locate the ``tik_manager4/dcc/photoshop/setup/extensions/tikManager4`` folder.
 2. Copy the entire tikManager4 folder under the extensions folder to the Photoshop extension directory
 
 .. tip:: 
