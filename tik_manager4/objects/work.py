@@ -152,7 +152,7 @@ class Work(Settings, Entity):
             if version.get("version_number") == version_number:
                 return version
 
-    def new_version_from_path(self, file_path, notes="", ignore_checks=True):
+    def new_version_from_path(self, file_path, notes=""):
         """Register a given path (file or folder) as a new version of the work.
 
         Args:
@@ -424,14 +424,16 @@ class Work(Settings, Entity):
         full_name = nice_name + [self._name, f"v{version:03d}"]
         return "_".join(nice_name), "_".join(full_name)
 
-    def construct_names(self, file_format):
+    def construct_names(self, file_format, version_number=None):
         """Construct a name for the work version.
 
         Args:
             file_format (str): The file format of the file.
+            version_number (int): The version number. If not given, iterated on top
+                                    of the last version. Default is None.
 
         """
-        version_number = self.get_last_version() + 1
+        version_number = version_number or self.get_last_version() + 1
         version_name = f"{self._name}_v{version_number:03d}{file_format}"
         thumbnail_name = f"{self._name}_v{version_number:03d}_thumbnail.jpg"
         return version_number, version_name, thumbnail_name
@@ -540,9 +542,10 @@ class Work(Settings, Entity):
         shutil.move(str(self.settings_file), str(db_destination))
         return 1
 
-    def check_delete_version_permissions(self, version_number):
-        """Check the permissions for deleting the given version of the work.
+    def check_owner_permissions(self, version_number):
+        """Check the permissions for 'owner' and 'admin-only' actions.
 
+        For example,
         Users can only delete their own versions. Admins can delete any version.
         If there is a publish of the version, only Admins can delete the version.
         """
@@ -552,8 +555,8 @@ class Work(Settings, Entity):
             return False, "Version does not exist."
         if self.check_permissions(level=3) == -1:
             if self.guard.user != version_obj.get("user"):
-                msg = ("You do not have the permission to delete this version.\n"
-                       "Only admins can delete other users' versions.")
+                msg = ("You do not have the permissions for this action.\n"
+                       "Only admins and version owners are allowed.")
                 LOG.warning(msg)
                 return False, msg
         return True, ""
@@ -565,7 +568,7 @@ class Work(Settings, Entity):
             version_number (int): Version number.
         """
 
-        state, _msg = self.check_delete_version_permissions(version_number)
+        state, _msg = self.check_owner_permissions(version_number)
         if not state:
             return -1
         version_obj = self.get_version(version_number)
@@ -593,6 +596,32 @@ class Work(Settings, Entity):
             self.apply_settings(force=True)
         return 1
 
+    def replace_thumbnail(self, version_number, new_thumbnail_path=None):
+        """Replace the thumbnail of the given version.
+        Args:
+            version_number (int): Version number.
+            thumbnail_path (str): Path to the thumbnail image.
+                    If not given, a new thumbnail will be generated.
+        """
+        state, _msg = self.check_owner_permissions(version_number)
+        if not state:
+            return -1
+        version_obj = self.get_version(version_number)
+        thumbnail_relative_path = version_obj.get("thumbnail", None)
+        if not thumbnail_relative_path:
+            # if there is no previous thumbnail, generate a new one
+            _number, _name, thumbnail_relative_path = self.construct_names(version_obj.get("file_format", ".jpg"), version_number)
+            version_obj["thumbnail"] = thumbnail_relative_path
+        thumbnail_abs_path = self.get_abs_database_path(thumbnail_relative_path)
+        # make sure the path exists
+        Path(thumbnail_abs_path).parent.mkdir(parents=True, exist_ok=True)
+        if new_thumbnail_path:
+            shutil.copy(new_thumbnail_path, thumbnail_abs_path)
+
+        else:
+            self._dcc_handler.generate_thumbnail(thumbnail_abs_path, 220, 124)
+
+        self.apply_settings(force=True)
 
     def check_dcc_version_mismatch(self):
         """Check if there is a mismatch with the current and defined dcc versions.
