@@ -424,7 +424,7 @@ class Work(Settings, Entity):
         full_name = nice_name + [self._name, f"v{version:03d}"]
         return "_".join(nice_name), "_".join(full_name)
 
-    def construct_names(self, file_format, version_number=None):
+    def construct_names(self, file_format, version_number=None, thumbnail_extension=".jpg"):
         """Construct a name for the work version.
 
         Args:
@@ -435,7 +435,7 @@ class Work(Settings, Entity):
         """
         version_number = version_number or self.get_last_version() + 1
         version_name = f"{self._name}_v{version_number:03d}{file_format}"
-        thumbnail_name = f"{self._name}_v{version_number:03d}_thumbnail.jpg"
+        thumbnail_name = f"{self._name}_v{version_number:03d}_thumbnail{thumbnail_extension}"
         return version_number, version_name, thumbnail_name
 
     def load_version(self, version_number, force=False, **kwargs):
@@ -596,6 +596,19 @@ class Work(Settings, Entity):
             self.apply_settings(force=True)
         return 1
 
+
+    def __generate_thumbnail_paths(self, version_obj, override_extension=None):
+        """Return the thumbnail paths of the given version."""
+        # if there is no previous thumbnail, generate a new one
+        extension = override_extension or Path(version_obj.get("thumbnail", "noThumb.jpg")).suffix
+        _number, _name, thumbnail_name = self.construct_names(version_obj.get("file_format", ""), version_obj.get("version_number"), thumbnail_extension=extension)
+        relative_path = Path("thumbnails", thumbnail_name).as_posix()
+        # version_obj["thumbnail"] = relative_path
+        abs_path = self.get_abs_database_path(relative_path)
+        Path(abs_path).parent.mkdir(parents=True, exist_ok=True)
+        return relative_path, abs_path
+
+
     def replace_thumbnail(self, version_number, new_thumbnail_path=None):
         """Replace the thumbnail of the given version.
         Args:
@@ -606,22 +619,19 @@ class Work(Settings, Entity):
         state, _msg = self.check_owner_permissions(version_number)
         if not state:
             return -1
+
         version_obj = self.get_version(version_number)
-        thumbnail_relative_path = version_obj.get("thumbnail", None)
-        if not thumbnail_relative_path:
-            # if there is no previous thumbnail, generate a new one
-            _number, _name, thumbnail_relative_path = self.construct_names(version_obj.get("file_format", ".jpg"), version_number)
-            version_obj["thumbnail"] = thumbnail_relative_path
-        thumbnail_abs_path = self.get_abs_database_path(thumbnail_relative_path)
-        # make sure the path exists
-        Path(thumbnail_abs_path).parent.mkdir(parents=True, exist_ok=True)
-        if new_thumbnail_path:
-            shutil.copy(new_thumbnail_path, thumbnail_abs_path)
+        override_suffix = Path(new_thumbnail_path).suffix if new_thumbnail_path else None
+        target_relative_path, target_absolute_path = self.__generate_thumbnail_paths(version_obj, override_extension=override_suffix)
 
+        if not new_thumbnail_path:
+            self._dcc_handler.generate_thumbnail(target_absolute_path, 220, 124)
+            version_obj["thumbnail"] = target_relative_path
         else:
-            self._dcc_handler.generate_thumbnail(thumbnail_abs_path, 220, 124)
+            shutil.copy(new_thumbnail_path, target_absolute_path)
+            version_obj["thumbnail"] = target_relative_path
 
-        self.apply_settings(force=True)
+        self.apply_settings()
 
     def check_dcc_version_mismatch(self):
         """Check if there is a mismatch with the current and defined dcc versions.
