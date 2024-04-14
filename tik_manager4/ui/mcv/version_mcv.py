@@ -70,7 +70,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         self.thumbnail = ImageWidget()
         self.empty_pixmap = pick.pixmap("empty_thumbnail.png")
-        # self.empty_pixmap = QtGui.QPixmap(":/images/CSS/rc/empty_thumbnail.png")
         self.thumbnail.setToolTip("Right Click for replace options")
         self.thumbnail.setProperty("image", True)
         self.thumbnail.setPixmap(self.empty_pixmap)
@@ -79,6 +78,19 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.thumbnail.setFrameShape(QtWidgets.QFrame.Box)
         self.thumbnail.setScaledContents(True)
         self.thumbnail.setAlignment(QtCore.Qt.AlignCenter)
+
+        # self.thumbnail.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        # self.thumbnail.customContextMenuRequested.connect(self.on_thumbnail_menu_request)
+        # self.popmenu_thumbnail = QtWidgets.QMenu()
+        # replace_with_view_action = QtWidgets.QAction("Replace with current view", self)
+        # self.popmenu_thumbnail.addAction(replace_with_view_action)
+        # replace_with_view_action.triggered.connect(lambda: self.thumbnail_replace(mode="view"))
+        # replace_with_file_action = QtWidgets.QAction("Replace with external file", self)
+        # self.popmenu_thumbnail.addAction(replace_with_file_action)
+        # replace_with_file_action.triggered.connect(lambda: self.thumbnail_replace(mode="file"))
+
+
+
         self.addWidget(self.thumbnail)
 
         # # buttons
@@ -105,7 +117,11 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.reference_btn.clicked.connect(self.on_reference)
 
         self.version_combo.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.version_combo.customContextMenuRequested.connect(self.right_click_menu)
+        self.version_combo.customContextMenuRequested.connect(self.version_right_click_menu)
+
+        self.thumbnail.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        # self.thumbnail.customContextMenuRequested.connect(self.on_thumbnail_menu_request)
+        self.thumbnail.customContextMenuRequested.connect(self.thumbnail_right_click_menu)
 
     def on_import(self):
         """Import the current version."""
@@ -460,7 +476,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             return
         _version = self.get_selected_version()
 
-        state, msg = self.base.check_delete_version_permissions(_version)
+        state, msg = self.base.check_owner_permissions(_version)
         if state != 1:
             self.feedback.pop_info(
                 title="Permission Error",
@@ -508,9 +524,55 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.notes_editor.clear()
             self.thumbnail.clear()
 
-    def right_click_menu(self, position):
+    def on_replace_thumbnail(self, mode="view"):
+        """Replace the thumbnail with the current view or external file."""
+        if not self.base:
+            return
+        if not self.base.object_type == "work":
+            return
+        version = self.get_selected_version()
+        state, msg = self.base.check_owner_permissions(version)
+        if state != 1:
+            self.feedback.pop_info(
+                title="Permission Error",
+                text=msg,
+                critical=True,
+            )
+            return
+        if mode == "view":
+            file_path = None
+        else:
+            # get the project directory
+            file_path = QtWidgets.QFileDialog.getOpenFileName(self.parent, 'Open file', self.project.get_abs_project_path(), "Image files (*.jpg *.png *.gif)")[0]
+
+        self.base.replace_thumbnail(version, new_thumbnail_path=file_path)
+        self.refresh()
+
+    def thumbnail_right_click_menu(self, position):
+        """Right click menu for the thumbnail."""
+        if not self.base:
+            return
+        if not self.base.object_type == "work":
+            return
+
+        _ = position
+
+        right_click_menu = QtWidgets.QMenu()
+        right_click_menu.setStyleSheet(self.parent.styleSheet())
+
+        replace_with_view_action = QtWidgets.QAction(self.tr("Replace with current view"), self)
+        right_click_menu.addAction(replace_with_view_action)
+        replace_with_file_action = QtWidgets.QAction("Replace with external file", self)
+        right_click_menu.addAction(replace_with_file_action)
+        replace_with_view_action.triggered.connect(lambda: self.on_replace_thumbnail(mode="view"))
+        replace_with_file_action.triggered.connect(lambda: self.on_replace_thumbnail(mode="file"))
+
+        right_click_menu.exec_((QtGui.QCursor.pos()))
+
+    def version_right_click_menu(self, position):
         """Right click menu for the version dropdown."""
 
+        _ = position # stop the linter complaining
         right_click_menu = QtWidgets.QMenu()
         right_click_menu.setStyleSheet(self.parent.styleSheet())  # Add this line
 
@@ -547,31 +609,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 critical=False,
             )
 
-# class ComboItem(str):
-#     """Custom class for combo box items."""
-#     def __init__(self, *_args):
-#         super().__init__()
-#         self.data=None
-
-
-# class ComboItem:
-#     """Custom class for combo box items."""
-#
-#     def __init__(self, nice_name, value=None):
-#         self.nice_name = nice_name
-#         self.value = value
-#
-#     def __str__(self):
-#         return self.nice_name
-#
-#     def __repr__(self):
-#         return self.nice_name
-
-
 class ImageWidget(QtWidgets.QLabel):
     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
 
-    def __init__(self, parent=None):
+    def __init__(self):
         super(ImageWidget, self).__init__()
         self.aspectRatio = 1.78
         size_policy = QtWidgets.QSizePolicy(

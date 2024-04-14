@@ -71,7 +71,7 @@ class Category(Entity):
         if Path(abs_path).exists():
             # in that case instantiate the work and iterate the version.
             work = Work(absolute_path=abs_path, parent_task=self.parent_task)
-            work.new_version_from_path(file_path=file_path, notes=notes, ignore_checks=ignore_checks)
+            work.new_version_from_path(file_path=file_path, notes=notes)
             return work
 
         relative_path = self.get_relative_work_path(override_dcc="standalone")
@@ -89,7 +89,7 @@ class Category(Entity):
         work.add_property("path", relative_path)
         work.add_property("state", "working")
         work.init_properties()
-        work.new_version_from_path(file_path=file_path, notes=notes, ignore_checks=ignore_checks)
+        work.new_version_from_path(file_path=file_path, notes=notes)
         return work
 
     def create_work(self, name, file_format=None, notes="", ignore_checks=True):
