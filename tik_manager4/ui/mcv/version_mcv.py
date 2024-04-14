@@ -536,7 +536,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             file_path = None
         else:
             # get the project directory
-            file_path = QtWidgets.QFileDialog.getOpenFileName(self.parent, 'Open file', self.project.get_abs_project_path(), "Image files (*.jpg *.png *.gif)")[0]
+            file_path = QtWidgets.QFileDialog.getOpenFileName(self.parent, 'Open file', self.project.get_abs_project_path(), "Image files (*.jpg *.png *.gif *.webp)")[0]
 
         self.base.replace_thumbnail(version, new_thumbnail_path=file_path)
         self.refresh()
@@ -601,7 +601,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 text=f"Snapshot published.\nName: {published_object.name}\nPath: {published_object.path}",
                 critical=False,
             )
-
 class ImageWidget(QtWidgets.QLabel):
     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
 
@@ -615,23 +614,38 @@ class ImageWidget(QtWidgets.QLabel):
         self.setSizePolicy(size_policy)
         self.setProperty("image", True)
 
-        # self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
+        self.is_movie = False
+        self.q_media = None
 
     def set_media(self, media_path):
         """Set the media to the widget."""
-        # print(media_path)
         if not Path(media_path).exists():
-            q_media = pick.pixmap("empty_thumbnail.png")
-            self.setPixmap(q_media)
+            self.q_media = pick.pixmap("empty_thumbnail.png")
+            self.setPixmap(self.q_media)
+            self.is_movie = False
             return
-        if Path(media_path).suffix.lower() in [".mov", ".mp4", ".gif"]:
-            q_media = QtGui.QMovie(media_path)
-            q_media.start()
+        if Path(media_path).suffix.lower() in [".gif", ".webp"]:
+            self.q_media = QtGui.QMovie(media_path)
+            # don't start but show the first frame
+            self.q_media.jumpToFrame(0)
+            # self.q_media.start()
             self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
-            self.setMovie(q_media)
+            self.setMovie(self.q_media)
+            self.is_movie = True
         else:
-            q_media = QtGui.QPixmap(media_path)
-            self.setPixmap(q_media)
+            self.q_media = QtGui.QPixmap(media_path)
+            self.setPixmap(self.q_media)
+            self.is_movie = False
+
+    # start playing the movie if the mouse is over the widget
+    def enterEvent(self, _):
+        if self.is_movie:
+            self.q_media.start()
+
+    # pause playing it the mouse leaves the widget
+    def leaveEvent(self, _):
+        if self.is_movie:
+            self.q_media.setPaused(True)
 
     def resizeEvent(self, _resize_event):
         height = self.width()

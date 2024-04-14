@@ -212,7 +212,7 @@ class Publish(Entity):
         self._publish_versions = {}
         return 1
 
-    def check_delete_version_permissions(self, version_number):
+    def check_owner_permissions(self, version_number):
         """Shortcut and wrapper for the check_permissions method."""
         if self.check_permissions(level=3) == -1:
             return False, "Only Admins can delete publishes."
@@ -220,7 +220,7 @@ class Publish(Entity):
 
     def delete_version(self, version_number):
         """Delete the given publish version."""
-        state, msg = self.check_delete_version_permissions(version_number)
+        state, msg = self.check_owner_permissions(version_number)
         if not state:
             LOG.warning(msg)
             return -1

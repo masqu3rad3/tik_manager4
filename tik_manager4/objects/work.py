@@ -596,6 +596,19 @@ class Work(Settings, Entity):
             self.apply_settings(force=True)
         return 1
 
+
+    def __generate_thumbnail_paths(self, version_obj, override_extension=None):
+        """Return the thumbnail paths of the given version."""
+        # if there is no previous thumbnail, generate a new one
+        extension = override_extension or Path(version_obj.get("thumbnail", "noThumb.jpg")).suffix
+        _number, _name, thumbnail_name = self.construct_names(version_obj.get("file_format", ""), version_obj.get("version_number"), thumbnail_extension=extension)
+        relative_path = Path("thumbnails", thumbnail_name).as_posix()
+        # version_obj["thumbnail"] = relative_path
+        abs_path = self.get_abs_database_path(relative_path)
+        Path(abs_path).parent.mkdir(parents=True, exist_ok=True)
+        return relative_path, abs_path
+
+
     def replace_thumbnail(self, version_number, new_thumbnail_path=None):
         """Replace the thumbnail of the given version.
         Args:
@@ -606,37 +619,17 @@ class Work(Settings, Entity):
         state, _msg = self.check_owner_permissions(version_number)
         if not state:
             return -1
+
         version_obj = self.get_version(version_number)
-        thumbnail_relative_path = version_obj.get("thumbnail", None)
-        if not thumbnail_relative_path:
-            # if there is no previous thumbnail, generate a new one
-            _number, _name, thumbnail_name = self.construct_names(version_obj.get("file_format", ".jpg"), version_number)
-            thumbnail_relative_path = Path("thumbnails", thumbnail_name).as_posix()
-            version_obj["thumbnail"] = thumbnail_relative_path
-        thumbnail_abs_path = self.get_abs_database_path(thumbnail_relative_path)
-        # make sure the path exists
-        Path(thumbnail_abs_path).parent.mkdir(parents=True, exist_ok=True)
-        if new_thumbnail_path:
-            # if the extensions of the new thumbnail and the old thumbnail same just replace it
-            if Path(new_thumbnail_path).suffix == Path(thumbnail_abs_path).suffix:
-                shutil.copy(new_thumbnail_path, thumbnail_abs_path)
-            else:
-                new_thumbnail_suffix = Path(new_thumbnail_path).suffix
-                # otherwise delete the old thumbnail
-                _thumbnail_abs_path = Path(thumbnail_abs_path)
-                if _thumbnail_abs_path.exists():
-                    _thumbnail_abs_path.unlink()
-                # construct the destination thumbnail path (same as the old one but with the extension of new_thumbnail_path)
-                _number, _name, thumbnail_name = self.construct_names(version_obj.get("file_format", ".jpg"),
-                                                                               version_number, thumbnail_extension=new_thumbnail_suffix)
-                thumbnail_relative_path = Path("thumbnails", thumbnail_name).as_posix()
-                final_destination = self.get_abs_database_path(thumbnail_relative_path)
-                shutil.copy(new_thumbnail_path, final_destination)
-                version_obj["thumbnail"] = thumbnail_relative_path
+        override_suffix = Path(new_thumbnail_path).suffix if new_thumbnail_path else None
+        target_relative_path, target_absolute_path = self.__generate_thumbnail_paths(version_obj, override_extension=override_suffix)
 
-
+        if not new_thumbnail_path:
+            self._dcc_handler.generate_thumbnail(target_absolute_path, 220, 124)
+            version_obj["thumbnail"] = target_relative_path
         else:
-            self._dcc_handler.generate_thumbnail(thumbnail_abs_path, 220, 124)
+            shutil.copy(new_thumbnail_path, target_absolute_path)
+            version_obj["thumbnail"] = target_relative_path
 
         self.apply_settings()
 
