@@ -45,6 +45,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.show_preview_btn.setEnabled(False)
         version_layout.addWidget(self.show_preview_btn)
 
+        user_layout = QtWidgets.QHBoxLayout()
+        self.addLayout(user_layout)
+        self.version_owner_lbl = QtWidgets.QLabel("Owner: ")
+        self.version_owner_lbl.setFont(QtGui.QFont("Arial", 10))
+        user_layout.addStretch()
+        user_layout.addWidget(self.version_owner_lbl)
+
         element_layout = QtWidgets.QVBoxLayout()
         self.addLayout(element_layout)
         element_lbl = QtWidgets.QLabel("Element: ")
@@ -69,27 +76,15 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         notes_layout.addWidget(self.notes_editor)
 
         self.thumbnail = ImageWidget()
-        self.empty_pixmap = pick.pixmap("empty_thumbnail.png")
+        # self.empty_pixmap = pick.pixmap("empty_thumbnail.png")
         self.thumbnail.setToolTip("Right Click for replace options")
-        self.thumbnail.setProperty("image", True)
-        self.thumbnail.setPixmap(self.empty_pixmap)
+        # self.thumbnail.setProperty("image", True)
+        # self.thumbnail.setPixmap(self.empty_pixmap)
 
         self.thumbnail.setMinimumSize(QtCore.QSize(221, 124))
         self.thumbnail.setFrameShape(QtWidgets.QFrame.Box)
         self.thumbnail.setScaledContents(True)
         self.thumbnail.setAlignment(QtCore.Qt.AlignCenter)
-
-        # self.thumbnail.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        # self.thumbnail.customContextMenuRequested.connect(self.on_thumbnail_menu_request)
-        # self.popmenu_thumbnail = QtWidgets.QMenu()
-        # replace_with_view_action = QtWidgets.QAction("Replace with current view", self)
-        # self.popmenu_thumbnail.addAction(replace_with_view_action)
-        # replace_with_view_action.triggered.connect(lambda: self.thumbnail_replace(mode="view"))
-        # replace_with_file_action = QtWidgets.QAction("Replace with external file", self)
-        # self.popmenu_thumbnail.addAction(replace_with_file_action)
-        # replace_with_file_action.triggered.connect(lambda: self.thumbnail_replace(mode="file"))
-
-
 
         self.addWidget(self.thumbnail)
 
@@ -291,12 +286,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
     def __import_and_reference_btn_states(self, base, element_type):
         """Resolve the import button state."""
-
-        # if element_type == "source" or not element_type:
-        #     self.import_btn.setEnabled(base.dcc == base.guard.dcc)
-        #     self.reference_btn.setEnabled(base.dcc == base.guard.dcc)
-        #     return
-
         # if the ingest combo is empty, disable the import and reference buttons
         _ingestor = self.get_selected_ingestor()
         if not _ingestor:
@@ -391,20 +380,24 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.element_combo.addItems(list(self.element_mapping.keys()))
             # trigger the element type changed manually
             self.element_type_changed(self.element_combo.currentText())
+            owner = _version.creator
         else:  # WORK
             # disable
             self.element_combo.setEnabled(False)
             self.ingest_with_combo.setEnabled(False)
             # enable the show preview button if there are previews
             self.show_preview_btn.setEnabled(bool(_version.get("previews")))
+            owner = _version.get("user", "")
+        self.version_owner_lbl.setText(f"Owner: {owner}")
         self.notes_editor.clear()
         self.thumbnail.clear()
         self.notes_editor.setPlainText(_version.get("notes"))
         _thumbnail_path = self.base.get_abs_database_path(_version.get("thumbnail", ""))
-        if Path(_thumbnail_path).is_file():
-            self.thumbnail.setPixmap(QtGui.QPixmap(_thumbnail_path))
-        else:
-            self.thumbnail.setPixmap(self.empty_pixmap)
+        self.thumbnail.set_media(_thumbnail_path)
+        # if Path(_thumbnail_path).is_file():
+        #     self.thumbnail.setPixmap(QtGui.QPixmap(_thumbnail_path))
+        # else:
+        #     self.thumbnail.setPixmap(self.empty_pixmap)
         self.element_combo.blockSignals(False)
         self.ingest_with_combo.blockSignals(False)
 
@@ -620,6 +613,25 @@ class ImageWidget(QtWidgets.QLabel):
         )
         size_policy.setHeightForWidth(True)
         self.setSizePolicy(size_policy)
+        self.setProperty("image", True)
+
+        # self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
+
+    def set_media(self, media_path):
+        """Set the media to the widget."""
+        # print(media_path)
+        if not Path(media_path).exists():
+            q_media = pick.pixmap("empty_thumbnail.png")
+            self.setPixmap(q_media)
+            return
+        if Path(media_path).suffix.lower() in [".mov", ".mp4", ".gif"]:
+            q_media = QtGui.QMovie(media_path)
+            q_media.start()
+            self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
+            self.setMovie(q_media)
+        else:
+            q_media = QtGui.QPixmap(media_path)
+            self.setPixmap(q_media)
 
     def resizeEvent(self, _resize_event):
         height = self.width()
