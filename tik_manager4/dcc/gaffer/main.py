@@ -2,6 +2,8 @@
 
 import logging
 
+from pathlib import Path
+
 import Gaffer
 import GafferUI
 
@@ -30,6 +32,9 @@ class Dcc(MainCore):
         """Initialize the Gaffer DCC."""
         super(Dcc, self).__init__()
         self.gaffer = gaffer_menu.GafferMenu()
+
+        self.project_root = None
+        self.project_name = None
 
     def get_main_window(self):
         """Get the main window of the DCC."""
@@ -65,6 +70,19 @@ class Dcc(MainCore):
         """
         self.gaffer.script["fileName"].setValue(file_path)
         self.gaffer.script.load()
+
+        self.gaffer.script["variables"]["projectRootDirectory"]["value"].setValue(self.project_root)
+        self.gaffer.script["variables"]["projectName"]["value"].setValue(self.project_name)
+
+    def set_project(self, file_path):
+        """Set the project file path and name."""
+        # we are doing a trick here...
+        # instead of setting the project, we are setting a variable.
+        # the reason for that is this function gets called during initialization before the
+        # creation of the script node. So we can't set the project directly.
+        self.project_root = file_path
+        self.project_name = Path(file_path).name
+
 
     def is_modified(self):
         """Check if the current scene is modified."""
