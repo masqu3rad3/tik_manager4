@@ -468,9 +468,11 @@ icon: #("TikManager4",3)
         init_content = [
         "# Tik Manager 4 [Start]\n",
         "import sys\n",
+        "import os\n",
         f"tik_path = '{self.tik_root.parent.as_posix()}'\n",
         "if not tik_path in sys.path:\n",
         "    sys.path.append(tik_path)\n",
+        """os.environ["QT_PREFERRED_BINDING_JSON"] = '{"tik_manager4.ui.Qt": ["PyQt5"], "default":["PyQt5"]}'\n"""
         "# Tik Manager 4 [End]\n"
         ]
 

@@ -2,7 +2,6 @@
 
 import logging
 
-# from PyQt5 import QtWidgets, QtGui, QtCore
 from tik_manager4.ui.Qt import QtWidgets, QtGui, QtCore
 import Katana
 from Katana import KatanaFile  # pylint: disable=import-error
