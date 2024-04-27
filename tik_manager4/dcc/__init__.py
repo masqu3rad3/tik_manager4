@@ -27,5 +27,7 @@ elif NAME == "substance":
     from tik_manager4.dcc.substance.main import Dcc
 elif NAME == "trigger":
     from tik_manager4.dcc.trigger.main import Dcc
+elif NAME == "zbrush":
+    from tik_manager4.dcc.zbrush.main import Dcc
 else:
     raise ValueError(f"Environment variable 'TIK_DCC' value ({NAME} is not matching any defined DCCs.")

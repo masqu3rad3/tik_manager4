@@ -1,5 +1,10 @@
 @echo off
 
+REM Set the QT_PREFERRED_BINDING_JSON environment variable to '{"tik_manager4.ui.Qt": ["PyQt5"], "default":["PyQt5"]}'
+REM This will force the use of PyQt5 for the Qt binding
+set "QT_PREFERRED_BINDING_JSON={"tik_manager4.ui.Qt": ["PyQt5"], "default":["PyQt5"]}"
+
+
 REM This batch file will execute release_package.py with specified arguments.
 
 REM Get the directory of make.bat
@@ -31,5 +36,3 @@ IF "%ARG%"=="release" (
     REM Invalid argument, display error message
     echo Invalid argument. Use 'release', 'clean', or 'help'.
 )
-
-REM Add any additional commands if needed

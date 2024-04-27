@@ -1,4 +1,4 @@
-"""Main module for Maya DCC integration."""
+"""Main module for Zbrush integration."""
 
 import logging
 
@@ -11,8 +11,8 @@ LOG = logging.getLogger(__name__)
 class Dcc(MainCore):
     """Maya DCC class."""
 
-    name = "NAME OF THE DCC"
-    formats = [".Extension1", ".Extension2"]  # File formats supported by the DCC
+    name = "Zbrush"
+    formats = [".zbr"]  # File formats supported by the DCC
     preview_enabled = False  # Whether or not to enable the preview in the UI
     validations = validate.classes
     extracts = extract.classes

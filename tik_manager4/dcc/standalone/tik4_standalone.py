@@ -9,5 +9,5 @@ from tik_manager4.ui import main
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    main.launch()
+    tik = main.launch()
     sys.exit(app.exec_())
