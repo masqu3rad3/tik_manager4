@@ -1,15 +1,15 @@
-"""Example of a validation class for Maya."""
+"""Validates all meshes to have frozen transforms."""
 
 from maya import cmds
 from tik_manager4.dcc.validate_core import ValidateCore
 
 class MeshTransform(ValidateCore):
-    """Example validation for Maya"""
+    """Mesh Transform Validation for Maya."""
 
     nice_name = "Mesh Transforms"
 
     def __init__(self):
-        super(MeshTransform, self).__init__()
+        super().__init__()
         self.autofixable = True
         self.ignorable = False
         self.selectable = True
@@ -24,9 +24,9 @@ class MeshTransform(ValidateCore):
     def _check_frozen(self, mesh_transform):
         """Check if the mesh transform is frozen."""
         for attr in "tr":
-            if cmds.getAttr("{}.{}".format(mesh_transform, attr)) != [(0.0, 0.0, 0.0)]:
+            if cmds.getAttr(f"{mesh_transform}.{attr}") != [(0.0, 0.0, 0.0)]:
                 return False
-        if cmds.getAttr("{}.s".format(mesh_transform)) != [(1.0, 1.0, 1.0)]:
+        if cmds.getAttr(f"{mesh_transform}.s") != [(1.0, 1.0, 1.0)]:
             return False
         return True
 
