@@ -64,11 +64,8 @@ class TikColumnItem(QtGui.QStandardItem):
         self.setFont(fnt)
 
 class TikSubModel(QtGui.QStandardItemModel):
-    def __init__(self, structure_object, search_id=None):
+    def __init__(self, structure_object):
         super(TikSubModel, self).__init__()
-        # self.columns = ["name", "id", "path"] + list(
-        #     guard.Guard.commons.metadata.properties.keys()
-        # )
         self.columns = ["name", "id", "path"] + list(
             structure_object.metadata_definitions.properties.keys()
         )

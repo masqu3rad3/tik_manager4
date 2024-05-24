@@ -41,6 +41,11 @@ class TikTaskItem(QtGui.QStandardItem):
         self.setFont(fnt)
         self.setText(task_obj.name)
 
+class TikTaskColumnItem(QtGui.QStandardItem):
+    def __init__(self, text):
+        super(TikTaskColumnItem, self).__init__(text)
+        self.setEditable(False)
+
 
 class TikTaskModel(QtGui.QStandardItemModel):
     columns = ["name", "id", "path"]
@@ -60,11 +65,9 @@ class TikTaskModel(QtGui.QStandardItemModel):
 
     def append_task(self, sub_data):
         """Append a task to the model"""
-        # self._tasks.append(sub_data)
         _sub_item = TikTaskItem(sub_data)
-        # pid = QtGui.QStandardItem(str(sub_data.reference_id))
-        pid = QtGui.QStandardItem(str(sub_data.id))
-        path = QtGui.QStandardItem(sub_data.path)
+        pid = TikTaskColumnItem(str(sub_data.id))
+        path = TikTaskColumnItem(sub_data.path)
 
         self.appendRow(
             [
