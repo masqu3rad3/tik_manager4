@@ -10,6 +10,7 @@ from tik_manager4.ui.widgets.common import VerticalSeparator
 
 
 class TikWorkItem(QtGui.QStandardItem):
+    """Custom QStandardItem for the work items in the category view."""
     state_color_dict = {
         "working": (255, 255, 0),
         "published": (0, 255, 0),
@@ -18,6 +19,11 @@ class TikWorkItem(QtGui.QStandardItem):
     }
 
     def __init__(self, work_obj):
+        """Initialize the item with the given work object.
+        Args:
+            work_obj (tik_manager4.object.work.Work):
+                The work object to be represented by this item.
+        """
         super(TikWorkItem, self).__init__()
 
         self.tik_obj = work_obj
@@ -33,9 +39,19 @@ class TikWorkItem(QtGui.QStandardItem):
         self.refresh()
 
     def refresh(self):
+        """Refresh the item state."""
         self.set_state(self.tik_obj.state)
 
     def set_state(self, state):
+        """Define the state of the work item.
+        Args:
+            state (str): The state of the work item.
+                Possible values are:
+                    "working": The work is currently being worked on.
+                    "published": The work is published.
+                    "omitted": The work is omitted.
+                    "promoted": The work is promoted.
+        """
         self.state = state
         _state_color = self.state_color_dict[state]
         # cross out omitted items
@@ -45,15 +61,16 @@ class TikWorkItem(QtGui.QStandardItem):
         if not self.dcc_check():
             self.fnt.setItalic(True)
             self.setFont(self.fnt)
-            _state_color = tuple([int(x * 0.5) for x in _state_color])
+            _state_color = tuple(int(x * 0.5) for x in _state_color)
         self.setForeground(QtGui.QColor(*_state_color))
 
     def dcc_check(self):
-        """Checks if the dcc of the work matches the dcc of the current session"""
+        """Check if the dcc of the work matches the dcc of the current session."""
         return self.tik_obj.dcc.lower() == self.tik_obj.guard.dcc.lower()
 
 
 class TikPublishItem(QtGui.QStandardItem):
+    """Custom QStandardItem for the publish items in the category view."""
     state_color_dict = {
         "working": (0, 255, 255),
         "published": (0, 255, 255),
@@ -62,6 +79,11 @@ class TikPublishItem(QtGui.QStandardItem):
     }
 
     def __init__(self, publish_obj):
+        """Initialize the item with the given publish object.
+        Args:
+            publish_obj (tik_manager4.object.publish.Publish):
+                The publish object to be represented by this item.
+        """
         super(TikPublishItem, self).__init__()
 
         self.tik_obj = publish_obj
@@ -77,9 +99,21 @@ class TikPublishItem(QtGui.QStandardItem):
         self.refresh()
 
     def refresh(self):
+        """Refresh the item state."""
         self.set_state(self.tik_obj.state)
 
     def set_state(self, state):
+        """Define the state of the publish item.
+        Args:
+            state (str): The state of the publish item.
+                Possible values are:
+                    "working": The work is currently being worked on.
+                    "published": The work is published.
+                    "omitted": The work is omitted.
+                    "promoted": The work is promoted.
+        Returns:
+
+        """
         self.state = state
         _state_color = self.state_color_dict[state]
         # cross out omitted items
@@ -89,18 +123,29 @@ class TikPublishItem(QtGui.QStandardItem):
         if not self.dcc_check():
             self.fnt.setItalic(True)
             self.setFont(self.fnt)
-            _state_color = tuple([int(x * 0.5) for x in _state_color])
+            _state_color = tuple(int(x * 0.5) for x in _state_color)
         self.setForeground(QtGui.QColor(*_state_color))
 
     def dcc_check(self):
-        """Checks if the dcc of the work matches the dcc of the current session"""
+        """Check if the dcc of the work matches the dcc of the current session."""
         return self.tik_obj.dcc == self.tik_obj.guard.dcc
 
+class TikCategoryColumnItem(QtGui.QStandardItem):
+    """Custom QStandardItem for the category columns in the category view."""
+    def __init__(self, text):
+        """Initialize the item with the given text.
+        Args:
+            text (str): The text to be displayed in the item.
+        """
+        super(TikCategoryColumnItem, self).__init__(text)
+        self.setEditable(False)
 
 class TikCategoryModel(QtGui.QStandardItemModel):
+    """Custom QStandardItemModel for the category view."""
     columns = ["name", "id", "path", "creator", "dcc", "date", "version count"]
 
     def __init__(self):
+        """Initialize the model."""
         super(TikCategoryModel, self).__init__()
 
         self.setHorizontalHeaderLabels(self.columns)
@@ -109,18 +154,32 @@ class TikCategoryModel(QtGui.QStandardItemModel):
         self._publishes = []
 
     def clear(self):
+        """Clear the model."""
         self.setRowCount(0)
 
     def set_works(self, works_list):
+        """Set the works to the model.
+        Args:
+            works_list (list): A list of work objects.
+        """
         # TODO: validate
         self._works = works_list
         self.populate()
 
     def set_publishes(self, publishes_list):
+        """Set the publishes to the model.
+        Args:
+            publishes_list (list): A list of publish objects.
+        """
         self._publishes = publishes_list
         self.populate(publishes=True)
 
     def populate(self, publishes=False):
+        """Populate the model with the works or publishes.
+        Args:
+            publishes (bool, optional): If True, populates the model
+                with publishes.
+        """
         self.clear()
         if not publishes:
             for work in self._works:
@@ -130,47 +189,51 @@ class TikCategoryModel(QtGui.QStandardItemModel):
                 self.append_publish(publish)
 
     def append_publish(self, publish):
-        """Append a publish to the model."""
+        """Append a publish to the model.
+        Args:
+            publish (tik_manager4.object.publish.Publish):
+                The publish object to be appended to the model.
+        Returns:
+            TikPublishItem: The item that represents the publish
+                in the model.
+        """
         _item = TikPublishItem(publish)
-        pid = QtGui.QStandardItem(str(publish.publish_id))
-        path = QtGui.QStandardItem(publish.path)
-        creator = QtGui.QStandardItem("NA")
-        dcc = QtGui.QStandardItem(publish.dcc)
-        date = QtGui.QStandardItem("NA")
-        version_count = QtGui.QStandardItem(str(publish.version_count))
+        pid = TikCategoryColumnItem(str(publish.publish_id))
+        path = TikCategoryColumnItem(publish.path)
+        creator = TikCategoryColumnItem("NA")
+        dcc = TikCategoryColumnItem(publish.dcc)
+        date = TikCategoryColumnItem("NA")
+        version_count = TikCategoryColumnItem(str(publish.version_count))
 
         self.appendRow([_item, pid, path, creator, dcc, date, version_count])
-
-        # test
-        # test = TikPublishItem(publish)
-        # _item.appendRow([test, pid, path, creator, dcc, date, version_count])
-        # test [END]
 
         return _item
 
     def append_work(self, work):
-        """Append a work to the model."""
+        """Append a work to the model.
+        Args:
+            work (tik_manager4.object.work.Work):
+                The work object to be appended to the model.
+        Returns:
+            TikWorkItem: The item that represents the work
+                in the model.
+        """
         _item = TikWorkItem(work)
-        pid = QtGui.QStandardItem(str(work.id))
-        path = QtGui.QStandardItem(work.path)
-        creator = QtGui.QStandardItem(work.creator)
-        dcc = QtGui.QStandardItem(work.dcc)
-        date = QtGui.QStandardItem(
+        pid = TikCategoryColumnItem(str(work.id))
+        path = TikCategoryColumnItem(work.path)
+        creator = TikCategoryColumnItem(work.creator)
+        dcc = TikCategoryColumnItem(work.dcc)
+        date = TikCategoryColumnItem(
             datetime.fromtimestamp(work.date_modified).strftime("%Y/%m/%d %H:%M:%S")
         )
-        version_count = QtGui.QStandardItem(str(work.version_count))
+        version_count = TikCategoryColumnItem(str(work.version_count))
 
         self.appendRow([_item, pid, path, creator, dcc, date, version_count])
 
         return _item
 
-    @staticmethod
-    def check_data(structure_object):
-        """checks if this is a proper structural data"""
-        return structure_object
-
-
 class TikCategoryView(QtWidgets.QTreeView):
+    """Custom QTreeView for the category view."""
     item_selected = QtCore.Signal(object)
     version_created = QtCore.Signal()
     file_dropped = QtCore.Signal(str)
@@ -182,6 +245,11 @@ class TikCategoryView(QtWidgets.QTreeView):
     )  # the signal for main UI importing the selected version of the selected work
 
     def __init__(self, parent=None):
+        """Initialize the view.
+        Args:
+            parent (QtWidgets.QWidget, optional):
+                The parent widget of the view.
+        """
         super(TikCategoryView, self).__init__(parent)
         self.feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
@@ -189,7 +257,6 @@ class TikCategoryView(QtWidgets.QTreeView):
 
         # do not show branches
         self.setRootIsDecorated(False)
-        # self.setRootIsDecorated(True)
 
         # make it expandable
         self.setExpandsOnDoubleClick(True)
@@ -216,18 +283,21 @@ class TikCategoryView(QtWidgets.QTreeView):
         self.expandAll()
 
     def dragEnterEvent(self, event):
+        """Override the drag enter event to accept file drops."""
         if event.mimeData().hasUrls():
             event.accept()
         else:
             event.ignore()
 
     def dragMoveEvent(self, event):
+        """Override the drag move event to accept file drops."""
         if event.mimeData().hasUrls():
             event.accept()
         else:
             event.ignore()
 
     def dropEvent(self, event):
+        """Override the drop event to accept file drops."""
         if event.mimeData().hasUrls():
             event.accept()
             # Extract file path from dropped URLs
@@ -238,7 +308,12 @@ class TikCategoryView(QtWidgets.QTreeView):
             event.ignore()
 
     def select_by_id(self, unique_id):
-        """Selects the item with the given id"""
+        """Select the item with the given unique id.
+        Args:
+            unique_id (int): The unique id of the item to be selected.
+        Returns:
+            bool: True if the item is found and selected, False otherwise.
+        """
         for row in range(self.model.rowCount()):
             idx = self.model.index(row, 1)
             if idx.data() == str(unique_id):
@@ -249,6 +324,12 @@ class TikCategoryView(QtWidgets.QTreeView):
         return False
 
     def currentChanged(self, *args, **kwargs):
+        """Override the currentChanged method to emit the item_selected
+        signal when an item is clicked.
+        Args:
+            *args (list): List of arguments.
+            **kwargs (dict): Dictionary of keyword arguments.
+        """
         super(TikCategoryView, self).currentChanged(*args, **kwargs)
         self.item_clicked(self.currentIndex())
 
@@ -265,7 +346,10 @@ class TikCategoryView(QtWidgets.QTreeView):
         return _item
 
     def item_clicked(self, idx):
-        """Emit the item_selected signal when an item is clicked"""
+        """Emit the item_selected signal when an item is clicked.
+        Args:
+            idx (QtCore.QModelIndex): The index of the clicked item.
+        """
         # block signals to prevent infinite loop
         self.blockSignals(True)
         # make sure the index is pointing to the first column
@@ -287,7 +371,10 @@ class TikCategoryView(QtWidgets.QTreeView):
         self.resizeColumnToContents(0)
 
     def hide_columns(self, columns):
-        """If the given column exists in the model, hides it"""
+        """Hide the given columns.
+        Args:
+            columns (str or list): A column name or list of column names to be hidden.
+        """
         if not isinstance(columns, list):
             columns = [columns]
 
@@ -296,7 +383,10 @@ class TikCategoryView(QtWidgets.QTreeView):
                 self.setColumnHidden(self.model.columns.index(column), True)
 
     def unhide_columns(self, columns):
-        """If the given column exists in the model, unhides it"""
+        """Unhide the given columns.
+        Args:
+            columns (str or list): A column name or list of column names to be unhidden.
+        """
         if not isinstance(columns, list):
             columns = [columns]
 
@@ -305,19 +395,26 @@ class TikCategoryView(QtWidgets.QTreeView):
                 self.setColumnHidden(self.model.columns.index(column), False)
 
     def toggle_column(self, column, state):
-        """If the given column exists in the model, unhides it"""
+        """Toggle the visibility of the given column.
+        Args:
+            column (str): The name of the column to be toggled.
+            state (bool): The state of the column visibility.
+        """
         if state:
             self.unhide_columns(column)
         else:
             self.hide_columns(column)
 
     def show_columns(self, list_of_columns):
-        """Shows the given columns."""
+        """Show the given columns.
+        Args:
+            list_of_columns (list): A list of column names to be shown.
+        """
         for column in list_of_columns:
             self.unhide_columns(column)
 
     def get_visible_columns(self):
-        """Returns the visible columns."""
+        """Return the visible columns."""
         return [
             self.model.columns[x]
             for x in range(self.model.columnCount())
@@ -329,17 +426,27 @@ class TikCategoryView(QtWidgets.QTreeView):
         return {x: int(self.columnWidth(x)) for x in range(self.model.columnCount())}
 
     def set_column_sizes(self, column_sizes):
-        """Set the column sizes from the given dictionary."""
+        """Set the column sizes from the given dictionary.
+        Args:
+            column_sizes (dict): A dictionary of column sizes.
+        """
         for column, size in column_sizes.items():
             self.setColumnWidth(int(column), size)
 
     def filter(self, text):
-        """Filter the model"""
+        """Filter the model.
+        Args:
+            text (str): The text to be used for filtering.
+        """
         self.proxy_model.setFilterRegExp(
             QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp)
         )
 
     def header_right_click_menu(self, position):
+        """Create a right click menu for the header.
+        Args:
+            position (QtCore.QPoint): The position of the right click.
+        """
         menu = QtWidgets.QMenu(self)
 
         # add checkable actions for each column
@@ -355,6 +462,10 @@ class TikCategoryView(QtWidgets.QTreeView):
         menu.exec_(self.mapToGlobal(position))
 
     def right_click_menu(self, position):
+        """Create a right click menu for the view.
+        Args:
+            position (QtCore.QPoint): The position of the right click.
+        """
         indexes = self.sender().selectedIndexes()
         index_under_pointer = self.indexAt(position)
         right_click_menu = QtWidgets.QMenu(self)
@@ -415,12 +526,20 @@ class TikCategoryView(QtWidgets.QTreeView):
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
     def refresh(self):
-        """Re-populates the model keeping the expanded state"""
+        """Re-populate the model keeping the expanded state."""
         self.model.populate()
 
     @staticmethod
     def metadata_pre_checks(dcc_handler, metadata):
-        """Collection of pre-checks for the metadata method."""
+        """Pre-check the metadata method.
+        Args:
+            dcc_handler (tik_manager4.dcc_handler.DccHandler):
+                The DCC handler object.
+            metadata (tik_manager4.object.metadata.Metadata):
+                The metadata object.
+        Yields:
+            str: The message for the pre-check.
+        """
         metadata_fps = metadata.get_value("fps", None)
         current_fps = dcc_handler.get_scene_fps()
         if metadata_fps and current_fps:  # if the dcc supports fps and metadata has a value
@@ -445,7 +564,15 @@ class TikCategoryView(QtWidgets.QTreeView):
                 yield msg
 
     def new_version_pre_checks(self, work_obj, metadata):
-        """Collection of pre-checks for the new version method."""
+        """Pre-check the new version method.
+        Args:
+            work_obj (tik_manager4.object.work.Work):
+                The work object.
+            metadata (tik_manager4.object.metadata.Metadata):
+                The metadata object.
+        Yields:
+            str: The message for the pre-check.
+        """
         dcc_version_mismatch = work_obj.check_dcc_version_mismatch()
         if dcc_version_mismatch:
             msg = ("The current DCC version does not match the version of the work or metadata definition.\n\n"
@@ -457,7 +584,12 @@ class TikCategoryView(QtWidgets.QTreeView):
             yield msg
 
     def ingest_here(self, item):
-        """Send the ingest signal with the given item"""
+        """Send the ingest signal with the given item.
+        Args:
+            item (TikWorkItem): The work item to be ingested.
+        Returns:
+            None
+        """
         # first check for permissions
         if item.tik_obj.check_permissions(level=1) == -1:
             msg = "This user does not have permissions for this action."
@@ -497,33 +629,57 @@ class TikCategoryView(QtWidgets.QTreeView):
         if state:
             # emit a version_created signal to update the main window
             self.version_created.emit()
+        return
 
     def open_database_folder(self, item):
-        """Opens the database folder for the given item"""
+        """Open the database folder for the given item.
+        Args:
+            item (TikWorkItem or TikPublishItem):
+                The work or publish item to be opened.
+        """
         item.tik_obj.show_database_folder()
 
     def open_scene_folder(self, item):
-        """Opens the scene folder for the given item"""
+        """Open the scene folder for the given item.
+        Args:
+            item (TikWorkItem or TikPublishItem):
+                The work or publish item to be opened.
+        """
         item.tik_obj.show_project_folder()
 
     def copy_scene_path(self, item):
-        """Copy the absolute path of the scene file to the clipboard"""
+        """Copy the absolute path of the scene file to the clipboard.
+        Args:
+            item (TikWorkItem or TikPublishItem):
+                The work or publish item to be copied.
+        """
         item.tik_obj.copy_path_to_clipboard(item.tik_obj.get_abs_project_path())
 
     def omit_item(self, item):
-        """Omits the given item"""
+        """Omit the given item.
+        Args:
+            item (TikWorkItem or TikPublishItem):
+                The work or publish item to be omitted.
+        """
         item.tik_obj.omit()
         item.refresh()
 
     def revive_item(self, item):
-        """Revives the given item"""
+        """Revive the given item.
+        Args:
+            item (TikWorkItem or TikPublishItem):
+                The work or publish item to be revived.
+        """
         item.tik_obj.revive()
         item.refresh()
 
     def delete_item(self, item):
-        """Deletes the given item"""
-
-        # lets make pre-check for permissions:
+        """Delete the given item.
+        Args:
+            item (TikWorkItem or TikPublishItem):
+                The work or publish item to be deleted.
+        """
+        # pre-check for permissions:
         state, msg = item.tik_obj.check_destroy_permissions()
         if not state:
             self.feedback.pop_info(title="Permission error", text=msg, critical=True)
@@ -569,11 +725,12 @@ class TikCategoryView(QtWidgets.QTreeView):
         self.model.removeRow(item.row())
 
 
-
 class TikCategoryLayout(QtWidgets.QVBoxLayout):
+    """Custom QVBoxLayout for the category layout."""
     mode_changed = QtCore.Signal(int)
 
     def __init__(self, *args, **kwargs):
+        """Initialize the layout."""
         super(TikCategoryLayout, self).__init__(*args, **kwargs)
 
         self.setContentsMargins(0, 0, 0, 0)
@@ -612,8 +769,6 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.category_tab_widget.setUsesScrollButtons(True)
         self.category_tab_widget.setObjectName("category_tab_widget")
 
-
-
         self.addWidget(self.category_tab_widget)
 
         self.work_tree_view = TikCategoryView()
@@ -642,6 +797,8 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         for idx in range(1, self.work_tree_view.header().count()):
             self.work_tree_view.hideColumn(idx)
 
+        self.pre_tab = None
+
     def get_active_category(self):
         """Get the active category object and return it."""
         if self.task and self.category_tab_widget.currentWidget():
@@ -659,12 +816,18 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         return 0
 
     def set_category_by_index(self, category_index):
-        """Set the category by index"""
+        """Set the category by index.
+        Args:
+            category_index (int): The index of the category.
+        """
         self.category_tab_widget.setCurrentIndex(category_index)
         self.on_category_change(category_index)
 
     def set_task(self, task):
-        """Set the task"""
+        """Set the task.
+        Args:
+            task (tik_manager4.object.task.Task): The task object.
+        """
         if not task:
             self.clear()
             return
@@ -678,7 +841,10 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.work_tree_view.expandAll()
 
     def populate_categories(self, categories):
-        """Populate the layout with categories"""
+        """Populate the layout with categories.
+        Args:
+            categories (tik_manager4.objects.category.Category): Category object.
+        """
         # clear the layout
         self.category_tab_widget.blockSignals(True)
         self.category_tab_widget.clear()
@@ -702,7 +868,10 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         )
 
     def on_category_change(self, index):
-        """Do this when the category tab changes."""
+        """Update works and publishes when category changed.
+        Args:
+            index (int): The index of the category tab.
+        """
         if not self.task:
             return
         # get the current tab name
@@ -721,48 +890,8 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
             self.work_tree_view.model.set_publishes(_publishes)
 
     def clear(self):
-        """Refresh the layout"""
+        """Refresh the layout."""
         self.category_tab_widget.blockSignals(True)
         self.category_tab_widget.clear()
         self.work_tree_view.model.clear()
         self.category_tab_widget.blockSignals(False)
-
-
-# test the TikCategoryLayout
-if __name__ == "__main__":
-    import sys
-    import os
-    import tik_manager4
-
-    app = QtWidgets.QApplication(sys.argv)
-
-    test_project_path = os.path.join(
-        os.path.expanduser("~"), "t4_test_manual_DO_NOT_USE"
-    )
-    tik = tik_manager4.initialize("Standalone")
-    tik.user.set("Admin", "1234")
-    tik.set_project(test_project_path)
-
-    # get an example task
-    tasks = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].scan_tasks()
-    example_task_a = (
-        tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["superman"]
-    )
-    example_task_b = (
-        tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["batman"]
-    )
-
-    # create a test dialog and add the layout
-    test_dialog = QtWidgets.QDialog()
-    category_layout = TikCategoryLayout()
-    category_layout.set_task(example_task_a)
-    # show the category layout
-    test_dialog.setWindowTitle("TikCategoryLayout Test")
-    test_dialog.setLayout(category_layout)
-    # resize the dialog
-    test_dialog.resize(800, 600)
-    test_dialog.show()
-
-    app.exec_()
-
-    sys.exit(app.exec_())
