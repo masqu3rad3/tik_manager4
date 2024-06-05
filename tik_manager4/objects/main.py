@@ -153,3 +153,35 @@ class Main():
         self.user.add_recent_project(absolute_path)
         self.user.last_project = absolute_path
         self.dcc.set_project(absolute_path)
+
+    def collect_template_paths(self):
+        """Collect all template files from common, project and user folders."""
+        user_templates = list(Path(self.user.settings.get("user_templates_directory")).rglob("*.*"))
+        project_templates = list((Path(self.project.absolute_path)/"_templates").rglob("*.*"))
+        print(self.project.absolute_path)
+        print(Path(self.project.absolute_path)/"_templates")
+        print(project_templates)
+        print(project_templates)
+        print(project_templates)
+        print(project_templates)
+        common_templates = list((Path(self.user.common_directory)/"_templates").rglob("*.*"))
+
+        return project_templates + common_templates + user_templates
+
+    def get_template_names(self):
+        """Get the names of the templates."""
+        all_templates = self.collect_template_paths()
+        return list(set([template.stem for template in all_templates]))
+
+    def get_template_path_by_name(self, name):
+        """Gets the template file by name.
+
+        Resolution order is project > common > user.
+        """
+        all_templates = self.collect_template_paths()
+        for template_path in all_templates:
+            if template_path.stem == name:
+                return template_path.as_posix()
+
+        return None
+

@@ -431,6 +431,58 @@ class NewVersionDialog(QtWidgets.QDialog):
         ) = self.work_object.construct_names(file_format)
         self.name_label.setText(version_name)
 
+class WorkFromTemplateDialog(NewWorkDialog):
+    """Dialog to create a work file from a template file."""
+    def __init__(self, main_object, template_names=None, *args, **kwargs):
+        self.template_names = template_names
+        super().__init__(main_object, *args, **kwargs)
+        self.setWindowTitle("Create Work From Template")
+        self.widgets.header_lbl.setText("Create Work From Template")
+        self.widgets.header_lbl.set_color("green")
+
+
+        # check for the available templates. If there isn't any, show a warning and close the dialog
+
+
+    def define_primary_ui(self):
+
+        # available_templates = self.main_object.get_template_names()
+
+        _primary_ui = {
+            "template": {
+                "display_name": "Template",
+                "type": "combo",
+                "items": self.template_names,
+                "value": self.template_names[0],
+                "tooltip": "Template file to create the work from",
+            }
+        }
+        _orig_dict = super().define_primary_ui()
+        # # override the format with the defined file paths extension
+        # _path_obj = Path(self._file_or_folder_path)
+        # stem = _path_obj.stem
+        # # replace all non-alphanumeric characters with underscores
+        # _name = "".join([x if x.isalnum() else "_" for x in stem])
+        # update_dict = {
+        #     "name": {
+        #         "display_name": "Name",
+        #         "type": "validatedString",
+        #         "value": _name,
+        #         "tooltip": "Name of the work file",
+        #     },
+        #     "file_format": {
+        #     "display_name": "File Format",
+        #     "type": "combo",
+        #     "items": [_path_obj.suffix],
+        #     "value": _path_obj.suffix,
+        #     }
+        # }
+        # _primary_ui.update(update_dict)
+
+        _primary_ui.update(_orig_dict)
+        # _primary_ui.pop("file_format")
+        return _primary_ui
+
 
 class SaveAnyFileDialog(NewWorkDialog):
     """Dialog to save any file or folder to the tik manager 4 project."""

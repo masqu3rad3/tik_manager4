@@ -92,6 +92,20 @@ class Category(Entity):
         work.new_version_from_path(file_path=file_path, notes=notes)
         return work
 
+    def create_work_from_template(self, name, template_file, notes="", ignore_checks=True):
+        """ Creates a task under the category.
+
+        Args:
+            name (str): Name of the work
+            template_file (str): Path to the template file
+            notes (str): Notes for the work
+            ignore_checks (bool): Ignore the checks for the work creation
+
+        Returns:
+            tik_manager4.objects.work: Work object
+        """
+        pass
+
     def create_work(self, name, file_format=None, notes="", ignore_checks=True):
         """Creates a task under the category"""
 

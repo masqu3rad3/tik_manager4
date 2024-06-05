@@ -33,7 +33,7 @@ from tik_manager4.ui.dialog.project_dialog import NewProjectDialog
 from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
 from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
-from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog, SaveAnyFileDialog
+from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog, SaveAnyFileDialog, WorkFromTemplateDialog
 from tik_manager4.ui.mcv.category_mcv import TikCategoryLayout
 from tik_manager4.ui.mcv.project_mcv import TikProjectLayout
 from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
@@ -351,6 +351,8 @@ class MainUI(QtWidgets.QMainWindow):
         # Work buttons
         save_new_work_btn = TikButton("Save New Work")
         save_new_work_btn.setMinimumSize(150, 40)
+        work_from_template_btn = TikButton("Work from Template")
+        work_from_template_btn.setMinimumSize(150, 40)
         save_file_as_work_btn = TikButton("Save File as Work")
         save_file_as_work_btn.setMinimumSize(150, 40)
         save_folder_as_work_btn = TikButton("Save Folder as Work")
@@ -365,6 +367,7 @@ class MainUI(QtWidgets.QMainWindow):
         publish_snapshot_btn.setMinimumSize(150, 40)
 
         self.work_buttons_layout.addWidget(save_new_work_btn)
+        self.work_buttons_layout.addWidget(work_from_template_btn)
         self.work_buttons_layout.addWidget(save_file_as_work_btn)
         self.work_buttons_layout.addWidget(save_folder_as_work_btn)
         self.work_buttons_layout.addWidget(increment_version_btn)
@@ -385,6 +388,7 @@ class MainUI(QtWidgets.QMainWindow):
             publish_snapshot_btn.hide()
 
         save_new_work_btn.clicked.connect(self.on_new_work)
+        work_from_template_btn.clicked.connect(self.on_work_from_template)
         save_file_as_work_btn.clicked.connect(lambda: self.on_save_any_file(folder=False))
         save_folder_as_work_btn.clicked.connect(lambda: self.on_save_any_file(folder=True))
         increment_version_btn.clicked.connect(self.on_new_version)
@@ -552,6 +556,48 @@ class MainUI(QtWidgets.QMainWindow):
         for msg in self.categories_mcv.work_tree_view.metadata_pre_checks(
                 self.tik.dcc, subproject.metadata):
             yield msg
+
+    def on_work_from_template(self):
+        """Launch the work from template dialog."""
+        if not self._pre_check(level=1):
+            return
+
+        available_templates = self.tik.get_template_names()
+        if not available_templates:
+            self.feedback.pop_info(
+                title="No Templates",
+                text="There are no templates available. Please create one.",
+                critical=True,
+            )
+            return
+
+        # first try to get the active category, and reach the task and subproject
+        category = self.categories_mcv.get_active_category()
+        if category:
+            task = category.parent_task
+            subproject = task.parent_sub
+        else:
+            # get the active task
+            task = self.tasks_mcv.get_active_task()
+            if not task:
+                self.feedback.pop_info(
+                    title="No tasks found.",
+                    text="Selected Sub-object does not have any tasks under it.\n"
+                         "Please create a task before creating a work.",
+                    critical=True,
+                )
+                return
+            subproject = task.parent_sub
+
+        dialog = WorkFromTemplateDialog(
+            self.tik, template_names=available_templates, parent=self, subproject=subproject, task_object=task, category_object=category,
+        )
+        state = dialog.exec_()
+        if state:
+            self.set_last_state()
+            self.refresh_versions()
+            self.status_bar.showMessage("New work created successfully.", 5000)
+            self.resume_last_state()
 
     def on_save_any_file(self, file_path=None, folder=False):
         """Launch the save any file dialog."""
