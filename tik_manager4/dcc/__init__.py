@@ -1,5 +1,19 @@
 import os
-from importlib import reload
+
+EXTENSION_DICT = {
+    "3dsmax": [".max"],
+    "blender": [".blend"],
+    "gaffer": [".gfr"],
+    "houdini": [".hip", ".hipnc", ".hiplc"],
+    "katana": [".katana"],
+    "mari": [".mri"],
+    "maya": [".ma", ".mb"],
+    "nuke": [".nk"],
+    "photoshop": [".psd", ".psb"],
+    "standalone": [".*"],
+    "substance": [".spp"],
+    "trigger": [".trg"]
+}
 
 NAME = os.getenv("TIK_DCC").lower()
 

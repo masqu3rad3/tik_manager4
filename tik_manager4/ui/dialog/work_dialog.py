@@ -483,6 +483,17 @@ class WorkFromTemplateDialog(NewWorkDialog):
         # _primary_ui.pop("file_format")
         return _primary_ui
 
+    def on_create_work(self):
+        """Create the work file."""
+        template_name = self.primary_data.get_property("template")
+        name = self.primary_data.get_property("name")
+        notes = self.widgets.notes_te.toPlainText()
+        #
+        # resolve the template file.
+        dcc_name, template_path = self.main_object.get_template_path_by_name(template_name)
+        self.category.create_work_from_template(name, template_path, dcc=dcc_name, ignore_checks=True, notes=notes)
+        self.accept()
+
 
 class SaveAnyFileDialog(NewWorkDialog):
     """Dialog to save any file or folder to the tik manager 4 project."""
