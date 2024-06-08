@@ -64,7 +64,7 @@ class Category(Entity):
 
     def create_work_from_path(self, name, file_path, notes="", ignore_checks=True):
         """Register a given path (file or folder) as a work"""
-
+        _ignore_checks = ignore_checks
         constructed_name = self.construct_name(name)
         # creating work from an arbitrary path is always considered as a 'standalone' process
         abs_path = self.get_abs_database_path("standalone", f"{constructed_name}.twork")
@@ -90,6 +90,47 @@ class Category(Entity):
         work.add_property("state", "working")
         work.init_properties()
         work.new_version_from_path(file_path=file_path, notes=notes)
+        return work
+
+    def create_work_from_template(self, name, template_file, dcc, notes="", ignore_checks=True):
+        """ Creates a task under the category.
+
+        Args:
+            name (str): Name of the work
+            template_file (str): Path to the template file
+            dcc (str): DCC name.
+            notes (str): Notes for the work
+            ignore_checks (bool): Ignore the checks for the work creation
+
+        Returns:
+            tik_manager4.objects.work: Work object
+        """
+        _ignore_checks = ignore_checks
+        constructed_name = self.construct_name(name)
+        abs_path = self.get_abs_database_path(dcc, f"{constructed_name}.twork")
+
+        if Path(abs_path).exists():
+            # in that case instantiate the work and iterate the version.
+            work = Work(absolute_path=abs_path, parent_task=self.parent_task)
+            work.new_version_from_path(file_path=template_file, notes=notes)
+            return work
+
+        relative_path = self.get_relative_work_path(override_dcc=dcc)
+        work = Work(abs_path, name=constructed_name, path=relative_path, parent_task=self.parent_task)
+
+        work.add_property("name", constructed_name)
+        work.add_property("creator", self.guard.user)
+        work.add_property("category", self.name)
+        work.add_property("dcc", dcc)
+        work.add_property("dcc_version", "NA")
+        work.add_property("versions", [])
+        work.add_property("work_id", work.generate_id())
+        work.add_property("task_name", self.parent_task.name)
+        work.add_property("task_id", self.parent_task.id)
+        work.add_property("path", relative_path)
+        work.add_property("state", "working")
+        work.init_properties()
+        work.new_version_from_path(file_path=template_file, notes=notes)
         return work
 
     def create_work(self, name, file_format=None, notes="", ignore_checks=True):

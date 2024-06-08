@@ -159,10 +159,8 @@ class NewWorkDialog(QtWidgets.QDialog):
         _name = self.primary_content.settings_data.get_property("name")
         if not _name:
             self.widgets.resolved_name_lbl.setText("No Name Entered")
-            # return
         elif not validation_status:
             self.widgets.resolved_name_lbl.setText("Invalid name")
-            # return
         else:
             _file_format = self.primary_content.settings_data.get_property(
                 "file_format"
@@ -430,6 +428,48 @@ class NewVersionDialog(QtWidgets.QDialog):
             _thumbnail_name,
         ) = self.work_object.construct_names(file_format)
         self.name_label.setText(version_name)
+
+class WorkFromTemplateDialog(NewWorkDialog):
+    """Dialog to create a work file from a template file."""
+    def __init__(self, main_object, template_names=None, *args, **kwargs):
+        self.template_names = template_names
+        super().__init__(main_object, *args, **kwargs)
+        self.setWindowTitle("Create Work From Template")
+        self.widgets.header_lbl.setText("Create Work From Template")
+        self.widgets.header_lbl.set_color("green")
+
+        # hide the file_format widget
+        self.file_format_widget = self.primary_content.find("file_format")
+        self.file_format_widget.hide()
+        self.file_format_widget.label.hide()
+
+    def define_primary_ui(self):
+
+        # available_templates = self.main_object.get_template_names()
+
+        _primary_ui = {
+            "template": {
+                "display_name": "Template",
+                "type": "combo",
+                "items": self.template_names,
+                "value": self.template_names[0],
+                "tooltip": "Template file to create the work from",
+            }
+        }
+        _orig_dict = super().define_primary_ui()
+        _primary_ui.update(_orig_dict)
+        return _primary_ui
+
+    def on_create_work(self):
+        """Create the work file."""
+        template_name = self.primary_data.get_property("template")
+        name = self.primary_data.get_property("name")
+        notes = self.widgets.notes_te.toPlainText()
+        #
+        # resolve the template file.
+        dcc_name, template_path = self.main_object.get_template_path_by_name(template_name)
+        self.category.create_work_from_template(name, template_path, dcc=dcc_name, ignore_checks=True, notes=notes)
+        self.accept()
 
 
 class SaveAnyFileDialog(NewWorkDialog):

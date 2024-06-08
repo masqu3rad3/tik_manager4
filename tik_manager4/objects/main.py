@@ -153,3 +153,55 @@ class Main():
         self.user.add_recent_project(absolute_path)
         self.user.last_project = absolute_path
         self.dcc.set_project(absolute_path)
+
+    def collect_template_paths(self):
+        """Collect all template files from common, project and user folders."""
+        # if the dcc is standalone, collect all applicable extensions from the extension dictionary
+        # otherwise, collect the extensions from the dcc object
+        if self.dcc.name.lower() == "standalone":
+            extensions = [ext for ext_list in dcc.EXTENSION_DICT.values() for ext in ext_list]
+        else:
+            extensions = self.dcc.formats
+        user_templates = [p for p in Path(self.user.settings.get("user_templates_directory")).rglob("*.*") if
+                          p.suffix in extensions]
+        project_templates = [p for p in Path(self.project.absolute_path).joinpath("_templates").rglob("*.*") if
+                             p.suffix in extensions]
+        common_templates = [p for p in Path(self.user.common_directory).joinpath("_templates").rglob("*.*") if
+                            p.suffix in extensions]
+        # user_templates = list(Path(self.user.settings.get("user_templates_directory")).rglob("*.*"))
+        # project_templates = list((Path(self.project.absolute_path)/"_templates").rglob("*.*"))
+        # common_templates = list((Path(self.user.common_directory)/"_templates").rglob("*.*"))
+
+        return project_templates + common_templates + user_templates
+
+    def get_template_names(self):
+        """Get the names of the templates."""
+        all_templates = self.collect_template_paths()
+        return list(set([template.stem for template in all_templates]))
+
+    def get_template_path_by_name(self, name):
+        """Gets the template file by name.
+
+        Resolution order is project > common > user.
+
+        Args:
+            name (str): Name of the template.
+
+        Returns:
+            tuple: Dcc Name, Path to the template file.
+        """
+        all_templates = self.collect_template_paths()
+        for template_path in all_templates:
+            if template_path.stem == name:
+                dcc_name = self.__resolve_dcc_name_from_extension(template_path.suffix)
+                return dcc_name, template_path.as_posix()
+
+        return None, None
+
+    def __resolve_dcc_name_from_extension(self, extension):
+        """Resolve the DCC name from the extension."""
+        for key, value in dcc.EXTENSION_DICT.items():
+            if extension in value:
+                return key
+        # for anything else, return standalone
+        return "standalone"

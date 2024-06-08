@@ -176,7 +176,6 @@ class User():
         """Finds or creates user directories and files"""
 
         _user_root = utils.get_home_dir()
-        # self.user_directory = str((Path(_user_root, "TikManager4").mkdir(exist_ok=True)))
         _user_dir = Path(_user_root, "TikManager4")
         _user_dir.mkdir(exist_ok=True)
         self.user_directory = str(_user_dir)
@@ -212,6 +211,7 @@ class User():
                 else:
                     raise Exception("Commons Directory does not exist. Exiting...")
         self.settings.edit_property("commonFolder", self.common_directory)
+        self.settings.add_property("user_templates_directory", self.user_directory, force=False)
         self.settings.apply_settings()
 
         self.commons = Commons(self.common_directory)

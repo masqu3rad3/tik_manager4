@@ -1005,7 +1005,6 @@ class CategoryDefinitions(QtWidgets.QWidget):
         horizontal_layout = QtWidgets.QHBoxLayout()
         dialog_layout.addLayout(horizontal_layout)
         name_label = QtWidgets.QLabel("Name: ")
-        # name_line_edit = QtWidgets.QLineEdit(self)
         name_line_edit = ValidatedString("name")
         name_line_edit.allow_spaces = False
         name_line_edit.allow_special_characters = False

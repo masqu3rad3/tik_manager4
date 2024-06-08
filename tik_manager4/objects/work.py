@@ -152,6 +152,58 @@ class Work(Settings, Entity):
             if version.get("version_number") == version_number:
                 return version
 
+    # def new_version_from_template(self, file_path, notes=""):
+    #     """Register a given path as a new version of the work.
+    #
+    #     Args:
+    #         file_path:
+    #         notes:
+    #
+    #     Returns:
+    #
+    #     """
+    #     state = self.check_permissions(level=1)
+    #     if state != 1:
+    #         return -1
+    #
+    #     file_format = Path(file_path).suffix
+    #     version_number, version_name, thumbnail_name = self.construct_names(file_format)
+    #
+    #     abs_version_path = self.get_abs_project_path(self.name, version_name)
+    #     thumbnail_path = self.get_abs_database_path("thumbnails", thumbnail_name)
+    #     Path(abs_version_path).parent.mkdir(parents=True, exist_ok=True)
+    #
+    #     # copy the file to the location
+    #     output_path = self._standalone_handler.save_as(abs_version_path, source_path=file_path)
+    #
+    #     # generate thumbnail
+    #     # create the thumbnail folder if it doesn't exist
+    #     Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
+    #
+    #     # FIXME: CREATE A THUMBNAIL SPECIFIC TO TEMPLATE
+    #     # # add it to the versions
+    #     # extension = Path(output_path).suffix or "Folder"
+    #     # get the name of the file
+    #     file_name = Path(file_path).name
+    #     self._standalone_handler.text_to_image(file_name, thumbnail_path, 220, 124)
+    #
+    #     version = {
+    #         "version_number": version_number,
+    #         "workstation": socket.gethostname(),
+    #         "notes": notes,
+    #         "thumbnail": Path("thumbnails", thumbnail_name).as_posix(),
+    #         "scene_path": Path(self.name, str(version_name)).as_posix(),
+    #         "user": self.guard.user,
+    #         "previews": {},
+    #         "file_format": file_format,
+    #         "dcc_version": "NA",
+    #     }
+    #
+    #     self._versions.append(version)
+    #     self.edit_property("versions", self._versions)
+    #     self.apply_settings(force=True)
+    #     return version
+
     def new_version_from_path(self, file_path, notes=""):
         """Register a given path (file or folder) as a new version of the work.
 
@@ -596,7 +648,6 @@ class Work(Settings, Entity):
             self.apply_settings(force=True)
         return 1
 
-
     def __generate_thumbnail_paths(self, version_obj, override_extension=None):
         """Return the thumbnail paths of the given version."""
         # if there is no previous thumbnail, generate a new one
@@ -607,7 +658,6 @@ class Work(Settings, Entity):
         abs_path = self.get_abs_database_path(relative_path)
         Path(abs_path).parent.mkdir(parents=True, exist_ok=True)
         return relative_path, abs_path
-
 
     def replace_thumbnail(self, version_number, new_thumbnail_path=None):
         """Replace the thumbnail of the given version.
@@ -647,9 +697,9 @@ class Work(Settings, Entity):
         metadata_key = f"{self.guard.dcc.lower()}_version"
         # if a dcc version defined in metadata, use that. Otherwise use the current dcc version.
         defined_dcc_version = self.get_metadata(self.parent_task, metadata_key) or self.dcc_version
-        # compare this against the current dcc version
-        if defined_dcc_version != current_dcc:
-            return (defined_dcc_version, current_dcc)
-        return False
+        if defined_dcc_version in ["NA", "", current_dcc]:
+            return False
+        return defined_dcc_version, current_dcc
+
 
 
