@@ -286,6 +286,18 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.file_dropped.connect(self.on_save_any_file)
         self.versions_mcv.show_preview_btn.clicked.connect(self.on_show_preview)
 
+        if self.tik.dcc.name == "Standalone":
+            self.categories_mcv.work_tree_view.save_new_work_event.connect(
+                self.on_save_any_file
+            )
+        else:
+            self.categories_mcv.work_tree_view.save_new_work_event.connect(
+                self.on_new_work
+            )
+        self.categories_mcv.work_tree_view.work_from_template_event.connect(
+            self.on_work_from_template
+        )
+
     def set_last_state(self):
         """Set the last selections for the user"""
         # get the currently selected subproject
@@ -365,6 +377,11 @@ class MainUI(QtWidgets.QMainWindow):
         publish_scene_btn.setMinimumSize(150, 40)
         publish_snapshot_btn = TikButton("Publish Snapshot")
         publish_snapshot_btn.setMinimumSize(150, 40)
+        # set the publish icon to the button
+        publish_snapshot_btn.setIcon(pick.icon("published"))
+        publish_snapshot_btn.setIconSize(QtCore.QSize(24, 24))
+        publish_scene_btn.setIcon(pick.icon("published"))
+        publish_scene_btn.setIconSize(QtCore.QSize(24, 24))
 
         self.work_buttons_layout.addWidget(save_new_work_btn)
         self.work_buttons_layout.addWidget(work_from_template_btn)

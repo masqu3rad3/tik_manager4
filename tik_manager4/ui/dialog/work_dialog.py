@@ -159,10 +159,8 @@ class NewWorkDialog(QtWidgets.QDialog):
         _name = self.primary_content.settings_data.get_property("name")
         if not _name:
             self.widgets.resolved_name_lbl.setText("No Name Entered")
-            # return
         elif not validation_status:
             self.widgets.resolved_name_lbl.setText("Invalid name")
-            # return
         else:
             _file_format = self.primary_content.settings_data.get_property(
                 "file_format"
@@ -440,9 +438,10 @@ class WorkFromTemplateDialog(NewWorkDialog):
         self.widgets.header_lbl.setText("Create Work From Template")
         self.widgets.header_lbl.set_color("green")
 
-
-        # check for the available templates. If there isn't any, show a warning and close the dialog
-
+        # hide the file_format widget
+        self.file_format_widget = self.primary_content.find("file_format")
+        self.file_format_widget.hide()
+        self.file_format_widget.label.hide()
 
     def define_primary_ui(self):
 
@@ -458,29 +457,7 @@ class WorkFromTemplateDialog(NewWorkDialog):
             }
         }
         _orig_dict = super().define_primary_ui()
-        # # override the format with the defined file paths extension
-        # _path_obj = Path(self._file_or_folder_path)
-        # stem = _path_obj.stem
-        # # replace all non-alphanumeric characters with underscores
-        # _name = "".join([x if x.isalnum() else "_" for x in stem])
-        # update_dict = {
-        #     "name": {
-        #         "display_name": "Name",
-        #         "type": "validatedString",
-        #         "value": _name,
-        #         "tooltip": "Name of the work file",
-        #     },
-        #     "file_format": {
-        #     "display_name": "File Format",
-        #     "type": "combo",
-        #     "items": [_path_obj.suffix],
-        #     "value": _path_obj.suffix,
-        #     }
-        # }
-        # _primary_ui.update(update_dict)
-
         _primary_ui.update(_orig_dict)
-        # _primary_ui.pop("file_format")
         return _primary_ui
 
     def on_create_work(self):

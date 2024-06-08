@@ -8,6 +8,8 @@ from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.work_dialog import NewVersionDialog
 from tik_manager4.ui.widgets.common import VerticalSeparator
 
+from tik_manager4.ui import pick
+
 
 class TikWorkItem(QtGui.QStandardItem):
     """Custom QStandardItem for the work items in the category view."""
@@ -37,6 +39,8 @@ class TikWorkItem(QtGui.QStandardItem):
         self.setText(work_obj.name)
         self.state = None
         self.refresh()
+        self.setIcon(pick.icon(self.tik_obj.dcc.lower()))
+
 
     def refresh(self):
         """Refresh the item state."""
@@ -96,6 +100,7 @@ class TikPublishItem(QtGui.QStandardItem):
         self.setText(str(publish_obj.name))
         self.state = None
         # self.setForeground(QtGui.QColor(*self.state_color_dict["publish"]))
+        self.setIcon(pick.icon("published"))
         self.refresh()
 
     def refresh(self):
@@ -130,6 +135,7 @@ class TikPublishItem(QtGui.QStandardItem):
         """Check if the dcc of the work matches the dcc of the current session."""
         return self.tik_obj.dcc == self.tik_obj.guard.dcc
 
+
 class TikCategoryColumnItem(QtGui.QStandardItem):
     """Custom QStandardItem for the category columns in the category view."""
     def __init__(self, text):
@@ -139,6 +145,7 @@ class TikCategoryColumnItem(QtGui.QStandardItem):
         """
         super(TikCategoryColumnItem, self).__init__(text)
         self.setEditable(False)
+
 
 class TikCategoryModel(QtGui.QStandardItemModel):
     """Custom QStandardItemModel for the category view."""
@@ -232,6 +239,7 @@ class TikCategoryModel(QtGui.QStandardItemModel):
 
         return _item
 
+
 class TikCategoryView(QtWidgets.QTreeView):
     """Custom QTreeView for the category view."""
     item_selected = QtCore.Signal(object)
@@ -243,6 +251,8 @@ class TikCategoryView(QtWidgets.QTreeView):
     import_event = (
         QtCore.Signal()
     )  # the signal for main UI importing the selected version of the selected work
+    save_new_work_event = QtCore.Signal()
+    work_from_template_event = QtCore.Signal()
 
     def __init__(self, parent=None):
         """Initialize the view.
@@ -279,6 +289,8 @@ class TikCategoryView(QtWidgets.QTreeView):
         self.header().customContextMenuRequested.connect(self.header_right_click_menu)
 
         self.setAcceptDrops(True)
+
+        self.setIconSize(QtCore.QSize(32, 32))
 
         self.expandAll()
 
@@ -461,6 +473,17 @@ class TikCategoryView(QtWidgets.QTreeView):
 
         menu.exec_(self.mapToGlobal(position))
 
+    def _right_click_on_blank(self, right_click_menu, position):
+        """Create a right click menu for the blank space."""
+        # if the dcc is not standalone, add the save new work action
+
+        save_work_act = right_click_menu.addAction(self.tr("Save New Work"))
+        work_from_template_act = right_click_menu.addAction(self.tr("Create Work From Template"))
+        save_work_act.triggered.connect(self.save_new_work_event.emit)
+        work_from_template_act.triggered.connect(self.work_from_template_event.emit)
+        right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
+
+
     def right_click_menu(self, position):
         """Create a right click menu for the view.
         Args:
@@ -470,6 +493,7 @@ class TikCategoryView(QtWidgets.QTreeView):
         index_under_pointer = self.indexAt(position)
         right_click_menu = QtWidgets.QMenu(self)
         if not index_under_pointer.isValid():
+            self._right_click_on_blank(right_click_menu, position)
             return
         # make sure the idx is pointing to the first column
         index_under_pointer = index_under_pointer.sibling(index_under_pointer.row(), 0)
