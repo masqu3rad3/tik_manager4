@@ -1,5 +1,4 @@
 from pathlib import Path
-# from tik_manager4 import dcc
 from tik_manager4.objects.publisher import Publisher, SnapshotPublisher
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings

@@ -112,6 +112,7 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "vector3Int": value_widgets.Vector3Int,
         "vector3Float": value_widgets.Vector3Float,
         "pathBrowser": tik_manager4.ui.widgets.path_browser.PathBrowser,
+        "fileBrowser": tik_manager4.ui.widgets.path_browser.FileBrowser,
         "subprojectBrowser": tik_manager4.ui.widgets.browser.SubprojectBrowser,
     }
 
@@ -184,6 +185,10 @@ class SettingsLayout(QtWidgets.QFormLayout):
                     _widget_class = self.widget_dict.get(_type)
                     if not _widget_class:
                         continue
+                    sub_label = data.get("display_name", None)
+                    if _label:
+                        sub_label = QtWidgets.QLabel(text=sub_label)
+                        _layout.addWidget(sub_label)
                     _widget = _widget_class(key, **data)
                     _layout.addWidget(_widget)
                     _widget.com.valueChanged.connect(lambda x, k=key: self._setting_data_modified(k, x))

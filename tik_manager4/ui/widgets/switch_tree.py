@@ -76,14 +76,8 @@ class SwitchTreeWidget(QtWidgets.QTreeWidget):
                 if not state:
                     self.blockSignals(False)
                     return
-                #     # switch back to the self._current_item
-                #     self.setCurrentItem(self._current_item)
-                #     # unblock signals
-                #     self.blockSignals(False)
-                #     return
             # first check the clearance level
             if item.permission_level:
-        # if self._user_object and item.permission_level:
                 if self._user_object.check_permissions(level=item.permission_level) == -1:
 
                     message, title = LOG.get_last_message()
@@ -97,7 +91,6 @@ class SwitchTreeWidget(QtWidgets.QTreeWidget):
         if self._current_item:
             if self._current_item.content:
                 self._current_item.content.setVisible(False)
-            # self._current_item.content.setVisible(False)
         if item.content:
             item.content.setVisible(True)
         self._current_item = item

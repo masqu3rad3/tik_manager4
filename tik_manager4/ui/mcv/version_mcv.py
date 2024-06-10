@@ -12,6 +12,7 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class TikVersionLayout(QtWidgets.QVBoxLayout):
     """Layout for versioning work and publish objects."""
+    element_view_event = QtCore.Signal(str, str)
     def __init__(self, project_object, *args, **kwargs):
         """Initialize the TikVersionLayout."""
         super().__init__()
@@ -57,8 +58,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         element_lbl = QtWidgets.QLabel("Element: ")
         element_lbl.setFont(QtGui.QFont("Arial", 10))
         element_layout.addWidget(element_lbl)
+        element_hlay = QtWidgets.QHBoxLayout()
         self.element_combo = QtWidgets.QComboBox()
-        element_layout.addWidget(self.element_combo)
+        self.element_view_btn = TikButton("View")
+        self.element_view_btn.setMaximumWidth(50)
+        element_hlay.addWidget(self.element_combo)
+        element_hlay.addWidget(self.element_view_btn)
+        element_layout.addLayout(element_hlay)
+        # element_layout.addWidget(self.element_combo)
 
         ingest_with_lbl = QtWidgets.QLabel("Ingest with: ")
         ingest_with_lbl.setFont(QtGui.QFont("Arial", 10))
@@ -117,6 +124,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.thumbnail.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # self.thumbnail.customContextMenuRequested.connect(self.on_thumbnail_menu_request)
         self.thumbnail.customContextMenuRequested.connect(self.thumbnail_right_click_menu)
+        self.element_view_btn.clicked.connect(self.on_element_view_event)
 
     def on_import(self):
         """Import the current version."""
@@ -133,6 +141,18 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.base.import_version(
             _version, element_type=_element_type, ingestor=_ingestor
         )
+
+    def on_element_view_event(self):
+        """Emit the selected elements path."""
+        element_type = self.get_selected_element_type()
+        if not element_type:
+            return
+        _version = self.get_selected_version()
+        _element = self.base.get_version(_version).get_element_path(element_type, relative=False)
+        if not _element:
+            return
+        # print(_element)
+        self.element_view_event.emit(element_type, _element)
 
     def _load_pre_checks(self, work_obj):
         """Metadata and scene compare checks before loading."""
@@ -284,7 +304,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 return
             self.load_btn.setEnabled(False)
 
-    def __import_and_reference_btn_states(self, base, element_type):
+    # def __import_and_reference_btn_states(self, base, element_type):
+    def __import_and_reference_btn_states(self):
         """Resolve the import button state."""
         # if the ingest combo is empty, disable the import and reference buttons
         _ingestor = self.get_selected_ingestor()
@@ -308,7 +329,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             return
         _element_type = self.get_selected_element_type()
         self.__load_btn_state(base, _element_type)
-        self.__import_and_reference_btn_states(base, _element_type)
+        # self.__import_and_reference_btn_states(base, _element_type)
+        self.__import_and_reference_btn_states()
 
     def set_base(self, base):
         """Set the base object. This can be work or publish object."""
@@ -374,6 +396,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         if self.base.object_type == "publish":
             self.show_preview_btn.setEnabled(False)
             self.element_combo.setEnabled(True)
+            self.element_view_btn.setEnabled(True)
             self.ingest_with_combo.setEnabled(True)
             self.element_mapping = _version.element_mapping
             # self.element_combo.addItems(_version.element_types)
@@ -384,6 +407,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         else:  # WORK
             # disable
             self.element_combo.setEnabled(False)
+            self.element_view_btn.setEnabled(False)
             self.ingest_with_combo.setEnabled(False)
             # enable the show preview button if there are previews
             self.show_preview_btn.setEnabled(bool(_version.get("previews")))
@@ -394,10 +418,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.notes_editor.setPlainText(_version.get("notes"))
         _thumbnail_path = self.base.get_abs_database_path(_version.get("thumbnail", ""))
         self.thumbnail.set_media(_thumbnail_path)
-        # if Path(_thumbnail_path).is_file():
-        #     self.thumbnail.setPixmap(QtGui.QPixmap(_thumbnail_path))
-        # else:
-        #     self.thumbnail.setPixmap(self.empty_pixmap)
         self.element_combo.blockSignals(False)
         self.ingest_with_combo.blockSignals(False)
 

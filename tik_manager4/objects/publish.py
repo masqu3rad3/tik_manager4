@@ -383,11 +383,12 @@ class PublishVersion(Settings, Entity):
         self._promoted_object.set_data(_data)
         self._promoted_object.apply_settings()
 
-    def get_element_path(self, element_type):
+    def get_element_path(self, element_type, relative=True):
         """Return the element path of the given element type."""
         for element in self.elements:
             if element["type"] == element_type:
-                return element["path"]
+                path = element["path"] if relative else self.get_abs_project_path(element["path"])
+                return path
         return None
 
     def get_element_suffix(self, element_type):
