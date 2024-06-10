@@ -121,9 +121,61 @@ class SettingsDialog(QtWidgets.QDialog):
         # create sub-branches
         user_settings_item = SwitchTreeItem(["User Settings"], permission_level=0)
         user_widget_item.addChild(user_settings_item)
+        ui_definition = {
+            "commonFolder": {
+                "display_name": "Common Folder",
+                "tooltip": "The folder where the common data for all projects is stored.",
+                "type": "pathBrowser",
+                "value": self.main_object.user.settings.get_property("commonFolder"),
+            },
+            "user_templates_directory": {
+                "display_name": "User Templates Directory",
+                "tooltip": "The folder where all user template files stored for all Dccs. Supports flags.",
+                "type": "pathBrowser",
+                "value": self.main_object.user.settings.get_property("user_templates_directory"),
+            },
+            "alembic_viewer": {
+                "display_name": "Alembic Viewer",
+                "tooltip": "The path to the Alembic Viewer executable. Supports flags.",
+                "type": "fileBrowser",
+                "value": self.main_object.user.settings.get_property("alembic_viewer"),
+            },
+            "usd_viewer": {
+                "display_name": "USD Viewer",
+                "tooltip": "The path to the USD Viewer executable. Supports flags.",
+                "type": "fileBrowser",
+                "value": self.main_object.user.settings.get_property("usd_viewer"),
+            },
+            "fbx_viewer": {
+                "display_name": "FBX Viewer",
+                "tooltip": "The path to the FBX Viewer executable. Supports flags.",
+                "type": "fileBrowser",
+                "value": self.main_object.user.settings.get_property("fbx_viewer"),
+            },
+            "image_viewer": {
+                "display_name": "Image Viewer",
+                "tooltip": "The path to the Image Viewer executable. Supports flags.",
+                "type": "fileBrowser",
+                "value": self.main_object.user.settings.get_property("image_viewer"),
+            },
+            "sequence_viewer": {
+                "display_name": "Sequence Viewer",
+                "tooltip": "The path to the Sequence Viewer executable. Supports flags.",
+                "type": "fileBrowser",
+                "value": self.main_object.user.settings.get_property("sequence_viewer"),
+            },
+            "video_player": {
+                "display_name": "Video Viewer",
+                "tooltip": "The path to the Video Player executable. Supports flags.",
+                "type": "fileBrowser",
+                "value": self.main_object.user.settings.get_property("video_player"),
+            },
+        }
+
         user_settings_item.content = self.__create_generic_settings_layout(
             settings_data=self.main_object.user.settings,
             title="User Settings",
+            ui_definition=ui_definition,
         )
 
         user_password_item = SwitchTreeItem(["Change Password"], permission_level=0)

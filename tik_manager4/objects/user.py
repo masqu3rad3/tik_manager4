@@ -212,6 +212,12 @@ class User():
                     raise Exception("Commons Directory does not exist. Exiting...")
         self.settings.edit_property("commonFolder", self.common_directory)
         self.settings.add_property("user_templates_directory", self.user_directory, force=False)
+        self.settings.add_property("alembic_viewer", "", force=False)
+        self.settings.add_property("usd_viewer", "", force=False)
+        self.settings.add_property("fbx_viewer", "", force=False)
+        self.settings.add_property("image_viewer", "", force=False)
+        self.settings.add_property("sequence_viewer", "", force=False)
+        self.settings.add_property("video_player", "", force=False)
         self.settings.apply_settings()
 
         self.commons = Commons(self.common_directory)

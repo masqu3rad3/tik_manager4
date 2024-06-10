@@ -285,6 +285,8 @@ class MainUI(QtWidgets.QMainWindow):
         )
         self.categories_mcv.work_tree_view.file_dropped.connect(self.on_save_any_file)
         self.versions_mcv.show_preview_btn.clicked.connect(self.on_show_preview)
+        # self.versions_mcv.element_view_btn.clicked.connect(self.on_element_view)
+        self.versions_mcv.element_view_event.connect(self.on_element_view)
 
         if self.tik.dcc.name == "Standalone":
             self.categories_mcv.work_tree_view.save_new_work_event.connect(
@@ -895,12 +897,14 @@ class MainUI(QtWidgets.QMainWindow):
         _version_index = self.versions_mcv.get_selected_version()
         _version = _work_item.tik_obj.get_version(_version_index)
 
+        executable = self.tik.user.settings.get("video_player", None)
+
         preview_dict = _version.get("previews")
         if len(preview_dict.values()) == 1:
             abs_path = _work_item.tik_obj.get_abs_project_path(
                 list(preview_dict.values())[0]
             )
-            utils.execute(abs_path)
+            utils.execute(abs_path, executable=executable)
             return
         if not preview_dict:
             return
@@ -913,10 +917,20 @@ class MainUI(QtWidgets.QMainWindow):
             temp_action.triggered.connect(
                 lambda ignore=z_key, item=_work_item.tik_obj.get_abs_project_path(
                     preview_dict[z_key]
-                ): utils.execute(str(item))
+                ): utils.execute(str(item),  executable=executable)
             )
 
         zort_menu.exec_((QtGui.QCursor.pos()))
+
+    def on_element_view(self, element_type, element_path):
+        """View the selected element.
+
+        Args:
+            element_type (str): The type of the element to view.
+            element_path (str): The path of the element to view.
+        """
+        executable = self.tik.user.settings.get(f"{element_type}_viewer", None)
+        utils.execute(element_path, executable=executable)
 
     def _pre_check(self, level):
         """Check for permissions before drawing the dialog."""
