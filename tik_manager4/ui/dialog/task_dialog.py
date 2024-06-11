@@ -17,7 +17,6 @@ class EditTask(QtWidgets.QDialog):
         super(EditTask, self).__init__(parent=parent, *args, **kwargs)
         self.task_object = task_object
         self.feedback = feedback.Feedback(parent=self)
-
         self._parent_sub = parent_sub or task_object.parent_sub
         self.parent = parent
         self.setWindowTitle("Edit Task")
@@ -147,7 +146,7 @@ class NewTask(QtWidgets.QDialog):
         """
         super(NewTask, self).__init__(parent=parent, *args, **kwargs)
         self.tik_project = project_object
-        self.feedback = feedback.Feedback()
+        self.feedback = feedback.Feedback(parent=self)
 
         if parent_sub and not isinstance(parent_sub, list):
             parent_sub = [parent_sub]
@@ -272,7 +271,6 @@ class NewTask(QtWidgets.QDialog):
 
     def on_create_task(self):
         """Create task."""
-
         for sub in self._parent_sub:
             _new_task = self.tik_project.create_task(
                 name=self.settings_data.get_property("name"),

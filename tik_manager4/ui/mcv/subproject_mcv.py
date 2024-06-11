@@ -299,9 +299,8 @@ class TikSubView(QtWidgets.QTreeView):
             # the id needs to mapped from proxy to source
             index = self.proxy_model.mapToSource(idx)
             _item = self.model.itemFromIndex(index)
-            # return _item
-            # yield _item
-            selected_items.append(_item)
+            if _item not in selected_items:
+                selected_items.append(_item)
         return selected_items
 
     def set_recursive_task_scan(self, value):
@@ -508,7 +507,6 @@ class TikSubView(QtWidgets.QTreeView):
             )
             mapped_index = self.proxy_model.mapToSource(index_under_pointer)
             item = self.model.itemFromIndex(mapped_index)
-            print("debug", item)
         if len(indexes) > 0:
             level = 0
             index = indexes[0]
@@ -606,7 +604,6 @@ class TikSubView(QtWidgets.QTreeView):
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
             return
-
         _dialog = tik_manager4.ui.dialog.task_dialog.NewTask(
             self.model.project, parent_sub=sub_projects, parent=self
         )
