@@ -73,12 +73,15 @@ class EditTask(QtWidgets.QDialog):
 
         _mode = self._parent_sub.metadata.get_value("mode", "")
         all_categories = self._parent_sub.guard.category_definitions.get_data()
-        if _mode == "":
-            _default_categories = all_categories
-        else:
-            _default_categories = self.filter_category_definitions(
-                all_categories, mode=_mode
-            )
+        # if _mode == "":
+        #     _default_categories = all_categories
+        # else:
+        #     _default_categories = self.filter_category_definitions(
+        #         all_categories, mode=_mode
+        #     )
+        _default_categories = self.filter_category_definitions(
+            all_categories, mode=_mode
+        )
 
         _ui_definition = {
             "name": {
@@ -192,13 +195,15 @@ class NewTask(QtWidgets.QDialog):
     @staticmethod
     def filter_category_definitions(category_definition_data, mode=None):
         """Filter category definitions."""
+        global_modes = ["root", "null", "global", ""]
         filtered_data = {}
         for key, data in category_definition_data.items():
             _type = data.get("type", None)
             _archived = data.get("archived", False)
             if _archived:
                 continue
-            if _type and _type != mode:
+            # if _type and _type != mode:
+            if _type and _type != mode and mode not in global_modes:
                 continue
             filtered_data[key] = data
         return filtered_data
@@ -209,12 +214,15 @@ class NewTask(QtWidgets.QDialog):
         # get the metadata from the last selected one
         _mode = self._parent_sub[-1].metadata.get_value("mode", "")
         all_categories = self._parent_sub[-1].guard.category_definitions.get_data()
-        if _mode == "" or _mode == "root" or _mode == "null" or _mode == "global":
-            _default_categories = all_categories
-        else:
-            _default_categories = self.filter_category_definitions(
-                all_categories, mode=_mode
-            )
+        # if _mode == "" or _mode == "root" or _mode == "null" or _mode == "global":
+        #     _default_categories = all_categories
+        # else:
+        #     _default_categories = self.filter_category_definitions(
+        #         all_categories, mode=_mode
+        #     )
+        _default_categories = self.filter_category_definitions(
+            all_categories, mode=_mode
+        )
 
         _ui_definition = {
             "name": {
