@@ -1,12 +1,13 @@
 """Main Module for the Tik Manager"""
 
-import requests
+import http.client
+import json
 from pathlib import Path
 import sys
 from tik_manager4.core import filelog, settings, utils
 from tik_manager4.objects import user, project
 from tik_manager4 import dcc
-from packaging.version import Version
+from tik_manager4.external.packaging.version import Version
 import tik_manager4._version as version
 # the reload is necessary to make sure the dcc is reloaded
 # this makes sure when different dcc's are used in the same python session
@@ -215,14 +216,32 @@ class Main():
         Returns:
             ReleaseObject: Release object with version and download links.
         """
+        conn = http.client.HTTPSConnection("api.github.com")
+
+        headers = {
+            "User-Agent": "MyApp"  # GitHub requires a User-Agent header
+        }
+
         try:
-            response = requests.get("https://api.github.com/repos/masqu3rad3/tik_manager4/releases/latest")
-        except requests.exceptions.ConnectionError:
+            conn.request("GET", "/repos/masqu3rad3/tik_manager4/releases/latest", headers=headers)
+            response = conn.getresponse()
+
+            if response.status != 200:
+                self.log.error(f"Error: Unable to fetch data, status code: {response.status}")
+                return None
+
+            data = response.read().decode('utf-8')
+            release_info = json.loads(data)
+
+            return ReleaseObject(release_info)
+
+        except ConnectionError:
             self.log.error("Connection error to github. Check your internet connection")
             return None
 
-        latest_release_dict = response.json()
-        return ReleaseObject(latest_release_dict)
+        finally:
+            conn.close()
+
 
 class ReleaseObject:
     """Data class for the update object."""
