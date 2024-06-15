@@ -97,7 +97,12 @@ class UpdateDialog(QtWidgets.QDialog):
                                           "Previous versions can be found on the releases page.")
             self.layouts.body_layout.addWidget(info_label)
             releases_url = "https://github.com/masqu3rad3/tik_manager4/releases"
-            self.layouts.body_layout.addWidget(QtWidgets.QLabel(self.format_link(releases_url)))
+            releases_url_lbl = QtWidgets.QLabel()
+            releases_url_lbl.setTextInteractionFlags(QtCore.Qt.TextBrowserInteraction)
+            releases_url_lbl.setOpenExternalLinks(True)
+            releases_url_lbl.setTextFormat(QtCore.Qt.RichText)
+            releases_url_lbl.setText(self.format_link(releases_url))
+            self.layouts.body_layout.addWidget(releases_url_lbl)
 
     def build_buttons(self):
         """Build the buttons."""

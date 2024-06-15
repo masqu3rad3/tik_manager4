@@ -22,6 +22,7 @@ main.launch(dcc="Maya")
 """
 import logging
 
+import webbrowser
 import tik_manager4
 import tik_manager4._version as version
 from tik_manager4.core import utils
@@ -468,8 +469,8 @@ class MainUI(QtWidgets.QMainWindow):
         # Tools Menu
 
         # Help Menu
-        about = QtWidgets.QAction("&About", self)
-        help_menu.addAction(about)
+        issues_and_feature_requests = QtWidgets.QAction("&Issues & Feature Requests", self)
+        help_menu.addAction(issues_and_feature_requests)
         online_docs = QtWidgets.QAction("&Online Documentation", self)
         help_menu.addAction(online_docs)
         help_menu.addSeparator()
@@ -497,6 +498,8 @@ class MainUI(QtWidgets.QMainWindow):
         load_item.triggered.connect(self.versions_mcv.on_load)
         import_item.triggered.connect(self.versions_mcv.on_import)
         check_for_updates.triggered.connect(self.on_check_for_updates)
+        online_docs.triggered.connect(lambda: webbrowser.open("https://tik-manager4.readthedocs.io/en/latest/"))
+        issues_and_feature_requests.triggered.connect(lambda: webbrowser.open("https://github.com/masqu3rad3/tik_manager4/issues"))
 
         # check if the tik.main.dcc has a preview method
         if self.tik.dcc.preview_enabled:
@@ -795,17 +798,8 @@ class MainUI(QtWidgets.QMainWindow):
     def on_check_for_updates(self):
         """Check for updates."""
         release_object = self.tik.get_latest_release()
-        # if not release_object.is_newer:
-        #     self.feedback.pop_info(
-        #         title="No Updates",
-        #         text="You are using the latest version of Tik Manager.",
-        #     )
-        #     return
-        # print(release_object.version)
-        # print(release_object._dict)
         dialog = UpdateDialog(release_object, parent=self)
         dialog.show()
-
 
     def refresh_project(self):
         """Refresh the project ui."""
