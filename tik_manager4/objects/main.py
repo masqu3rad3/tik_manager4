@@ -1,10 +1,13 @@
 """Main Module for the Tik Manager"""
 
+import requests
 from pathlib import Path
 import sys
 from tik_manager4.core import filelog, settings, utils
 from tik_manager4.objects import user, project
 from tik_manager4 import dcc
+from packaging.version import Version
+import tik_manager4._version as version
 # the reload is necessary to make sure the dcc is reloaded
 # this makes sure when different dcc's are used in the same python session
 # for example, Maya and trigger.
@@ -205,3 +208,107 @@ class Main():
                 return key
         # for anything else, return standalone
         return "standalone"
+
+    def get_latest_release(self):
+        """Get the latest release version from the github repository.
+
+        Returns:
+            ReleaseObject: Release object with version and download links.
+        """
+        try:
+            response = requests.get("https://api.github.com/repos/masqu3rad3/tik_manager4/releases/latest")
+        except requests.exceptions.ConnectionError:
+            self.log.error("Connection error to github. Check your internet connection")
+            return None
+
+        latest_release_dict = response.json()
+        return ReleaseObject(latest_release_dict)
+
+class ReleaseObject:
+    """Data class for the update object."""
+    def __init__(self, github_dict):
+        """Initialize."""
+        self._dict = github_dict
+        self._version = Version(self._dict.get("tag_name"))
+        self._current_version = Version(version.__version__)
+
+    @property
+    def name(self):
+        """Get the name."""
+        return self._dict.get("name")
+
+    @property
+    def version(self):
+        """Get the version."""
+        return self._version
+
+    def collect_links(self):
+        """Get all the links in a dictionary."""
+        link_sources = {
+            "Windows Installer": self.windows_installer,
+            "Mac Installer": self.mac_installer,
+            "Debian Linux": self.debian_installer,
+            "Redhat Linux": self.redhat_installer,
+            "Tarball": self.tarball,
+            "Zipball": self.zipball
+        }
+
+        return {name: link for name, link in link_sources.items() if link}
+
+    @property
+    def windows_installer(self):
+        """Get the windows installer download url."""
+        assets = self._dict.get("assets")
+        for asset in assets:
+            if asset.get("name").endswith(".exe"):
+                return asset.get("browser_download_url")
+        return None
+
+    @property
+    def mac_installer(self):
+        """Get the mac installer download url."""
+        assets = self._dict.get("assets")
+        for asset in assets:
+            if asset.get("name").endswith(".dmg"):
+                return asset.get("browser_download_url")
+        return None
+
+    @property
+    def debian_installer(self):
+        """Get the linux installer download url."""
+        assets = self._dict.get("assets")
+        for asset in assets:
+            if asset.get("name").endswith(".deb"):
+                return asset.get("browser_download_url")
+        return None
+
+    @property
+    def redhat_installer(self):
+        """Get the linux installer download url."""
+        assets = self._dict.get("assets")
+        for asset in assets:
+            if asset.get("name").endswith(".rpm"):
+                return asset.get("browser_download_url")
+        return None
+
+    @property
+    def tarball(self):
+        """Get the tarball."""
+        return self._dict.get("tarball_url")
+
+    @property
+    def zipball(self):
+        """Get the zipball."""
+        return self._dict.get("zipball_url")
+
+    @property
+    def is_newer(self):
+        """Check if the current version is newer than the installed version."""
+        return self._version > self._current_version
+
+    @property
+    def release_notes(self):
+        """Return the release notes."""
+        return self._dict.get("body")
+
+

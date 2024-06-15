@@ -41,6 +41,7 @@ from tik_manager4.ui.mcv.task_mcv import TikTaskLayout
 from tik_manager4.ui.mcv.user_mcv import TikUserLayout
 from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
 from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator
+from tik_manager4.ui.dialog.update_dialog import UpdateDialog
 
 LOG = logging.getLogger(__name__)
 WINDOW_NAME = f"Tik Manager {version.__version__}"
@@ -495,6 +496,7 @@ class MainUI(QtWidgets.QMainWindow):
         publish_scene.triggered.connect(self.on_publish_scene)
         load_item.triggered.connect(self.versions_mcv.on_load)
         import_item.triggered.connect(self.versions_mcv.on_import)
+        check_for_updates.triggered.connect(self.on_check_for_updates)
 
         # check if the tik.main.dcc has a preview method
         if self.tik.dcc.preview_enabled:
@@ -789,6 +791,21 @@ class MainUI(QtWidgets.QMainWindow):
             self.refresh_versions()
             self.status_bar.showMessage("New version created successfully.", 5000)
             # self.resume_last_state()
+
+    def on_check_for_updates(self):
+        """Check for updates."""
+        release_object = self.tik.get_latest_release()
+        # if not release_object.is_newer:
+        #     self.feedback.pop_info(
+        #         title="No Updates",
+        #         text="You are using the latest version of Tik Manager.",
+        #     )
+        #     return
+        # print(release_object.version)
+        # print(release_object._dict)
+        dialog = UpdateDialog(release_object, parent=self)
+        dialog.show()
+
 
     def refresh_project(self):
         """Refresh the project ui."""
