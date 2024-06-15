@@ -1017,14 +1017,14 @@ class CategoryDefinitions(QtWidgets.QWidget):
         # add 'add' and 'remove' buttons in a horizontal layout
         add_remove_buttons_layout = QtWidgets.QHBoxLayout()
         self.layouts.left_layout.addLayout(add_remove_buttons_layout)
-        add_metadata_button = TikButton(text="Add New Category", parent=self)
-        add_remove_buttons_layout.addWidget(add_metadata_button)
-        remove_metadata_button = TikButton(text="Delete Category", parent=self)
-        add_remove_buttons_layout.addWidget(remove_metadata_button)
+        add_category_pb = TikButton(text="Add New Category", parent=self)
+        add_remove_buttons_layout.addWidget(add_category_pb)
+        delete_category_pb = TikButton(text="Delete Category", parent=self)
+        add_remove_buttons_layout.addWidget(delete_category_pb)
 
         # SIGNALS
-        add_metadata_button.clicked.connect(self.add_category)
-        remove_metadata_button.clicked.connect(self.remove_category)
+        add_category_pb.clicked.connect(self.add_category)
+        delete_category_pb.clicked.connect(self.delete_category)
 
     def add_category(self):
         """Pop up a dialog to add a new category."""
@@ -1032,6 +1032,13 @@ class CategoryDefinitions(QtWidgets.QWidget):
         def _add_category_item():
             name = name_line_edit.text()
             if name in self.settings_data.properties:
+                if self.settings_data.get_property(name).get("archived", False):
+                    self.settings_data.edit_sub_property((name, "archived"), False)
+                    self._add_value_widget(name, data=self.settings_data.get_property(name))
+                    # emit the modified signal
+                    self.modified.emit(True)
+                    add_category_dialog.close()
+                    return
                 QtWidgets.QMessageBox.warning(
                     self,
                     "Warning",
@@ -1076,7 +1083,7 @@ class CategoryDefinitions(QtWidgets.QWidget):
         # show the dialog
         add_category_dialog.show()
 
-    def remove_category(self):
+    def delete_category(self):
         """Removes the selected category from the layout."""
         # get the selected item
         selected_item = self.switch_tree_widget.currentItem()
