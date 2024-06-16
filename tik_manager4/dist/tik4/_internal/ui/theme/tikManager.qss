@@ -557,9 +557,10 @@ QLabel[infoHeader=true] {
 https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qabstractscrollarea
 
 --------------------------------------------------------------------------- */
+
 QTextBrowser {
   background-color: #303030;
-  border: 1px solid #4c4c4c;
+  border: 12px solid #4c4c4c;
   color: #F0F0F0;
   border-radius: 4px;
 }
@@ -574,6 +575,7 @@ QTextBrowser:disabled {
 QTextBrowser:hover, QTextBrowser:!hover, QTextBrowser::selected, QTextBrowser::pressed {
   border: 1px solid #c88c51;
 }
+
 
 /* QGraphicsView ----------------------------------------------------------
 
