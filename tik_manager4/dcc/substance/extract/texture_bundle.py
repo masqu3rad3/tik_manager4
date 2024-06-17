@@ -15,6 +15,12 @@ class Textures(ExtractCore):
     color = (50, 150, 50)
     bundled = True
 
+    global_exposed_settings = {
+        # first item will be the default
+        "file_format": "exr",
+        "bit_depth": 16,
+        "texture_resolution": "", # if not defined, it will use the project resolution
+    }
     # def __init__(self):
     #     super(Textures, self).__init__()
     #
@@ -41,16 +47,20 @@ class Textures(ExtractCore):
 
                 # Get stack resolution (in powers of 2)
                 material = stack.material()
-                resolution = material.get_resolution()
-                sizeLog2 = int(math.log2(resolution.width))
+                defined_res = self.global_settings.get("texture_resolution")
+                if defined_res:
+                    resolution = int(defined_res)
+                else:
+                    resolution = material.get_resolution().width
+                logarithmic_size = int(math.log2(resolution))
 
                 # Export
                 export_list = [{"rootPath": stack_name}]
 
                 # You can also use a suffix to only export variations on a basecolor map
-                self.__export(bundle_directory.as_posix(), export_list, export_preset)
+                self.__export(bundle_directory.as_posix(), export_list, export_preset, logarithmic_size=logarithmic_size)
 
-    def __export(self, folder_path, export_list, export_preset):
+    def __export(self, folder_path, export_list, export_preset, logarithmic_size=12):
         export_config = {
                 "exportShaderParams" : False,
                 "exportPath" 			: folder_path,
@@ -58,7 +68,12 @@ class Textures(ExtractCore):
                 "defaultExportPreset" 	: export_preset.url(),
                 "exportParameters" 		: [
                     {
-                        "parameters"	: { "paddingAlgorithm": "infinite", "sizeLog2" :  12, "fileFormat" : "exr" },
+                        "parameters"	: {
+                            "paddingAlgorithm": "infinite",
+                            "sizeLog2" : logarithmic_size,
+                            "fileFormat" : self.global_settings.get("file_format"),
+                            "bitDepth": str(self.global_settings.get("bit_depth"))
+                        }
                     }
                 ]
             }
