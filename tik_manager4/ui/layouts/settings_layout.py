@@ -31,8 +31,6 @@ def get_nice_name(input_str):
     return nice_name
 def guess_data_type(data):
     """Guess the type of the data to be used as ui definition."""
-    print("DATA", data)
-    print("TYPE", type(data))
     if isinstance(data, bool):
         return "boolean"
     elif isinstance(data, str):
@@ -58,23 +56,6 @@ def guess_data_type(data):
             return "vector3Float"
         else:
             return "combo"
-    # elif isinstance(data, (list, tuple)):
-    #     if len(data) == 2:
-    #         # if all integers, it is a vector2Int
-    #         if all(isinstance(item, int) for item in data):
-    #             return "vector2Int"
-    #         # if ANY floats, it is a vector2Float
-    #         elif any(isinstance(item, float) for item in data):
-    #             return "vector2Float"
-    #     elif len(data) == 3:
-    #         # if all integers, it is a vector3Int
-    #         if all(isinstance(item, int) for item in data):
-    #             return "vector3Int"
-    #         # if ANY floats, it is a vector3Float
-    #         elif any(isinstance(item, float) for item in data):
-    #             return "vector3Float"
-    #     else:
-    #         return "combo"
     else:
         return None
 def convert_to_ui_definition(settings_data):
