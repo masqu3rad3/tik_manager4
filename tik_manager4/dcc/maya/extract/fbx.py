@@ -12,36 +12,93 @@ class Fbx(ExtractCore):
 
     nice_name = "FBX"
     color = (255, 255, 0)
-    _ranges = utils.get_ranges()
-
-    # these are the exposed settings in the UI
-    exposed_settings = {
-        "Animation": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-            "sub_steps": 1,
-            "bake_animation": False,
-            "bake_resample_all": False,
-        },
-        "Layout": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-        },
-        "Fx": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-            "sub_steps": 1,
-            "geometry_cache": False,
-            "geometry_cache_set": " ",
-        },
-        "Lighting": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-        },
-    }
+    # _ranges = utils.get_ranges()
 
     def __init__(self):
-        super().__init__()
+        _ranges = utils.get_ranges()
+        # these are the exposed settings in the UI
+        exposed_settings = {
+            "Animation": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+                "sub_steps": {
+                    "display_name": "Sub Steps",
+                    "type": "integer",
+                    "value": 1,
+                },
+                "bake_animation": {
+                    "display_name": "Bake Animation",
+                    "type": "boolean",
+                    "value": False,
+                },
+                "bake_resample_all": {
+                    "display_name": "Bake Resample All",
+                    "type": "boolean",
+                    "value": False,
+                },
+            },
+            "Layout": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+            },
+            "Fx": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+                "sub_steps": {
+                    "display_name": "Sub Steps",
+                    "type": "integer",
+                    "value": 1,
+                },
+                "geometry_cache": {
+                    "display_name": "Geometry Cache",
+                    "type": "boolean",
+                    "value": False,
+                    "disables": [[False, "geometry_cache_set"]],
+                },
+                "geometry_cache_set": {
+                    "display_name": "Geometry Cache Set",
+                    "type": "string",
+                    "value": " ",
+                },
+            },
+            "Lighting": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+            }
+        }
+        super().__init__(exposed_settings=exposed_settings, global_exposed_settings=None)
         if not cmds.pluginInfo("fbxmaya", loaded=True, query=True):
             try:
                 cmds.loadPlugin("fbxmaya")
@@ -76,17 +133,17 @@ class Fbx(ExtractCore):
     def _extract_animation(self):
         """Extract method for animation category"""
         _file_path = self.resolve_output()
-        settings = self.settings.get("Animation", {})
+        settings = self.settings.get("Animation", self.exposed_settings["Animation"])
         fbxu.save(
             _file_path,
             selection_only=False,
             animation=True,
             animation_only=True,
-            bake_animation=settings.get_property("bake_animation"),
-            bake_start=settings.get_property("start_frame"),
-            bake_end=settings.get_property("end_frame"),
-            bake_step=settings.get_property("sub_steps"),
-            bake_resample_all=settings.get_property("bake_resample_all"),
+            bake_animation=settings.get("bake_animation")["value"],
+            bake_start=settings.get("start_frame")["value"],
+            bake_end=settings.get("end_frame")["value"],
+            bake_step=settings.get("sub_steps")["value"],
+            bake_resample_all=settings.get("bake_resample_all")["value"],
             audio=True,
         )
 
@@ -99,11 +156,11 @@ class Fbx(ExtractCore):
             selection_only=False,
             animation=True,
             animation_only=True,
-            bake_animation=settings.get_property("bake_animation"),
-            bake_start=settings.get_property("start_frame"),
-            bake_end=settings.get_property("end_frame"),
-            bake_step=settings.get_property("sub_steps"),
-            bake_resample_all=settings.get_property("bake_resample_all"),
+            bake_animation=settings.get("bake_animation")["value"],
+            bake_start=settings.get("start_frame")["value"],
+            bake_end=settings.get("end_frame")["value"],
+            bake_step=settings.get("sub_steps")["value"],
+            bake_resample_all=settings.get("bake_resample_all")["value"],
             cameras=True,
             lights=True,
             audio=True,
@@ -119,12 +176,12 @@ class Fbx(ExtractCore):
             animation=True,
             animation_only=False,
             bake_animation=True,
-            bake_start=settings.get_property("start_frame"),
-            bake_end=settings.get_property("end_frame"),
-            bake_step=settings.get_property("sub_steps"),
+            bake_start=settings.get("start_frame")["value"],
+            bake_end=settings.get("end_frame")["value"],
+            bake_step=settings.get("sub_steps")["value"],
             bake_resample_all=True,
-            geometry_cache=settings.get_property("geometry_cache"),
-            geometry_cache_set=settings.get_property("geometry_cache_set"),
+            geometry_cache=settings.get("geometry_cache")["value"],
+            geometry_cache_set=settings.get("geometry_cache_set")["value"],
             cameras=False,
             lights=False,
             audio=False,

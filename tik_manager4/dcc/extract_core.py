@@ -14,14 +14,17 @@ class ExtractCore:
     """Core class for extracting elements from the scene."""
     nice_name: str = ""
     color: tuple = (255, 255, 255)  # RGB
-    exposed_settings: dict = {}
-    global_exposed_settings: dict = {}
+    # exposed_settings: dict = {}
+    # global_exposed_settings: dict = {}
     optional: bool = False
     bundled: bool =False
 
-    def __init__(self):
+    def __init__(self, exposed_settings=None, global_exposed_settings=None):
         # get the module name as name
         # self._name = None
+        self.exposed_settings: dict = exposed_settings or {}
+        self.global_exposed_settings: dict = global_exposed_settings or {}
+
         self._extension: str = ""
         self._extract_folder: str = ""
         self._category: str = ""
@@ -125,12 +128,14 @@ class ExtractCore:
         # if any of the setting keys are in the metadata, set the value of the setting
         for global_key in self.global_settings.keys:
             if metadata.exists(global_key):
-                self.global_settings.edit_property(global_key, metadata.get_value(global_key))
+                # self.global_settings.edit_property(global_key, metadata.get_value(global_key))
+                self.global_settings.edit_sub_property([global_key, "value"], metadata.get_value(global_key))
 
         for category_key in self.settings:
             for setting_key in self.settings[category_key].keys:
                 if metadata.exists(setting_key):
-                    self.settings[category_key].edit_property(setting_key, metadata.get_value(setting_key))
+                    # self.settings[category_key].edit_property(setting_key, metadata.get_value(setting_key))
+                    self.settings[category_key].edit_sub_property([setting_key, "value"], metadata.get_value(setting_key))
         self._metadata = metadata
 
     def extract(self):

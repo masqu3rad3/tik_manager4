@@ -629,7 +629,8 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         self.settings_data.update(self.extract.settings.get(self.extract.category, {}), add_missing_keys=True)
         if self.settings_data.properties:
             # update exposed setting defaults with the metadata (if exists)
-            settings_ui = convert_to_ui_definition(self.settings_data)
+            # settings_ui = convert_to_ui_definition(self.settings_data)
+            settings_ui = self.settings_data.get_data()
             settings_formlayout = SettingsLayout(settings_ui, self.settings_data)
             self.collapsible_layout.contents_layout.addLayout(settings_formlayout)
 
