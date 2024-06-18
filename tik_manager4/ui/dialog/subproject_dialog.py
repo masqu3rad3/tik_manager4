@@ -1,4 +1,5 @@
 """Dialog for new subproject creation."""
+
 from tik_manager4.core.settings import Settings
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog.feedback import Feedback
@@ -119,37 +120,11 @@ class EditSubprojectDialog(QtWidgets.QDialog):
     def _get_metadata_type(self, data):
         """Get the correct SettingsLayout type for the metadata value."""
         default_value = data.get("default", None)
-        enum = data.get("enum", [])
-        if enum:
-            return "combo", default_value, enum
-        elif isinstance(default_value, int):
-            return "spinnerInt", default_value, enum
-        elif isinstance(default_value, float):
-            return "spinnerFloat", default_value, enum
-        elif isinstance(default_value, str):
-            return "string", default_value, enum
-        elif isinstance(default_value, list):
-            # currently only lists with floats or ints are supported
-            # Also the list length is limited with 3 items (vector3)
-            if 2 > len(default_value) > 3:
-                raise ValueError("List length is limited to 2 or 3 items")
-            for item in default_value:
-                if not isinstance(item, (float, int)):
-                    raise ValueError("List items must be float or int")
-            # if any of the items is float, the value type is float
-            if any([isinstance(item, float) for item in default_value]):
-                _value_suffix = "Float"
-            else:
-                _value_suffix = "Int"
-            return (
-                "vector{0}{1}".format(len(default_value), _value_suffix),
-                default_value,
-                enum,
-            )
-        else:
-            raise ValueError(
-                "Unsupported metadata type: {}".format(type(default_value))
-            )
+        enums = data.get("enum", [])
+        data_type = tik_manager4.ui.layouts.settings_layout.guess_data_type(default_value, enums)
+        if not data_type:
+            raise ValueError("Unsupported metadata type: {}".format(type(default_value)))
+        return data_type, default_value, enums
 
     def define_other_ui(self):
         """Define the secondary UI."""

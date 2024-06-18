@@ -29,8 +29,10 @@ def get_nice_name(input_str):
     # Capitalize the first letter of each word and join them with a space
     nice_name = " ".join(word.capitalize() for word in words)
     return nice_name
-def guess_data_type(data):
+def guess_data_type(data, enums=None):
     """Guess the type of the data to be used as ui definition."""
+    if enums:
+        return "combo"
     if isinstance(data, bool):
         return "boolean"
     elif isinstance(data, str):
