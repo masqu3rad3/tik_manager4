@@ -12,30 +12,61 @@ class Usd(ExtractCore):
     nice_name = "USD Scene"
     optional = False
     color = (71, 143, 203)
-    _ranges = utils.get_ranges()
-
-    # these are the exposed settings in the UI
-    exposed_settings = {
-        "Animation": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-        },
-        "Fx": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-        },
-        "Layout": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-        },
-        "Lighting": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-        },
-    }
 
     def __init__(self):
-        super(Usd, self).__init__()
+        _ranges = utils.get_ranges()
+        # these are the exposed settings in the UI
+        exposed_settings = {
+            "Animation": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                }
+            },
+            "Fx": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                }
+            },
+            "Layout": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                }
+            },
+            "Lighting": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                }
+            },
+        }
+        super(Usd, self).__init__(exposed_settings=exposed_settings)
 
         self.extension = ".usd"
 

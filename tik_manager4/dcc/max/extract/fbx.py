@@ -12,37 +12,94 @@ class Fbx(ExtractCore):
     nice_name = "FBX"
     color = (255, 255, 0)
     bundled = False
-    _range_start = float(rt.animationRange.start)
-    _range_end = float(rt.animationRange.end)
-
-    # these are the exposed settings in the UI
-    exposed_settings = {
-        "Animation": {
-            "start_frame":_range_start,
-            "end_frame": _range_end,
-            "sub_steps": 1,
-            "bake_animation": False,
-            "bake_resample_all": False,
-        },
-        "Layout": {
-            "start_frame": _range_start,
-            "end_frame": _range_end,
-        },
-        "Fx": {
-            "start_frame": _range_start,
-            "end_frame": _range_end,
-            "sub_steps": 1,
-            "Selection_set_export": False,
-            "selection_set": " ",
-        },
-        "Lighting": {
-            "start_frame": _range_start,
-            "end_frame": _range_end,
-        }
-    }
 
     def __init__(self):
-        super().__init__()
+        _range_start = float(rt.animationRange.start)
+        _range_end = float(rt.animationRange.end)
+
+        # these are the exposed settings in the UI
+        exposed_settings = {
+            "Animation": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _range_start,
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _range_end,
+                },
+                "sub_steps": {
+                    "display_name": "Sub Steps",
+                    "type": "integer",
+                    "value": 1,
+                },
+                "bake_animation": {
+                    "display_name": "Bake Animation",
+                    "type": "boolean",
+                    "value": False,
+                },
+                "bake_resample_all": {
+                    "display_name": "Bake Resample All",
+                    "type": "boolean",
+                    "value": False,
+                },
+            },
+            "Layout": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _range_start,
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _range_end,
+                }
+            },
+            "Fx": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _range_start,
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _range_end,
+                },
+                "sub_steps": {
+                    "display_name": "Sub Steps",
+                    "type": "integer",
+                    "value": 1,
+                },
+                "Selection_set_export": {
+                    "display_name": "Selection Set Export",
+                    "type": "boolean",
+                    "value": False,
+                    "disables": [[False, "selection_set"]],
+                },
+                "selection_set": {
+                    "display_name": "Selection Set",
+                    "type": "string",
+                    "value": " ",
+                }
+            },
+            "Lighting": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _range_start,
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _range_end,
+                }
+            }
+        }
+        super().__init__(exposed_settings=exposed_settings)
         if not rt.pluginManager.loadclass(rt.FBXEXP):
             raise ValueError("FBX Plugin cannot be initialized")
         self._extension = ".fbx"

@@ -12,43 +12,124 @@ class Usd(ExtractCore):
 
     nice_name = "USD"
     color = (71, 143, 203)
-    _ranges = utils.get_ranges()
 
     # these are the exposed settings in the UI
     # WARNING: Caution removing keys from this dict! It will likely throw a KeyError on the _extract_* methods
-    exposed_settings = {
-        "Animation": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-            "sub_steps": 1,
-            "euler_filter": False,
-            "static_single_sample": False,
-        },
-        "Layout": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-            "sub_steps": 1,
-            "euler_filter": False,
-            "static_single_sample": False,
-        },
-        "Fx": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-            "sub_steps": 1,
-            "euler_filter": False,
-            "static_single_sample": False,
-        },
-        "Lighting": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-            "sub_steps": 1,
-            "euler_filter": False,
-            "static_single_sample": False,
-        },
-    }
 
     def __init__(self):
-        super(Usd, self).__init__()
+        _ranges = utils.get_ranges()
+        exposed_settings = {
+            "Animation": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+                "sub_steps": {
+                    "display_name": "Sub Steps",
+                    "type": "integer",
+                    "value": 1,
+                },
+                "euler_filter": {
+                    "display_name": "Euler Filter",
+                    "type": "boolean",
+                    "value": False,
+                },
+                "static_single_sample": {
+                    "display_name": "Static Single Sample",
+                    "type": "boolean",
+                    "value": False,
+                },
+            },
+            "Layout": {
+                "start_frame":{
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+                "sub_steps": {
+                    "display_name": "Sub Steps",
+                    "type": "integer",
+                    "value": 1,
+                },
+                "euler_filter": {
+                    "display_name": "Euler Filter",
+                    "type": "boolean",
+                    "value": False,
+                },
+                "static_single_sample": {
+                    "display_name": "Static Single Sample",
+                    "type": "boolean",
+                    "value": False,
+                },
+            },
+            "Fx": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+                "sub_steps": {
+                    "display_name": "Sub Steps",
+                    "type": "integer",
+                    "value": 1,
+                },
+                "euler_filter": {
+                    "display_name": "Euler Filter",
+                    "type": "boolean",
+                    "value": False,
+                },
+                "static_single_sample": {
+                    "display_name": "Static Single Sample",
+                    "type": "boolean",
+                    "value": False,
+                },
+            },
+            "Lighting": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+                "sub_steps": {
+                    "display_name": "Sub Steps",
+                    "type": "integer",
+                    "value": 1,
+                },
+                "euler_filter": {
+                    "display_name": "Euler Filter",
+                    "type": "boolean",
+                    "value": False,
+                },
+                "static_single_sample": {
+                    "display_name": "Static Single Sample",
+                    "type": "boolean",
+                    "value": False,
+                },
+            },
+        }
+
+        super(Usd, self).__init__(exposed_settings=exposed_settings)
         if not cmds.pluginInfo("mayaUsdPlugin", loaded=True, query=True):
             try:
                 cmds.loadPlugin("mayaUsdPlugin")
@@ -109,13 +190,13 @@ class Usd(ExtractCore):
             exportSkels=None,
             exportSkin=None,
             exportMaterialCollections=False,
-            eulerFilter=settings.get_property("euler_filter"),
+            eulerFilter=settings.get("euler_filter"),
             frameRange=[_start_frame, _end_frame],
             frameStride=_frame_stride,
             ignoreWarnings=True,
             renderableOnly=False,
             selection=False,
-            staticSingleSample=settings.get_property("static_single_sample"),
+            staticSingleSample=settings.get("static_single_sample"),
         )
 
     def _extract_fx(self):

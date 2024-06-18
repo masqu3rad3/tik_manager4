@@ -1,5 +1,6 @@
 """Template module for publishing"""
 
+import traceback
 from pathlib import Path
 import importlib
 from tik_manager4.core import filelog
@@ -148,8 +149,10 @@ class ExtractCore:
             # print the FULL STACK TRACEBACK
             LOG.exception(exc)
             LOG.error(f"Error while extracting {self.name} to {self.extract_folder}")
+            full_traceback = traceback.format_exc()
             self._state = "failed"
-            self._message = str(exc)
+            self._message = full_traceback
+
 
     def _extract_default(self):
         """Extract for any non-specified category."""
