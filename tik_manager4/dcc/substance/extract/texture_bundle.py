@@ -1,12 +1,12 @@
 """Extract the textures."""
 
 import math
-
 from pathlib import Path
 
 import substance_painter
 
 from tik_manager4.dcc.extract_core import ExtractCore
+
 
 class Textures(ExtractCore):
     """Extract Textures."""
@@ -21,7 +21,9 @@ class Textures(ExtractCore):
             "file_format": {
                 "display_name": "File Format",
                 "type": "combo",
-                "items": ["bmp", "ico", "jpg", "jng", "pbm", "pgm", "png", "ppm", "tga", "tif", "wap", "xpn", "gif", "hdr", "exr", "j2k", "jp2", "pfm", "webp", "jxr", "psd", "sbsar"],
+                "items": ["bmp", "ico", "jpg", "jng", "pbm", "pgm", "png", "ppm", "tga",
+                          "tif", "wap", "xpn", "gif", "hdr", "exr", "j2k", "jp2", "pfm",
+                          "webp", "jxr", "psd", "sbsar"],
                 "value": "exr"
             },
             "bit_depth": {
@@ -37,8 +39,7 @@ class Textures(ExtractCore):
                 "value": ""
             }  # if not defined, it will use the project resolution
         }
-        super(Textures, self).__init__(global_exposed_settings=global_exposed_settings)
-
+        super().__init__(global_exposed_settings=global_exposed_settings)
 
     def _extract_default(self):
         """Extract the textures."""
