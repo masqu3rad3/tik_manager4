@@ -16,32 +16,72 @@ class Usd(ExtractCore):
     nice_name = "Usd"
     optional = False
     color = (71, 143, 203)
-    _ranges = utils.get_ranges()
-
-    # these are the exposed settings in the UI
-    exposed_settings = {
-        "Animation": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-            "sub_steps": 1,
-        },
-        "Fx": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-            "sub_steps": 1,
-        },
-        "Layout": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-        },
-        "Lighting": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-        },
-    }
 
     def __init__(self):
-        super().__init__()
+        _ranges = utils.get_ranges()
+
+        # these are the exposed settings in the UI
+        exposed_settings = {
+            "Animation": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+                "sub_steps": {
+                    "display_name": "Sub Steps",
+                    "type": "integer",
+                    "value": 1,
+                }
+            },
+            "Fx": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+                "sub_steps": {
+                    "display_name": "Sub Steps",
+                    "type": "integer",
+                    "value": 1,
+                }
+            },
+            "Layout": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                }
+            },
+            "Lighting": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                }
+            }
+        }
+        super().__init__(exposed_settings=exposed_settings)
         if hou.isApprentice():
             self._extension = ".usdnc"
             self._message = "USD export is not supported in Houdini Apprentice. Format will be saved as .usdnc"
@@ -112,7 +152,7 @@ class Usd(ExtractCore):
 
     def _extract_animation(self):
         """Extract method for animation category"""
-        settings = self.settings.get("Animation", {})
+        settings = self.settings.get("Animation")
         _file_path = self.resolve_output()
         _start_frame = settings.get_property("start_frame")
         _end_frame = settings.get_property("end_frame")
@@ -134,7 +174,7 @@ class Usd(ExtractCore):
 
     def _extract_layout(self):
         """Extract method for fx category"""
-        settings = self.settings.get("Animation", {})
+        settings = self.settings.get("Animation")
         _file_path = self.resolve_output()
         _start_frame = settings.get_property("start_frame")
         _end_frame = settings.get_property("end_frame")

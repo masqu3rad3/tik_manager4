@@ -208,7 +208,9 @@ class Publisher:
 
         # collect the extracted elements information and add to the publish object
         for extract_type_name, extract_object in self._resolved_extractors.items():
-            if extract_object.state == "failed" or extract_object.state == "unavailable":
+            if (extract_object.state == "failed" or
+                    extract_object.state == "unavailable" or
+                    not extract_object.enabled):
                 continue
             element = {
                 "name": extract_object.nice_name,

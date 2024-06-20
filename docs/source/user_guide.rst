@@ -43,6 +43,8 @@ Preview Settings
 .. note:: 
     *Not all of the settings listed in here available to all DCCs.*
 
+.. _category_definitions:
+
 Category Definitions
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -89,6 +91,8 @@ In addition to the category name, admins can define **Validations** and **Extrac
 
     In the lists, **ALL** validations and extracts will appear for **ALL** available DCCs. However, during publish, depending on the DCC the not applicable ones will be pruned.
     For example, we can define *png* extract for the model category. This extract will be available for Photoshop publishes from the model category, but will not be available for Maya (unless there is a png extractor for Maya too.).
+
+.. _metadata:
 
 Metadata
 ~~~~~~~~

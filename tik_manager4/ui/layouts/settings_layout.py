@@ -29,8 +29,10 @@ def get_nice_name(input_str):
     # Capitalize the first letter of each word and join them with a space
     nice_name = " ".join(word.capitalize() for word in words)
     return nice_name
-def guess_data_type(data):
+def guess_data_type(data, enums=None):
     """Guess the type of the data to be used as ui definition."""
+    if enums:
+        return "combo"
     if isinstance(data, bool):
         return "boolean"
     elif isinstance(data, str):
@@ -44,20 +46,16 @@ def guess_data_type(data):
     elif isinstance(data, dict):
         return "multi"
     elif isinstance(data, (list, tuple)):
-        if len(data) == 2:
-            # if all integers, it is a vector2Int
-            if all(isinstance(item, int) for item in data):
-                return "vector2Int"
-            # if ANY floats, it is a vector2Float
-            elif any(isinstance(item, float) for item in data):
-                return "vector2Float"
-        elif len(data) == 3:
-            # if all integers, it is a vector3Int
-            if all(isinstance(item, int) for item in data):
-                return "vector3Int"
-            # if ANY floats, it is a vector3Float
-            elif any(isinstance(item, float) for item in data):
-                return "vector3Float"
+        if all(isinstance(item, int) for item in data) and len(data) == 2:
+            return "vector2Int"
+        # if ANY floats, it is a vector2Float
+        elif any(isinstance(item, float) for item in data) and len(data) == 2:
+            return "vector2Float"
+        elif all(isinstance(item, int) for item in data) and len(data) == 3:
+            return "vector3Int"
+        # if ANY floats, it is a vector3Float
+        elif any(isinstance(item, float) for item in data) and len(data) == 3:
+            return "vector3Float"
         else:
             return "combo"
     else:
@@ -78,17 +76,21 @@ def convert_to_ui_definition(settings_data):
     for key, data in source_dict.items():
         # guess the type of the data
         data_type = guess_data_type(data)
-        if data_type == "multi":
-            value = convert_to_ui_definition(data)
-        else:
-            value = data
         ui_definition[key] = {
             "display_name": get_nice_name(key),
             "tooltip": "",
             "type": data_type,
-            "value": value,
+            "value": "",
             "disables": [],
         }
+        if data_type == "multi":
+            value = convert_to_ui_definition(data)
+        elif data_type == "combo":
+            value = data[0]
+            ui_definition[key]["items"] = data
+        else:
+            value = data
+        ui_definition[key]["value"] = value
     return ui_definition
 
 class SettingsLayout(QtWidgets.QFormLayout):
@@ -269,14 +271,18 @@ class SettingsLayout(QtWidgets.QFormLayout):
 def main():
     import sys
     import os
+    from tik_manager4.ui import pick
     app = QtWidgets.QApplication(sys.argv)
     test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uiSettings_testA.json")
 
     test_settings = Settings(test_file)
-    dialog = QtWidgets.QDialog()
+    _style_file = pick.style_file()
+    _style_file = pick.style_file()
+    dialog = QtWidgets.QDialog(styleSheet=str(_style_file.readAll(), "utf-8"))
     setting_lay = SettingsLayout(test_settings.get_data())
 
     dialog.setLayout(setting_lay)
+
     dialog.show()
     sys.exit(app.exec_())
 
