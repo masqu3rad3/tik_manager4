@@ -13,33 +13,75 @@ class Alembic(ExtractCore):
 
     nice_name = "Alembic"
     color = (244, 132, 132)
-    _ranges = utils.get_ranges()
+
 
     # these are the exposed settings in the UI
     # any metadata with the same key will OVERRIDE
     # both exposed setting values and global exposed setting values
-    exposed_settings = {
-        "Animation": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-            "sub_steps": 1,
-        },
-        "Fx": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-            "sub_steps": 1,
-        },
-        "Layout": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-        },
-        "Lighting": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-        },
-    }
+
     def __init__(self):
-        super().__init__()
+        _ranges = utils.get_ranges()
+        exposed_settings = {
+            "Animation": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+                "sub_steps":{
+                    "display_name": "Sub Steps",
+                    "type": "integer",
+                    "value": 1,
+                },
+            },
+            "Fx": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+                "sub_steps": {
+                    "display_name": "Sub Steps",
+                    "type": "integer",
+                    "value": 1,
+                },
+            },
+            "Layout": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+            },
+            "Lighting": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+            },
+        }
+        super().__init__(exposed_settings=exposed_settings)
         if not cmds.pluginInfo("AbcExport", loaded=True, query=True):
             try:
                 cmds.loadPlugin("AbcExport")
@@ -58,7 +100,6 @@ class Alembic(ExtractCore):
                                    "Lighting": self._extract_lighting,
                                    }
 
-
     def _extract_model(self):
         """Extract method for model category"""
         _file_path = self.resolve_output()
@@ -68,11 +109,11 @@ class Alembic(ExtractCore):
 
     def _extract_animation(self):
         """Extract method for animation category"""
-        settings = self.settings.get("Animation", {})
+        settings = self.settings.get("Animation")
         _file_path = self.resolve_output()
-        _start_frame = settings.get_property("start_frame")
-        _end_frame = settings.get_property("end_frame")
-        step = float(1.0/settings.get_property("sub_steps"))
+        _start_frame = settings.get("start_frame")
+        _end_frame = settings.get("end_frame")
+        step = float(1.0/settings.get("sub_steps"))
         _flags = f"-frameRange {_start_frame} {_end_frame} -step {step} -uvWrite -worldSpace -writeUVSets -renderableOnly -writeVisibility -dataFormat ogawa"
         command = f"{_flags} -file {_file_path}"
         cmds.AbcExport(j=command)
@@ -84,10 +125,10 @@ class Alembic(ExtractCore):
 
     def _extract_layout(self):
         """Extract method for fx category"""
-        settings = self.settings.get("Layout", {})
+        settings = self.settings.get("Layout")
         _file_path = self.resolve_output()
-        _start_frame = settings.get_property("start_frame")
-        _end_frame = settings.get_property("end_frame")
+        _start_frame = settings.get("start_frame")
+        _end_frame = settings.get("end_frame")
         _flags = f"-frameRange {_start_frame} {_end_frame} -step 1.0 -uvWrite -worldSpace -writeUVSets -renderableOnly -writeVisibility -dataFormat ogawa"
         command = f"{_flags} -file {_file_path}"
         cmds.AbcExport(j=command)

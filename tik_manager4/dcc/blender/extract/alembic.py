@@ -12,33 +12,73 @@ class Alembic(ExtractCore):
     nice_name = "Alembic Scene"
     optional = False
     color = (244, 132, 132)
-    _ranges = utils.get_ranges()
 
-    # these are the exposed settings in the UI
-    exposed_settings = {
-        "Animation": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-            "sub_steps": 1,
-        },
-        "Fx": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-            "sub_steps": 1,
-        },
-        "Layout": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-
-        },
-        "Lighting": {
-            "start_frame": _ranges[0],
-            "end_frame": _ranges[3],
-        },
-    }
 
     def __init__(self):
-        super(Alembic, self).__init__()
+        _ranges = utils.get_ranges()
+
+        # these are the exposed settings in the UI
+        exposed_settings = {
+            "Animation": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+                "sub_steps": {
+                    "display_name": "Sub Steps",
+                    "type": "integer",
+                    "value": 1,
+                },
+            },
+            "Fx": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+                "sub_steps": {
+                    "display_name": "Sub Steps",
+                    "type": "integer",
+                    "value": 1,
+                },
+            },
+            "Layout": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+            },
+            "Lighting": {
+                "start_frame": {
+                    "display_name": "Start Frame",
+                    "type": "integer",
+                    "value": _ranges[0],
+                },
+                "end_frame": {
+                    "display_name": "End Frame",
+                    "type": "integer",
+                    "value": _ranges[3],
+                },
+            },
+        }
+        super(Alembic, self).__init__(exposed_settings=exposed_settings)
 
         self.extension = ".abc"
 
@@ -62,7 +102,7 @@ class Alembic(ExtractCore):
 
     def _extract_animation(self):
         """Extract method for animation category"""
-        settings = self.settings.get("Animation", {})
+        settings = self.settings.get("Animation")
         file_path = self.resolve_output()
         start_frame = settings.get("start_frame")
         end_frame = settings.get("end_frame")
@@ -82,7 +122,7 @@ class Alembic(ExtractCore):
 
     def _extract_layout(self):
         """Extract method for fx category"""
-        settings = self.settings.get("Animation", {})
+        settings = self.settings.get("Animation")
         file_path = self.resolve_output()
         start_frame = settings.get("start_frame")
         end_frame = settings.get("end_frame")

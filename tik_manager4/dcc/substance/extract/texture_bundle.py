@@ -1,12 +1,12 @@
 """Extract the textures."""
 
 import math
-
 from pathlib import Path
 
 import substance_painter
 
 from tik_manager4.dcc.extract_core import ExtractCore
+
 
 class Textures(ExtractCore):
     """Extract Textures."""
@@ -15,17 +15,31 @@ class Textures(ExtractCore):
     color = (50, 150, 50)
     bundled = True
 
-    global_exposed_settings = {
-        # first item will be the default
-        "file_format": "exr",
-        "bit_depth": 16,
-        "texture_resolution": "", # if not defined, it will use the project resolution
-    }
-    # def __init__(self):
-    #     super(Textures, self).__init__()
-    #
-    #     self.extension = ".spp"
-
+    def __init__(self):
+        global_exposed_settings = {
+            # first item will be the default
+            "file_format": {
+                "display_name": "File Format",
+                "type": "combo",
+                "items": ["bmp", "ico", "jpg", "jng", "pbm", "pgm", "png", "ppm", "tga",
+                          "tif", "wap", "xpn", "gif", "hdr", "exr", "j2k", "jp2", "pfm",
+                          "webp", "jxr", "psd", "sbsar"],
+                "value": "exr"
+            },
+            "bit_depth": {
+                "display_name": "Bit Depth",
+                "type": "combo",
+                "items": ["8", "16", "32"],
+                "value": "16"
+            },
+            "texture_resolution": {
+                "display_name": "Texture Resolution",
+                "type": "combo",
+                "items": ["", "128", "256", "512", "1024", "2048", "4096"],
+                "value": ""
+            }  # if not defined, it will use the project resolution
+        }
+        super().__init__(global_exposed_settings=global_exposed_settings)
 
     def _extract_default(self):
         """Extract the textures."""

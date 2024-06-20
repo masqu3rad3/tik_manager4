@@ -585,6 +585,7 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         self.label = None
         self.settings_btn = None
         self.settings_frame = None
+        self.global_settings_data = None
         self.settings_data = None
         self.info = None
 
@@ -625,16 +626,35 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         self.collapsible_layout.label.set_font_size(10, bold=True)
         header_layout.addLayout(self.collapsible_layout)
 
-        self.settings_data = self.extract.global_settings
-        self.settings_data.update(self.extract.settings.get(self.extract.category, {}), add_missing_keys=True)
-        if self.settings_data.properties:
-            # update exposed setting defaults with the metadata (if exists)
-            settings_ui = convert_to_ui_definition(self.settings_data)
-            settings_formlayout = SettingsLayout(settings_ui, self.settings_data)
+        if self.extract.global_settings.properties:
+            # if there are global settings exposed for the extract draw them.
+            global_settings_formlayout = SettingsLayout(
+                self.extract.global_exposed_settings_ui, self.extract.global_settings
+            )
+            self.collapsible_layout.contents_layout.addLayout(global_settings_formlayout)
+        _settings = self.extract.settings.get(self.extract.category, {})
+        if _settings:
+            _settings_ui = self.extract.exposed_settings_ui[self.extract.category]
+            # get the settings from the extract
+            settings_formlayout = SettingsLayout(_settings_ui, _settings)
             self.collapsible_layout.contents_layout.addLayout(settings_formlayout)
-
-        else:
+        if not self.extract.global_settings.properties and not _settings:
             self.collapsible_layout.expand_button.hide()
+
+
+        # self.settings_data = self.extract.global_settings
+        # self.settings_data.update(self.extract.settings.get(self.extract.category, {}), add_missing_keys=True)
+        # if self.settings_data.properties:
+        #     # update exposed setting defaults with the metadata (if exists)
+        #     # settings_ui = convert_to_ui_definition(self.settings_data)
+        #     settings_ui = self.settings_data.get_data().copy()
+        #     import pdb
+        #     pdb.set_trace()
+        #     settings_formlayout = SettingsLayout(settings_ui, self.settings_data)
+        #     self.collapsible_layout.contents_layout.addLayout(settings_formlayout)
+        #
+        # else:
+        #     self.collapsible_layout.expand_button.hide()
 
         # maintenance icons
         self.info = TikIconButton(icon_name=self.extract.name, circle=True)

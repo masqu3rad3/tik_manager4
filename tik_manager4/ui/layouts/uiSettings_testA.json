@@ -1,6 +1,6 @@
 {
   "testCheck: ": {
-    "display_name": "testoid checkus manyakus",
+    "display_name": "Test Check",
     "type": "boolean",
     "value": true,
     "disables": [
@@ -13,23 +13,21 @@
   "resolutionTest": {
     "display_name": "Resolution test",
     "type": "vector2Int",
-    "value": [1024, 768],
-    "disables": []
+    "value": [1024, 768]
   },
   "testString": {
     "type": "string",
     "value": "",
-    "disables": [],
     "placeholder": "(Optional)"
   },
   "testCombo": {
     "type": "combo",
     "items": [
-      "valueA",
-      "valueB",
-      "valueC"
+      "Superman",
+      "Still",
+      "Walking"
     ],
-    "value": "valueB"
+    "value": "Still"
   },
   "testRadio": {
     "type": "combo",
@@ -94,13 +92,13 @@
   "testSecond": {
     "type": "multi",
     "value": {
-      "ananX": {
+      "multiX": {
         "type": "float",
         "value": 1920,
         "minimum": 1,
         "maximum": 999999
       },
-        "ananY": {
+        "multiY": {
             "type": "integer",
             "value": 1080,
             "minimum": 1,
@@ -110,7 +108,7 @@
   },
   "testList": {
     "type": "list",
-    "value": []
+    "value": ["Is", "This", "The", "Real", "Life"]
   }
 }
 

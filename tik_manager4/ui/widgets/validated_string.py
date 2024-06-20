@@ -4,7 +4,7 @@ from tik_manager4.ui.widgets.value_widgets import String
 
 
 class ValidatedString(String):
-    """A custom QLineEdit widget purposed for browsing subprojects"""
+    """Custom QLineEdit widget to validate entered values"""
 
     validation_changed = QtCore.Signal(bool)
 
