@@ -28,7 +28,8 @@ Below is an example of an extractor that simply prints "Hello World!" to the con
             print("Hello World!")
             print("************")
 
-In this example, we have created a class called `HelloWorld` that inherits from `ExtractCore`. This way, the Collector will be able to find and execute it.
+In this example, we have created a class called `HelloWorld` that inherits `ExtractCore`. 
+This way, the Collector will be able to find and execute it.
 
 We have defined the nice_name and color attributes. These are used to display the extractor in the UI.
 
@@ -36,20 +37,23 @@ The `optional` attribute is used to define whether the extractor is optional. If
 a checkbox will appear in the publisher UI next to the extractor, allowing the user to skip this extractor.
 
 Finally, we have overridden the `_extract_default` method. This method will be called when the category is not specified.
+In other words, this extractor will perform the same action regardless of the category.
 
 Saving this code into a .py file and placing it in the extract folder of the relevant DCC 
-(any will do in this case) will make it available to the Tik Manager.
+(in this example, any DCC will work) will make it available to the Tik Manager.
 
 .. warning::
 
     An extractor will be available to a category ONLY if it is assigned from the settings. For more information on how to assign 
-    categories to extractors, please refer to the :ref:`category_definitions`.
+    extractors to categories, please refer to the :ref:`category_definitions`.
 
 .. tip::
 
     The ExtractCore class already wraps the _extract_default method with a try-except block, which will catch any exceptions.
+    Giving the chance to the user see the error message in the UI and proceed with the remaining extractors and publishing if
+    the user decides to do so.
 
-Selective Extraction For categories
+Selective Extraction for Categories
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Extractors can be category-sensitive, meaning that the same extractor can behave differently depending on the category. 
@@ -119,7 +123,7 @@ Now, let's enhance our example with a more practical task. Suppose we want to pu
             with open(file_path, "w") as file:
                 file.write("Hello Animation World!")
 
-In this example, we have added the `extension` attribute. This attribute defines the file extension of the output file.
+In this example, we have added the `extension` variable. This variable defines the file extension of the output file.
 We have also utilized the `resolve_output` method. This method returns the path where the file should be saved.
 
 UI Elements
@@ -180,14 +184,19 @@ For instance, let's say we want the user to define the message to be saved in th
 
 In this example, we define two dictionaries and feed them into the base class.
 
-- The `exposed_settings` attribute specifies settings specific to each category.
-- The `global_exposed_settings` attribute specifies settings common to all categories.
+- The `exposed_settings` is for specific settings per defined category.
+- The `global_exposed_settings` specifies settings common for all categories.
 
 
 Each key in the global_exposed_settings dictionary represents a row in the extractor's layout. 
 The keys in the exposed_settings dictionary represent categories, where each value is another dictionary representing a row in the extractor's layout.
 
 The Tik Manager employs the same UI definition methodology across settings, metadata, and extractor UI.
+
+.. note:: 
+
+    Any exposed settings (global or not) default value can be overridden with a metadata with
+    the same key. For more information on metadata, please refer to the :ref:`metadata` section in the user guide.
 
 Bundles
 ~~~~~~~
@@ -224,17 +233,63 @@ In some cases, we may want to create a bundle of files instead of a single file.
                 file.write(info_context)
 
 
-Here's a refined version of your text:
-
 In this example, we have set the `bundled` attribute to `True`. 
 This informs the Collector that this extractor will create a bundle, 
 and `self.resolve_output()` will return a directory path instead of a file path.
+
+Metadata access
+~~~~~~~~~~~~~~~
+
+It is possible to access the sub-project metadata from the extractor.
+
+.. code-block:: python
+
+    from tik_manager4.dcc.extract_core import ExtractCore
+
+    # The Collector will only collect classes inherit ExtractCore
+    class HelloWorld(ExtractCore):
+        """Print hello world."""
+
+        nice_name = "Hello World"
+        color = (0, 0, 255)
+        optional = False
+
+        def _extract_default(self):
+            """Extract method for any non-specified category"""
+            mode = self.metadata.get_value("mode")
+            print("************")
+            print(f"Hello {mode} World!")
+            print("************")
+
+This simple example demonstrates how to access the metadata value named "mode" and use it in the extractor.
+In this case, if the subproject that we are publishing from is and asset it will print "Hello asset World!".
+If it is a shot it will print "Hello shot World!".
+
+Miscellaneous
+~~~~~~~~~~~~~
+
+set_message method can be used to deliver a message to the user when they click the extractor icon button. 
+(This circle button is located next to the extractor name in the UI.)
+
+As a use case example, it can be used in the __init__ method to inform the user about the extractor's purpose.
+
+.. code:: python
+
+    def __init__(self):
+        super().__init__()
+        self.set_message("This extractor will print 'Hello World!' to the console.")    
 
 
 UI definition Rules
 -------------------
 
-row dictionary keys:
+Tik Manager uses a dictionary to define the layout of the UI elements.
+The goal is to allow TDs a framework that they can create unified UIs across different DCCs without writing any UI code.
+
+Under the hood, the UI items are getting populated on a form layout.
+Each key in the dictionary represents a row in the layout.
+
+Available dictionary keys:
     - display_name: The name displayed on the UI.
     - type: The type of UI element. Refer to the list of :ref:`Availabe Data Types`
     - value: The default value of the UI element.

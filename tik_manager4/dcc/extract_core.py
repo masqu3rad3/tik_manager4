@@ -138,6 +138,14 @@ class ExtractCore:
         """Return the message of the extractor."""
         return self._message
 
+    def set_message(self, message):
+        """Set the message of the extractor.
+
+        Args:
+            message (str): The message to set.
+        """
+        self._message = message
+
     @property
     def metadata(self):
         """Return the metadata of the extractor."""
