@@ -161,7 +161,7 @@ class Alembic(ExtractCore):
 
     def _extract_animation(self):
         """Extract method for animation category"""
-        settings = self.settings.get("Animation", {})
+        settings = self.settings.get("Animation")
         _file_path = self.resolve_output()
         _start_frame = settings.get_property("start_frame")
         _end_frame = settings.get_property("end_frame")
@@ -192,7 +192,7 @@ class Alembic(ExtractCore):
 
     def _extract_layout(self):
         """Extract method for fx category"""
-        settings = self.settings.get("Animation", {})
+        settings = self.settings.get("Animation")
         _file_path = self.resolve_output()
         _start_frame = settings.get_property("start_frame")
         _end_frame = settings.get_property("end_frame")

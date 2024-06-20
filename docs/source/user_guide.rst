@@ -43,6 +43,8 @@ Preview Settings
 .. note:: 
     *Not all of the settings listed in here available to all DCCs.*
 
+.. _category_definitions:
+
 Category Definitions
 ~~~~~~~~~~~~~~~~~~~~
 

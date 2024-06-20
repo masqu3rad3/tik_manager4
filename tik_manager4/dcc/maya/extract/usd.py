@@ -154,7 +154,7 @@ class Usd(ExtractCore):
     def _extract_model(self):
         """Extract method for model category"""
         _file_path = self.resolve_output()
-        settings = self.settings.get("Model", {})
+        settings = self.settings.get("Model")
         cmds.mayaUSDExport(
             file=_file_path,
             exportBlendShapes=False,
@@ -180,7 +180,7 @@ class Usd(ExtractCore):
     def _extract_animation(self):
         """Extract method for animation category"""
         _file_path = self.resolve_output()
-        settings = self.settings.get("Animation", {})
+        settings = self.settings.get("Animation")
         _start_frame = settings.get("start_frame")
         _end_frame = settings.get("end_frame")
         _frame_stride = float(1.0 / settings.get("sub_steps"))

@@ -133,34 +133,34 @@ class Fbx(ExtractCore):
     def _extract_animation(self):
         """Extract method for animation category"""
         _file_path = self.resolve_output()
-        settings = self.settings.get("Animation", self.exposed_settings["Animation"])
+        settings = self.settings.get("Animation")
         fbxu.save(
             _file_path,
             selection_only=False,
             animation=True,
             animation_only=True,
-            bake_animation=settings.get("bake_animation")["value"],
-            bake_start=settings.get("start_frame")["value"],
-            bake_end=settings.get("end_frame")["value"],
-            bake_step=settings.get("sub_steps")["value"],
-            bake_resample_all=settings.get("bake_resample_all")["value"],
+            bake_animation=settings.get("bake_animation"),
+            bake_start=settings.get("start_frame"),
+            bake_end=settings.get("end_frame"),
+            bake_step=settings.get("sub_steps"),
+            bake_resample_all=settings.get("bake_resample_all"),
             audio=True,
         )
 
     def _extract_layout(self):
         """Extract method for layout category"""
         _file_path = self.resolve_output()
-        settings = self.settings.get("Layout", {})
+        settings = self.settings.get("Layout")
         fbxu.save(
             _file_path,
             selection_only=False,
             animation=True,
             animation_only=True,
-            bake_animation=settings.get("bake_animation")["value"],
-            bake_start=settings.get("start_frame")["value"],
-            bake_end=settings.get("end_frame")["value"],
-            bake_step=settings.get("sub_steps")["value"],
-            bake_resample_all=settings.get("bake_resample_all")["value"],
+            bake_animation=settings.get("bake_animation"),
+            bake_start=settings.get("start_frame"),
+            bake_end=settings.get("end_frame"),
+            bake_step=settings.get("sub_steps"),
+            bake_resample_all=settings.get("bake_resample_all"),
             cameras=True,
             lights=True,
             audio=True,
@@ -169,19 +169,19 @@ class Fbx(ExtractCore):
     def _extract_fx(self):
         """Extract method for fx category"""
         _file_path = self.resolve_output()
-        settings = self.settings.get("Fx", {})
+        settings = self.settings.get("Fx")
         fbxu.save(
             _file_path,
             selection_only=False,
             animation=True,
             animation_only=False,
             bake_animation=True,
-            bake_start=settings.get("start_frame")["value"],
-            bake_end=settings.get("end_frame")["value"],
-            bake_step=settings.get("sub_steps")["value"],
+            bake_start=settings.get("start_frame"),
+            bake_end=settings.get("end_frame"),
+            bake_step=settings.get("sub_steps"),
             bake_resample_all=True,
-            geometry_cache=settings.get("geometry_cache")["value"],
-            geometry_cache_set=settings.get("geometry_cache_set")["value"],
+            geometry_cache=settings.get("geometry_cache"),
+            geometry_cache_set=settings.get("geometry_cache_set"),
             cameras=False,
             lights=False,
             audio=False,

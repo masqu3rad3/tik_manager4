@@ -271,14 +271,18 @@ class SettingsLayout(QtWidgets.QFormLayout):
 def main():
     import sys
     import os
+    from tik_manager4.ui import pick
     app = QtWidgets.QApplication(sys.argv)
     test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uiSettings_testA.json")
 
     test_settings = Settings(test_file)
-    dialog = QtWidgets.QDialog()
+    _style_file = pick.style_file()
+    _style_file = pick.style_file()
+    dialog = QtWidgets.QDialog(styleSheet=str(_style_file.readAll(), "utf-8"))
     setting_lay = SettingsLayout(test_settings.get_data())
 
     dialog.setLayout(setting_lay)
+
     dialog.show()
     sys.exit(app.exec_())
 

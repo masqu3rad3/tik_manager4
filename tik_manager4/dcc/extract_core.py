@@ -13,18 +13,21 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class ExtractCore:
     """Core class for extracting elements from the scene."""
+
     nice_name: str = ""
     color: tuple = (255, 255, 255)  # RGB
     # exposed_settings: dict = {}
     # global_exposed_settings: dict = {}
     optional: bool = False
-    bundled: bool =False
+    bundled: bool = False
 
     def __init__(self, exposed_settings=None, global_exposed_settings=None):
         # get the module name as name
         # self._name = None
-        self.exposed_settings: dict = exposed_settings or {}
-        self.global_exposed_settings: dict = global_exposed_settings or {}
+        self.global_exposed_settings_ui: dict = global_exposed_settings or {}
+        self.exposed_settings_ui: dict = exposed_settings or {}
+
+        _global_exposed_settings_data, _exposed_settings_data = self.process_settings()
 
         self._extension: str = ""
         self._extract_folder: str = ""
@@ -37,14 +40,31 @@ class ExtractCore:
         self._metadata: Metadata
         self.category_functions = {}
         self.global_settings = Settings()
-        self.global_settings.set_data(self.global_exposed_settings)
+        self.global_settings.set_data(_global_exposed_settings_data)
         self.settings: dict = {}
         # create settings objects from the default settings
-        for key, value in self.exposed_settings.items():
+        for key, value in _exposed_settings_data.items():
             _settings = Settings()
             _settings.set_data(value)
             self.settings[key] = _settings
 
+    def process_settings(self):
+        """Using the UI definitions exposed and global exposed settings, create the data dictionaries.
+
+        Returns:
+            tuple: exposed settings dictionary.
+        """
+        global_settings_data = {}
+        for key, data in self.global_exposed_settings_ui.items():
+            global_settings_data[key] = data["value"]
+
+        settings_data = {}
+        for key, data in self.exposed_settings_ui.items():
+            settings_data[key] = {}
+            for sub_key, sub_data in data.items():
+                settings_data[key][sub_key] = sub_data["value"]
+
+        return global_settings_data, settings_data
 
     def __init_subclass__(cls, **kwargs):
         # Get the base name of the file without the extension using pathlib
@@ -129,14 +149,19 @@ class ExtractCore:
         # if any of the setting keys are in the metadata, set the value of the setting
         for global_key in self.global_settings.keys:
             if metadata.exists(global_key):
-                # self.global_settings.edit_property(global_key, metadata.get_value(global_key))
-                self.global_settings.edit_sub_property([global_key, "value"], metadata.get_value(global_key))
+                # edit both ui definition and actual data.
+                meta_value = metadata.get_value(global_key)
+                self.global_settings.edit_property(global_key, meta_value)
+                self.global_exposed_settings_ui[global_key]["value"] = meta_value
 
         for category_key in self.settings:
             for setting_key in self.settings[category_key].keys:
                 if metadata.exists(setting_key):
-                    # self.settings[category_key].edit_property(setting_key, metadata.get_value(setting_key))
-                    self.settings[category_key].edit_sub_property([setting_key, "value"], metadata.get_value(setting_key))
+                    # edit both ui definition and actual data.
+                    meta_value = metadata.get_value(setting_key)
+                    self.settings[category_key].edit_property(setting_key, meta_value)
+                    self.exposed_settings_ui[category_key][setting_key]["value"] = meta_value
+
         self._metadata = metadata
 
     def extract(self):
@@ -153,7 +178,6 @@ class ExtractCore:
             self._state = "failed"
             self._message = full_traceback
 
-
     def _extract_default(self):
         """Extract for any non-specified category."""
         pass
@@ -161,7 +185,12 @@ class ExtractCore:
     def resolve_output(self):
         """Resolve the output path."""
         if self.bundled:
-            output_path = Path(self.extract_folder) / f"{self.name.upper()}_{self._extract_name}"
+            output_path = (
+                Path(self.extract_folder) / f"{self.name.upper()}_{self._extract_name}"
+            )
         else:
-            output_path = Path(self.extract_folder) / f"{self.name.upper()}_{self._extract_name}{self.extension}"
+            output_path = (
+                Path(self.extract_folder)
+                / f"{self.name.upper()}_{self._extract_name}{self.extension}"
+            )
         return str(output_path)

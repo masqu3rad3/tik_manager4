@@ -95,8 +95,9 @@ class Usd(ExtractCore):
     def _extract_animation(self):
         """Extract method for animation category"""
         backup_ranges = utils.get_ranges()
-        utils.set_ranges(self.settings["Animation"]["start_frame"],
-                         self.settings["Animation"]["end_frame"]
+        start_frame = self.settings.get_sub
+        utils.set_ranges(self.settings["Animation"].get("start_frame"),
+                         self.settings["Animation"].get("end_frame")
                          )
 
         file_path = self.resolve_output()
