@@ -53,6 +53,52 @@ Saving this code into a .py file and placing it in the extract folder of the rel
     Giving the chance to the user see the error message in the UI and proceed with the remaining extractors and publishing if
     the user decides to do so.
 
+.. collapse:: Detailed Explanation
+
+    
+    Import the ExtractCore class from the tik_manager4.dcc.extract_core module.
+
+    .. code-block:: python
+
+        from tik_manager4.dcc.extract_core import ExtractCore
+
+    Make sure the Extractor class inherits the ExtractCore class.
+
+    .. code-block:: python
+
+        class HelloWorld(ExtractCore):
+
+    Define the nice_name attribute. This attribute is used to display the extractor in the UI.
+
+    .. code-block:: python
+
+        nice_name = "Hello World"
+
+    Define the color attribute. This attribute is used to color the extractor in the UI.
+
+    .. code-block:: python
+
+        color = (0, 0, 255)
+    
+    Define the optional attribute. This attribute is used to define whether the extractor is optional.
+    The default value is False.
+
+    .. code-block:: python
+
+        optional = False
+
+    Override the _extract_default method. This method will be called when the category is not specified.
+
+    .. code-block:: python
+
+        def _extract_default(self):
+            print("************")
+            print("Hello World!")
+            print("************")
+
+
+--------------------------
+
 Selective Extraction for Categories
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -91,6 +137,28 @@ We map the category to the method in the `__init__` method by setting the `categ
 
 The `Collector` will call the `_extract_animation` method when the category is "Animation" and the `_extract_default` method for any other categories.
 
+.. collapse:: Detailed Explanation
+
+    We need to define the category_functions dictionary in the __init__ method.
+    The key is the category name, and the value is the method that will be called when the category is specified.
+
+    .. code-block:: python
+
+        def __init__(self):
+            super().__init__()
+            self.category_functions = {"Animation": self._extract_animation}
+
+    Define the _extract_animation method. This method will be called when the category is "Animation".
+
+    .. code-block:: python
+
+        def _extract_animation(self):
+            print("************")
+            print("Hello Animation World!")
+            print("************")
+
+-------------------------
+
 Saving Files
 ~~~~~~~~~~~~
 
@@ -125,6 +193,22 @@ Now, let's enhance our example with a more practical task. Suppose we want to pu
 
 In this example, we have added the `extension` variable. This variable defines the file extension of the output file.
 We have also utilized the `resolve_output` method. This method returns the path where the file should be saved.
+
+.. collapse:: Detailed Explanation
+
+    Define the extension attribute. This attribute is used to define the file extension of the output file.
+
+    .. code-block:: python
+
+        extension = ".txt"
+
+    resolve_output is getting inherited from the ExtractCore class. This method returns the path where the file should be saved.
+
+    .. code-block:: python
+
+        file_path = self.resolve_output()
+
+-------------------------
 
 UI Elements
 ~~~~~~~~~~~
@@ -450,3 +534,5 @@ Available Data Types
 - **subprojectBrowser**: Browser widget for Tik Manager sub-projects.
 - **multi**: If this type is selected, the `value` key should be a list of dictionaries. Each dictionary must have `type` and `value` keys similar to the main dictionary. This will create a nested layout.
 - **group**: Similar to `multi`, but the nested layout will be grouped with a separator.
+
+
