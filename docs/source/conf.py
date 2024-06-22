@@ -18,7 +18,10 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'sphinx_toolbox.collapse',
+    'autoapi.extension',
 ]
+
+autoapi_dirs = ['../../tik_manager4']
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
