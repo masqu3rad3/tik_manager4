@@ -1,3 +1,4 @@
+"""User module for Tik Manager 4."""
 import hashlib
 from pathlib import Path
 from tik_manager4.core import filelog
@@ -12,11 +13,14 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 FEED = feedback.Feedback()
 
 
-class User():
+class User:
+    """User class to handle user data and permissions."""
+
     _guard = Guard()
 
     def __init__(self, common_directory=None):
-        super(User, self).__init__()
+        """Initializes the User class."""
+        super().__init__()
         self.settings = Settings()
         self.bookmarks = Settings()
         self.resume = Settings()
@@ -31,18 +35,28 @@ class User():
 
     @property
     def name(self):
+        """Active User Name."""
         return self._active_user
 
     @property
     def is_authenticated(self):
+        """Authentication Status for the active user."""
         return bool(self._guard.is_authenticated)
 
     @property
     def permission_level(self):
+        """Permission Level of the active user."""
         return self._guard.permission_level
 
     def check_permissions(self, level):
-        """Checks the user permissions for project actions."""
+        """Checks the user permissions for project actions.
+
+        Args:
+            level (int): Permission level to be checked against.
+
+        Returns:
+            int: 1 if the user has the permission, -1 otherwise.
+        """
         if self.permission_level < level:
             LOG.warning("This user does not have permissions for this action")
             return -1
@@ -54,132 +68,196 @@ class User():
 
     @property
     def bookmark_names(self):
-        """Return the bookmark names"""
+        """Names of the user bookmarks."""
         return [Path(x).name for x in self.get_project_bookmarks()]
-        # return [os.path.basename(x) for x in self.get_project_bookmarks()]
 
     @property
     def last_project(self):
-        """Returns the last project"""
+        """The last project interacted with."""
         return self.resume.get_property("project")
 
     @last_project.setter
     def last_project(self, value):
-        """Sets the last project"""
+        """Set the last project.
+
+        Args:
+            value (str): The project name.
+        """
         self.resume.edit_property("project", value)
 
     @property
     def last_subproject(self):
-        """Returns the last subproject"""
+        """The last subproject interacted with."""
         return self.resume.get_property("subproject")
 
     @last_subproject.setter
     def last_subproject(self, value):
-        """Sets the last subproject"""
+        """Sets the last subproject.
+
+        Args:
+            value (str): The subproject name.
+        """
         self.resume.edit_property("subproject", value)
 
     @property
     def last_task(self):
-        """Returns the last task"""
+        """The last task interacted with."""
         return self.resume.get_property("task")
 
     @last_task.setter
     def last_task(self, value):
-        """Sets the last task"""
+        """Set the last task.
+
+        Args:
+            value (str): The task name.
+        """
         self.resume.edit_property("task", value)
 
     @property
     def last_category(self):
-        """Returns the last category"""
+        """The last category interacted with."""
         return self.resume.get_property("category")
 
     @last_category.setter
     def last_category(self, value):
-        """Sets the last category"""
+        """Set the last category.
+
+        Args:
+            value (str): The category name.
+        """
         self.resume.edit_property("category", value)
 
     @property
     def last_work(self):
-        """Returns the last category"""
+        """The last category interacted with."""
         return self.resume.get_property("work")
 
     @last_work.setter
     def last_work(self, value):
-        """Sets the last category"""
+        """Set the last category.
+
+        Args:
+            value (str): The category name.
+        """
         self.resume.edit_property("work", value)
 
     @property
     def last_version(self):
-        """Returns the last version"""
+        """The last version interacted with."""
         return self.resume.get_property("version")
 
     @last_version.setter
     def last_version(self, value):
-        """Sets the last version"""
+        """Set the last version.
+
+        Args:
+            value (str): The version name.
+        """
         self.resume.edit_property("version", value)
 
     @property
     def expanded_subprojects(self):
-        """Return the expanded states of subprojects."""
+        """The expansion states of subprojects."""
         return self.resume.get_property("expanded_subprojects", [])
 
     @expanded_subprojects.setter
     def expanded_subprojects(self, value):
-        """Set the expanded states of subprojects."""
+        """Set the expanded states of subprojects.
+
+        Args:
+            value (list): List of expanded subprojects.
+        """
         self.resume.edit_property("expanded_subprojects", value)
 
     @property
     def split_sizes(self):
-        """Get the split sizes to apply to the main UI"""
+        """The split sizes to apply to the main UI."""
         return self.resume.get_property("split_sizes", [])
 
     @split_sizes.setter
     def split_sizes(self, value):
-        """Set the split size values."""
+        """Set the split size values.
+
+        Args:
+            value (list): List of split sizes.
+        """
         self.resume.edit_property("split_sizes", value)
 
     @property
     def visible_columns(self):
-        """Get the column visibilities."""
+        """The column visibilities."""
         return self.resume.get_property("visible_columns", {})
 
     @visible_columns.setter
     def visible_columns(self, value):
-        """Set the column visibilities."""
+        """Set the column visibilities.
+
+        Args:
+            value (dict): Dictionary of column visibilities.
+        """
         self.resume.edit_property("visible_columns", value)
 
     @property
     def column_sizes(self):
-        """Get the column sizes."""
+        """Column sizes."""
         return self.resume.get_property("column_sizes", {})
 
     @column_sizes.setter
     def column_sizes(self, value):
-        """Set the column sizes."""
+        """Set the column sizes.
+
+        Args:
+            value (dict): Dictionary of column sizes.
+        """
         self.resume.edit_property("column_sizes", value)
 
     @classmethod
     def __set_authentication_status(cls, state):
-        # cls._authenticated = state
+        """Sets the authentication status of the user.
+
+        Args:
+            state (bool): The authentication status.
+        """
         cls._guard.set_authentication_status(state)
 
     @classmethod
     def __set_permission_level(cls, level):
-        # cls._permission_level = level
+        """Sets the permission level for the current user.
+
+        Args:
+            level (int): The permission level.
+        """
         cls._guard.set_permission_level(level)
 
     @classmethod
     def __set_category_definitions(cls, category_definitions):
+        """Sets the category definitions.
+
+        Args:
+            category_definitions: The category definitions.
+
+        Returns:
+
+        """
         cls._guard.set_category_definitions(category_definitions)
 
     def _validate_user_data(self):
-        """Finds or creates user directories and files"""
+        """Find or create user directories and files.
+
+        Returns:
+            int: 1 if successful.
+
+        Raises:
+            Exception: If the commons directory is not valid.
+        """
 
         _user_root = utils.get_home_dir()
         _user_dir = Path(_user_root, "TikManager4")
         _user_dir.mkdir(exist_ok=True)
         self.user_directory = str(_user_dir)
-        self.settings.settings_file = str(Path(self.user_directory, "user_settings.json"))
+        self.settings.settings_file = str(
+            Path(self.user_directory, "user_settings.json")
+        )
         self.bookmarks.settings_file = str(Path(self.user_directory, "bookmarks.json"))
         self.resume.settings_file = str(Path(self.user_directory, "resume.json"))
         # Check if the common folder defined in the user settings
@@ -203,15 +281,17 @@ class User():
                 answer = FEED.pop_question(
                     title="Commons Directory does not exist",
                     text=f"Defined Commons Directory does not exist. \n{self.common_directory}"
-                         f"Do you want to define a new Commons Directory?",
-                    buttons = ["yes", "cancel"]
+                    f"Do you want to define a new Commons Directory?",
+                    buttons=["yes", "cancel"],
                 )
                 if answer == "yes":
                     self.common_directory = FEED.browse_directory()
                 else:
                     raise Exception("Commons Directory does not exist. Exiting...")
         self.settings.edit_property("commonFolder", self.common_directory)
-        self.settings.add_property("user_templates_directory", self.user_directory, force=False)
+        self.settings.add_property(
+            "user_templates_directory", self.user_directory, force=False
+        )
         self.settings.add_property("alembic_viewer", "", force=False)
         self.settings.add_property("usd_viewer", "", force=False)
         self.settings.add_property("fbx_viewer", "", force=False)
@@ -225,9 +305,9 @@ class User():
             answer = FEED.pop_question(
                 title="Commons Directory is not valid",
                 text="Commons Directory doesn't contain all of the necessary "
-                     "files and it is write protected.\n"
-                     "Do you want to define a new Commons Directory?",
-                buttons=["yes", "cancel"]
+                "files and it is write protected.\n"
+                "Do you want to define a new Commons Directory?",
+                buttons=["yes", "cancel"],
             )
             if answer == "yes":
                 self.common_directory = FEED.browse_directory()
@@ -241,7 +321,6 @@ class User():
         for key, val in self.commons.user_defaults.get_property("bookmarks").items():
             if not self.bookmarks.get_property(key=key):
                 self.bookmarks.add_property(key=key, val=val)
-
 
         for key, val in self.commons.user_defaults.get_property("resume").items():
             if not self.resume.get_property(key=key):
@@ -259,11 +338,23 @@ class User():
         return 1
 
     def get(self):
-        """Returns the currently active user"""
+        """Return the currently active user."""
         return self._active_user
 
     def set(self, user_name, password=None, save_to_db=True, clear_db=False):
-        """Sets the active user to the session"""
+        """Set the active user to the session.
+
+        Args:
+            user_name (str): The user name.
+            password (str): The password.
+            save_to_db (bool): If True, a hash of the user name and password
+                will be saved to the database for auto-login.
+            clear_db (bool): If True the hash will be cleared from the
+                database.
+
+        Returns:
+            tuple: (1, "Success") if successful, (-1, LOG.warning) otherwise.
+        """
         # check if the user exists in common database
         if user_name in self.commons.get_users():
             if password is not None:  # try to authenticate the active user
@@ -286,7 +377,6 @@ class User():
             self._active_user = user_name
             self._guard.set_user(self._active_user)
             if save_to_db:
-                # self.bookmarks.edit_property("activeUser", self._active_user)
                 self.resume.edit_property("user", self._active_user)
                 _d_hash = self.__hash_pass(
                     "{0}{1}".format(
@@ -306,18 +396,26 @@ class User():
             return user_name, "Success"
         else:
             return -1, LOG.warning(
-                "User %s cannot set because it does not exist in commons database"
+                f"User {self._active_user} cannot set because "
+                f"it does not exist in commons database"
             )
 
     def authenticate(self, password):
+        """Authenticate the active user with the given password.
+
+        Args:
+            password (str): The password.
+
+        Returns:
+            tuple: (1, "Success") if successful, (-1, LOG.warning) otherwise.
+        """
         if self.check_password(self._active_user, password):
             self.__set_authentication_status(True)
             return 1, "Success"
-        else:
-            self.__set_authentication_status(False)
-            return -1, LOG.warning(
-                "Wrong password provided for user %s" % self._active_user
-            )
+        self.__set_authentication_status(False)
+        return -1, LOG.warning(
+            "Wrong password provided for user %s" % self._active_user
+        )
 
     def create_new_user(
         self,
@@ -327,12 +425,23 @@ class User():
         permission_level,
         active_user_password=None,
     ):
-        """Creates a new user and stores it in database"""
+        """Create a new user and stores it in database.
+
+        Args:
+            new_user_name (str): The new user name.
+            new_user_initials (str): The new user initials.
+            new_user_password (str): The new user password.
+            permission_level (int): The permission level.
+            active_user_password (str): The password of the active user.
+
+        Returns:
+            tuple: (1, "Success") if successful, (-1, LOG.warning) otherwise.
+        """
 
         # first check the permissions of active user
         if self.permission_level < 3:
             return -1, LOG.warning(
-                "User %s has no permission to create new users" % self._active_user
+                f"User {self._active_user} has no permission to create new users"
             )
 
         # Don't allow non-authenticated users to go further
@@ -357,7 +466,15 @@ class User():
         return 1, "Success"
 
     def delete_user(self, user_name, active_user_password=None):
-        """Removes the user from database"""
+        """Remove the user from database.
+
+        Args:
+            user_name (str): The user name.
+            active_user_password (str): The password of the active user.
+
+        Returns:
+            tuple: (1, "Success") if successful, (-1, LOG.warning) otherwise.
+        """
         # first check the permissions of active user
         if self.permission_level < 3:
             return -1, LOG.warning(
@@ -385,10 +502,20 @@ class User():
 
     @staticmethod
     def __clamp_level(level):
-        """Clamps the level between 0-3 and makes sure its integer"""
+        """Clamp the level between 0-3 and makes sure its integer"""
         return max(0, min(int(level), 3))
 
     def change_permission_level(self, user_name, new_level, active_user_password=None):
+        """Change the permission level of a user.
+
+        Args:
+            user_name (str): The user name.
+            new_level (int): The new permission level.
+            active_user_password (str): The password of the active user.
+
+        Returns:
+            tuple: (1, "Success") if successful, (-1, LOG.warning) otherwise.
+        """
         # first check the permissions of active user
         if self.permission_level < 3:
             msg = (
@@ -420,7 +547,14 @@ class User():
 
     def change_user_password(self, old_password, new_password, user_name=None):
         """Change the user password.
-        It only changes the active user, a.k.a needs to be logged in"""
+
+        It only changes the active user, a.k.a needs to be logged in.
+
+        Args:
+            old_password (str): The old password.
+            new_password (str): The new password.
+            user_name (str): The user name.
+        """
         user_name = user_name or self._active_user
         if self.__hash_pass(old_password) == self.commons.users.get_property(
             user_name
@@ -434,7 +568,15 @@ class User():
             return -1, LOG.error("Old password for %s does not match" % user_name)
 
     def check_password(self, user_name, password):
-        """checks the given password against the hashed password"""
+        """Check the given password against the hashed password.
+
+        Args:
+            user_name (str): The user name.
+            password (str): The password.
+
+        Returns:
+            bool: True if the password is correct, False otherwise.
+        """
         hashed_pass = self.__hash_pass(password)
         if self.commons.users.get_property(user_name).get("pass", "") == hashed_pass:
             return True
@@ -443,15 +585,29 @@ class User():
 
     @staticmethod
     def __hash_pass(password):
-        """Hashes the password"""
+        """Hash the password.
+
+        Args:
+            password (str): The password.
+
+        Returns:
+            str: The hashed password.
+        """
         return hashlib.sha1(str(password).encode("utf-8")).hexdigest()
 
     def get_project_bookmarks(self):
-        """Returns the user bookmarked projects as list of dictionaries"""
+        """Return the user bookmarked projects as list of dictionaries."""
         return self.bookmarks.get_property("bookmarkedProjects")
 
     def add_project_bookmark(self, project_path):
-        """Add a new project bookmark to the user bookmarks"""
+        """Add a new project bookmark to the user bookmarks.
+
+        Args:
+            project_path (str): The project path.
+
+        Returns:
+            int: 1 if successful, -1 otherwise.
+        """
         bookmark_list = self.bookmarks.get_property("bookmarkedProjects")
         if project_path not in bookmark_list:
             bookmark_list.append(project_path)
@@ -462,25 +618,39 @@ class User():
             return -1
 
     def delete_project_bookmark(self, project_path):
-        """Delete a project bookmark from the user bookmarks"""
+        """Delete a project bookmark from the user bookmarks.
+
+        Args:
+            project_path (str): The project path.
+
+        Returns:
+            int: 1 if successful, -1 otherwise.
+        """
         bookmark_list = self.bookmarks.get_property("bookmarkedProjects")
-        if project_path in bookmark_list:
-            bookmark_list.remove(project_path)
-            self.bookmarks.apply_settings()
-            return 1
-        else:
+        if project_path not in bookmark_list:
             LOG.warning("Project %s doesn't exist in bookmarks" % project_path)
             return -1
+        bookmark_list.remove(project_path)
+        self.bookmarks.apply_settings()
+        return 1
 
     def add_recent_project(self, path):
-        recents_list = self.bookmarks.get_property("recentProjects")
-        if path in recents_list:
-            recents_list.remove(path)
-        recents_list.append(path)
-        if len(recents_list) > 10:
-            recents_list.pop(0)
+        """Add a project to the recent projects list.
+
+        Args:
+            path (str): The project path.
+
+        Returns:
+            int: 1 if successful, -1 otherwise.
+        """
+        recent_list = self.bookmarks.get_property("recentProjects")
+        if path in recent_list:
+            recent_list.remove(path)
+        recent_list.append(path)
+        if len(recent_list) > 10:
+            recent_list.pop(0)
         self.bookmarks.apply_settings(force=True)
 
     def get_recent_projects(self):
+        """Return the list of recent projects."""
         return self.bookmarks.get_property("recentProjects")
-

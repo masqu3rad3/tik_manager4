@@ -1,16 +1,20 @@
 # pylint: disable=super-with-arguments
 # pylint: disable=consider-using-f-string
-"""Publisher Handler."""
+"""Publisher Handler module.
+
+This module is responsible for handling the publish process.
+"""
 
 from pathlib import Path
 
 from tik_manager4.core import filelog
 
-LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
-
 from tik_manager4.dcc.standalone import main as standalone
 from tik_manager4.objects.publish import PublishVersion
 from tik_manager4.objects.guard import Guard
+
+LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
+
 
 class Publisher:
     """Publisher class to handle the publish process."""
@@ -39,21 +43,25 @@ class Publisher:
 
     @property
     def validators(self):
-        """Return the validators."""
+        """List of resolved validators."""
         return self._resolved_validators
 
     @property
     def extractors(self):
-        """Return the extractors."""
+        """List of resolved extractors."""
         return self._resolved_extractors
 
     @property
     def work_object(self):
-        """Return the work object."""
+        """The Work object that will be published."""
         return self._work_object
 
     def resolve(self):
-        """Resolve the validations, extracts, variables, etc."""
+        """Resolve the publish data file name.
+
+        Returns:
+            str: The resolved publish data file name.
+        """
         self._work_object, self._work_version = self._project_object.get_current_work()
 
         if not self._work_object:
@@ -122,7 +130,7 @@ class Publisher:
     def reserve(self):
         """Reserve the slot for publish.
 
-        Makes sure that the publish is not overriden by other users during the process.
+        Makes sure that no other process overrides the publish.
         """
         # make sure the publish file is not already exists
         _publish_file_path = (
@@ -157,12 +165,16 @@ class Publisher:
         self._published_object._dcc_handler.pre_publish()
 
     def validate(self):
-        """Validate the scene."""
-        for val_name, val_object in self._resolved_validators.items():
+        """Validate the scene using the resolved validators."""
+        for _val_name, val_object in self._resolved_validators.items():
             val_object.validate()
 
     def write_protect(self, file_or_folder_path):
-        """Protect the given file or folder making it read-only."""
+        """Protect the given file or folder making it read-only.
+
+        Args:
+            file_or_folder_path (str): The path to the file or folder.
+        """
         path = Path(file_or_folder_path)
         file_list = []
         if path.is_file():
@@ -176,9 +188,12 @@ class Publisher:
             except Exception as e: # pylint: disable=broad-except
                 LOG.warning(f"File protection failed: {_file}")
 
-
     def extract_single(self, extract_object):
-        """Does the extract from the given extract object."""
+        """Extract only from the given extract object.
+
+        Args:
+            extract_object (Extract): The extract object to extract.
+        """
         publish_path = Path(
             self._work_object.get_abs_project_path("publish", self._work_object.name)
         )
@@ -189,7 +204,10 @@ class Publisher:
         self.write_protect(extract_object.resolve_output())
 
     def extract(self):
-        """Extract the elements."""
+        """Extract the elements.
+
+        Uses all resolved extractors to extract the elements.
+        """
         # first save the scene
         self._dcc_handler.save_scene()
         publish_path = Path(
@@ -199,7 +217,14 @@ class Publisher:
             self.extract_single(extract_object)
 
     def publish(self, notes=None):
-        """Finalize the publish by updating the reserved slot."""
+        """Finalize the publish by updating the reserved slot.
+
+        Args:
+            notes (str): The notes to add to the publish.
+
+        Returns:
+            PublishVersion: The published object.
+        """
         # collect the validation states and log it into the publish object
         validations = {}
         for validation_name, validation_object in self._resolved_validators.items():
@@ -207,7 +232,7 @@ class Publisher:
         self._published_object.add_property("validations", validations)
 
         # collect the extracted elements information and add to the publish object
-        for extract_type_name, extract_object in self._resolved_extractors.items():
+        for _extract_type_name, extract_object in self._resolved_extractors.items():
             if (extract_object.state == "failed" or
                     extract_object.state == "unavailable" or
                     not extract_object.enabled):
@@ -271,86 +296,98 @@ class Publisher:
 
     @property
     def metadata(self):
-        """Return the metadata."""
+        """Metadata associated with the parent subproject."""
         return self._metadata
 
     @property
     def publish_version(self):
-        """Return the resolved publish version."""
+        """Resolved publish version."""
         return self._publish_version
 
     @property
     def publish_name(self):
-        """Return the resolved publish name."""
+        """Resolved publish name."""
         return self._publish_file_name
 
     @property
     def absolute_data_path(self):
-        """Return the resolved absolute data path."""
+        """Resolved absolute data path."""
         return self._abs_publish_data_folder
 
     @property
     def absolute_scene_path(self):
-        """Return the resolved absolute scene path."""
+        """Resolved absolute scene path."""
         return self._abs_publish_scene_folder
 
     @property
     def relative_data_path(self):
-        """Return the resolved relative path."""
+        """Resolved relative path."""
         if self._work_object:
             return (
                 Path(self._abs_publish_data_folder)
                 .relative_to(self._work_object.guard.project_root)
                 .as_posix()
             )
-        else:
-            return None
+        return None
 
     @property
     def relative_scene_path(self):
-        """Return the resolved relative path."""
+        """Resolved relative path."""
         if self._work_object:
             return (
                 Path(self._abs_publish_scene_folder)
                 .relative_to(self._work_object.guard.project_root)
                 .as_posix()
             )
-        else:
-            return None
+        return None
 
 class SnapshotPublisher(Publisher):
     """Separate publisher to handle arbitrary file and folder publishing.
 
-    Handles automatically creating a new work version if the current work is not there.
+    Handles automatically creating a new work version if the current work is
+    not there.
     """
-    # _dcc_handler = standalone.Dcc()
     def __init__(self, *args):
         """Initialize the SnapshotPublisher object."""
         super(SnapshotPublisher, self).__init__(args)
+        # this overrides the dcc handler which resolved on inherited
+        # class to standalone
         self.__dcc_handler = standalone.Dcc()
 
     @property
     def work_object(self):
-        """Return the work object."""
+        """Work object."""
         return self._work_object
 
     @work_object.setter
     def work_object(self, value):
-        """Set the work object."""
+        """Set the work object.
+
+        Args:
+            value (Work): The work object.
+        """
         self._work_object = value
 
     @property
     def work_version(self):
-        """Return the work version."""
+        """Work version."""
         return self._work_version
 
     @work_version.setter
     def work_version(self, value):
-        """Set the work version."""
+        """Set the work version.
+
+        Args:
+            value (int): The work version.
+        """
         self._work_version = value
 
     def resolve(self):
-        """Resolve the validations, extracts, variables, etc."""
+        """Resolve the file name for the snapshot.
+
+        Returns:
+            str: The resolved publish file name.
+        """
 
         snapshot_extractor = self._dcc_handler.extracts["snapshot"]()
         snapshot_extractor.category = self._work_object.category  # define the category

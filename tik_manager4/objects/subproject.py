@@ -1,5 +1,6 @@
 # pylint: disable=consider-using-f-string
 # pylint: disable=super-with-arguments
+"""Module for Subproject object."""
 
 from pathlib import Path
 import shutil
@@ -21,36 +22,37 @@ class Subproject(Entity):
         Args:
             parent_sub (Subproject): The parent subproject.
             metadata (Metadata): Metadata object to hold any extra data.
-            **kwargs:
+            **kwargs: Arbitrary keyword arguments.
         """
         super(Subproject, self).__init__(**kwargs)
         self.__parent_sub = parent_sub
-        self._sub_projects = {}
-        self._tasks = {}
+        self._sub_projects: dict = {}
+        self._tasks: dict = {}
         self._metadata = metadata or Metadata({})
 
     @property
     def parent(self):
-        """Return the parent subproject."""
+        """The Parent subproject."""
         return self.__parent_sub
 
     @property
     def subs(self):
-        """Return the subprojects."""
+        """All subprojects as dictionary."""
         return self._sub_projects
 
     @property
     def tasks(self):
-        """Return the tasks of the subproject."""
+        """All tasks under the subproject as dictionary where each key
+        is the name of the task and value is a task object."""
         return self._tasks
 
     @property
     def metadata(self):
-        """Return the metadata."""
+        """The metadata associated with the subproject."""
         return self._metadata
 
     def get_sub_tree(self):
-        """Return the subproject tree as a dictionary"""
+        """Return the subproject tree as a dictionary."""
         visited = []
         queue = []
 
@@ -96,7 +98,11 @@ class Subproject(Entity):
 
     def set_sub_tree(self, data):
         """Create the subproject from the data dictionary.
-        This is for building back the hierarchy from json data
+
+        This is for building back the hierarchy from json data.
+
+        Args:
+            data (dict): The dictionary data to build the subproject.
         """
         # first clear the subprojects
         self._sub_projects = {}
@@ -165,7 +171,7 @@ class Subproject(Entity):
             uid (int): Unique id of the subproject.
 
         Returns:
-
+            Subproject: The created subproject object.
         """
 
         sub_pr = Subproject(
@@ -177,8 +183,9 @@ class Subproject(Entity):
 
     def add_sub_project(self, name, parent_sub=None, uid=None, **properties):
         """Add a subproject.
-        Requires permissions. Does not create folders or store in
-        the persistent database
+
+        Requires permissions. Does NOT create folders or store in
+        the persistent database.
         Args:
             name (str): Name of the subproject.
             parent_sub (Subproject): Parent subproject object.
@@ -186,7 +193,8 @@ class Subproject(Entity):
             **properties (dict): Any extra properties to be added to the subproject.
 
         Returns:
-            Subproject: The newly created subproject object.
+            Subproject or int: The created subproject object if successful,
+                -1 otherwise.
         """
 
         state = self.check_permissions(level=2)
@@ -215,7 +223,11 @@ class Subproject(Entity):
         #  if it is really unique or not
 
     def scan_tasks(self):
-        """Scan the subproject for tasks."""
+        """Scan the subproject for tasks.
+
+        Returns:
+            dict: The tasks under the subproject.
+        """
 
         _tasks_search_dir = Path(self.get_abs_database_path())
         _task_paths = list(_tasks_search_dir.glob("*.ttask"))
@@ -251,13 +263,14 @@ class Subproject(Entity):
     def add_task(self, name, categories, task_type=None):
         """
         Add a task to the subproject.
+
         Args:
             name (str): Name of the task.
             categories (list): List of categories.
             task_type (str): Type of the task.
 
         Returns:
-            Task: The newly created task object.
+            Task or int: The created task object if successful, -1 otherwise.
 
         """
         # inherit the task type from the parent subproject 'mode' if not specified
@@ -295,14 +308,25 @@ class Subproject(Entity):
 
     @staticmethod
     def is_task_empty(task):
-        """Check all categories and return True if all are empty."""
+        """Check all categories and return True if all are empty.
+
+        Args:
+            task (Task): The task object to check.
+        """
         for category in task.categories:
             if not task.categories[category].is_empty():
                 return False
         return True
 
     def delete_task(self, task_name):
-        """Delete the task from the subproject."""
+        """Delete the task from the subproject.
+
+        Args:
+            task_name (str): Name of the task to delete.
+
+        Returns:
+            int: 1 if successful, -1 otherwise.
+        """
         # first get the task
         task = self._tasks.get(task_name, None)
         if not task:
@@ -338,7 +362,16 @@ class Subproject(Entity):
         return 1
 
     def find_tasks_by_wildcard(self, wildcard):
-        """Search recursively for all subprojects and the tasks inside them. Return the tasks matching the wildcard."""
+        """Return the tasks matching the wildcard.
+
+        Search recursively for all subprojects and the tasks inside them.
+
+        Args:
+            wildcard (str): The wildcard to match.
+
+        Returns:
+            list: List of tasks matching the wildcard.
+        """
         _tasks = self.get_tasks_by_wildcard(wildcard)
         queue = list(self.subs.values())
         while queue:
@@ -348,7 +381,14 @@ class Subproject(Entity):
         return _tasks
 
     def find_task_by_id(self, uid):
-        """Find the task by id."""
+        """Find the task by id.
+
+        Args:
+            uid (int): Unique id of the task.
+
+        Returns:
+            Task or int: The task object if successful, -1 otherwise.
+        """
         # first check if the task is under this subproject
         _search = self.get_task_by_id(uid)
         if _search != -1:
@@ -364,7 +404,15 @@ class Subproject(Entity):
         return -1
 
     def find_sub_by_id(self, uid):
-        """Find the subproject by id."""
+        """Find the subproject by id.
+
+        Args:
+            uid (int): Unique id of the subproject.
+
+        Returns:
+            Subproject or int: The subproject object if successful,
+                -1 otherwise.
+        """
         if self.id == uid:
             return self
         queue = list(self.subs.values())
@@ -378,7 +426,15 @@ class Subproject(Entity):
         return -1
 
     def find_sub_by_path(self, path):
-        """Find the subproject by path."""
+        """Find the subproject by path.
+
+        Args:
+            path (str): The path of the subproject.
+
+        Returns:
+            Subproject or int: The subproject object if successful,
+                -1 otherwise.
+        """
         if path == "" or path == ".":  # this is root
             return self
         queue = list(self.subs.values())
@@ -392,7 +448,14 @@ class Subproject(Entity):
         return -1
 
     def find_subs_by_wildcard(self, wildcard):
-        """Find the subproject by wildcard."""
+        """Find the subproject by wildcard.
+
+        Args:
+            wildcard (str): The wildcard to match.
+
+        Returns:
+            list: List of subprojects matching the wildcard.
+        """
         subs = []
         queue = list(self.subs.values())
         visited = []
@@ -405,17 +468,40 @@ class Subproject(Entity):
         return subs
 
     def get_uid_by_path(self, path):
-        """Get the uid of the subproject by path."""
+        """Get the uid of the subproject by path.
+
+        Args:
+            path (str): The path of the subproject.
+
+        Returns:
+            int: The unique id of the subproject.
+        """
         sub = self.find_sub_by_path(path)
         return sub.id if sub != -1 else sub
 
     def get_path_by_uid(self, uid):
-        """Get the path of the subproject by uid."""
+        """Get the path of the subproject by uid.
+
+        Args:
+            uid (int): Unique id of the subproject.
+
+        Returns:
+            str: The path of the subproject.
+        """
         sub = self.find_sub_by_id(uid)
         return sub.path if sub != -1 else sub
 
     def get_task_by_id(self, uid):
-        """Get the task by id. Search through only the tasks under this subproject."""
+        """Get the task by id.
+
+        Search through only the tasks under this subproject.
+
+        Args:
+            uid (int): Unique id of the task.
+
+        Returns:
+            Task or int: The task object if successful, -1 otherwise.
+        """
         self.scan_tasks()
         for _task_name, task_object in self.tasks.items():
             if task_object.id == uid:
@@ -423,7 +509,16 @@ class Subproject(Entity):
         return -1
 
     def get_tasks_by_wildcard(self, name):
-        """Get the task by name. Search through only the tasks under this subproject."""
+        """Get the task by name.
+
+        Search through only the tasks under this subproject.
+
+        Args:
+            name (str): The wildcard to match.
+
+        Returns:
+            list: List of tasks that match the wildcard.
+        """
         self.scan_tasks()
         tasks = []
         for _task_name, task_object in self.tasks.items():
@@ -433,12 +528,30 @@ class Subproject(Entity):
 
     @staticmethod
     def is_subproject_empty(sub):
-        """Check if the subproject has other subprojects or tasks."""
+        """Check if the subproject has other subprojects or tasks.
+
+        Args:
+            sub (Subproject): The subproject object to check.
+
+        Returns:
+            bool: True if the subproject has no other subs or tasks,
+                False otherwise.
+        """
         sub.scan_tasks()
         return not sub.subs and not sub.tasks
 
     def _remove_sub_project(self, uid=None, path=None):
-        """Removes the subproject from the object but not from the database"""
+        """Remove the subproject from the object but not from the database.
+
+        Either uid or path is required.
+
+        Args:
+            uid (int): Unique id of the subproject.
+            path (str): The path of the subproject.
+
+        Returns:
+            int: 1 if successful, -1 otherwise.
+        """
 
         if not uid and not path:
             LOG.error("Deleting sub project requires at least an id or path ")
@@ -471,15 +584,25 @@ class Subproject(Entity):
         return 1
 
     def _delete_folders(self, root, sub=None):
-        """Delete the folders of the subproject."""
+        """Delete the folders of the subproject starting from the given root.
+
+        Args:
+            root (str): The root path.
+            sub (Subproject): The subproject object. If not given the
+                current subproject is used.
+        """
         sub = sub or self
         folder = Path(root, sub.path)
         if folder.exists():
             shutil.rmtree(str(folder))
 
     def create_folders(self, root, sub=None):
-        """Create folders for subprojects and categories below
-        this starting from 'root' path.
+        """Create folders for subprojects and categories below given root path.
+
+        Args:
+            root (str): The root path.
+            sub (Subproject): The subproject object. If not given the
+                current subproject is used.
         """
         sub = sub or self
         folder = Path(root, sub.path)
