@@ -1,3 +1,8 @@
+"""Project Module.
+
+Inherits from Subproject and adds project specific methods and properties.
+"""
+
 from pathlib import Path
 from tik_manager4.objects.publisher import Publisher, SnapshotPublisher
 from tik_manager4.core import filelog
@@ -7,10 +12,12 @@ from tik_manager4.objects.work import Work
 
 
 class Project(Subproject):
+    """Project class to handle project specific data and methods."""
     log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
     def __init__(self, path=None, name=None, resolution=None, fps=None):
-        super(Project, self).__init__()
+        """Initializes the Project class."""
+        super().__init__()
         self.publisher = Publisher(self)
         self.snapshot_publisher = SnapshotPublisher(self)
         self.structure = Settings()
@@ -34,6 +41,7 @@ class Project(Subproject):
 
     @property
     def absolute_path(self):
+        """Return the absolute path of the project."""
         return self._absolute_path
 
     @property
@@ -48,15 +56,21 @@ class Project(Subproject):
 
     @property
     def database_path(self):
+        """Return the database path of the project."""
         return self._database_path
 
     def save_structure(self):
-        self.structure._currentValue = self.get_sub_tree()
+        """Save the project structure to the database.
+
+        Project structure is the tree of subprojects.
+        """
+        self.structure._current_value = self.get_sub_tree()
         self.create_folders(root=self.database_path)
         self.create_folders(root=self.absolute_path)
         self.structure.apply_settings()
 
     def _set(self, absolute_path):
+        """Set the project path and initialize the project structure."""
         self.__init__()
         _absolute_path_obj = Path(absolute_path)
 
@@ -69,7 +83,6 @@ class Project(Subproject):
         self.structure.settings_file = str(
             _database_path_obj / "project_structure.json"
         )
-        # self.structure = Settings(file_path=str(_database_path_obj / "project_structure.json"))
         self.set_sub_tree(self.structure.properties)
         self.guard.set_project_root(self.absolute_path)
         self.guard.set_database_root(self.database_path)
@@ -103,6 +116,17 @@ class Project(Subproject):
         )
 
     def delete_sub_project(self, uid=None, path=None):
+        """Delete a subproject and all its children.
+
+        Either uid or path should be provided.
+
+        Args:
+            uid (int): The unique id of the subproject.
+            path (str): The relative path of the subproject.
+
+        Returns:
+            int: 1 if successful, -1 otherwise.
+        """
         if uid:
             _remove_path = self.get_path_by_uid(uid)
         else:
@@ -115,26 +139,29 @@ class Project(Subproject):
         self.save_structure()
         return 1
 
-    def create_sub_project(self, name, parent_uid=None, parent_path=None, **kwargs):
+    def create_sub_project(self, name, parent_uid=None, parent_path=None, **properties):
         """Create a sub-project under a specified parent sub and write data to
         persistent database.
 
+        Either parent_uid or parent_path should be provided.
+
         Args:
-            name: (String) Name of the subproject
-            parent_uid: (Int) Parent Subproject Unique ID or project itself.
+            name (str): Name of the subproject
+            parent_uid (int): Parent Subproject Unique ID or project itself.
                                 Either this or parent_path needs to be defined
-            parent_path: (String) Parent Sub-Project Relative path. If uid defined this
+            parent_path (str): Parent Sub-Project Relative path. If uid defined this
                                 will be skipped
+            **properties: Additional properties to be added to the subproject
 
         Returns:
-            <class Subproject>
+            Subproject: The created subproject object if successful, -1 otherwise.
         """
         parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
         if parent_sub == -1:
             return -1
 
         new_sub = parent_sub.add_sub_project(
-            name, parent_sub=parent_sub, uid=None, **kwargs
+            name, parent_sub=parent_sub, uid=None, **properties
         )
         if new_sub == -1:
             return -1
@@ -143,7 +170,19 @@ class Project(Subproject):
         return new_sub
 
     def edit_sub_project(self, uid=None, path=None, name=None, **properties):
-        """Edits a subproject and stores it in persistent database"""
+        """Edit a subproject and store it in persistent database.
+
+        Either uid or path must be provided.
+
+        Args:
+            uid (int): Unique id of the subproject.
+            path (str): Relative path of the subproject.
+            name (str): New name of the subproject.
+            **properties: Additional properties to be added to the subproject.
+
+        Returns:
+            int: 1 if successful, -1 otherwise.
+        """
         state = self.check_permissions(level=2)
         if state != 1:
             return -1
@@ -170,7 +209,19 @@ class Project(Subproject):
         return 1
 
     def create_task(self, name, categories=None, parent_uid=None, parent_path=None):
-        """Creates a task and stores it in persistent database"""
+        """Create a task and stores it in persistent database.
+
+        Either parent_uid or parent_path must be provided.
+
+        Args:
+            name (str): Name of the task.
+            categories (list): List of categories.
+            parent_uid (int): Parent subproject unique id.
+            parent_path (str): Parent subproject relative path.
+
+        Returns:
+            int: 1 if successful, -1 otherwise.
+        """
         state = self.check_permissions(level=2)
         if state != 1:
             return -1
@@ -191,7 +242,8 @@ class Project(Subproject):
             parent_uid: Unique id of the parent subproject
             parent_path: Relative path of the parent subproject
 
-        Returns: <subproject class>
+        Returns:
+            Subproject: Parent subproject class
 
         """
         # TODO requires test
@@ -211,7 +263,8 @@ class Project(Subproject):
         Args:
             file_path: (String) Absolute path of the scene file.
 
-        Returns: Tuple(<work object>, <version number>)
+        Returns:
+            Tuple: (<work object>, <version number>)
         """
         _file_path_obj = Path(file_path)
         work_path = _file_path_obj.parent
@@ -236,7 +289,8 @@ class Project(Subproject):
     def get_current_work(self):
         """Get the current work object AND version by resolving the current scene.
 
-        Returns: Tuple(<work object>, <version number>)
+        Returns:
+            Tuple(<work object>, <version number>)
         """
         # dcc_handler = dcc.Dcc()
         dcc_handler = self.guard.dcc_handler

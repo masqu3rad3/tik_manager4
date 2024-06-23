@@ -21,7 +21,12 @@ extensions = [
     'autoapi.extension',
 ]
 
-autoapi_dirs = ['../../tik_manager4']
+autoapi_dirs = ['../../tik_manager4/']
+autoapi_type = 'python'
+autoapi_ignore = ['*setup*', '*shiboken*', '*PySide2*', '*PySide6*', '*PyQt5*', '*PyQt6*']
+autoapi_file_patterns = ['*.py']
+# autoapi_own_page_level = "attribute"
+add_module_names = False
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),

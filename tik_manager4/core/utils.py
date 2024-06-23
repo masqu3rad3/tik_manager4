@@ -1,4 +1,4 @@
-"""Some cross-platform / cross-dcc related static methods"""
+"""Cross-platform utility functions."""
 
 import os
 from pathlib import Path
@@ -12,18 +12,24 @@ def get_home_dir():
     # This returns the true user folder for all platforms and dccs"""
     if CURRENT_PLATFORM == "Windows":
         return os.path.normpath(os.getenv("USERPROFILE"))
-    else:
-        return os.path.normpath(os.getenv("HOME"))
+    return os.path.normpath(os.getenv("HOME"))
 
 def apply_stylesheet(file_path, widget):
-    """reads and applies the qss file to the widget"""
+    """Read and apply the qss file to the given widget.
+
+    Args:
+        file_path (str): The file path to the qss file.
+        widget (QtWidgets.QWidget): The widget to apply the stylesheet to.
+
+    Returns:
+        bool: True if the file exists and applied, False otherwise.
+    """
 
     if Path(file_path).is_file():
-        with open(file_path, "r") as fh:
-            widget.setStyleSheet(fh.read())
+        with open(file_path, "r") as _file:
+            widget.setStyleSheet(_file.read())
         return True
-    else:
-        return False
+    return False
 
 def execute(file_path, executable=None):
     """Execute a file.
@@ -39,7 +45,6 @@ def execute(file_path, executable=None):
         # validate the existence
         if not Path(executable).is_file():
             raise ValueError("The executable does not exist. {}".format(executable))
-        # subprocess.Popen(executable.split(" ") + [file_path], shell=True)
         subprocess.Popen([executable, file_path], shell=True)
     else:
         if CURRENT_PLATFORM == "Windows":

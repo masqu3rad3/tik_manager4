@@ -102,7 +102,7 @@ class Task(Settings, Entity):
             )
         if category not in self._categories.keys():
             self._categories[category] = Category(name=category, parent_task=self)
-            self._currentValue["categories"] = list(self._categories.keys())
+            self._current_value["categories"] = list(self._categories.keys())
             self.apply_settings()
             return self._categories[category]
         else:
@@ -177,7 +177,7 @@ class Task(Settings, Entity):
 
         # delete category from database
         self._categories.pop(category)
-        self._currentValue["categories"] = list(self._categories.keys())
+        self._current_value["categories"] = list(self._categories.keys())
         self.apply_settings()
 
         if not _is_empty:
