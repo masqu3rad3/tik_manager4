@@ -445,7 +445,7 @@ class TestProject:
         )
         # check the log message
         assert tik.log.get_last_message() == (
-            "Category 'Temp' already exists in task 'batman'.",
+            "'Temp' already exists in task 'batman'.",
             "warning",
         )
 
@@ -456,7 +456,7 @@ class TestProject:
             ].add_category("Burhan")
         # check the log message
         assert tik.log.get_last_message() == (
-            "Category 'Burhan' is not defined in category definitions.",
+            "'Burhan' is not defined in category definitions.",
             "error",
         )
 
