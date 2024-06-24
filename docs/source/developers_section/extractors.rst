@@ -534,5 +534,3 @@ Available Data Types
 - **subprojectBrowser**: Browser widget for Tik Manager sub-projects.
 - **multi**: If this type is selected, the `value` key should be a list of dictionaries. Each dictionary must have `type` and `value` keys similar to the main dictionary. This will create a nested layout.
 - **group**: Similar to `multi`, but the nested layout will be grouped with a separator.
-
-

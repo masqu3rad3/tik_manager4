@@ -346,11 +346,12 @@ class User:
 
         Args:
             user_name (str): The user name.
-            password (str): The password.
-            save_to_db (bool): If True, a hash of the user name and password
-                will be saved to the database for auto-login.
-            clear_db (bool): If True the hash will be cleared from the
-                database.
+            password (str, optional): The password. If not provided, the user
+                will be authenticated with the hash in the database.
+            save_to_db (bool, optional): If True, a hash of the user name and
+                password will be saved to the database for auto-login.
+            clear_db (bool, optional): If True the hash will be cleared from
+                the database.
 
         Returns:
             tuple: (1, "Success") if successful, (-1, LOG.warning) otherwise.
@@ -432,7 +433,8 @@ class User:
             new_user_initials (str): The new user initials.
             new_user_password (str): The new user password.
             permission_level (int): The permission level.
-            active_user_password (str): The password of the active user.
+            active_user_password (str, optional): The password of the
+                active user.
 
         Returns:
             tuple: (1, "Success") if successful, (-1, LOG.warning) otherwise.
@@ -470,7 +472,9 @@ class User:
 
         Args:
             user_name (str): The user name.
-            active_user_password (str): The password of the active user.
+            active_user_password (str, optional): The password of the
+                active user. If not provided, the user will be authenticated
+                with the hash in the database.
 
         Returns:
             tuple: (1, "Success") if successful, (-1, LOG.warning) otherwise.
@@ -502,7 +506,7 @@ class User:
 
     @staticmethod
     def __clamp_level(level):
-        """Clamp the level between 0-3 and makes sure its integer"""
+        """Clamp the level between 0-3 and makes sure its integer."""
         return max(0, min(int(level), 3))
 
     def change_permission_level(self, user_name, new_level, active_user_password=None):
@@ -511,7 +515,9 @@ class User:
         Args:
             user_name (str): The user name.
             new_level (int): The new permission level.
-            active_user_password (str): The password of the active user.
+            active_user_password (str, optional): The password of the
+                active user. If not provided, the user will be authenticated
+                with the hash in the database.
 
         Returns:
             tuple: (1, "Success") if successful, (-1, LOG.warning) otherwise.
@@ -553,7 +559,8 @@ class User:
         Args:
             old_password (str): The old password.
             new_password (str): The new password.
-            user_name (str): The user name.
+            user_name (str, optional): The user name. If not provided, the
+                active user will be used.
         """
         user_name = user_name or self._active_user
         if self.__hash_pass(old_password) == self.commons.users.get_property(

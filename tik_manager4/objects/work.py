@@ -1,5 +1,7 @@
 # pylint: disable=super-with-arguments
 # pylint: disable=consider-using-f-string
+"""Module for Work object."""
+
 import socket
 import shutil
 import platform
@@ -19,12 +21,19 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Work(Settings, Entity):
-    # _dcc_handler = dcc.Dcc()
-    # _dcc_handler = dcc.get_dcc_class()
+    """Work object to handle works and publishes."""
     _standalone_handler = StandaloneDcc()
     object_type = "work"
 
     def __init__(self, absolute_path, name=None, path=None, parent_task=None):
+        """Initialize the Work object.
+
+        Args:
+            absolute_path (str): Absolute path of the settings file.
+            name (str): Name of the work.
+            path (str): Relative path of the work.
+            parent_task (Task): Parent task object.
+        """
         super(Work, self).__init__()
         self.settings_file = Path(absolute_path)
         self._dcc_handler = self.guard.dcc_handler
@@ -69,61 +78,61 @@ class Work(Settings, Entity):
 
     @property
     def state(self):
-        """Return the state of the work."""
+        """Current state of the work."""
         return self._state
 
     @property
     def dcc(self):
-        """Return the dcc of the work."""
+        """Name of the DCC that the work is originated from."""
         return self._dcc
 
     @property
     def dcc_version(self):
-        """Return the dcc version of the work."""
+        """Version of the dcc that the work is originated from."""
         return self._dcc_version
 
     @property
     def id(self):
-        """Return the id of the work."""
+        """Unique id of the work."""
         return self._work_id
 
     @property
     def task_id(self):
-        """Return the id of the task."""
+        """Unique id of the task that the work belongs to."""
         return self._task_id
 
     @property
     def task_name(self):
-        """Return the name of the task."""
+        """Name of the task that the work belongs to."""
         return self._task_name
 
     @property
     def parent_task(self):
-        """Return the parent task object."""
+        """Parent task object that the work lives in."""
         return self._parent_task
 
     @property
     def creator(self):
-        """Return the creator of the work."""
+        """The creator of the work."""
         return self._creator
 
     @property
     def category(self):
-        """Return the category of the work."""
+        """The category of the work."""
         return self._category
 
     @property
     def versions(self):
-        """Return the versions of the work."""
+        """Versions of the work in a list."""
         return self._versions
 
     @property
     def version_count(self):
-        """Return the number of versions."""
+        """Total number of versions belonging to the work."""
         return len(self._versions)
 
     def reload(self):
-        """Reload from file"""
+        """Reload the work from file."""
         self.__init__(self.settings_file, name=self._name, path=self._relative_path, parent_task=self._parent_task)
 
     def omit(self):
@@ -147,62 +156,14 @@ class Work(Settings, Entity):
             return 0
 
     def get_version(self, version_number):
-        """Return the version dictionary by version number."""
+        """Return the version dictionary by version number.
+
+        Args:
+            version_number (int): Version number.
+        """
         for version in self._versions:
             if version.get("version_number") == version_number:
                 return version
-
-    # def new_version_from_template(self, file_path, notes=""):
-    #     """Register a given path as a new version of the work.
-    #
-    #     Args:
-    #         file_path:
-    #         notes:
-    #
-    #     Returns:
-    #
-    #     """
-    #     state = self.check_permissions(level=1)
-    #     if state != 1:
-    #         return -1
-    #
-    #     file_format = Path(file_path).suffix
-    #     version_number, version_name, thumbnail_name = self.construct_names(file_format)
-    #
-    #     abs_version_path = self.get_abs_project_path(self.name, version_name)
-    #     thumbnail_path = self.get_abs_database_path("thumbnails", thumbnail_name)
-    #     Path(abs_version_path).parent.mkdir(parents=True, exist_ok=True)
-    #
-    #     # copy the file to the location
-    #     output_path = self._standalone_handler.save_as(abs_version_path, source_path=file_path)
-    #
-    #     # generate thumbnail
-    #     # create the thumbnail folder if it doesn't exist
-    #     Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
-    #
-    #     # FIXME: CREATE A THUMBNAIL SPECIFIC TO TEMPLATE
-    #     # # add it to the versions
-    #     # extension = Path(output_path).suffix or "Folder"
-    #     # get the name of the file
-    #     file_name = Path(file_path).name
-    #     self._standalone_handler.text_to_image(file_name, thumbnail_path, 220, 124)
-    #
-    #     version = {
-    #         "version_number": version_number,
-    #         "workstation": socket.gethostname(),
-    #         "notes": notes,
-    #         "thumbnail": Path("thumbnails", thumbnail_name).as_posix(),
-    #         "scene_path": Path(self.name, str(version_name)).as_posix(),
-    #         "user": self.guard.user,
-    #         "previews": {},
-    #         "file_format": file_format,
-    #         "dcc_version": "NA",
-    #     }
-    #
-    #     self._versions.append(version)
-    #     self.edit_property("versions", self._versions)
-    #     self.apply_settings(force=True)
-    #     return version
 
     def new_version_from_path(self, file_path, notes=""):
         """Register a given path (file or folder) as a new version of the work.
@@ -336,10 +297,14 @@ class Work(Settings, Entity):
             version_number (int): Version number.
             camera (str): Camera name.
             resolution (list): Resolution of the playblast. [width, height]
-            frame_range (list): Range of the playblast. [start_frame, end_frame]
+            frame_range (list): Range of the playblast.
+                [start_frame, end_frame]
             label (str): Label of the playblast. Optional.
-            settings (dict): Settings for the playblast. If not given, default settings will be used.
-        Returns (bool): True if successful. False otherwise.
+            settings (dict): Settings for the playblast.
+                If not given, default settings will be used.
+
+        Returns:
+            bool: True if successful, False otherwise.
         """
 
         preview_settings = settings or {}
@@ -387,6 +352,16 @@ class Work(Settings, Entity):
             return False
 
     def _convert_preview(self, preview_file_abs_path, ffmpeg, overwrite=False):
+        """Convert the preview file to a compatible format.
+
+        Args:
+            preview_file_abs_path (str): Absolute path of the preview file.
+            ffmpeg (str): Path to the ffmpeg executable.
+            overwrite (bool): If True, overwrite the existing file.
+
+        Returns:
+            str: Absolute path of the converted file.
+        """
 
         compatible_videos = [".avi", ".mov", ".mp4", ".flv", ".webm", ".mkv", ".mp4"]
         compatible_images = [".tga", ".jpg", ".exr", ".png", ".pic"]
@@ -443,7 +418,7 @@ class Work(Settings, Entity):
         return output_file_str
 
     def _check_ffmpeg(self):
-        """Checks if the FFMPEG present in the system"""
+        """Check if the FFMPEG is installed or accessible."""
         if platform.system() == "Windows":
             # get the ffmpeg.exe from the parallel folder 'external'
             parent_folder = Path(__file__).parent.parent
@@ -465,7 +440,13 @@ class Work(Settings, Entity):
                 return False
 
     def resolve_preview_names(self, version, camera, label=None):
-        """Resolve the preview name."""
+        """Resolve the preview name.
+
+        Args:
+            version (int): Version number.
+            camera (str): Camera name.
+            label (str, optional): Label for the preview.
+        """
         # get rid of the namespace
         camera = camera.split(":")[-1]
         if not label:
@@ -476,14 +457,21 @@ class Work(Settings, Entity):
         full_name = nice_name + [self._name, f"v{version:03d}"]
         return "_".join(nice_name), "_".join(full_name)
 
-    def construct_names(self, file_format, version_number=None, thumbnail_extension=".jpg"):
+    def construct_names(
+            self, file_format, version_number=None,
+            thumbnail_extension=".jpg"
+    ):
         """Construct a name for the work version.
 
         Args:
             file_format (str): The file format of the file.
-            version_number (int): The version number. If not given, iterated on top
-                                    of the last version. Default is None.
+            version_number (int, optional): The version number.
+                If not given, iterated on top of the last version.
+            thumbnail_extension (str, optional): The extension of the thumbnail
+                file.
 
+        Returns:
+            tuple: (version_number, version_name, thumbnail_name)
         """
         version_number = version_number or self.get_last_version() + 1
         version_name = f"{self._name}_v{version_number:03d}{file_format}"
@@ -491,7 +479,13 @@ class Work(Settings, Entity):
         return version_number, version_name, thumbnail_name
 
     def load_version(self, version_number, force=False, **kwargs):
-        """Load the given version of the work."""
+        """Load the given version of the work.
+
+        Args:
+            version_number (int): Version number.
+            force (bool, optional): If True, force open the file.
+            **kwargs: Additional arguments to pass to the dcc handler.
+        """
         version_obj = self.get_version(version_number)
         if version_obj:
             relative_path = version_obj.get("scene_path")
@@ -499,7 +493,13 @@ class Work(Settings, Entity):
             self._dcc_handler.open(abs_path, force=force)
 
     def import_version(self, version_number, element_type=None, ingestor=None):
-        """Import the given version of the work to the scene."""
+        """Import the given version of the work to the scene.
+
+        Args:
+            version_number (int): Version number.
+            element_type (str, optional): Element type of the version.
+            ingestor (str, optional): Ingestor to use.
+        """
         # work files does not have element types. This is for publish files.
         _element_type = element_type or "source"
         ingestor = ingestor or "source"
@@ -514,8 +514,19 @@ class Work(Settings, Entity):
             _ingest_obj.ingest_path = abs_path
             _ingest_obj.bring_in()
 
-    def reference_version(self, version_number, element_type=None, ingestor=None):
-        """Reference the given version of the work to the scene."""
+    def reference_version(
+            self,
+            version_number,
+            element_type=None,
+            ingestor=None
+    ):
+        """Reference the given version of the work to the scene.
+
+        Args:
+            version_number (int): Version number.
+            element_type (str, optional): Element type of the version.
+            ingestor (str, optional): Ingestor to use.
+        """
         # work files does not have element types. This is for publish files.
         _element_type = element_type or "source"
         ingestor = ingestor or "source"
@@ -533,6 +544,9 @@ class Work(Settings, Entity):
 
         Users can only delete their own works. Admins can delete any work.
         If there is a publish of the work, only Admins can delete the work.
+
+        Returns:
+            Tuple[bool, str]: (state, message)
         """
         if self.check_permissions(level=3) == -1:
             if self.publish.versions:
@@ -560,6 +574,9 @@ class Work(Settings, Entity):
         """Delete the work AND all its versions AND PUBLISHES.
 
         CAUTION: This is a destructive operation. Use with care.
+
+        Returns:
+            int: 1 if successful, -1 if failed.
         """
         state, msg = self.check_destroy_permissions()
         if not state:
@@ -597,9 +614,16 @@ class Work(Settings, Entity):
     def check_owner_permissions(self, version_number):
         """Check the permissions for 'owner' and 'admin-only' actions.
 
-        For example,
-        Users can only delete their own versions. Admins can delete any version.
-        If there is a publish of the version, only Admins can delete the version.
+        Users can only delete their own versions.
+        Admins can delete any version. If there is a publish of the version,
+        only Admins can delete the version.
+
+        Args:
+            version_number (int): Version number.
+
+        Returns:
+            Tuple[bool, str]: (state, message)
+
         """
         version_obj = self.get_version(version_number)
         if not version_obj:
@@ -618,6 +642,9 @@ class Work(Settings, Entity):
 
         Args:
             version_number (int): Version number.
+
+        Returns:
+            int: 1 if successful, -1 if failed.
         """
 
         state, _msg = self.check_owner_permissions(version_number)
@@ -649,7 +676,13 @@ class Work(Settings, Entity):
         return 1
 
     def __generate_thumbnail_paths(self, version_obj, override_extension=None):
-        """Return the thumbnail paths of the given version."""
+        """Return the thumbnail paths of the given version.
+
+        Args:
+            version_obj (dict): Version dictionary.
+            override_extension (str, optional): Override the extension of the
+                thumbnail.
+        """
         # if there is no previous thumbnail, generate a new one
         extension = override_extension or Path(version_obj.get("thumbnail", "noThumb.jpg")).suffix
         _number, _name, thumbnail_name = self.construct_names(version_obj.get("file_format", ""), version_obj.get("version_number"), thumbnail_extension=extension)
@@ -663,8 +696,11 @@ class Work(Settings, Entity):
         """Replace the thumbnail of the given version.
         Args:
             version_number (int): Version number.
-            thumbnail_path (str): Path to the thumbnail image.
+            new_thumbnail_path (str): Path to the thumbnail image.
                     If not given, a new thumbnail will be generated.
+
+        Returns:
+            int: 1 if successful, -1 if failed.
         """
         state, _msg = self.check_owner_permissions(version_number)
         if not state:
@@ -682,13 +718,14 @@ class Work(Settings, Entity):
             version_obj["thumbnail"] = target_relative_path
 
         self.apply_settings()
+        return 1
 
     def check_dcc_version_mismatch(self):
         """Check if there is a mismatch with the current and defined dcc versions.
 
         Returns:
-            bool: False if there is no mismatch.
-            Otherwise returns a tuple of defined dcc version and current dcc version.
+            tuple or bool: a tuple of defined dcc version and current dcc
+                version. Otherwise returns False.
         """
         # first try to get the current dcc version from scene. If not found, do not proceed.
         current_dcc = self._dcc_handler.get_dcc_version()

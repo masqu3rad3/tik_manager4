@@ -15,9 +15,11 @@ class Publish(Entity):
     object_type = "publish"
     """Class to represent a publish.
 
+    Publish objects are created from the work objects. Publishes are the
+    final versions of the works. Publishes are not editable.
     This class is not represented by a file. Publish-PublishVersion relationship
-    is opposite of Work-WorkVersion relationship. PublishVersions have database files,
-    Publishes don't.
+    is opposite of Work-WorkVersion relationship.
+    PublishVersions have database files, publishes don't.
     """
 
     def __init__(self, work_object):
@@ -139,16 +141,19 @@ class Publish(Entity):
 
         Args:
             version_number (int): The version number.
-            force (bool): If True, loads the file without prompting for saving.
-                Default is False.
-            element_type (str): The element type to load. Default is "source".
-            read_only (bool): Published files are write protected. If this argument is
-                True, the file will be opened in read-only mode. If false, the file will
-                be iterated as a new working version instead of opening the publish.
+            force (bool, optional): If True, loads the file without prompting
+                for saving. Defaults to False.
+            element_type (str, optional): The element type to load.
+                Defaults to "source".
+            read_only (bool, optional): Published files are write protected.
+                If this argument is True, the file will be opened in
+                read-only mode. If false, the file will be iterated as a new
+                working version instead of opening the publish.
                 Default is False.
 
         Raises:
-            ValueError: If the element type is not found in the publish version.
+            ValueError: If the element type is not found in the publish
+                version.
         """
         # loading published files is not safe, therefore we are loading the file and immediately save it
         # as a new working version.
@@ -169,8 +174,9 @@ class Publish(Entity):
 
         Args:
             version_number (int): The version number.
-            element_type (str): The element type to import. Default is None.
-            ingestor (str): The ingestor to use. Default is None.
+            element_type (str, optional): The element type to import.
+                Defaults to None.
+            ingestor (str, optional): The ingestor to use. Defaults to None.
 
         Raises:
             ValueError: If the element type is not given or not supported.
@@ -192,13 +198,19 @@ class Publish(Entity):
             _import_obj.ingest_path = abs_path # This path can be a folder if its a bundled type.
             _import_obj.bring_in()
 
-    def reference_version(self, version_number, element_type=None, ingestor=None):
+    def reference_version(
+            self,
+            version_number,
+            element_type=None,
+            ingestor=None
+    ):
         """Reference the given version of the work to the scene.
 
         Args:
             version_number (int): The version number.
-            element_type (str): The element type to reference. Default is None.
-            ingestor (str): The ingestor to use. Default is None.
+            element_type (str, optional): The element type to reference.
+                Defaults to None.
+            ingestor (str, optional): The ingestor to use. Defaults to None.
 
         Raises:
             ValueError: If the element type is not given or not supported.
@@ -229,6 +241,7 @@ class Publish(Entity):
         if self.check_permissions(level=3) == -1:
             return False, "Only Admins can delete publishes."
         return True, ""
+
     def destroy(self):
         """Delete ALL PUBLISHES of the work.
 
@@ -278,7 +291,8 @@ class Publish(Entity):
         method in work object.
 
         Args:
-            version_number (int): This argument is not used in this method.
+            version_number (int, optional): This argument is not used in this
+                method.
         """
         _ = version_number
         if self.check_permissions(level=3) == -1:
@@ -333,10 +347,20 @@ class PublishVersion(Settings, Entity):
 
     This class handles the publish version objects.
     Unlike work versions, publish versions are directly represented by files.
+    name and path properties are required during first creation.
+    When read from the file, these properties are initialized from the file.
     """
 
     def __init__(self, absolute_path, name=None, path=None):
-        """Initialize the publish version object."""
+        """Initialize the publish version object.
+
+        Args:
+            absolute_path (str): The absolute path of the publish version file.
+            name (str, optional): The name of the publish version.
+                Defaults to None.
+            path (str, optional): The relative path of the publish version.
+                Defaults to None.
+        """
         super(PublishVersion, self).__init__()
         self._dcc_handler = self.guard.dcc_handler
         self.settings_file = absolute_path
@@ -475,8 +499,8 @@ class PublishVersion(Settings, Entity):
 
         Args:
             element_type (str): The type of the element.
-            relative (bool): If True, returns the relative path. If False,
-                returns the absolute path. Default is True.
+            relative (bool, optional): If True, returns the relative path.
+                If False, returns the absolute path. Default is True.
 
         Returns:
             str: The path of the element or None if not found.

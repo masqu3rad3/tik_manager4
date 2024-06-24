@@ -1,4 +1,4 @@
 Developing Ingestors
 ====================
 
-Work in progress.
+Ingestors are

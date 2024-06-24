@@ -220,7 +220,7 @@ class Publisher:
         """Finalize the publish by updating the reserved slot.
 
         Args:
-            notes (str): The notes to add to the publish.
+            notes (str, optional): The notes to add to the publish.
 
         Returns:
             PublishVersion: The published object.

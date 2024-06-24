@@ -15,7 +15,11 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Subproject(Entity):
-    """Subproject object to hold subproject data and hierarchy."""
+    """Subproject object to hold subproject data and hierarchy.
+
+    Subproject objects doesn't have any settings file. They are
+    populated by the project object using the project_structure.json.
+    """
 
     def __init__(self, parent_sub=None, metadata=None, **kwargs):
         """Initialize Subproject object.
@@ -186,10 +190,12 @@ class Subproject(Entity):
 
         Requires permissions. Does NOT create folders or store in
         the persistent database.
+        Either parent_sub or uid is required.
+
         Args:
             name (str): Name of the subproject.
-            parent_sub (Subproject): Parent subproject object.
-            uid (int): Unique id of the subproject.
+            parent_sub (Subproject, optional): Parent subproject object.
+            uid (int, optional): Unique id of the subproject.
             **properties (dict): Any extra properties to be added to the subproject.
 
         Returns:
@@ -267,7 +273,8 @@ class Subproject(Entity):
         Args:
             name (str): Name of the task.
             categories (list): List of categories.
-            task_type (str): Type of the task.
+            task_type (str, optional): Type of the task. If not given,
+                it is inherited from the parent subproject (mode).
 
         Returns:
             Task or int: The created task object if successful, -1 otherwise.
@@ -546,8 +553,8 @@ class Subproject(Entity):
         Either uid or path is required.
 
         Args:
-            uid (int): Unique id of the subproject.
-            path (str): The path of the subproject.
+            uid (int, optional): Unique id of the subproject.
+            path (str, optional): The path of the subproject.
 
         Returns:
             int: 1 if successful, -1 otherwise.
@@ -588,7 +595,7 @@ class Subproject(Entity):
 
         Args:
             root (str): The root path.
-            sub (Subproject): The subproject object. If not given the
+            sub (Subproject, optional): The subproject object. If not given the
                 current subproject is used.
         """
         sub = sub or self
@@ -601,7 +608,7 @@ class Subproject(Entity):
 
         Args:
             root (str): The root path.
-            sub (Subproject): The subproject object. If not given the
+            sub (Subproject, optional): The subproject object. If not given the
                 current subproject is used.
         """
         sub = sub or self

@@ -15,8 +15,16 @@ class Project(Subproject):
     """Project class to handle project specific data and methods."""
     log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
-    def __init__(self, path=None, name=None, resolution=None, fps=None):
-        """Initializes the Project class."""
+    # def __init__(self, path=None, name=None, resolution=None, fps=None):
+    def __init__(self, path=None, name=None):
+        """Initializes the Project class.
+
+        Args:
+            path (str): Absolute path of the project.
+            name (str): Name of the project.
+            resolution (str): Resolution of the project.
+            fps (str): Frames per second of the project.
+        """
         super().__init__()
         self.publisher = Publisher(self)
         self.snapshot_publisher = SnapshotPublisher(self)
@@ -28,8 +36,8 @@ class Project(Subproject):
         self._path = path
         self._database_path = None
         self._name = name
-        self._resolution = resolution
-        self._fps = fps
+        # self._resolution = resolution
+        # self._fps = fps
         self.__mode = ""
 
         # This makes sure the project folder is tik_manager4 ready

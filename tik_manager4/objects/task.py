@@ -13,7 +13,13 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class Task(Settings, Entity):
-    """Task object to handle works and publishes."""
+    """Task object to handle works and publishes.
+
+    Task objects are getting populated by the subproject objects.
+    All the task settings are stored in the task settings file.
+    During the initial instantiation, the optional arguments are used
+    to create the settings file if it does not exist.
+    """
     def __init__(
         self,
         absolute_path,
@@ -25,6 +31,18 @@ class Task(Settings, Entity):
         parent_sub=None,
         task_id=None,
     ):
+        """Initialize Task object.
+
+        Args:
+            absolute_path (str): Absolute path to the task settings file
+            name (str, optional): Name of the task
+            categories (list, optional): List of categories
+            path (str, optional): Relative path to the task
+            file_name (str, optional): File name of the task settings file
+            task_type (str, optional): Type of the task
+            parent_sub (Sub, optional): Parent sub of the task
+            task_id (str, optional): Unique ID of the task
+        """
         # self._task_id = None
         super().__init__()
         self.settings_file = absolute_path
@@ -126,6 +144,10 @@ class Task(Settings, Entity):
     def edit(self, name=None, task_type=None, categories=None):
         """Edit the task.
 
+        Edits the given arguments of the task and applies the settings.
+        If no argument is given, the function does nothing.
+        This method requires level 2 permissions.
+
         Args:
             name (str): New name for the task
             task_type (str): New type for the task
@@ -177,7 +199,6 @@ class Task(Settings, Entity):
 
         Returns:
             int: 1 if successful, -1 if failed
-
         """
         if category not in self._categories:
             LOG.warning(
