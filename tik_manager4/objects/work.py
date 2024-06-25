@@ -22,6 +22,7 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class Work(Settings, Entity):
     """Work object to handle works and publishes."""
+
     _standalone_handler = StandaloneDcc()
     object_type = "work"
 
@@ -133,7 +134,12 @@ class Work(Settings, Entity):
 
     def reload(self):
         """Reload the work from file."""
-        self.__init__(self.settings_file, name=self._name, path=self._relative_path, parent_task=self._parent_task)
+        self.__init__(
+            self.settings_file,
+            name=self._name,
+            path=self._relative_path,
+            parent_task=self._parent_task,
+        )
 
     def omit(self):
         """Omit the work."""
@@ -177,7 +183,6 @@ class Work(Settings, Entity):
             dict: The version dictionary.
         """
 
-
         state = self.check_permissions(level=1)
         if state != 1:
             return -1
@@ -191,7 +196,9 @@ class Work(Settings, Entity):
         Path(abs_version_path).parent.mkdir(parents=True, exist_ok=True)
 
         # save the file
-        output_path = self._standalone_handler.save_as(abs_version_path, source_path=file_path)
+        output_path = self._standalone_handler.save_as(
+            abs_version_path, source_path=file_path
+        )
 
         # generate thumbnail
         # create the thumbnail folder if it doesn't exist
@@ -396,7 +403,7 @@ class Work(Settings, Entity):
             # get the frame rate from dcc
             fps = self._dcc_handler.get_scene_fps()
             # the incoming _file_path needs to have %04d in it in order to be recognized as a sequence
-            flag_start = [ffmpeg, "-r", str(fps), '-i', str(_file_path)]
+            flag_start = [ffmpeg, "-r", str(fps), "-i", str(_file_path)]
             # remove the digits section from the file name e.g. test_v001.0001.jpg -> test_v001.jpg
             output_file_str = str(output_file).replace(output_file.suffixes[0], "")
         full_flag_list = (
@@ -458,8 +465,7 @@ class Work(Settings, Entity):
         return "_".join(nice_name), "_".join(full_name)
 
     def construct_names(
-            self, file_format, version_number=None,
-            thumbnail_extension=".jpg"
+        self, file_format, version_number=None, thumbnail_extension=".jpg"
     ):
         """Construct a name for the work version.
 
@@ -475,7 +481,9 @@ class Work(Settings, Entity):
         """
         version_number = version_number or self.get_last_version() + 1
         version_name = f"{self._name}_v{version_number:03d}{file_format}"
-        thumbnail_name = f"{self._name}_v{version_number:03d}_thumbnail{thumbnail_extension}"
+        thumbnail_name = (
+            f"{self._name}_v{version_number:03d}_thumbnail{thumbnail_extension}"
+        )
         return version_number, version_name, thumbnail_name
 
     def load_version(self, version_number, force=False, **kwargs):
@@ -514,12 +522,7 @@ class Work(Settings, Entity):
             _ingest_obj.ingest_path = abs_path
             _ingest_obj.bring_in()
 
-    def reference_version(
-            self,
-            version_number,
-            element_type=None,
-            ingestor=None
-    ):
+    def reference_version(self, version_number, element_type=None, ingestor=None):
         """Reference the given version of the work to the scene.
 
         Args:
@@ -555,17 +558,21 @@ class Work(Settings, Entity):
                 LOG.warning(msg)
                 return False, msg
             if self.guard.user != self._creator:
-                msg = ("You do not have the permission to delete this work.\n"
-                       "Only admins can delete other users' works.")
+                msg = (
+                    "You do not have the permission to delete this work.\n"
+                    "Only admins can delete other users' works."
+                )
                 LOG.warning(msg)
                 return False, msg
             else:
                 # check creators for all versions
                 for version in self._versions:
                     if version.get("user") != self.guard.user:
-                        msg = ("You do not have the permission to delete this work.\n"
-                               "There are other versions created by other user(s).\n"
-                               "Only admins can delete other users' works.")
+                        msg = (
+                            "You do not have the permission to delete this work.\n"
+                            "There are other versions created by other user(s).\n"
+                            "Only admins can delete other users' works."
+                        )
                         LOG.warning(msg)
                         return False, msg
         return True, ""
@@ -594,8 +601,11 @@ class Work(Settings, Entity):
         # if the purgatory path exists, delete it first
         if Path(purgatory_path).exists():
             shutil.rmtree(purgatory_path)
-        shutil.move(self.get_abs_project_path(self.name), purgatory_path,
-                    copy_function=shutil.copytree)
+        shutil.move(
+            self.get_abs_project_path(self.name),
+            purgatory_path,
+            copy_function=shutil.copytree,
+        )
 
         thumbnails_dir = Path(self.get_abs_database_path("thumbnails"))
         # collect all thumbnails starting with the work name
@@ -631,8 +641,10 @@ class Work(Settings, Entity):
             return False, "Version does not exist."
         if self.check_permissions(level=3) == -1:
             if self.guard.user != version_obj.get("user"):
-                msg = ("You do not have the permissions for this action.\n"
-                       "Only admins and version owners are allowed.")
+                msg = (
+                    "You do not have the permissions for this action.\n"
+                    "Only admins and version owners are allowed."
+                )
                 LOG.warning(msg)
                 return False, msg
         return True, ""
@@ -664,10 +676,16 @@ class Work(Settings, Entity):
             thumbnail_relative_path = version_obj.get("thumbnail", None)
             if thumbnail_relative_path:
                 thumbnail_abs_path = self.get_abs_database_path(thumbnail_relative_path)
-                thumbnail_dest_path = self.get_purgatory_database_path(thumbnail_relative_path)
+                thumbnail_dest_path = self.get_purgatory_database_path(
+                    thumbnail_relative_path
+                )
                 Path(thumbnail_dest_path).parent.mkdir(parents=True, exist_ok=True)
                 if Path(thumbnail_abs_path).exists():
-                    shutil.move(thumbnail_abs_path, thumbnail_dest_path, copy_function=shutil.copytree)
+                    shutil.move(
+                        thumbnail_abs_path,
+                        thumbnail_dest_path,
+                        copy_function=shutil.copytree,
+                    )
 
             # remove the version from the versions list
             self._versions.remove(version_obj)
@@ -684,8 +702,15 @@ class Work(Settings, Entity):
                 thumbnail.
         """
         # if there is no previous thumbnail, generate a new one
-        extension = override_extension or Path(version_obj.get("thumbnail", "noThumb.jpg")).suffix
-        _number, _name, thumbnail_name = self.construct_names(version_obj.get("file_format", ""), version_obj.get("version_number"), thumbnail_extension=extension)
+        extension = (
+            override_extension
+            or Path(version_obj.get("thumbnail", "noThumb.jpg")).suffix
+        )
+        _number, _name, thumbnail_name = self.construct_names(
+            version_obj.get("file_format", ""),
+            version_obj.get("version_number"),
+            thumbnail_extension=extension,
+        )
         relative_path = Path("thumbnails", thumbnail_name).as_posix()
         # version_obj["thumbnail"] = relative_path
         abs_path = self.get_abs_database_path(relative_path)
@@ -707,8 +732,12 @@ class Work(Settings, Entity):
             return -1
 
         version_obj = self.get_version(version_number)
-        override_suffix = Path(new_thumbnail_path).suffix if new_thumbnail_path else None
-        target_relative_path, target_absolute_path = self.__generate_thumbnail_paths(version_obj, override_extension=override_suffix)
+        override_suffix = (
+            Path(new_thumbnail_path).suffix if new_thumbnail_path else None
+        )
+        target_relative_path, target_absolute_path = self.__generate_thumbnail_paths(
+            version_obj, override_extension=override_suffix
+        )
 
         if not new_thumbnail_path:
             self._dcc_handler.generate_thumbnail(target_absolute_path, 220, 124)
@@ -730,13 +759,12 @@ class Work(Settings, Entity):
         # first try to get the current dcc version from scene. If not found, do not proceed.
         current_dcc = self._dcc_handler.get_dcc_version()
         if not current_dcc:
-            return False # In this case we assume there is no need for dcc check
+            return False  # In this case we assume there is no need for dcc check
         metadata_key = f"{self.guard.dcc.lower()}_version"
         # if a dcc version defined in metadata, use that. Otherwise use the current dcc version.
-        defined_dcc_version = self.get_metadata(self.parent_task, metadata_key) or self.dcc_version
+        defined_dcc_version = (
+            self.get_metadata(self.parent_task, metadata_key) or self.dcc_version
+        )
         if defined_dcc_version in ["NA", "", current_dcc]:
             return False
         return defined_dcc_version, current_dcc
-
-
-

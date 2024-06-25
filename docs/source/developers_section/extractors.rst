@@ -1,3 +1,5 @@
+.. _developing_extractors:
+
 Developing Extractors
 =====================
 
@@ -320,6 +322,10 @@ In some cases, we may want to create a bundle of files instead of a single file.
 In this example, we have set the `bundled` attribute to `True`. 
 This informs the Collector that this extractor will create a bundle, 
 and `self.resolve_output()` will return a directory path instead of a file path.
+
+-------------------------
+
+.. _metadata_access:
 
 Metadata access
 ~~~~~~~~~~~~~~~

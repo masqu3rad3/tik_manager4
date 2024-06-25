@@ -641,21 +641,6 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         if not self.extract.global_settings.properties and not _settings:
             self.collapsible_layout.expand_button.hide()
 
-
-        # self.settings_data = self.extract.global_settings
-        # self.settings_data.update(self.extract.settings.get(self.extract.category, {}), add_missing_keys=True)
-        # if self.settings_data.properties:
-        #     # update exposed setting defaults with the metadata (if exists)
-        #     # settings_ui = convert_to_ui_definition(self.settings_data)
-        #     settings_ui = self.settings_data.get_data().copy()
-        #     import pdb
-        #     pdb.set_trace()
-        #     settings_formlayout = SettingsLayout(settings_ui, self.settings_data)
-        #     self.collapsible_layout.contents_layout.addLayout(settings_formlayout)
-        #
-        # else:
-        #     self.collapsible_layout.expand_button.hide()
-
         # maintenance icons
         self.info = TikIconButton(icon_name=self.extract.name, circle=True)
         self.info.set_size(32)
