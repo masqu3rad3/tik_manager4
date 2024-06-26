@@ -85,9 +85,6 @@ pyspellchecker==0.8.1
 pytest==7.4.3
 pytest-qt==4.3.1
 python-dateutil==2.9.0.post0
-pywin32==306
-pywin32-ctypes==0.2.2
-pywin32-stubs==1.0.7
 PyYAML==6.0.1
 pyzmq==26.0.3
 referencing==0.35.1
