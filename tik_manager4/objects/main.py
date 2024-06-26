@@ -22,7 +22,7 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
 
 
-class Main():
+class Main:
     """Main Tik Manager class. Handles User and Project related functions."""
     # set the dcc to the guard object
     dcc = dcc.Dcc()
@@ -96,7 +96,20 @@ class Main():
         set_after_creation=True,
         **kwargs
     ):
-        """Create a new project."""
+        """Create a new project.
+
+        Args:
+            path (str): The path to create the project.
+            structure_template (str): The name of the structure template to use.
+            structure_data (dict): The structure data to use. If not provided,
+                    The structure template name will be used to get the data from
+                    the common database.
+            set_after_creation (bool): If True, the project
+                will be set after creation.
+
+        Returns:
+            int: 1 if successful, -1 if not.
+        """
         if self.user.permission_level < 3:
             self.log.warning("This user does not have rights to perform this action")
             return -1
@@ -110,12 +123,12 @@ class Main():
             self.log.warning("Project already exists. Aborting")
             return -1
         project_name = Path(path).name
-        if structure_data:
-            structure_data = structure_data
-        else:
-            structure_data = self.user.commons.structures.get_property(
-                structure_template
-            )
+
+        structure_data = structure_data or self.user.commons.structures.get_property(
+            structure_template
+        )
+
+        # if the structure data is still not defined use a default empty structure
         if not structure_data:
             self.log.warning("Structure template %s is not defined. Creating empty project")
             structure_data = {
@@ -148,18 +161,32 @@ class Main():
         return 1
 
     def set_project(self, absolute_path):
-        """Set the current project."""
+        """Set the current project.
+
+        Args:
+            absolute_path (str): The absolute path to the project.
+
+        Returns:
+            int: 1 if successful, -1 if not.
+        """
+        # pylint: disable=protected-access
         if not Path(absolute_path).exists():
             self.log.error("Project Path does not exist. Aborting")
             return -1
-        self.project._set(absolute_path)
+        self.project._set(absolute_path) # pylint: disable=protected-access
+
         # add to recent projects
         self.user.add_recent_project(absolute_path)
         self.user.last_project = absolute_path
         self.dcc.set_project(absolute_path)
+        return 1
 
     def collect_template_paths(self):
-        """Collect all template files from common, project and user folders."""
+        """Collect all template files from common, project and user folders.
+
+        Returns:
+            list: [project_templates, common_templates, user_templates]
+        """
         # if the dcc is standalone, collect all applicable extensions from the extension dictionary
         # otherwise, collect the extensions from the dcc object
         if self.dcc.name.lower() == "standalone":
@@ -172,9 +199,6 @@ class Main():
                              p.suffix in extensions]
         common_templates = [p for p in Path(self.user.common_directory).joinpath("_templates").rglob("*.*") if
                             p.suffix in extensions]
-        # user_templates = list(Path(self.user.settings.get("user_templates_directory")).rglob("*.*"))
-        # project_templates = list((Path(self.project.absolute_path)/"_templates").rglob("*.*"))
-        # common_templates = list((Path(self.user.common_directory)/"_templates").rglob("*.*"))
 
         return project_templates + common_templates + user_templates
 
@@ -203,7 +227,14 @@ class Main():
         return None, None
 
     def __resolve_dcc_name_from_extension(self, extension):
-        """Resolve the DCC name from the extension."""
+        """Resolve the DCC name from the extension.
+
+        Args:
+            extension (str): The file extension.
+
+        Returns:
+            str: The DCC name.
+        """
         for key, value in dcc.EXTENSION_DICT.items():
             if extension in value:
                 return key
@@ -262,7 +293,11 @@ class ReleaseObject:
         return self._version
 
     def collect_links(self):
-        """Get all the links in a dictionary."""
+        """Get all the links in a dictionary.
+
+        Returns:
+            dict: Dictionary with the link names and the links.
+        """
         link_sources = {
             "Windows Installer": self.windows_installer,
             "Mac Installer": self.mac_installer,
@@ -276,7 +311,11 @@ class ReleaseObject:
 
     @property
     def windows_installer(self):
-        """Get the windows installer download url."""
+        """Get the windows installer download url.
+
+        Returns:
+            str: The download url or None.
+        """
         assets = self._dict.get("assets")
         for asset in assets:
             if asset.get("name").endswith(".exe"):
@@ -285,7 +324,11 @@ class ReleaseObject:
 
     @property
     def mac_installer(self):
-        """Get the mac installer download url."""
+        """Get the mac installer download url.
+
+        Returns:
+            str: The download url or None.
+        """
         assets = self._dict.get("assets")
         for asset in assets:
             if asset.get("name").endswith(".dmg"):
@@ -294,7 +337,11 @@ class ReleaseObject:
 
     @property
     def debian_installer(self):
-        """Get the linux installer download url."""
+        """Get the linux installer download url.
+
+        Returns:
+            str: The download url or None.
+        """
         assets = self._dict.get("assets")
         for asset in assets:
             if asset.get("name").endswith(".deb"):
@@ -303,7 +350,11 @@ class ReleaseObject:
 
     @property
     def redhat_installer(self):
-        """Get the linux installer download url."""
+        """Get the linux installer download url.
+
+        Returns:
+            str: The download url or None.
+        """
         assets = self._dict.get("assets")
         for asset in assets:
             if asset.get("name").endswith(".rpm"):
@@ -312,12 +363,12 @@ class ReleaseObject:
 
     @property
     def tarball(self):
-        """Get the tarball."""
+        """Return the tarball."""
         return self._dict.get("tarball_url")
 
     @property
     def zipball(self):
-        """Get the zipball."""
+        """Return the zipball."""
         return self._dict.get("zipball_url")
 
     @property
@@ -329,5 +380,3 @@ class ReleaseObject:
     def release_notes(self):
         """Return the release notes."""
         return self._dict.get("body")
-
-

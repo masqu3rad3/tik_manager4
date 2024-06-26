@@ -499,8 +499,23 @@ class ValidateRow(QtWidgets.QHBoxLayout):
 
     def pop_info(self):
         """Pop up an information dialog for informing the user what went wrong."""
-        information = self.validator.info()
-        # TODO: make this a dialog
+        information = self.validator.fail_message
+        if information:
+            # create a mini dialog with non-editable text
+            pop_info_dialog = QtWidgets.QDialog()
+            pop_info_dialog.setWindowTitle(f"{self.validator.nice_name} Message")
+            pop_info_dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            pop_info_dialog.setModal(True)
+            pop_info_dialog.setMinimumWidth(300)
+            pop_info_dialog.setMinimumHeight(200)
+            pop_info_dialog.setLayout(QtWidgets.QVBoxLayout())
+            text = QtWidgets.QTextEdit()
+            text.setReadOnly(True)
+            text.setText(information)
+            pop_info_dialog.layout().addWidget(text)
+            pop_info_dialog.exec_()
+        else:
+            return
 
     def fix(self):
         """Auto Fix the scene."""
@@ -640,21 +655,6 @@ class ExtractRow(QtWidgets.QHBoxLayout):
             self.collapsible_layout.contents_layout.addLayout(settings_formlayout)
         if not self.extract.global_settings.properties and not _settings:
             self.collapsible_layout.expand_button.hide()
-
-
-        # self.settings_data = self.extract.global_settings
-        # self.settings_data.update(self.extract.settings.get(self.extract.category, {}), add_missing_keys=True)
-        # if self.settings_data.properties:
-        #     # update exposed setting defaults with the metadata (if exists)
-        #     # settings_ui = convert_to_ui_definition(self.settings_data)
-        #     settings_ui = self.settings_data.get_data().copy()
-        #     import pdb
-        #     pdb.set_trace()
-        #     settings_formlayout = SettingsLayout(settings_ui, self.settings_data)
-        #     self.collapsible_layout.contents_layout.addLayout(settings_formlayout)
-        #
-        # else:
-        #     self.collapsible_layout.expand_button.hide()
 
         # maintenance icons
         self.info = TikIconButton(icon_name=self.extract.name, circle=True)

@@ -1,3 +1,5 @@
+"""Commons module for tik_manager4 package."""
+
 from pathlib import Path
 import shutil
 
@@ -17,13 +19,18 @@ class Commons:
     metadata = None
 
     def __init__(self, folder_path):
+        """Initialize the Commons class."""
         super().__init__()
 
         self._folder_path = folder_path
         self.is_valid = self._validate_commons_folder()
 
     def _validate_commons_folder(self):
-        """Makes sure the 'commons folder' contains the necessary setting files"""
+        """Make sure the 'commons folder' contains the necessary setting files.
+
+        Returns:
+            bool: True if the folder is valid, False otherwise.
+        """
         # copy the default template files to common folder
         for default_file in defaults.all:
             _default_file_path = Path(default_file)
@@ -63,13 +70,20 @@ class Commons:
         return True
 
     def check_user_permission_level(self, user_name):
-        """Returns the permission level for given user"""
+        """Return the permission level for given user.
+
+        Args:
+            user_name (str): The name of the user.
+
+        Returns:
+            int: The permission level of the user.
+        """
         return self.users.get_property(user_name).get("permissionLevel", 0)
 
     def get_users(self):
-        """Returns the list of all active users"""
+        """Return the list of all active users."""
         return self.users.keys
 
     def get_project_structures(self):
-        """Returns list of available project structures defined in defaults"""
+        """Return list of available project structures defined in defaults."""
         return self.structures.keys
