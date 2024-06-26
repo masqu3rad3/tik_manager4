@@ -499,8 +499,23 @@ class ValidateRow(QtWidgets.QHBoxLayout):
 
     def pop_info(self):
         """Pop up an information dialog for informing the user what went wrong."""
-        information = self.validator.info()
-        # TODO: make this a dialog
+        information = self.validator.fail_message
+        if information:
+            # create a mini dialog with non-editable text
+            pop_info_dialog = QtWidgets.QDialog()
+            pop_info_dialog.setWindowTitle(f"{self.validator.nice_name} Message")
+            pop_info_dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            pop_info_dialog.setModal(True)
+            pop_info_dialog.setMinimumWidth(300)
+            pop_info_dialog.setMinimumHeight(200)
+            pop_info_dialog.setLayout(QtWidgets.QVBoxLayout())
+            text = QtWidgets.QTextEdit()
+            text.setReadOnly(True)
+            text.setText(information)
+            pop_info_dialog.layout().addWidget(text)
+            pop_info_dialog.exec_()
+        else:
+            return
 
     def fix(self):
         """Auto Fix the scene."""
