@@ -731,11 +731,11 @@ class TestProject:
 
         # try to delete a work without permissions
         tik.user.set("Generic", password="1234")
-        assert target_work.destroy() == -1
+        assert target_work.destroy()[0] == -1
 
         tik.user.set("Admin", password="1234")
         # delete the work
-        assert target_work.destroy() == 1
+        assert target_work.destroy()[0] == 1
 
     def test_deleting_empty_task(self, project_manual_path, tik):
         self.test_creating_and_adding_new_tasks(project_manual_path, tik)
@@ -759,7 +759,7 @@ class TestProject:
             tik.project.subs["Assets"]
             .subs["Characters"]
             .subs["Soldier"]
-            .delete_task("this_task_doesnt_exist")
+            .delete_task("this_task_doesnt_exist")[0]
             == -1
         )
 
@@ -769,7 +769,7 @@ class TestProject:
             tik.project.subs["Assets"]
             .subs["Characters"]
             .subs["Soldier"]
-            .delete_task("superman")
+            .delete_task("superman")[0]
             == 1
         )
 
@@ -842,6 +842,6 @@ class TestProject:
             tik.project.subs["Assets"]
             .subs["Characters"]
             .subs["Soldier"]
-            .delete_task("superboy")
+            .delete_task("superboy")[0]
             == 1
         )

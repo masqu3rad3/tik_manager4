@@ -744,9 +744,13 @@ class TikCategoryView(QtWidgets.QTreeView):
             if are_you_sure == "cancel":
                 return
 
-        item.tik_obj.destroy()
+        state, msg = item.tik_obj.destroy()
+        if not state:
+            self.feedback.pop_info(title="Error", text=msg, critical=True)
+            return
         # remove the item from the model
         self.model.removeRow(item.row())
+        return
 
 
 class TikCategoryLayout(QtWidgets.QVBoxLayout):

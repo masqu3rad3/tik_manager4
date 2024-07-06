@@ -10,13 +10,13 @@ on:
     branches: [ "main" ]
 
 jobs:
-  maya2023:
+  maya2024:
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
 
-    container: mottosso/maya:2023
+    container: mottosso/maya:2024
 
     steps:
       - name: Checkout code

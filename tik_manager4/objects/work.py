@@ -583,11 +583,12 @@ class Work(Settings, Entity):
         CAUTION: This is a destructive operation. Use with care.
 
         Returns:
-            int: 1 if successful, -1 if failed.
+            tuple: (state(int), message(str)): 1 if the operation is
+                successful, -1 otherwise. A message is returned as well.
         """
         state, msg = self.check_destroy_permissions()
         if not state:
-            return -1
+            return -1, msg
 
         if self.publish.versions:
             self.publish.destroy()
@@ -619,7 +620,7 @@ class Work(Settings, Entity):
         # finally move the database file
         db_destination = purgatory_database_dir / Path(self.settings_file).name
         shutil.move(str(self.settings_file), str(db_destination))
-        return 1
+        return 1, "success"
 
     def check_owner_permissions(self, version_number):
         """Check the permissions for 'owner' and 'admin-only' actions.
@@ -656,12 +657,13 @@ class Work(Settings, Entity):
             version_number (int): Version number.
 
         Returns:
-            int: 1 if successful, -1 if failed.
+            tuple: (state(int), message(str)): 1 if the operation is
+                successful, -1 otherwise. A message is returned as well.
         """
 
-        state, _msg = self.check_owner_permissions(version_number)
+        state, msg = self.check_owner_permissions(version_number)
         if not state:
-            return -1
+            return -1, msg
         version_obj = self.get_version(version_number)
         if version_obj:
             relative_path = version_obj.get("scene_path")
@@ -679,8 +681,12 @@ class Work(Settings, Entity):
                 thumbnail_dest_path = self.get_purgatory_database_path(
                     thumbnail_relative_path
                 )
-                Path(thumbnail_dest_path).parent.mkdir(parents=True, exist_ok=True)
+                _thumbnail_dest_path = Path(thumbnail_dest_path)
+                _thumbnail_dest_path.parent.mkdir(parents=True, exist_ok=True)
                 if Path(thumbnail_abs_path).exists():
+                    # first try to delete the thumbnail_dest_path if exists
+                    if _thumbnail_dest_path.exists():
+                        _thumbnail_dest_path.unlink()
                     shutil.move(
                         thumbnail_abs_path,
                         thumbnail_dest_path,
@@ -691,7 +697,7 @@ class Work(Settings, Entity):
             self._versions.remove(version_obj)
             self.edit_property("versions", self._versions)
             self.apply_settings(force=True)
-        return 1
+        return 1, msg
 
     def __generate_thumbnail_paths(self, version_obj, override_extension=None):
         """Return the thumbnail paths of the given version.

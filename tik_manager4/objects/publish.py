@@ -248,12 +248,13 @@ class Publish(Entity):
         Use with caution.
 
         Returns:
-            int: 1 if the operation is successful, -1 otherwise.
+            tuple: (state(int), message(str)): 1 if the operation is
+                successful, -1 otherwise. A message is returned as well.
         """
         state, msg = self.check_destroy_permissions()
         if not state:
             LOG.warning(msg)
-            return -1
+            return -1, msg
 
         # move the whole publish folder to purgatory
         _purgatory_path = Path(
@@ -261,6 +262,14 @@ class Publish(Entity):
             "publish"
         )
         _purgatory_path.mkdir(parents=True, exist_ok=True)
+        _work_folder = _purgatory_path / self.work_object.name
+        if _work_folder.exists():
+            try:
+                shutil.rmtree(str(_work_folder))
+            except PermissionError:
+                msg = f"There is another folder in the purgatory with the same name. Please delete it manually or purge the purgatory.\n\n{str(_work_folder)}"
+                LOG.error(msg)
+                return -1, msg
         shutil.move(
             self.get_publish_project_folder(),
             str(_purgatory_path / self.work_object.name),
@@ -281,7 +290,7 @@ class Publish(Entity):
 
         # clear the publish versions
         self._publish_versions = {}
-        return 1
+        return 1, "success"
 
     def check_owner_permissions(self, version_number=None):
         """Shortcut and wrapper for the check_permissions method.
@@ -306,17 +315,19 @@ class Publish(Entity):
             version_number (int): The version number.
 
         Returns:
-            int: 1 if the operation is successful, -1 otherwise.
+            tuple: (state(int), message(str)): 1 if the operation is
+                successful, -1 otherwise. A message is returned as well.
         """
         state, msg = self.check_owner_permissions(version_number)
         if not state:
             LOG.warning(msg)
-            return -1
+            return -1, msg
 
         version_obj = self.get_version(version_number)
         if not version_obj:
-            LOG.warning(f"Version {version_number} not found.")
-            return -1
+            msg = f"Version {version_number} not found."
+            LOG.warning(msg)
+            return -1, msg
         for element in version_obj.elements:
             relative_path = element["path"]
             source_abs_path = version_obj.get_abs_project_path(relative_path)
@@ -340,7 +351,7 @@ class Publish(Entity):
 
         # remove the publish version from the publish versions
         self._publish_versions.pop(version_obj.settings_file)
-        return 1
+        return 1, "success"
 
 class PublishVersion(Settings, Entity):
     """PublishVersion object class.

@@ -1,22 +1,30 @@
-import os
-import glob
+import sys
+from pathlib import Path
 import importlib
 import inspect
 from tik_manager4.dcc.extract_core import ExtractCore
 
 classes = {}
-modules = glob.glob(os.path.join(os.path.dirname(__file__), "*.py"))
 
-exceptions = ["__init__.py"]
+_FROZEN = getattr(sys, 'frozen', False)
+if _FROZEN:
+    from tik_manager4.dcc.standalone.extract import snapshot
+    classes = {
+        snapshot.Snapshot.name: snapshot.Snapshot,
+    }
 
-for mod in modules:
-    file_name = os.path.basename(mod)
-    if file_name not in exceptions and not file_name.startswith("_"):
-        module_name = file_name[:-3]
-        module_path = os.path.join(os.path.dirname(__file__), module_name)
-        module = importlib.import_module(f"{__name__}.{module_name}")
+else:
+    DIRECTORY = Path(__file__).parent
+    modules = DIRECTORY.glob("*.py")
 
-        for name, obj in inspect.getmembers(module):
-            if inspect.isclass(obj) and issubclass(obj, ExtractCore) and obj != ExtractCore:
-                classes[obj.name] = obj
+    exceptions = ["__init__.py"]
+
+    for mod in modules:
+        file_name = str(Path(mod).name)
+        if file_name not in exceptions and not file_name.startswith("_"):
+            module_name = file_name[:-3]
+            module = importlib.import_module(f"{__name__}.{module_name}")
+            for name, obj in inspect.getmembers(module):
+                if inspect.isclass(obj) and issubclass(obj, ExtractCore) and obj != ExtractCore:
+                    classes[obj.name] = obj
 
