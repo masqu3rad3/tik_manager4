@@ -14,7 +14,7 @@ black==24.4.0
 bleach==6.1.0
 CacheControl==0.14.0
 cattrs==23.2.3
-certifi==2024.6.2
+certifi==2024.7.4
 charset-normalizer==3.0.1
 click==8.0.4
 colorama==0.4.5
