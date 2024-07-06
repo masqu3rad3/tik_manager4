@@ -583,11 +583,12 @@ class Work(Settings, Entity):
         CAUTION: This is a destructive operation. Use with care.
 
         Returns:
-            int: 1 if successful, -1 if failed.
+            tuple: (state(int), message(str)): 1 if the operation is
+                successful, -1 otherwise. A message is returned as well.
         """
         state, msg = self.check_destroy_permissions()
         if not state:
-            return -1
+            return -1, msg
 
         if self.publish.versions:
             self.publish.destroy()
@@ -619,7 +620,7 @@ class Work(Settings, Entity):
         # finally move the database file
         db_destination = purgatory_database_dir / Path(self.settings_file).name
         shutil.move(str(self.settings_file), str(db_destination))
-        return 1
+        return 1, "success"
 
     def check_owner_permissions(self, version_number):
         """Check the permissions for 'owner' and 'admin-only' actions.

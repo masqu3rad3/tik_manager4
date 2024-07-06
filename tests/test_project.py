@@ -731,11 +731,11 @@ class TestProject:
 
         # try to delete a work without permissions
         tik.user.set("Generic", password="1234")
-        assert target_work.destroy() == -1
+        assert target_work.destroy()[0] == -1
 
         tik.user.set("Admin", password="1234")
         # delete the work
-        assert target_work.destroy() == 1
+        assert target_work.destroy()[0] == 1
 
     def test_deleting_empty_task(self, project_manual_path, tik):
         self.test_creating_and_adding_new_tasks(project_manual_path, tik)
