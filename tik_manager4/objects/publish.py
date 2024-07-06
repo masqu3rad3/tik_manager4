@@ -315,17 +315,19 @@ class Publish(Entity):
             version_number (int): The version number.
 
         Returns:
-            int: 1 if the operation is successful, -1 otherwise.
+            tuple: (state(int), message(str)): 1 if the operation is
+                successful, -1 otherwise. A message is returned as well.
         """
         state, msg = self.check_owner_permissions(version_number)
         if not state:
             LOG.warning(msg)
-            return -1
+            return -1, msg
 
         version_obj = self.get_version(version_number)
         if not version_obj:
-            LOG.warning(f"Version {version_number} not found.")
-            return -1
+            msg = f"Version {version_number} not found."
+            LOG.warning(msg)
+            return -1, msg
         for element in version_obj.elements:
             relative_path = element["path"]
             source_abs_path = version_obj.get_abs_project_path(relative_path)
@@ -349,7 +351,7 @@ class Publish(Entity):
 
         # remove the publish version from the publish versions
         self._publish_versions.pop(version_obj.settings_file)
-        return 1
+        return 1, "success"
 
 class PublishVersion(Settings, Entity):
     """PublishVersion object class.

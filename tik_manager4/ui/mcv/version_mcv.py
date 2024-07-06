@@ -523,7 +523,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             if are_you_sure == "cancel":
                 return
 
-        self.base.delete_version(_version)
+        state, msg = self.base.delete_version(_version)
+        if state == -1:
+            self.feedback.pop_info(
+                title="Delete Error",
+                text=msg,
+                critical=True,
+            )
+            return
         # repopulate the combo box
         self.populate_versions(self.base.versions)
 
