@@ -6,6 +6,8 @@ from pathlib import Path
 import shutil
 
 from fnmatch import fnmatch
+
+import tik_manager4.objects.task
 from tik_manager4.core import filelog
 from tik_manager4.objects.metadata import Metadata
 from tik_manager4.objects.entity import Entity
@@ -332,13 +334,15 @@ class Subproject(Entity):
             task_name (str): Name of the task to delete.
 
         Returns:
-            int: 1 if successful, -1 otherwise.
+            tuple: (state(int), message(str)): 1 if the operation is
+                successful, -1 otherwise. A message is returned as well.
         """
         # first get the task
-        task = self._tasks.get(task_name, None)
+        task: tik_manager4.objects.task.Task = self._tasks.get(task_name, None)
         if not task:
-            LOG.warning("There is no task with the name => %s" % task_name)
-            return -1
+            msg = f"There is no task with the name: {task_name}"
+            LOG.warning(msg)
+            return -1, msg
 
         # check all categories are empty
         _is_empty = self.is_task_empty(task)
@@ -347,26 +351,31 @@ class Subproject(Entity):
         if state != 1:
             return -1
 
-        self._tasks.pop(task_name)
-
         # move everything to the purgatory
         if not _is_empty:
-            LOG.warning(
-                "Sending task {} and everything underneath to purgatory.".format(
-                    task_name
-                )
-            )
+            LOG.warning(f"Sending task {task_name} "
+                        f"and everything underneath to purgatory.")
 
             Path(self.get_purgatory_database_path(task.file_name)).mkdir(parents=True, exist_ok=True)
             Path(self.get_purgatory_project_path()).mkdir(parents=True, exist_ok=True)
+            _target_path = self.get_purgatory_database_path(task.file_name)
+            if Path(_target_path).exists():
+                try:
+                    shutil.rmtree(_target_path)
+                except PermissionError:
+                    msg = f"{task.file_name} folder already exists in purgatory and its read only." \
+                            f"Please delete it manually or purge the purgatory."
+                    LOG.error(msg)
+                    return -1, msg
             shutil.move(
                 self.get_abs_database_path(task.file_name),
                 self.get_purgatory_database_path(task.file_name),
             )
-            shutil.move(self.get_abs_project_path(), self.get_purgatory_project_path())
         else:  # if the task is empty, just delete the database file
             Path(task.settings_file).unlink()
-        return 1
+
+        self._tasks.pop(task_name)
+        return 1, "success"
 
     def find_tasks_by_wildcard(self, wildcard):
         """Return the tasks matching the wildcard.

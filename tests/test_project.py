@@ -759,7 +759,7 @@ class TestProject:
             tik.project.subs["Assets"]
             .subs["Characters"]
             .subs["Soldier"]
-            .delete_task("this_task_doesnt_exist")
+            .delete_task("this_task_doesnt_exist")[0]
             == -1
         )
 
@@ -769,7 +769,7 @@ class TestProject:
             tik.project.subs["Assets"]
             .subs["Characters"]
             .subs["Soldier"]
-            .delete_task("superman")
+            .delete_task("superman")[0]
             == 1
         )
 
@@ -842,6 +842,6 @@ class TestProject:
             tik.project.subs["Assets"]
             .subs["Characters"]
             .subs["Soldier"]
-            .delete_task("superboy")
+            .delete_task("superboy")[0]
             == 1
         )
