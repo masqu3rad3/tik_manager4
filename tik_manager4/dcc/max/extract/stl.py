@@ -41,6 +41,7 @@ class Stl(ExtractCore):
         # create the path if it doesn't exist
         bundle_directory.mkdir(parents=True, exist_ok=True)
 
+        _bundle_info = {}
         for mesh in bundle_meshes:
             rt.select(mesh)
             nice_name = mesh.name
@@ -52,3 +53,11 @@ class Stl(ExtractCore):
                 exportSelected=True,
                 using=rt.STL_Export,
             )  # using binary format
+            _bundle_info[file_path.stem] = {
+                "extension": ".stl",
+                "path": file_path.name,
+                "sequential": False
+            }
+
+        # explicitly set the bundle info.
+        self.bundle_info = _bundle_info

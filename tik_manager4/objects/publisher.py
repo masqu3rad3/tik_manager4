@@ -245,6 +245,7 @@ class Publisher:
                 .relative_to(self._published_object.get_abs_project_path())
                 .as_posix(),
                 "bundled": extract_object.bundled,
+                "bundle_info": extract_object.bundle_info,
             }
             self._published_object._elements.append(element)
 
