@@ -13,7 +13,6 @@ class IngestCore:
 
     nice_name: str = ""
     valid_extensions: list = []
-    bundled: bool = False
     importable: bool = True
     referencable: bool = True
 
@@ -80,12 +79,12 @@ class IngestCore:
     @ingest_path.setter
     def ingest_path(self, ingest_path):
         """Set the path for the ingest.
-        This path can be a file or a directory depending on the ingest type.
+        Starting from version 4.1.2, this can only be a file.
         """
         _path = Path(ingest_path)
-        if not _path.exists():
-            raise ValueError(f"File path does not exist: {ingest_path}")
-        if not self.bundled and _path.suffix not in self.valid_extensions:
+        if not _path.is_file():
+            raise ValueError(f"Path is not a file: {ingest_path}")
+        if _path.suffix not in self.valid_extensions:
             raise ValueError(f"File extension not valid: {_path.suffix}")
         self._file_path = ingest_path
 

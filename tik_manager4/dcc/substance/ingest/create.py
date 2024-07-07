@@ -18,7 +18,6 @@ class Create(IngestCore):
 
     nice_name = "Create Substance Project"
     valid_extensions = [".obj", ".fbx", ".dae", ".ply", ".gltf", ".glb", ".abc", ".usd", ".usda", ".usdc", ".usdz"]
-    bundled = False
     referencable = False
 
     def _bring_in_default(self):
