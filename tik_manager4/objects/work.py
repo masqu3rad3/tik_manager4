@@ -370,7 +370,7 @@ class Work(Settings, Entity):
             str: Absolute path of the converted file.
         """
 
-        compatible_videos = [".avi", ".mov", ".mp4", ".flv", ".webm", ".mkv", ".mp4"]
+        compatible_videos = [".avi", ".mov", ".mp4", ".flv", ".webm", ".mkv"]
         compatible_images = [".tga", ".jpg", ".exr", ".png", ".pic"]
 
         # get the conversion lut

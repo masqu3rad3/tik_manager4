@@ -222,6 +222,29 @@ class Dcc(MainCore):
         return camera, cmds.ls(camera, uuid=True)[0]
 
     @staticmethod
+    def _get_formats_and_codecs():
+        """Return the codecs which can be used in current workstation"""
+        format_list = cmds.playblast(query=True, format=True)
+        codecs_dict = dict(
+            (item, mel.eval('playblast -format "{0}" -q -compression;'.format(item)))
+            for item in format_list
+        )
+        return codecs_dict
+
+    @staticmethod
+    def _get_format_and_codec():
+        """Return the best format and codec for the current workstation"""
+        available_codecs = Dcc._get_formats_and_codecs()
+        favored_formats = ["qt", "avi"]
+        favored_codecs = ["H.264", "jpg", "MPEG-4 Video", "none"]
+        for format_ in favored_formats:
+            for codec in favored_codecs:
+                if codec in available_codecs[format_]:
+                    extension = "mov" if format_ == "qt" else "avi"
+                    return format_, codec, extension
+        return None, None, None
+
+    @staticmethod
     def generate_preview(name, folder, camera_code, resolution, range, settings=None):
         """
         Create a preview from the current scene
@@ -268,14 +291,12 @@ class Dcc(MainCore):
         playback_slider = mel.eval("$tmpVar=$gPlayBackSlider")
         active_sound = cmds.timeControl(playback_slider, q=True, sound=True)
 
-        if platform.system() == "Windows":
-            output_format = "avi"
-            output_codec = "none"
-            extension = "avi"
-        else:
-            output_format = "qt"
-            output_codec = "jpg"
-            extension = "mov"
+        # get the best codec for the format
+        output_format, output_codec, extension = Dcc._get_format_and_codec()
+
+        if not output_format or not output_codec:
+            LOG.error("No suitable codec found for the current workstation")
+            return None
 
         # Create pb panel and adjust it due to settings
         _camera = cmds.ls(camera_code)[0]
