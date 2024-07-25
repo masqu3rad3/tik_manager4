@@ -108,7 +108,16 @@ class Dcc(MainCore):
         # an empty string (not saved) should return False IF the scene is empty
         # not having any DAG objects in the scene doesnt necessarily mean the scene is empty
         # but we will assume that for now.
-        default_dag_nodes = ['persp', 'perspShape', 'top', 'topShape', 'front', 'frontShape', 'side', 'sideShape']
+        default_dag_nodes = [
+            "persp",
+            "perspShape",
+            "top",
+            "topShape",
+            "front",
+            "frontShape",
+            "side",
+            "sideShape",
+        ]
         if cmds.ls(dag=True) == default_dag_nodes:
             return False
         return cmds.file(query=True, modified=True)
@@ -133,8 +142,8 @@ class Dcc(MainCore):
         # a file open and it's named after the untitledFileName we should still
         # be able to return the path.
         if (
-                file_name.startswith(untitled_file_name)
-                and cmds.file(q=1, sceneName=1) == ""
+            file_name.startswith(untitled_file_name)
+            and cmds.file(q=1, sceneName=1) == ""
         ):
             return ""
         return path
@@ -270,6 +279,11 @@ class Dcc(MainCore):
 
         # Create pb panel and adjust it due to settings
         _camera = cmds.ls(camera_code)[0]
+        # we need to make sure that we are getting the transform of the camera
+        # not the shape node. This is for a workaround for the panel manager.
+        if cmds.objectType(_camera) == "camera":
+            _camera = cmds.listRelatives(_camera, parent=True, type="transform")[0]
+
         pb_panel = panels.PanelManager(_camera, resolution, inherit=True)
 
         if not settings.get("ViewportAsItIs"):

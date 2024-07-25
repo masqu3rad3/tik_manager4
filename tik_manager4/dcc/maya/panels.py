@@ -34,7 +34,6 @@ class PanelManager(object):
         self._camera = camera
         self._activePanel = cmds.getPanel(wf=True)
         self._currentPanels = self.get_camera_panels(self._camera)
-        print("currentPANELS", self._currentPanels)
         self._window, self._panel = self.tear_off_panel(camera=camera, resolution=resolution)
 
         # camera related variables
@@ -366,7 +365,7 @@ class PanelManager(object):
 
         ## Compensate the menu bar for height:
         resolution = [resolution[0], resolution[1]+40]
-        tempWindow = cmds.window(title="RBL_Playblast", widthHeight=(resolution[0], resolution[1]), tlc=(0, 0), tb=True, menuBarVisible=False)
+        tempWindow = cmds.window(title="Tik_Manager_PB", widthHeight=(resolution[0], resolution[1]), tlc=(0, 0), tb=True, menuBarVisible=False)
         cmds.paneLayout()
         pb_panel = cmds.modelPanel(camera=camera)
 
