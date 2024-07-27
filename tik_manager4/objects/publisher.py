@@ -246,6 +246,7 @@ class Publisher:
                 .as_posix(),
                 "bundled": extract_object.bundled,
                 "bundle_info": extract_object.bundle_info,
+                "bundle_match_id": extract_object.bundle_match_id,
             }
             self._published_object._elements.append(element)
 

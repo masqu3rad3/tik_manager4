@@ -15,6 +15,12 @@ class IngestCore:
     valid_extensions: list = []
     importable: bool = True
     referencable: bool = True
+    bundle: bool = False  # if the ingest is a bundle
+    # if bundle is True, this will ONLY ingest bundles, not individual files.
+    # bundle ingestors must treat the ingest_path as a folder
+    bundle_match_id = 0
+    # bundle_match_id is the id of the bundle to identify the matching extractors.
+    # any extractor with the same bundle_match_id will be able to ingested with this ingestor.
 
     def __init__(self):
         self.name = str(Path(__file__).stem)

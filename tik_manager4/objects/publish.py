@@ -505,6 +505,20 @@ class PublishVersion(Settings, Entity):
         self._promoted_object.set_data(_data)
         self._promoted_object.apply_settings()
 
+    def get_element_by_type(self, element_type):
+        """Return the element by the given type.
+
+        Args:
+            element_type (str): The type of the element.
+
+        Returns:
+            dict: The element or None if not found.
+        """
+        for element in self.elements:
+            if element["type"] == element_type:
+                return element
+        return None
+
     def get_element_path(self, element_type, relative=True):
         """Return the element path of the given element type.
 

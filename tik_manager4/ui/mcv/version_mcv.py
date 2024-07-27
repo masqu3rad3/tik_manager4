@@ -1,9 +1,11 @@
 """UI Layout for work and publish objects."""
+
 from pathlib import Path
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.common import TikButton, VerticalSeparator
+from tik_manager4.ui.dialog.bunde_ingest_dialog import BundleIngestDialog
 from tik_manager4.core import filelog
 from tik_manager4.ui import pick
 
@@ -12,7 +14,9 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class TikVersionLayout(QtWidgets.QVBoxLayout):
     """Layout for versioning work and publish objects."""
+
     element_view_event = QtCore.Signal(str, str)
+
     def __init__(self, project_object, *args, **kwargs):
         """Initialize the TikVersionLayout."""
         super().__init__()
@@ -98,9 +102,12 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         # # buttons
         self.btn_layout = QtWidgets.QHBoxLayout()
         self.import_btn = TikButton("Import")
+        self.bundle_ingest_btn = TikButton("Bundle Ingest")
+        self.bundle_ingest_btn.setVisible(False)
         self.load_btn = TikButton("Load")
         self.reference_btn = TikButton("Reference")
         self.btn_layout.addWidget(self.import_btn)
+        self.btn_layout.addWidget(self.bundle_ingest_btn)
         self.btn_layout.addWidget(self.load_btn)
         self.btn_layout.addWidget(self.reference_btn)
         self.addLayout(self.btn_layout)
@@ -108,8 +115,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.load_btn.setEnabled(False)
         self.reference_btn.setEnabled(False)
 
-        self.ingest_mapping = {} # mapping of ingestor nice name to ingestor name
-        self.element_mapping = {} # mapping of element type nice name to element type name
+        self.ingest_mapping = {}  # mapping of ingestor nice name to ingestor name
+        self.element_mapping = (
+            {}
+        )  # mapping of element type nice name to element type name
 
         # SIGNALS
         self.element_combo.currentTextChanged.connect(self.element_type_changed)
@@ -117,13 +126,18 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.import_btn.clicked.connect(self.on_import)
         self.load_btn.clicked.connect(self.on_load)
         self.reference_btn.clicked.connect(self.on_reference)
+        self.bundle_ingest_btn.clicked.connect(self.on_bundle_ingest)
 
         self.version_combo.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.version_combo.customContextMenuRequested.connect(self.version_right_click_menu)
+        self.version_combo.customContextMenuRequested.connect(
+            self.version_right_click_menu
+        )
 
         self.thumbnail.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # self.thumbnail.customContextMenuRequested.connect(self.on_thumbnail_menu_request)
-        self.thumbnail.customContextMenuRequested.connect(self.thumbnail_right_click_menu)
+        self.thumbnail.customContextMenuRequested.connect(
+            self.thumbnail_right_click_menu
+        )
         self.element_view_btn.clicked.connect(self.on_element_view_event)
 
     def on_import(self):
@@ -148,7 +162,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         if not element_type:
             return
         _version = self.get_selected_version()
-        _element = self.base.get_version(_version).get_element_path(element_type, relative=False)
+        _element = self.base.get_version(_version).get_element_path(
+            element_type, relative=False
+        )
         if not _element:
             return
         # print(_element)
@@ -166,7 +182,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 if element_type != "source" or ingestor != "source":
                     return True
 
-
         if work_obj.dcc.lower() != work_obj.guard.dcc.lower():
             self.feedback.pop_info(
                 title="DCC mismatch",
@@ -182,7 +197,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 f"Current DCC version: {dcc_version_mismatch[1]}\n"
                 f"Defined DCC version: {dcc_version_mismatch[0]}\n\n"
                 "Do you want to continue loading?",
-                buttons=["continue", "cancel"]
+                buttons=["continue", "cancel"],
             )
             if question == "cancel":
                 return False
@@ -199,7 +214,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             return
 
         element_type = self.get_selected_element_type()
-        # ingestor = self.get_selected_ingestor()
 
         if self.base.object_type == "publish":
             work_obj = self.base.work_object
@@ -257,7 +271,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 else:
                     read_only = True
 
-        self.base.load_version(_version, force=True, element_type=element_type, read_only=read_only)
+        self.base.load_version(
+            _version, force=True, element_type=element_type, read_only=read_only
+        )
 
     def on_reference(self):
         """Reference the current version."""
@@ -284,6 +300,17 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.base.reference_version(
             _version, element_type=_element_type, ingestor=_ingestor
         )
+
+    def on_bundle_ingest(self):
+        """Launch the bundle ingest dialog."""
+
+        # testing
+        _version = self.get_selected_version()
+        publish_version = self.base.get_version(_version)
+        element_type = self.get_selected_element_type()
+
+        dialog = BundleIngestDialog(publish_version, element_type, parent=self.parent)
+        dialog.show()
 
     def __load_btn_state(self, base, element_type):
         """Resolve the load button state."""
@@ -328,6 +355,16 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.reference_btn.setEnabled(False)
             return
         _element_type = self.get_selected_element_type()
+        _is_bundled = self.__is_element_bundled(_element_type)
+        if _is_bundled:
+            self.bundle_ingest_btn.setVisible(True)
+            self.import_btn.setVisible(False)
+            self.ingest_with_combo.setEnabled(False)
+            return
+        else:
+            self.bundle_ingest_btn.setVisible(False)
+            self.import_btn.setVisible(True)
+            self.ingest_with_combo.setEnabled(True)
         self.__load_btn_state(base, _element_type)
         # self.__import_and_reference_btn_states(base, _element_type)
         self.__import_and_reference_btn_states()
@@ -369,7 +406,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         available_ingests = []
         for ingest_name, fn in all_ingests.items():
             if version_extension in fn.valid_extensions:
-                # available_ingests.append(ingest_name)
                 self.ingest_mapping[fn.nice_name] = ingest_name
                 available_ingests.append(fn.nice_name)
         return available_ingests
@@ -420,6 +456,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.thumbnail.set_media(_thumbnail_path)
         self.element_combo.blockSignals(False)
         self.ingest_with_combo.blockSignals(False)
+
+    def __is_element_bundled(self, element_type):
+        """Check if the element type is bundled."""
+        if not self.base or not element_type:
+            return False
+        _version = self.get_selected_version()
+        return self.base.get_version(_version).is_element_bundled(element_type)
 
     def __get_element_suffix(self, element_type):
         """Find the extension for the given element type of selected version."""
@@ -503,11 +546,11 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             are_you_sure = self.feedback.pop_question(
                 title="Delete Work Version",
                 text="You are about to delete a work version:\n\n"
-                     f"{_name}\n\n"
-                     "This action cannot be undone.\n"
-                     "Do you want to continue?",
-                buttons=["yes", "cancel"]
-                )
+                f"{_name}\n\n"
+                "This action cannot be undone.\n"
+                "Do you want to continue?",
+                buttons=["yes", "cancel"],
+            )
             if are_you_sure == "cancel":
                 return
         elif self.base.object_type == "publish":
@@ -515,11 +558,11 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             are_you_sure = self.feedback.pop_question(
                 title="Delete Publish Version",
                 text="You are about to delete a PUBLISH version:\n\n"
-                     f"{_name}\n\n"
-                     "This action cannot be undone.\n"
-                     "Do you want to continue?",
-                buttons=["yes", "cancel"]
-                )
+                f"{_name}\n\n"
+                "This action cannot be undone.\n"
+                "Do you want to continue?",
+                buttons=["yes", "cancel"],
+            )
             if are_you_sure == "cancel":
                 return
 
@@ -563,7 +606,12 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             file_path = None
         else:
             # get the project directory
-            file_path = QtWidgets.QFileDialog.getOpenFileName(self.parent, 'Open file', self.project.get_abs_project_path(), "Image files (*.jpg *.png *.gif *.webp)")[0]
+            file_path = QtWidgets.QFileDialog.getOpenFileName(
+                self.parent,
+                "Open file",
+                self.project.get_abs_project_path(),
+                "Image files (*.jpg *.png *.gif *.webp)",
+            )[0]
 
         self.base.replace_thumbnail(version, new_thumbnail_path=file_path)
         self.refresh()
@@ -580,19 +628,25 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         right_click_menu = QtWidgets.QMenu()
         right_click_menu.setStyleSheet(self.parent.styleSheet())
 
-        replace_with_view_action = QtWidgets.QAction(self.tr("Replace with current view"), self)
+        replace_with_view_action = QtWidgets.QAction(
+            self.tr("Replace with current view"), self
+        )
         right_click_menu.addAction(replace_with_view_action)
         replace_with_file_action = QtWidgets.QAction("Replace with external file", self)
         right_click_menu.addAction(replace_with_file_action)
-        replace_with_view_action.triggered.connect(lambda: self.on_replace_thumbnail(mode="view"))
-        replace_with_file_action.triggered.connect(lambda: self.on_replace_thumbnail(mode="file"))
+        replace_with_view_action.triggered.connect(
+            lambda: self.on_replace_thumbnail(mode="view")
+        )
+        replace_with_file_action.triggered.connect(
+            lambda: self.on_replace_thumbnail(mode="file")
+        )
 
         right_click_menu.exec_((QtGui.QCursor.pos()))
 
     def version_right_click_menu(self, position):
         """Right click menu for the version dropdown."""
 
-        _ = position # stop the linter complaining
+        _ = position  # stop the linter complaining
         right_click_menu = QtWidgets.QMenu()
         right_click_menu.setStyleSheet(self.parent.styleSheet())  # Add this line
 
@@ -605,9 +659,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             publish_snapshot_act = right_click_menu.addAction(
                 self.tr("Publish Snapshot")
             )
-            publish_snapshot_act.triggered.connect(
-                self.publish_snapshot
-            )
+            publish_snapshot_act.triggered.connect(self.publish_snapshot)
 
         right_click_menu.exec_((QtGui.QCursor.pos()))
 
@@ -628,6 +680,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 text=f"Snapshot published.\nName: {published_object.name}\nPath: {published_object.path}",
                 critical=False,
             )
+
+
 class ImageWidget(QtWidgets.QLabel):
     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
 

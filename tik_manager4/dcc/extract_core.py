@@ -21,6 +21,9 @@ class ExtractCore:
     # global_exposed_settings: dict = {}
     optional: bool = False
     bundled: bool = False
+    bundle_match_id = 0
+    # bundle_match_id is the id of the bundle to identify the matching ingestors.
+    # any ingestor with the same bundle_match_id will be able to ingest this bundle.
 
     def __init__(self, exposed_settings=None, global_exposed_settings=None):
         # get the module name as name
@@ -236,5 +239,5 @@ class ExtractCore:
             self._bundle_info[seq.basename()] = {
                 "extension": seq.extension(), # e.g ".txt"
                 "path": seq.format(), # e.g "file.txt" or "color.1009,1019.exr"
-                "sequential": bool(seq.frameRange()) # e.g True or False
+                "sequential": bool(seq.frameRange()), # e.g True or False
             }
