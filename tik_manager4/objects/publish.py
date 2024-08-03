@@ -136,7 +136,9 @@ class Publish(Entity):
                 return version
         return None
 
-    def load_version(self, version_number, force=False, element_type="source", read_only=False):
+    def load_version(
+        self, version_number, force=False, element_type="source", read_only=False
+    ):
         """Load the publish version.
 
         Args:
@@ -165,11 +167,18 @@ class Publish(Entity):
                 suffix = Path(abs_path).suffix
                 self._dcc_handler.open(abs_path, force=force)
                 if not read_only:
-                    self.work_object.new_version(notes=f"Auto Saved from publish version {version_obj.version}", file_format=suffix)
+                    self.work_object.new_version(
+                        notes=f"Auto Saved from publish version {version_obj.version}",
+                        file_format=suffix,
+                    )
             else:
-                raise ValueError(f"{element_type} element is not found in the publish version.")
+                raise ValueError(
+                    f"{element_type} element is not found in the publish version."
+                )
 
-    def import_version(self, version_number, element_type=None, ingestor=None):
+    def import_version(
+        self, version_number, element_type=None, ingestor=None, sequential=False
+    ):
         """Import the given version of the work to the scene.
 
         Args:
@@ -193,16 +202,18 @@ class Publish(Entity):
             if not _func:
                 raise ValueError(f"Element type not supported: {element_type}")
             _import_obj = _func()
-            _import_obj.metadata = self.work_object.get_metadata(self.work_object.parent_task)
+            _import_obj.sequential = sequential
+            _import_obj.metadata = self.work_object.get_metadata(
+                self.work_object.parent_task
+            )
             _import_obj.category = self.work_object.category
-            _import_obj.ingest_path = abs_path # This path can be a folder if its a bundled type.
+            _import_obj.ingest_path = (
+                abs_path  # This path can be a folder if its a bundled type.
+            )
             _import_obj.bring_in()
 
     def reference_version(
-            self,
-            version_number,
-            element_type=None,
-            ingestor=None
+        self, version_number, element_type=None, ingestor=None, sequential=False
     ):
         """Reference the given version of the work to the scene.
 
@@ -227,9 +238,55 @@ class Publish(Entity):
             if not _func:
                 raise ValueError(f"Element type not supported: {element_type}")
             _import_obj = _func()
+            _import_obj.sequential = sequential
             _import_obj.category = self.work_object.category
             _import_obj.ingest_path = abs_path
             _import_obj.reference()
+
+    def import_bundle_piece(
+        self,
+        version_number,
+        element_type,
+        bundle_piece,
+        ingestor_name,
+        sequential=False,
+    ):
+        """Import the bundled piece of the publish to the scene.
+
+        This is a publish specific method.
+
+        Args:
+            version_number (int): The version number.
+            element_type (str): The element type to import.
+            ingestor (str, optional): The ingestor to use. Defaults to None.
+
+        Raises:
+            ValueError: If the element type is not given or not supported.
+        """
+        version_obj = self.get_version(version_number)
+        if not version_obj:
+            raise ValueError(f"Version {version_number} not found.")
+        element = version_obj.get_element_by_type(element_type)
+        if not element:
+            raise ValueError(f"Element type not found: {element_type}")
+        if not element.get("bundled"):
+            raise ValueError(f"Element type is not bundled: {element_type}")
+        bundle_piece = element["bundle_info"].get(bundle_piece)
+        if not bundle_piece:
+            raise ValueError(f"Bundle piece not found: {bundle_piece}")
+        abs_path = self.get_abs_project_path(element["path"], bundle_piece["path"])
+        _func = self._dcc_handler.ingests.get(ingestor_name, None)
+        if not _func:
+            raise ValueError(f"{ingestor_name} is not a valid ingestor.")
+
+        _import_obj = _func()
+        _import_obj.sequential = sequential
+        _import_obj.metadata = self.work_object.get_metadata(
+            self.work_object.parent_task
+        )
+        _import_obj.category = self.work_object.category
+        _import_obj.ingest_path = abs_path
+        _import_obj.bring_in()
 
     def check_destroy_permissions(self):
         """Shortcut and wrapper for the check_permissions method.
@@ -257,10 +314,7 @@ class Publish(Entity):
             return -1, msg
 
         # move the whole publish folder to purgatory
-        _purgatory_path = Path(
-            self.work_object.get_purgatory_project_path(),
-            "publish"
-        )
+        _purgatory_path = Path(self.work_object.get_purgatory_project_path(), "publish")
         _purgatory_path.mkdir(parents=True, exist_ok=True)
         _work_folder = _purgatory_path / self.work_object.name
         if _work_folder.exists():
@@ -273,19 +327,18 @@ class Publish(Entity):
         shutil.move(
             self.get_publish_project_folder(),
             str(_purgatory_path / self.work_object.name),
-            copy_function=shutil.copytree
+            copy_function=shutil.copytree,
         )
 
         # move the database files to purgatory
         _purgatory_db_path = Path(
-            self.work_object.get_purgatory_database_path(),
-            "publish"
+            self.work_object.get_purgatory_database_path(), "publish"
         )
         _purgatory_db_path.mkdir(parents=True, exist_ok=True)
         shutil.move(
             self.get_publish_data_folder(),
             str(_purgatory_db_path / self.work_object.name),
-            copy_function=shutil.copytree
+            copy_function=shutil.copytree,
         )
 
         # clear the publish versions
@@ -338,20 +391,33 @@ class Publish(Entity):
         # move the thumbnail to purgatory
         thumbnail_relative_path = version_obj.get("thumbnail", None)
         if thumbnail_relative_path:
-            thumbnail_abs_path = version_obj.get_abs_database_path(thumbnail_relative_path)
-            thumbnail_dest_abs_path = version_obj.get_purgatory_database_path(thumbnail_relative_path)
+            thumbnail_abs_path = version_obj.get_abs_database_path(
+                thumbnail_relative_path
+            )
+            thumbnail_dest_abs_path = version_obj.get_purgatory_database_path(
+                thumbnail_relative_path
+            )
             Path(thumbnail_dest_abs_path).parent.mkdir(parents=True, exist_ok=True)
-            shutil.move(thumbnail_abs_path, thumbnail_dest_abs_path, copy_function=shutil.copytree)
+            shutil.move(
+                thumbnail_abs_path,
+                thumbnail_dest_abs_path,
+                copy_function=shutil.copytree,
+            )
 
         # move the database file to purgatory
         _file_name = Path(version_obj.settings_file).name
-        dest_abs_file_path = version_obj.get_purgatory_database_path(version_obj.name, _file_name)
+        dest_abs_file_path = version_obj.get_purgatory_database_path(
+            version_obj.name, _file_name
+        )
         Path(dest_abs_file_path).parent.mkdir(parents=True, exist_ok=True)
-        shutil.move(version_obj.settings_file, dest_abs_file_path, copy_function=shutil.copytree)
+        shutil.move(
+            version_obj.settings_file, dest_abs_file_path, copy_function=shutil.copytree
+        )
 
         # remove the publish version from the publish versions
         self._publish_versions.pop(version_obj.settings_file)
         return 1, "success"
+
 
 class PublishVersion(Settings, Entity):
     """PublishVersion object class.
@@ -483,8 +549,10 @@ class PublishVersion(Settings, Entity):
         Element mapping is a dictionary where each key is the element name and
         the value is the element type.
         """
-        return {element.get("name", element["type"]):
-                    element["type"] for element in self.elements}
+        return {
+            element.get("name", element["type"]): element["type"]
+            for element in self.elements
+        }
 
     def is_promoted(self):
         """Return if the publish is promoted or not.
@@ -532,8 +600,11 @@ class PublishVersion(Settings, Entity):
         """
         for element in self.elements:
             if element["type"] == element_type:
-                path = element["path"] if relative else (
-                    self.get_abs_project_path(element["path"]))
+                path = (
+                    element["path"]
+                    if relative
+                    else (self.get_abs_project_path(element["path"]))
+                )
                 return path
         return None
 

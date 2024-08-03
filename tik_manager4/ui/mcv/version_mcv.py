@@ -305,11 +305,11 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         """Launch the bundle ingest dialog."""
 
         # testing
-        _version = self.get_selected_version()
-        publish_version = self.base.get_version(_version)
+        publish_version = self.get_selected_version()
+        # publish_version = self.base.get_version(_version)
         element_type = self.get_selected_element_type()
 
-        dialog = BundleIngestDialog(publish_version, element_type, parent=self.parent)
+        dialog = BundleIngestDialog(self.base, publish_version, element_type, parent=self.parent)
         dialog.show()
 
     def __load_btn_state(self, base, element_type):

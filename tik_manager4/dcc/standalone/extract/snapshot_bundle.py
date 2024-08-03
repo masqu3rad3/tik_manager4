@@ -3,11 +3,12 @@ import shutil
 
 from tik_manager4.dcc.extract_core import ExtractCore
 
-class Snapshot(ExtractCore):
+class SnapshotBundle(ExtractCore):
     """Snapshot the work file"""
 
-    nice_name = "Snapshot"
+    nice_name = "Snapshot Bundle"
     color = (255, 255, 255)
+    bundled = True
 
     def __init__(self):
         super().__init__()
@@ -24,5 +25,5 @@ class Snapshot(ExtractCore):
     def _extract_default(self):
         """Extract method for any non-specified category"""
         _file_path = self.resolve_output()
-        shutil.copyfile(self._source_path, _file_path)
+        shutil.copytree(self._source_path, _file_path)
         return _file_path

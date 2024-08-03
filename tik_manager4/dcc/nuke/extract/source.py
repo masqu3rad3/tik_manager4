@@ -21,6 +21,7 @@ class Source(ExtractCore):
     def _extract_default(self):
         """Extract method for any non-specified category"""
         _file_path = self.resolve_output()
-        self.extension = Path(_file_path).suffix
+        # get the extension from the current nuke script.
+        self.extension = Path(nuke.root().name()).suffix
         _file_path = Path(_file_path).with_suffix(self.extension)
-        nuke.scriptSave(str(_file_path))
+        nuke.scriptSave(_file_path.as_posix())

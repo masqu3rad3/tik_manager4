@@ -18,6 +18,7 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class Publisher:
     """Publisher class to handle the publish process."""
+
     guard = Guard()
 
     def __init__(self, project_object):
@@ -89,7 +90,9 @@ class Publisher:
         category_extracts = [x.lower() for x in extracts]
         for extract in list(self._dcc_handler.extracts.keys()):
             if extract.lower() in category_extracts:
-                self._resolved_extractors[extract] = self._dcc_handler.extracts[extract]()
+                self._resolved_extractors[extract] = self._dcc_handler.extracts[
+                    extract
+                ]()
                 # define the category
                 self._resolved_extractors[extract].category = self._work_object.category
                 self._resolved_extractors[extract].metadata = self._metadata
@@ -185,7 +188,7 @@ class Publisher:
         for _file in file_list:
             try:
                 _file.chmod(0o444)
-            except Exception as e: # pylint: disable=broad-except
+            except Exception as e:  # pylint: disable=broad-except
                 LOG.warning(f"File protection failed: {_file}")
 
     def extract_single(self, extract_object):
@@ -233,9 +236,11 @@ class Publisher:
 
         # collect the extracted elements information and add to the publish object
         for _extract_type_name, extract_object in self._resolved_extractors.items():
-            if (extract_object.state == "failed" or
-                    extract_object.state == "unavailable" or
-                    not extract_object.enabled):
+            if (
+                extract_object.state == "failed"
+                or extract_object.state == "unavailable"
+                or not extract_object.enabled
+            ):
                 continue
             element = {
                 "name": extract_object.nice_name,
@@ -343,12 +348,14 @@ class Publisher:
             )
         return None
 
+
 class SnapshotPublisher(Publisher):
     """Separate publisher to handle arbitrary file and folder publishing.
 
     Handles automatically creating a new work version if the current work is
     not there.
     """
+
     def __init__(self, *args):
         """Initialize the SnapshotPublisher object."""
         super(SnapshotPublisher, self).__init__(args)
@@ -391,18 +398,22 @@ class SnapshotPublisher(Publisher):
             str: The resolved publish file name.
         """
 
-        snapshot_extractor = self._dcc_handler.extracts["snapshot"]()
-        snapshot_extractor.category = self._work_object.category  # define the category
-
         version_dictionary = self._work_object.get_version(self._work_version)
         relative_path = version_dictionary.get("scene_path")
         abs_path = self._work_object.get_abs_project_path(relative_path)
+
+        # get either the snapshot or snapshot_bundle depending if its a folder or file
+        if Path(abs_path).is_dir():
+            snapshot_extractor = self._dcc_handler.extracts["snapshot_bundle"]()
+        else:
+            snapshot_extractor = self._dcc_handler.extracts["snapshot"]()
+        snapshot_extractor.category = self._work_object.category  # define the category
+
         snapshot_extractor.source_path = abs_path
         snapshot_extractor.extension = Path(abs_path).suffix
 
         self._resolved_extractors = {"snapshot": snapshot_extractor}
         self._resolved_validators = {}
-
 
         latest_publish_version = self._work_object.publish.get_last_version()
 
@@ -425,8 +436,10 @@ class SnapshotPublisher(Publisher):
             "thumbnails", thumbnail_name
         )
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
-        extension = self._resolved_extractors["snapshot"].extension or "Folder"
-        self._dcc_handler.text_to_image(extension, thumbnail_path, 220, 124, color="cyan")
+        extension = self._resolved_extractors["snapshot"].extension or "Bundle"
+        self._dcc_handler.text_to_image(
+            extension, thumbnail_path, 220, 124, color="cyan"
+        )
         self._published_object.add_property(
             "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
         )

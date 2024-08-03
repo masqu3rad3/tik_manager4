@@ -4,6 +4,7 @@ import importlib
 from pathlib import Path
 from tik_manager4.core import filelog
 from tik_manager4.objects.metadata import Metadata
+from tik_manager4.external.fileseq import filesequence as fileseq
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -31,6 +32,7 @@ class IngestCore:
         self._metadata: Metadata
         self.category_functions: dict = {}
         self.category_reference_functions: dict = {}
+        self.sequential: bool = False
 
     def __init_subclass__(cls, **kwargs):
         # Get the base name of the file without the extension using pathlib
@@ -87,7 +89,11 @@ class IngestCore:
         """Set the path for the ingest.
         Starting from version 4.1.2, this can only be a file.
         """
-        _path = Path(ingest_path)
+        if self.sequential:
+            seq = fileseq.FileSequence(ingest_path)
+            _path = Path(seq.index(0)) # validate the first frame
+        else:
+            _path = Path(ingest_path)
         if not _path.is_file():
             raise ValueError(f"Path is not a file: {ingest_path}")
         if _path.suffix not in self.valid_extensions:

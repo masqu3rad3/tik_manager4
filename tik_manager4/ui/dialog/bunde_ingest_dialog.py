@@ -28,10 +28,12 @@ class BundleIngestWidgets:
 class BundleIngestDialog(QtWidgets.QDialog):
     """Ingest Bundles."""
 
-    def __init__(self, publish_version_obj, element_type, parent=None):
+    def __init__(self, publish_obj, publish_version, element_type, parent=None):
         """Initialize."""
         super().__init__(parent=parent)
-        self.publish_version_obj = publish_version_obj
+        self._publish_version = publish_version # integer
+        self.publish_obj = publish_obj
+        self.publish_version_obj = self.publish_obj.get_version(publish_version)
         self.element_type = element_type
         self.setWindowTitle("Ingest Bundled Elements")
         self.feedback = Feedback(parent=self)
@@ -90,7 +92,7 @@ class BundleIngestDialog(QtWidgets.QDialog):
         radio_button_sub_layout.addStretch()
 
         bundle_match_id = element.get("bundle_match_id", 0)
-        all_ingests = self.publish_version_obj._dcc_handler.ingests
+        all_ingests = self.publish_obj._dcc_handler.ingests
         available_bundle_ingestors = self._resolve_available_ingests(
             bundle_match_id
         )
@@ -150,7 +152,7 @@ class BundleIngestDialog(QtWidgets.QDialog):
         self.ingest_mapping = {}
         # go through all the ingests and check if the version extension is supported
         available_bundle_ingestors = []
-        for ingestor in self.publish_version_obj._dcc_handler.ingests.values():
+        for ingestor in self.publish_obj._dcc_handler.ingests.values():
             if ingestor.bundle and ingestor.bundle_match_id == bundle_match_id:
                 self.ingest_mapping[ingestor.nice_name] = ingestor
                 available_bundle_ingestors.append(ingestor)
@@ -186,7 +188,17 @@ class BundleIngestDialog(QtWidgets.QDialog):
                     ingestor = row.active_ingestor()
                     # print("ingestor_key", ingestor_key)
                     # ingestor = self.publish_version_obj._dcc_handler.ingests[ingestor_key]
-                    print("ingestor", ingestor)
+                    # TODO: ingest the individual pieces
+                    # self.publish_obj.
+                    if row.get_active_action() == "Import":
+                        self.publish_obj.import_bundle_piece(
+                            self._publish_version,
+                            self.element_type,
+                            row.name,
+                            ingestor.name,
+                            sequential=row.bundle_info.get("sequential", False),
+                        )
+                    # print("ingestor", ingestor)
         self.feedback.pop_info(title="Success", text="Elements ingested successfully.")
         super().accept()
 
@@ -221,11 +233,18 @@ class BundlePieceRow(QtWidgets.QFrame):
         self.setFrameShape(QtWidgets.QFrame.StyledPanel)
 
     def is_active(self):
-        """Check if the row is active."""
-        return self._checkbox.isChecked()
+        """Check if the row is active and enabled."""
+        return self._checkbox.isChecked() and self.isEnabled()
+
+    def get_active_action(self):
+        """Return the active action."""
+        return self._action_dropdown.currentText()
 
     def active_ingestor(self):
         """Return the active ingestor."""
+        key = self._ingestor_dropdown.currentText()
+        if not key:
+            return None
         return self.ingest_mapping[self._ingestor_dropdown.currentText()]
 
     def populate(self):
@@ -265,9 +284,12 @@ class BundlePieceRow(QtWidgets.QFrame):
 
     def update_actions(self):
         """Update the actions dropbox based on the ingestor."""
+        self._action_dropdown.clear()
+        key = self._ingestor_dropdown.currentText()
+        if not key:
+            return
         ingestor = self.ingest_mapping[self._ingestor_dropdown.currentText()]
         available_actions = self._resolve_available_actions(ingestor)
-        self._action_dropdown.clear()
         self._action_dropdown.addItems(available_actions)
 
     def _resolve_available_actions(self, ingestor):
