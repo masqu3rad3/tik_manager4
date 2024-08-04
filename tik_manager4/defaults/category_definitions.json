@@ -22,7 +22,7 @@
   "Animation": {
         "type": "shot",
         "validations": ["forbidden_nodes", "turtle"],
-        "extracts": ["source", "alembic"]
+        "extracts": ["source", "alembic", "preview"]
     },
   "Layout": {
         "type": "shot",
@@ -42,7 +42,7 @@
   "Comp": {
         "type": "shot",
         "validations": [],
-        "extracts": ["source"]
+        "extracts": ["source", "render"]
     },
   "Temp": {
         "type": "",
