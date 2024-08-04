@@ -21,6 +21,11 @@ class Preview(ExtractCore):
         _ranges = utils.get_ranges()
         # these are the exposed settings in the UI
         global_exposed_settings = {
+            "cameras": {
+                "display_name": "Cameras",
+                "type": "list",
+                "value": self.collect(),
+            },
             "start_frame": {
                 "display_name": "Start Frame",
                 "type": "integer",
@@ -59,14 +64,18 @@ class Preview(ExtractCore):
             cmds.listRelatives(cam, parent=True, fullPath=True)[0]
             for cam in all_camera_shapes
         ]
+        # exclude the default cameras
+        _exclude_cameras = ["front", "persp", "side", "top"]
+        exclude_dag_list = [cmds.ls(x, type="transform", long=True)[0] for x in _exclude_cameras]
         preview_cameras = [
-            cam for cam in all_camera_transforms if cam.endswith("_previewCam")
+            # cam for cam in all_camera_transforms if cam.endswith("_previewCam")
+            cam for cam in all_camera_transforms if cam not in exclude_dag_list
         ]
         return preview_cameras
 
     def _extract_default(self):
         """Extract playblasts from Maya scene."""
-        cameras = self.collect()
+        cameras = self.global_settings.get("cameras")
         _bundle_info = {}
         if not cameras:
             self.bundle_info = {}

@@ -326,7 +326,7 @@ class Publish(Entity):
                 return -1, msg
         shutil.move(
             self.get_publish_project_folder(),
-            str(_purgatory_path / self.work_object.name),
+            (_purgatory_path / self.work_object.name).as_posix(),
             copy_function=shutil.copytree,
         )
 
