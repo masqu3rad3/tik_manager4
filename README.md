@@ -1,7 +1,6 @@
 
 [![Documentation Status](https://readthedocs.org/projects/tik-manager4/badge/?version=latest)](https://tik-manager4.readthedocs.io/en/latest/?badge=latest) [![Build status](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-linux.yml/badge.svg)](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-linux.yml) [![Build status](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-macos.yml/badge.svg)](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-macos.yml) [![Build status](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-windows.yml/badge.svg)](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-windows.yml) [![Build status](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-maya.yml/badge.svg)](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-maya.yml)
 
-# <img src="docs/_static/tik.png" width="30%" height="30%" title="Fileseq" alt="Fileseq">
 
 ------------------------------------------------------------------------------------
 

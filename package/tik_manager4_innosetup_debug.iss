@@ -10,8 +10,7 @@ DefaultGroupName=Tik Works
 UninstallDisplayIcon={app}\MyProg.exe
 Compression=lzma2
 SolidCompression=yes
-OutputBaseFilename=TikManager4_v{#appVersion}
-SetupIconFile=..\tik_manager4\ui\theme\rc\tik_main.ico
+OutputBaseFilename=TikManager4_v{#appVersion}_DEBUG
 WizardStyle=modern
 OutputDir=".\build"
 

@@ -23,6 +23,8 @@ IF "%1"=="" (
 REM Execute commands based on the argument
 IF "%ARG%"=="release" (
     python release_package.py
+) ELSE IF "%ARG%"=="debug" (
+    python release_package.py --debug
 ) ELSE IF "%ARG%"=="clean" (
     REM Remove the build folder
     rmdir /s /q build
@@ -30,9 +32,10 @@ IF "%ARG%"=="release" (
     REM Display help message
     echo Available commands:
     echo - release: Create the executable file
+    echo - debug: Create the executables with debug specs
     echo - clean: Remove the build folder
     echo - help: Display this help message
 ) ELSE (
     REM Invalid argument, display error message
-    echo Invalid argument. Use 'release', 'clean', or 'help'.
+    echo Invalid argument. Use 'release', 'debug', 'clean', or 'help'.
 )

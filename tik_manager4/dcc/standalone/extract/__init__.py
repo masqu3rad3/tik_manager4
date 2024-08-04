@@ -9,8 +9,10 @@ classes = {}
 _FROZEN = getattr(sys, 'frozen', False)
 if _FROZEN:
     from tik_manager4.dcc.standalone.extract import snapshot
+    from tik_manager4.dcc.standalone.extract import snapshot_bundle
     classes = {
         snapshot.Snapshot.name: snapshot.Snapshot,
+        snapshot_bundle.SnapshotBundle.name: snapshot_bundle.SnapshotBundle
     }
 
 else:
