@@ -304,6 +304,7 @@ In some cases, we may want to create a bundle of files instead of a single file.
         color = (0, 0, 255)
         optional = True
         bundled = True
+        bundle_match_id = 1234
 
         def _extract_default(self):
             """Extract method for any non-specified category"""
@@ -322,6 +323,15 @@ In some cases, we may want to create a bundle of files instead of a single file.
 In this example, we have set the `bundled` attribute to `True`. 
 This informs the Collector that this extractor will create a bundle, 
 and `self.resolve_output()` will return a directory path instead of a file path.
+
+The `bundle_match_id` attribute is used to match the bundle with the corresponding ingestor.
+In this specific example, the bundle will be matched with the bundle ingestor that has the `bundle_match_id` set to 1234.
+
+.. Note::
+        
+    Since each element of a bundle can be ingested separately, the requirement of a matching bundle is quite rare and applies only to specific cases.
+    Where we want to treat the whole bundle as a complete package when ingesting.
+
 
 -------------------------
 

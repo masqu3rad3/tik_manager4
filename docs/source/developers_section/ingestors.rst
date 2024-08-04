@@ -45,6 +45,10 @@ contents of the text file as its name.
     The ingestors works ONLY on published elements. If there are no published element that a particular
     ingestor can work on, the ingestor will not be available on dropdown list.
 
+.. note:: 
+
+    Ingestors works on snapshot published elements as well. This means you can simply drag & drop files and snapshot publish the work files to get them ready to be ingested.
+
 .. collapse:: Detailed Explanation
 
     Every ingestor must inherit the ``IngestCore`` class. This class provides the basic functionality for the ingestor to work.
@@ -146,6 +150,48 @@ In this example, the ingestor will create a sphere for the `Model` category and 
 For any other category, it will create a cube.
 
 -----------------------------
+
+Bundle Ingestors
+~~~~~~~~~~~~~~~~
+
+Ingestors can be configured to work on bundled folders.
+In this case, the ``bundled`` attribute should be set to ``True``.
+
+.. code-block:: python
+
+    from maya import cmds
+    from tik_manager4.dcc.ingest_core import IngestCore
+
+    class BundleIngestor(IngestCore):
+        """Ingest a bundle folder and create a poly cube with the file content as name."""
+
+        nice_name = "Ingest Bundle to Obj"
+        # we explicitly set the valid extensions to an empty list to indicate that this ingestor
+        # This way, the ingestor will not be picked up for single files and will only be available for the matching bundled extractors.
+        valid_extensions = []
+        referencable = False
+        bundled = True
+        bundled_match_id = 1234 # The ingestor will only be available for the bundles which is extracted from an extractor with the same ID.
+
+        def _bring_in_default(self):
+            """Create a polygon object from text file."""
+            bundle_folder = self.ingest_path # The ingest path will resolve to the bundle folder
+            # Do something with the bundle folder
+
+More complex ingestors can be created using the bundled ingestors. 
+
+Unlike a single file ingestors, bundled ingestors can work with multiple files and folders, allowing to process multiple data files to create a single output.
+For example, assuming a we have a bundle folder that contains a camera alembic, a file contains animation curves (such as .atom file) and an image sequence, we can combine all of these element and create an animated camera with a backdrop.
+
+Each ingestor has a ``bundle_match_id`` attribute. This attribute is used to match the ingestor with extracted bundle.
+If the ingestor and extracted bundle shares the same ID, the ingestor will be available for the extracted bundle.
+Using this attribute, we can ensure that the ingestor is only available for a specific extracted bundle.
+By default this attribute is set to 0.
+
+.. warning:: 
+
+    Sequences of images and cache files are exception. Even though they are stored in a folder and extracted from a bundled extractor, they are getting
+    treated as a single file. This for ingesting a sequence the ingestor **shouldn't** be bundled.
 
 Metadata access
 ~~~~~~~~~~~~~~~
