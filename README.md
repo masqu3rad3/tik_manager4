@@ -1,5 +1,8 @@
-Tik Manager4
-============
+
+[![Documentation Status](https://readthedocs.org/projects/tik-manager4/badge/?version=latest)](https://tik-manager4.readthedocs.io/en/latest/?badge=latest) [![Build status](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-linux.yml/badge.svg)](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-linux.yml) [![Build status](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-macos.yml/badge.svg)](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-macos.yml) [![Build status](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-windows.yml/badge.svg)](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-windows.yml) [![Build status](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-maya.yml/badge.svg)](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-maya.yml)
+
+# <img src="docs/_static/tik.png" width="30%" height="30%" title="Fileseq" alt="Fileseq">
+
 ------------------------------------------------------------------------------------
 
 **Tik Manager** is a Python-based Pipeline and Project Management platform designed for VFX and Animation Projects.
@@ -12,10 +15,10 @@ As with its predecessor, Tik Manager v4 remains cross-platform and cross-DCC (Di
 Main Features
 -------------
 - Cross-platform support: Windows, Linux, macOS (macOS under testing)
-- DCC support: Autodesk Maya, 3dsMax, Sidefx Houdini, Foundry Nuke, Katana, Mari, Adobe Photoshop, Substance 3d Painter, Blender, Gaffer (with more to follow)
+- DCC support: Autodesk Maya, 3dsMax, Sidefx Houdini, Foundry Nuke, Katana, Mari, Adobe Photoshop, Substance 3d Painter, Blender, Gaffer, Trigger (with more to follow)
 - Built-in validation & publish methodology 
 - User-friendly: No technical skills required. Learn in minutes, master in a couple of hours 
-- Fully extendable and customizable to meet individual requirements.
+- Fully extendable and customizable to meet individual and studio requirements.
 
 Installation:
 https://tik-manager4.readthedocs.io/en/latest/installation.html
@@ -57,8 +60,3 @@ By enforcing standards and best practices, Tik Manager helps mitigate risks asso
 
 Tik Manager is open-source, meaning it's free to use and can be customized to suit individual requirements. The community can contribute to its development, and it can be adapted to meet the specific needs of different projects.
 
-**Sponsored by**
-
-<a href="https://www.jetbrains.com/pycharm" style="display:inline-block;">
-  <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/PyCharm.png" width="200" style="float:left; margin-right:10px;">
-</a>

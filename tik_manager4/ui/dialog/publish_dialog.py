@@ -65,15 +65,15 @@ LOG = logging.getLogger(__name__)
 
 
 class PublishSceneDialog(QtWidgets.QDialog):
-    """Publishes the current scene."""
+    """Publish the current scene."""
 
     def __init__(self, project_object, *args, **kwargs):
         """Initialize the PublishSceneDialog."""
-        super(PublishSceneDialog, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # set style
-        _style_file = pick.style_file()
-        self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
+        style_file = pick.style_file()
+        self.setStyleSheet(str(style_file.readAll(), "utf-8"))
 
         # DYNAMIC ATTRIBUTES
         self._validator_widgets = []
@@ -727,16 +727,10 @@ class ExtractRow(QtWidgets.QHBoxLayout):
 if __name__ == "__main__":
     import sys
     import tik_manager4
-    from tik_manager4.ui import pick
-
     tik = tik_manager4.initialize("Standalone")
 
     app = QtWidgets.QApplication(sys.argv)
 
-    # _style_file = pick.style_file()
-    # dialog = PublishSceneDialog(
-    #     tik.project, styleSheet=str(_style_file.readAll(), "utf-8")
-    # )
     dialog = PublishSceneDialog(
         tik.project
     )

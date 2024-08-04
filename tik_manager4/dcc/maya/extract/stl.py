@@ -52,6 +52,7 @@ class Stl(ExtractCore):
         # create the path if it doesn't exist
         bundle_directory.mkdir(parents=True, exist_ok=True)
 
+        _bundle_info = {}
         for mesh in bundle_meshes:
             cmds.select(mesh)
             nice_name = mesh.split("|")[-1] # get the last part of the DAG path
@@ -63,3 +64,11 @@ class Stl(ExtractCore):
                 type="STLExport",
                 exportSelected=True,
             )
+            _bundle_info[file_path.stem] = {
+                "extension": ".stl",
+                "path": file_path.name,
+                "sequential": False
+            }
+
+        # explicitly set the bundle info.
+        self.bundle_info = _bundle_info

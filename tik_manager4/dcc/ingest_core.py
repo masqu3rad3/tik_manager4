@@ -4,6 +4,7 @@ import importlib
 from pathlib import Path
 from tik_manager4.core import filelog
 from tik_manager4.objects.metadata import Metadata
+from tik_manager4.external.fileseq import filesequence as fileseq
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -13,9 +14,14 @@ class IngestCore:
 
     nice_name: str = ""
     valid_extensions: list = []
-    bundled: bool = False
     importable: bool = True
     referencable: bool = True
+    bundle: bool = False  # if the ingest is a bundle
+    # if bundle is True, this will ONLY ingest bundles, not individual files.
+    # bundle ingestors must treat the ingest_path as a folder
+    bundle_match_id = 0
+    # bundle_match_id is the id of the bundle to identify the matching extractors.
+    # any extractor with the same bundle_match_id will be able to ingested with this ingestor.
 
     def __init__(self):
         self.name = str(Path(__file__).stem)
@@ -26,6 +32,7 @@ class IngestCore:
         self._metadata: Metadata
         self.category_functions: dict = {}
         self.category_reference_functions: dict = {}
+        self.sequential: bool = False
 
     def __init_subclass__(cls, **kwargs):
         # Get the base name of the file without the extension using pathlib
@@ -80,12 +87,16 @@ class IngestCore:
     @ingest_path.setter
     def ingest_path(self, ingest_path):
         """Set the path for the ingest.
-        This path can be a file or a directory depending on the ingest type.
+        Starting from version 4.1.2, this can only be a file.
         """
-        _path = Path(ingest_path)
-        if not _path.exists():
-            raise ValueError(f"File path does not exist: {ingest_path}")
-        if not self.bundled and _path.suffix not in self.valid_extensions:
+        if self.sequential:
+            seq = fileseq.FileSequence(ingest_path)
+            _path = Path(seq.index(0)) # validate the first frame
+        else:
+            _path = Path(ingest_path)
+        if not _path.is_file():
+            raise ValueError(f"Path is not a file: {ingest_path}")
+        if _path.suffix not in self.valid_extensions:
             raise ValueError(f"File extension not valid: {_path.suffix}")
         self._file_path = ingest_path
 

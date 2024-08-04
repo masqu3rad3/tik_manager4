@@ -2,6 +2,7 @@
 
 from maya import cmds
 
+
 class Variable(object):
     def __init__(self, original=None, current=None):
         super(Variable, self).__init__()
@@ -24,18 +25,20 @@ class Variable(object):
     def current(self, val):
         self._currentValue = val
 
+
 class PanelManager(object):
     def __init__(self, camera, resolution, inherit=True):
         super(PanelManager, self).__init__()
 
         if not cmds.objExists(camera):
-            raise Exception("%s does not exist" %camera)
+            raise Exception("%s does not exist" % camera)
 
         self._camera = camera
         self._activePanel = cmds.getPanel(wf=True)
         self._currentPanels = self.get_camera_panels(self._camera)
-        print("currentPANELS", self._currentPanels)
-        self._window, self._panel = self.tear_off_panel(camera=camera, resolution=resolution)
+        self._window, self._panel = self.tear_off_panel(
+            camera=camera, resolution=resolution
+        )
 
         # camera related variables
         self._fieldChart = Variable()
@@ -51,7 +54,7 @@ class PanelManager(object):
         # modelEditor variables
         self._allObjects = Variable()
         self._displayAppearance = Variable()
-        self._diplayTextures = Variable()
+        self._displayTextures = Variable()
         self._grid = Variable()
         self._useDefaultMaterial = Variable()
         self._polymeshes = Variable()
@@ -66,19 +69,34 @@ class PanelManager(object):
 
         self.store_states()
 
-
     def store_states(self):
         """Grabs the current state of the properties and store them as original"""
 
         # set panel variables originals
-        self._fieldChart.original = cmds.camera(self._camera, q=True, displayFieldChart=True)
-        self._gateMask.original = cmds.camera(self._camera, q=True, displayGateMask=True)
-        self._filmGate.original = cmds.camera(self._camera, q=True, displayFilmGate=True)
-        self._filmOrigin.original = cmds.camera(self._camera, q=True, displayFilmOrigin=True)
-        self._filmPivot.original = cmds.camera(self._camera, q=True, displayFilmPivot=True)
-        self._resolution.original = cmds.camera(self._camera, q=True, displayResolution=True)
-        self._safeAction.original = cmds.camera(self._camera, q=True, displaySafeAction=True)
-        self._safeTitle.original = cmds.camera(self._camera, q=True, displaySafeTitle=True)
+        self._fieldChart.original = cmds.camera(
+            self._camera, q=True, displayFieldChart=True
+        )
+        self._gateMask.original = cmds.camera(
+            self._camera, q=True, displayGateMask=True
+        )
+        self._filmGate.original = cmds.camera(
+            self._camera, q=True, displayFilmGate=True
+        )
+        self._filmOrigin.original = cmds.camera(
+            self._camera, q=True, displayFilmOrigin=True
+        )
+        self._filmPivot.original = cmds.camera(
+            self._camera, q=True, displayFilmPivot=True
+        )
+        self._resolution.original = cmds.camera(
+            self._camera, q=True, displayResolution=True
+        )
+        self._safeAction.original = cmds.camera(
+            self._camera, q=True, displaySafeAction=True
+        )
+        self._safeTitle.original = cmds.camera(
+            self._camera, q=True, displaySafeTitle=True
+        )
         self._overscan.original = cmds.camera(self._camera, q=True, overscan=True)
 
     def inherit_panel_properties(self, panel=None):
@@ -91,6 +109,11 @@ class PanelManager(object):
         if not panel:
             # In cases there are no existing panels for the camera abort
             if not self._currentPanels:
+                # in this case, make a default shading. We dont want it to be wireframe
+                self.display_appearance = "smoothShaded"
+                self.display_textures = True
+                self.polymeshes = True
+                self.image_plane = True
                 return
 
             # in cases where multiple panels for the same camera
@@ -106,36 +129,122 @@ class PanelManager(object):
         # try to get current camera panel
         panel = panel or self._currentPanels[0]
 
-
-        model_vars = ["activeComponentsXray", "activeCustomGeometry", "activeCustomLighSet",
-                      "activeCustomOverrideGeometry", "activeCustomRenderer", "activeOnly",
-                      "activeShadingGraph", "activeView", "allObjects", "backfaceCulling",
-                      "bufferMode", "bumpResolution", "camera", "cameras", "clipGhosts",
-                      "cmEnabled", "colorResolution", "controlVertices", "cullingOverride",
-                      "deformers", "dimensions", "displayAppearance", "displayLights", "displayTextures",
-                      "dynamicConstraints", "dynamics", "exposure", "filter", "fluids", "fogColor",
-                      "fogDensity", "fogEnd", "fogMode", "fogSource", "fogStart", "fogging", "follicles",
-                      "gamma", "greasePencils", "grid", "hairSystems", "handles", "headsUpDisplay",
-                      "highlightConnection", "hulls", "ignorePanZoom", "ikHandles", "imagePlane",
-                      "interactive", "interactiveBackFaceCull", "interactiveDisableShadows", "jointXray",
-                      "joints", "lights", "lineWidth", "locators", "lowQualityLighting", "mainListConnection",
-                      "manipulators", "maxConstantTransparency", "maximumNumHardwareLights", "motionTrails",
-                      "nCloths", "nParticles", "nRigids", "nurbsCurves", "nurbsSurfaces", "objectFilter",
-                      "objectFilterShowInHUD", "occlusionCulling", "particleInstancers", "pivots",
-                      "planes", "pluginShapes", "polymeshes", "rendererName",
-                      "rendererOverrideName", "sceneRenderFilter", "selectionConnection",
-                      "selectionHiliteDisplay", "shadingModel", "shadows", "smallObjectCulling",
-                      "smoothWireframe", "sortTransparent", "stereoDrawMode",
-                      "strokes", "subdivSurfaces", "textureAnisotropic", "textureCompression",
-                      "textureDisplay", "textureEnvironmentMap", "textureHilight", "textureMaxSize",
-                      "textureSampling", "textures", "transpInShadows", "transparencyAlgorithm",
-                      "twoSidedLighting", "useBaseRenderer", "useColorIndex", "useDefaultMaterial",
-                      "useInteractiveMode", "useRGBImagePlane", "useReducedRenderer", "viewSelected",
-                      "viewTransformName", "wireframeBackingStore", "wireframeOnShaded", "xray"]
+        model_vars = [
+            "activeComponentsXray",
+            "activeCustomGeometry",
+            "activeCustomLighSet",
+            "activeCustomOverrideGeometry",
+            "activeCustomRenderer",
+            "activeOnly",
+            "activeShadingGraph",
+            "activeView",
+            "allObjects",
+            "backfaceCulling",
+            "bufferMode",
+            "bumpResolution",
+            "camera",
+            "cameras",
+            "clipGhosts",
+            "cmEnabled",
+            "colorResolution",
+            "controlVertices",
+            "cullingOverride",
+            "deformers",
+            "dimensions",
+            "displayAppearance",
+            "displayLights",
+            "displayTextures",
+            "dynamicConstraints",
+            "dynamics",
+            "exposure",
+            "filter",
+            "fluids",
+            "fogColor",
+            "fogDensity",
+            "fogEnd",
+            "fogMode",
+            "fogSource",
+            "fogStart",
+            "fogging",
+            "follicles",
+            "gamma",
+            "greasePencils",
+            "grid",
+            "hairSystems",
+            "handles",
+            "headsUpDisplay",
+            "highlightConnection",
+            "hulls",
+            "ignorePanZoom",
+            "ikHandles",
+            "imagePlane",
+            "interactive",
+            "interactiveBackFaceCull",
+            "interactiveDisableShadows",
+            "jointXray",
+            "joints",
+            "lights",
+            "lineWidth",
+            "locators",
+            "lowQualityLighting",
+            "mainListConnection",
+            "manipulators",
+            "maxConstantTransparency",
+            "maximumNumHardwareLights",
+            "motionTrails",
+            "nCloths",
+            "nParticles",
+            "nRigids",
+            "nurbsCurves",
+            "nurbsSurfaces",
+            "objectFilter",
+            "objectFilterShowInHUD",
+            "occlusionCulling",
+            "particleInstancers",
+            "pivots",
+            "planes",
+            "pluginShapes",
+            "polymeshes",
+            "rendererName",
+            "rendererOverrideName",
+            "sceneRenderFilter",
+            "selectionConnection",
+            "selectionHiliteDisplay",
+            "shadingModel",
+            "shadows",
+            "smallObjectCulling",
+            "smoothWireframe",
+            "sortTransparent",
+            "stereoDrawMode",
+            "strokes",
+            "subdivSurfaces",
+            "textureAnisotropic",
+            "textureCompression",
+            "textureDisplay",
+            "textureEnvironmentMap",
+            "textureHilight",
+            "textureMaxSize",
+            "textureSampling",
+            "textures",
+            "transpInShadows",
+            "transparencyAlgorithm",
+            "twoSidedLighting",
+            "useBaseRenderer",
+            "useColorIndex",
+            "useDefaultMaterial",
+            "useInteractiveMode",
+            "useRGBImagePlane",
+            "useReducedRenderer",
+            "viewSelected",
+            "viewTransformName",
+            "wireframeBackingStore",
+            "wireframeOnShaded",
+            "xray",
+        ]
 
         for p in model_vars:
             try:
-                cmd = "cmds.modelEditor(panel, q=True, %s=True)" %(p)
+                cmd = "cmds.modelEditor(panel, q=True, %s=True)" % (p)
                 val = eval(cmd)
                 if val == None or val == "":
                     val = False
@@ -250,9 +359,13 @@ class PanelManager(object):
 
     def set_editor_variable(self, variable, value):
         if isinstance(value, str):
-            cmd = "cmds.modelEditor(self._panel, e=True, {0}='{1}')".format(variable, value)
+            cmd = "cmds.modelEditor(self._panel, e=True, {0}='{1}')".format(
+                variable, value
+            )
         else:
-            cmd = "cmds.modelEditor(self._panel, e=True, {0}={1})".format(variable, value)
+            cmd = "cmds.modelEditor(self._panel, e=True, {0}={1})".format(
+                variable, value
+            )
         try:
             eval(cmd)
         except:
@@ -279,12 +392,12 @@ class PanelManager(object):
         self.set_editor_variable("displayAppearance", val)
 
     @property
-    def diplay_textures(self):
-        return self._diplayTextures.current
+    def display_textures(self):
+        return self._displayTextures.current
 
-    @diplay_textures.setter
-    def diplay_textures(self, val):
-        self.set_editor_variable("diplayTextures", val)
+    @display_textures.setter
+    def display_textures(self, val):
+        self.set_editor_variable("displayTextures", val)
 
     @property
     def grid(self):
@@ -342,7 +455,6 @@ class PanelManager(object):
     def hud(self, val):
         self.set_editor_variable("hud", val)
 
-
     #    __  __ ______ _______ _    _  ____  _____   _____
     #   |  \/  |  ____|__   __| |  | |/ __ \|  __ \ / ____|
     #   | \  / | |__     | |  | |__| | |  | | |  | | (___
@@ -355,8 +467,10 @@ class PanelManager(object):
     @staticmethod
     def get_camera_panels(camera):
         panel_list = []
+        camera_nice_name = camera.split("|")[-1]
         for panel_name in cmds.getPanel(type="modelPanel"):
-            if cmds.modelPanel(panel_name, query=True, camera=True) == camera:
+            if cmds.modelPanel(
+                    panel_name, query=True, camera=True) == camera_nice_name:
                 panel_list.append(panel_name)
         return panel_list
 
@@ -365,8 +479,14 @@ class PanelManager(object):
         """Tears of the panel with given resolution"""
 
         ## Compensate the menu bar for height:
-        resolution = [resolution[0], resolution[1]+40]
-        tempWindow = cmds.window(title="RBL_Playblast", widthHeight=(resolution[0], resolution[1]), tlc=(0, 0), tb=True, menuBarVisible=False)
+        resolution = [resolution[0], resolution[1] + 40]
+        tempWindow = cmds.window(
+            title="Tik_Manager_PB",
+            widthHeight=(resolution[0], resolution[1]),
+            tlc=(0, 0),
+            tb=True,
+            menuBarVisible=False,
+        )
         cmds.paneLayout()
         pb_panel = cmds.modelPanel(camera=camera)
 

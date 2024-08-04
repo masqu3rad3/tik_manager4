@@ -3,6 +3,7 @@
 import traceback
 from pathlib import Path
 import importlib
+from tik_manager4.external.fileseq import filesequence as fileseq
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.metadata import Metadata
@@ -20,6 +21,9 @@ class ExtractCore:
     # global_exposed_settings: dict = {}
     optional: bool = False
     bundled: bool = False
+    bundle_match_id = 0
+    # bundle_match_id is the id of the bundle to identify the matching ingestors.
+    # any ingestor with the same bundle_match_id will be able to ingest this bundle.
 
     def __init__(self, exposed_settings=None, global_exposed_settings=None):
         # get the module name as name
@@ -42,6 +46,7 @@ class ExtractCore:
         self.global_settings = Settings()
         self.global_settings.set_data(_global_exposed_settings_data)
         self.settings: dict = {}
+        self._bundle_info: dict = {}
         # create settings objects from the default settings
         for key, value in _exposed_settings_data.items():
             _settings = Settings()
@@ -104,6 +109,16 @@ class ExtractCore:
     def extension(self, extension):
         """Set the extension of the extracted file."""
         self._extension = extension
+
+    @property
+    def bundle_info(self):
+        """The bundle information dictionary."""
+        return self._bundle_info
+
+    @bundle_info.setter
+    def bundle_info(self, bundle_info):
+        """Set the bundle information dictionary."""
+        self._bundle_info = bundle_info
 
     @property
     def extract_folder(self):
@@ -178,6 +193,8 @@ class ExtractCore:
         try:
             func()
             self._state = "success"
+            if self.bundled and not self._bundle_info:
+                self._collect_bundle_info()
         except Exception as exc:  # pylint: disable=broad-except
             # print the FULL STACK TRACEBACK
             LOG.exception(exc)
@@ -202,3 +219,25 @@ class ExtractCore:
                 / f"{self.name.upper()}_{self._extract_name}{self.extension}"
             )
         return str(output_path)
+
+    def _collect_bundle_info(self):
+        """Collect bundle information and build the bundle info dictionary.
+
+        This method should be used as a fallback for bundled extracts that do
+        not have a custom implementation.
+        Ideally the bundle_info dictionary should be explicitly defined in the
+        extract or this method should be overwritten.
+        """
+        self._bundle_info = {}
+        _path = self.resolve_output()
+
+        # get everything in the path as fileseq
+        f_handler = fileseq.FileSequence("")
+        found_seqs = f_handler.findSequencesOnDisk(_path)
+
+        for seq in found_seqs:
+            self._bundle_info[seq.basename()] = {
+                "extension": seq.extension(), # e.g ".txt"
+                "path": seq.format(), # e.g "file.txt" or "color.1009,1019.exr"
+                "sequential": bool(seq.frameRange()), # e.g True or False
+            }

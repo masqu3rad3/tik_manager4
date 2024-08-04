@@ -35,7 +35,11 @@ class Stl(ExtractCore):
         # get the geo nodes which have a file sop
         geo_nodes = [node for node in geo_nodes if node.type().name() == "geo"]
         # filter any node starting with the reserved export geo node name
-        geo_nodes = [node for node in geo_nodes if not node.name().startswith(self.export_geo_node_name)]
+        geo_nodes = [
+            node
+            for node in geo_nodes
+            if not node.name().startswith(self.export_geo_node_name)
+        ]
         return geo_nodes
 
     def _extract_default(self):
@@ -56,13 +60,16 @@ class Stl(ExtractCore):
         export_node = root_node.createNode("geo", self.export_geo_node_name)
         export_node.moveToGoodPosition()
 
+        _bundle_info = {}
         for geo_node in bundle_nodes:
             nice_name = geo_node.name()
             file_path = Path(bundle_directory, f"{nice_name}.stl")
             # try to make it a relative path
             project_path = hou.getenv("JOB")
-            try: final_path = "$JOB" / file_path.relative_to(project_path)
-            except ValueError: final_path = file_path
+            try:
+                final_path = "$JOB" / file_path.relative_to(project_path)
+            except ValueError:
+                final_path = file_path
 
             merge_node = export_node.createNode("object_merge")
             # change the name of the merge_node
@@ -81,6 +88,14 @@ class Stl(ExtractCore):
             rop_sop.parm("sopoutput").set(str(final_path))
 
             rop_sop.parm("execute").pressButton()
+            _bundle_info[file_path.stem] = {
+                "extension": ".stl",
+                "path": file_path.name,
+                "sequential": False
+            }
+
+        # explicitly set the bundle info.
+        self.bundle_info = _bundle_info
 
         if self.global_settings.get("discard_export_nodes", True):
             export_node.destroy()
