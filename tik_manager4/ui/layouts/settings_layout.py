@@ -236,6 +236,9 @@ class SettingsLayout(QtWidgets.QFormLayout):
     @staticmethod
     def __toggle_enabled(value, condition, widget):
         """Disables the widget if value equals to condition. Else enables"""
+        print("value: ", value)
+        print("condition: ", condition)
+        print("widget: ", widget)
         if value == condition:
             widget.setEnabled(False)
         else:

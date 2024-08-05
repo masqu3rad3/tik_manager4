@@ -6,19 +6,14 @@ from tik_manager4.dcc.extract_core import ExtractCore
 
 classes = {}
 
-_FROZEN = getattr(sys, 'frozen', False)
+_FROZEN = getattr(sys, "frozen", False)
 if _FROZEN:
-    from tik_manager4.dcc.photoshop.extract import jpg
-    from tik_manager4.dcc.photoshop.extract import png
     from tik_manager4.dcc.photoshop.extract import source
-    from tik_manager4.dcc.photoshop.extract import tga
-    from tik_manager4.dcc.photoshop.extract import tif
+    from tik_manager4.dcc.photoshop.extract import image
+
     classes = {
-        jpg.Jpg.name: jpg.Jpg,
-        png.Png.name: png.Png,
         source.Source.name: source.Source,
-        tga.Tga.name: tga.Tga,
-        tif.Tif.name: tif.Tif,
+        image.Image.name: image.Image
     }
 else:
     DIRECTORY = Path(__file__).parent
@@ -32,6 +27,9 @@ else:
             module_name = file_name[:-3]
             module = importlib.import_module(f"{__name__}.{module_name}")
             for name, obj in inspect.getmembers(module):
-                if inspect.isclass(obj) and issubclass(obj, ExtractCore) and obj != ExtractCore:
+                if (
+                    inspect.isclass(obj)
+                    and issubclass(obj, ExtractCore)
+                    and obj != ExtractCore
+                ):
                     classes[obj.name] = obj
-
