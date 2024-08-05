@@ -39,8 +39,8 @@
     "value": "radioGuGu",
     "disables": [
       [
-        0,
-        "testSpinnerInt"
+        "radioGu",
+        "groupCheck"
       ]
     ]
   },
@@ -69,7 +69,7 @@
             "resolutionX"
           ],
           [
-            true,
+            false,
             "resolutionY"
           ]
         ]
@@ -109,6 +109,19 @@
   "testList": {
     "type": "list",
     "value": ["Is", "This", "The", "Real", "Life"]
+  },
+  "testGroup": {
+    "type": "group",
+    "value": {
+      "groupCheck": {
+        "type": "boolean",
+        "value": true
+      },
+      "groupString": {
+        "type": "string",
+        "value": "Hello"
+      }
+    }
   }
 }
 

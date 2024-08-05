@@ -17,19 +17,6 @@ class Render(ExtractCore):
     def __init__(self):
         _ranges = utils.get_ranges()
         global_exposed_settings = {
-            # "use_node_settings": {
-            #     "display_name": "Use Node Settings",
-            #     "type": "boolean",
-            #     "value": False,
-            #     "tooltip": "If checked, uses the settings from the write nodes.",
-            #     "disables": [
-            #         [True, "start_frame"],
-            #         [True, "end_frame"],
-            #         [True, "resolution"],
-            #         [True, "file_format"],
-            #         [True, "colorspace"],
-            #     ],
-            # },
             "start_frame": {
                 "display_name": "Start Frame",
                 "type": "integer",
@@ -40,11 +27,6 @@ class Render(ExtractCore):
                 "type": "integer",
                 "value": _ranges[3],
             },
-            # "resolution": {
-            #     "display_name": "Resolution",
-            #     "type": "vector2Int",
-            #     "value": [1920, 1080],
-            # },
             "file_format": {
                 "display_name": "Format",
                 "type": "combo",

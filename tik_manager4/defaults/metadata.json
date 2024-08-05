@@ -60,10 +60,10 @@
     "default": "",
     "type": "string"
   },
-    "nuke_version": {
+  "nuke_version": {
         "default": "",
         "type": "string"
-    },
+  },
   "3dsmax_version": {
     "default": "",
     "type": "string"
