@@ -12,15 +12,15 @@ class Alembic(ExtractCore):
     bundled = False
 
     def __init__(self):
-        _range_start = float(rt.animationRange.start)
-        _range_end = float(rt.animationRange.end)
+        _range_start = int(rt.animationRange.start)
+        _range_end = int(rt.animationRange.end)
 
         global_settings = {
-            "coordinate_system": {
-                "display_name": "Coordinate System",
+            "up_axis": {
+                "display_name": "Up Axis",
                 "type": "combo",
-                "items": ["YUp", "ZUp"],
-                "value": "YUp",
+                "items": ["y", "z"],
+                "value": "y",
             }
         }
 
@@ -91,6 +91,8 @@ class Alembic(ExtractCore):
         }
         super().__init__(exposed_settings=exposed_settings,
                          global_exposed_settings=global_settings)
+        if not rt.pluginManager.loadclass(rt.Alembic_Export):
+            raise ValueError("Alembic Plugin cannot be initialized")
 
         self._extension = ".abc"
 
@@ -123,8 +125,8 @@ class Alembic(ExtractCore):
             "object_id": True,
             "custom_attributes": True,
             "anim_time_range": "StartEnd",
-            "start_frame": float(rt.animationRange.start),
-            "end_frame": float(rt.animationRange.end),
+            "start_frame": int(rt.animationRange.start),
+            "end_frame": int(rt.animationRange.end),
         }
 
         base_dict.update(override)
@@ -149,12 +151,21 @@ class Alembic(ExtractCore):
         rt.AlembicExport.StartFrame = base_dict["start_frame"]
         rt.AlembicExport.EndFrame = base_dict["end_frame"]
 
+    def __get_coordinate_system(self):
+        """Get the coordinate system from the global settings."""
+        mapping = {
+            "y": "YUp",
+            "z": "ZUp",
+        }
+
+        return mapping.get(self.global_settings.get("up_axis"), "YUp")
+
     def _extract_model(self):
         """Extract method for Model category."""
         _file_path = self.resolve_output()
 
         override = {
-            "coordinate_system": self.global_settings.get("coordinate_system"),
+            "coordinate_system": self.__get_coordinate_system(),
             "velocity": False,
             "anim_time_range": "CurrentFrame",
         }
@@ -173,7 +184,7 @@ class Alembic(ExtractCore):
 
         settings = self.settings.get("Animation")
         override = {
-            "coordinate_system": self.global_settings.get("coordinate_system"),
+            "coordinate_system": self.__get_coordinate_system(),
             "start_frame": settings.get("start_frame"),
             "end_frame": settings.get("end_frame"),
             "sub_steps": settings.get("sub_steps"),
@@ -194,7 +205,7 @@ class Alembic(ExtractCore):
 
         settings = self.settings.get("Fx")
         override = {
-            "coordinate_system": self.global_settings.get("coordinate_system"),
+            "coordinate_system": self.__get_coordinate_system(),
             "start_frame": settings.get("start_frame"),
             "end_frame": settings.get("end_frame"),
             "sub_steps": settings.get("sub_steps"),
@@ -215,7 +226,7 @@ class Alembic(ExtractCore):
 
         settings = self.settings.get("Layout")
         override = {
-            "coordinate_system": self.global_settings.get("coordinate_system"),
+            "coordinate_system": self.__get_coordinate_system(),
             "start_frame": settings.get("start_frame"),
             "end_frame": settings.get("end_frame"),
         }
@@ -234,7 +245,7 @@ class Alembic(ExtractCore):
 
         settings = self.settings.get("Lighting")
         override = {
-            "coordinate_system": self.global_settings.get("coordinate_system"),
+            "coordinate_system": self.__get_coordinate_system(),
             "start_frame": settings.get("start_frame"),
             "end_frame": settings.get("end_frame"),
             "hidden": False,

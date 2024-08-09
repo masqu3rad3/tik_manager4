@@ -14,8 +14,8 @@ class Fbx(ExtractCore):
     bundled = False
 
     def __init__(self):
-        _range_start = float(rt.animationRange.start)
-        _range_end = float(rt.animationRange.end)
+        _range_start = int(rt.animationRange.start)
+        _range_end = int(rt.animationRange.end)
 
         # these are the exposed settings in the UI
         exposed_settings = {
