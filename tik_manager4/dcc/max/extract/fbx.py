@@ -56,7 +56,7 @@ class Fbx(ExtractCore):
                     "display_name": "End Frame",
                     "type": "integer",
                     "value": _range_end,
-                }
+                },
             },
             "Fx": {
                 "start_frame": {
@@ -84,7 +84,7 @@ class Fbx(ExtractCore):
                     "display_name": "Selection Set",
                     "type": "string",
                     "value": " ",
-                }
+                },
             },
             "Lighting": {
                 "start_frame": {
@@ -96,8 +96,8 @@ class Fbx(ExtractCore):
                     "display_name": "End Frame",
                     "type": "integer",
                     "value": _range_end,
-                }
-            }
+                },
+            },
         }
         super().__init__(exposed_settings=exposed_settings)
         if not rt.pluginManager.loadclass(rt.FBXEXP):
@@ -119,9 +119,28 @@ class Fbx(ExtractCore):
             settings_dict: (dict) Dictionary containing the values to set.
         """
 
-        rt.FBXExporterSetParam('ResetExport')
+        rt.FBXExporterSetParam("ResetExport")
         for key, value in settings_dict.items():
             rt.FBXExporterSetParam(rt.Name(key), value)
+
+    def _base_settings(self, override=None):
+        """Set the base settings for the FBX export."""
+        override = override or {}
+        base_dict = {
+            "Animation": True,
+            "BakeAnimation": True,
+            "BakeFrameStart": float(rt.animationRange.start),
+            "BakeFrameEnd": float(rt.animationRange.end),
+            "BakeFrameStep": 1,
+            "BakeResampleAnimation": True,
+            "Skin": True,
+            "Shape": True,
+            "Cameras": True,
+            "Lights": True,
+        }
+
+        base_dict.update(override)
+        self.__set_values(base_dict)
 
     def _extract_model(self, selected=False):
         """Extract FBX from 3ds Max scene.
@@ -133,130 +152,107 @@ class Fbx(ExtractCore):
         # use the same _extract_model function for all categories.
         # FBX export exports the whole scene. We don't need to select anything.
         file_path = self.resolve_output()
-        settings_dict = {
+        override = {
             "Animation": False,
             "Skin": False,
             "Shape": False,
             "Cameras": False,
             "Lights": False,
         }
-        self.__set_values(settings_dict)
+        self._base_settings(override)
 
         rt.exportFile(
-            file_path,
-            rt.name("NoPrompt"),
-            selectedOnly=selected,
-            using=rt.FBXEXP
+            file_path, rt.name("NoPrompt"), selectedOnly=selected, using=rt.FBXEXP
         )
 
     def _extract_animation(self):
         """Extract FBX from 3ds Max scene."""
         file_path = self.resolve_output()
         settings = self.settings.get("Animation", {})
-        settings_dict = {
-            "Animation": True,
+        override = {
             "BakeAnimation": settings.get("bake_animation"),
             "BakeFrameStart": settings.get("start_frame"),
             "BakeFrameEnd": settings.get("end_frame"),
             "BakeFrameStep": settings.get("sub_steps"),
             "BakeResampleAnimation": settings.get("bake_resample_all"),
-            "Skin": True,
-            "Shape": True,
-            "Cameras": True,
             "Lights": False,
         }
-        self.__set_values(settings_dict)
+        self._base_settings(override)
 
         rt.exportFile(
-            file_path,
-            rt.name("NoPrompt"),
-            selectedOnly=False,
-            using=rt.FBXEXP
+            file_path, rt.name("NoPrompt"), selectedOnly=False, using=rt.FBXEXP
         )
 
     def _extract_layout(self):
         """Extract FBX from 3ds Max scene."""
         file_path = self.resolve_output()
         settings = self.settings.get("Layout", {})
-        settings_dict = {
-            "Animation": True,
+        override = {
             "BakeAnimation": settings.get("bake_animation"),
             "BakeFrameStart": settings.get("start_frame"),
             "BakeFrameEnd": settings.get("end_frame"),
             "BakeFrameStep": settings.get("sub_steps"),
             "BakeResampleAnimation": settings.get("bake_resample_all"),
-            "Skin": True,
-            "Shape": True,
-            "Cameras": True,
-            "Lights": True,
         }
-        self.__set_values(settings_dict)
+        self._base_settings(override)
 
         rt.exportFile(
-            file_path,
-            rt.name("NoPrompt"),
-            selectedOnly=False,
-            using=rt.FBXEXP
+            file_path, rt.name("NoPrompt"), selectedOnly=False, using=rt.FBXEXP
         )
 
     def _extract_fx(self):
         """Extract FBX from 3ds Max scene."""
         file_path = self.resolve_output()
         settings = self.settings.get("Fx", {})
-        settings_dict = {
-            "Animation": True,
-            "BakeAnimation": True,
+        override = {
             "BakeFrameStart": settings.get("start_frame"),
             "BakeFrameEnd": settings.get("end_frame"),
             "BakeFrameStep": settings.get("sub_steps"),
-            "BakeResampleAnimation": True,
             "SelectionSetExport": settings.get("Selection_set_export"),
             "SelectionSet": settings.get("selection_set"),
-            "Skin": True,
-            "Shape": True,
             "Cameras": False,
             "Lights": False,
         }
-        self.__set_values(settings_dict)
+        self._base_settings(override)
 
         rt.exportFile(
-            file_path,
-            rt.name("NoPrompt"),
-            selectedOnly=False,
-            using=rt.FBXEXP
+            file_path, rt.name("NoPrompt"), selectedOnly=False, using=rt.FBXEXP
         )
 
     def _extract_rig(self):
         """Extract FBX from 3ds Max scene."""
         file_path = self.resolve_output()
-        settings_dict = {
+        override = {
             "Animation": False,
-            "Skin": True,
-            "Shape": True,
             "Cameras": False,
             "Lights": False,
         }
-        self.__set_values(settings_dict)
+        self._base_settings(override)
 
         rt.exportFile(
-            file_path,
-            rt.name("NoPrompt"),
-            selectedOnly=False,
-            using=rt.FBXEXP
+            file_path, rt.name("NoPrompt"), selectedOnly=False, using=rt.FBXEXP
         )
 
     def _extract_lighting(self):
         """Extract method for lighting category"""
         # identical to layout
-        self._extract_layout()
+        file_path = self.resolve_output()
+        settings = self.settings.get("Lighting", {})
+        override = {
+            "BakeFrameStart": settings.get("start_frame"),
+            "BakeFrameEnd": settings.get("end_frame"),
+        }
+        self._base_settings(override)
+
+        rt.exportFile(
+            file_path, rt.name("NoPrompt"), selectedOnly=False, using=rt.FBXEXP
+        )
 
     def _extract_default(self):
         """Extract method for any non-specified category"""
         file_path = self.resolve_output()
-        self.__set_values({})
+        self._base_settings()
+
         rt.exportFile(
-            file_path,
-            rt.name("NoPrompt"),
-            selectedOnly=False,
-            using=rt.FBXEXP
+            file_path, rt.name("NoPrompt"), selectedOnly=False, using=rt.FBXEXP
         )
