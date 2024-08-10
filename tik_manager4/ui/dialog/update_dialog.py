@@ -56,7 +56,6 @@ class UpdateDialog(QtWidgets.QDialog):
 
 
         if self.release_object.is_newer:
-            # print the release name
             header_label = QtWidgets.QLabel(f"Release {self.release_object.name} Available")
             header_label.setAlignment(QtCore.Qt.AlignCenter)
             header_label.setFont(QtGui.QFont("Arial", 16))
