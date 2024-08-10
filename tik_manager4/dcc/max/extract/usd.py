@@ -106,12 +106,8 @@ class Usd(ExtractCore):
             "Lighting": self._extract_lighting,
         }
 
-        print("Debugging")
-        print("CAtegory:", self._category)
-
     def _base_settings(self, override=None):
         """Set the base settings with an override option."""
-        print("_base_settings.;,.")
         override = override or {}
         base_dict = {
             "Meshes": True,
@@ -208,18 +204,12 @@ class Usd(ExtractCore):
         settings = self.settings.get("Animation")
         up_axis = self.global_settings.get("up_axis")
 
-        print("Extracting animation to %s", file_path)
-        print("Settings:", settings)
-        print("Up Axis:", up_axis)
-
         override = {
             "StartFrame": float(settings.get("start_frame")),
             "EndFrame": float(settings.get("end_frame")),
             "SamplesPerFrame": settings.get("sub_steps"),
             "UpAxis": up_axis,
         }
-
-        print("Override:", override)
 
         export_options = self._base_settings(override)
         rt.USDExporter.ExportFile(
