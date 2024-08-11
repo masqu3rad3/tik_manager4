@@ -311,7 +311,6 @@ class FilteredData(dict):
                 self[key] = value
             else:
                 if settings_data.get_property(_override_key):
-                    print(key, value)
                     self[key] = value
 
     def update_new_data(self, settings_data):

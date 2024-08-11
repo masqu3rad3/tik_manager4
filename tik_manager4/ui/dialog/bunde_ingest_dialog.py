@@ -31,7 +31,7 @@ class BundleIngestDialog(QtWidgets.QDialog):
     def __init__(self, publish_obj, publish_version, element_type, parent=None):
         """Initialize."""
         super().__init__(parent=parent)
-        self._publish_version = publish_version # integer
+        self._publish_version = publish_version  # integer
         self.publish_obj = publish_obj
         self.publish_version_obj = self.publish_obj.get_version(publish_version)
         self.element_type = element_type
@@ -93,9 +93,7 @@ class BundleIngestDialog(QtWidgets.QDialog):
 
         bundle_match_id = element.get("bundle_match_id", 0)
         all_ingests = self.publish_obj._dcc_handler.ingests
-        available_bundle_ingestors = self._resolve_available_ingests(
-            bundle_match_id
-        )
+        available_bundle_ingestors = self._resolve_available_ingests(bundle_match_id)
 
         bundle_ingestor_sub_layout = QtWidgets.QHBoxLayout()
         self.layouts.header_layout.addLayout(bundle_ingestor_sub_layout)
@@ -177,19 +175,18 @@ class BundleIngestDialog(QtWidgets.QDialog):
         if self.widgets.ingest_as_bundle_rbtn.isChecked():
             ingestor_name = self.widgets.bundle_ingestors_combo.currentText()
             if not ingestor_name:
-                self.feedback.pop_info(title="Error", text="There are no compatible bundle ingestors available.", critical=True)
+                self.feedback.pop_info(
+                    title="Error",
+                    text="There are no compatible bundle ingestors available.",
+                    critical=True,
+                )
                 return
             ingestor = self.ingest_mapping[ingestor_name]
-            # TODO: ingest the bundle
-            print("ingestor", ingestor)
+            self.publish_obj.import_version(self._publish_version, element_type=self.element_type, ingestor=ingestor)
         else:
             for row in self.widgets.row_widgets:
                 if row.is_active():
                     ingestor = row.active_ingestor()
-                    # print("ingestor_key", ingestor_key)
-                    # ingestor = self.publish_version_obj._dcc_handler.ingests[ingestor_key]
-                    # TODO: ingest the individual pieces
-                    # self.publish_obj.
                     if row.get_active_action() == "Import":
                         self.publish_obj.import_bundle_piece(
                             self._publish_version,
@@ -198,7 +195,6 @@ class BundleIngestDialog(QtWidgets.QDialog):
                             ingestor.name,
                             sequential=row.bundle_info.get("sequential", False),
                         )
-                    # print("ingestor", ingestor)
         self.feedback.pop_info(title="Success", text="Elements ingested successfully.")
         super().accept()
 

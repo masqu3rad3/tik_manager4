@@ -201,8 +201,6 @@ class NewProjectDialog(EditSubprojectDialog):
 
     def __init__(self, main_object, *args, **kwargs):
         self.main_object = main_object
-        # print("debug")
-        # print(self.main_object.project.metadata_definitions)
         self.structure_list = list(
             self.main_object.user.commons.structures.properties.values()
         )

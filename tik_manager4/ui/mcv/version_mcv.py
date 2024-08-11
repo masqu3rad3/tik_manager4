@@ -167,7 +167,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         )
         if not _element:
             return
-        # print(_element)
         self.element_view_event.emit(element_type, _element)
 
     def _load_pre_checks(self, work_obj):
