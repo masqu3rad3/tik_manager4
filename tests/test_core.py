@@ -2,7 +2,6 @@
 import sys
 import time
 import pytest
-# from unittest import mock
 from unittest.mock import patch
 import platform
 import codecs
@@ -276,7 +275,16 @@ def test_getting_home_dir(monkeypatch):
 
 def test_execute(tmp_path):
     """Test execute function."""
+    # test the situation where the file does not exist
     _file = tmp_path / "test_execute.txt"
+
+    # an executable that does not exist
+    with pytest.raises(ValueError):
+        utils.execute(str(_file), executable="non_existing_executable")
+    # pretend that the executable exists
+    with patch("pathlib.Path.is_file", return_value=True):
+        with patch("subprocess.Popen") as mock_popen:
+            utils.execute(str(_file), executable="existing_executable")
 
     if platform.system() == "Windows":
         # Test for Windows
@@ -296,17 +304,3 @@ def test_execute(tmp_path):
         with patch("subprocess.Popen") as mock_popen:
             utils.execute(str(_file))
             mock_popen.assert_called_once_with(["open", str(_file)])
-
-# def test_execute(tmp_path, monkeypatch):
-#     """Test execute function."""
-#     _file = tmp_path / "test_execute.txt"
-#     # monkeypatch the subprocess.Popen function
-#     monkeypatch.setattr(utils.subprocess, "Popen", lambda x: "test")
-#     monkeypatch.setattr(utils.os, "startfile", lambda x: "test")
-#     monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Windows")
-#     utils.execute(str(_file))
-#     monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Linux")
-#     utils.execute(str(_file))
-#     monkeypatch.setattr(utils, "CURRENT_PLATFORM", "Darwin")
-#     utils.execute(str(_file))
-#     monkeypatch.undo()
