@@ -21,14 +21,17 @@ from tik_manager4.core import utils
 
 LOG = logging.getLogger(__name__)
 
-FROZEN = getattr(sys, 'frozen', False)
+FROZEN = getattr(sys, "frozen", False)
+
 
 def print_msg(msg):
     """Prints a message to the console."""
     sys.stdout.write(f"{msg}\n")
 
+
 class Installer:
     """A simple command line interface for installing software."""
+
     def __init__(self, argv):
         self.argv = argv
 
@@ -49,16 +52,16 @@ class Installer:
         # Any changes here also needs to be reflected to the package/release_package.py
         # and packacge/tik_manager4_innosetup.iss
         self.dcc_mapping = {
-        "Maya": self.maya_setup,
-        "Houdini": self.houdini_setup,
-        "3dsMax": self.max_setup,
-        "Blender": self.blender_setup,
-        "Nuke": self.nuke_setup,
-        "Photoshop": self.photoshop_setup,
-        "Katana": self.katana_setup,
-        "Mari": self.mari_setup,
-        "Gaffer": self.gaffer_setup,
-        "Substance": self.substance_setup,
+            "Maya": self.maya_setup,
+            "Houdini": self.houdini_setup,
+            "3dsMax": self.max_setup,
+            "Blender": self.blender_setup,
+            "Nuke": self.nuke_setup,
+            "Photoshop": self.photoshop_setup,
+            "Katana": self.katana_setup,
+            "Mari": self.mari_setup,
+            "Gaffer": self.gaffer_setup,
+            "Substance": self.substance_setup,
         }
 
     def install_all(self):
@@ -92,9 +95,11 @@ class Installer:
 
         if not user_maya_folder.exists():
             print_msg("No Maya version can be found in the user's documents directory")
-            print_msg("Make sure Maya is installed and try again. "
-                      "Alternatively you can try manual install. "
-                      "Check the documentation for more information.")
+            print_msg(
+                "Make sure Maya is installed and try again. "
+                "Alternatively you can try manual install. "
+                "Check the documentation for more information."
+            )
             if prompt:
                 _r = input("Press Enter to continue...")
                 assert isinstance(_r, str)
@@ -102,7 +107,9 @@ class Installer:
 
         modules_folder = user_maya_folder / "modules"
         modules_folder.mkdir(parents=True, exist_ok=True)
-        tik_manager_module = self.tik_dcc_folder / "maya" / "setup" / "tik_manager_module"
+        tik_manager_module = (
+            self.tik_dcc_folder / "maya" / "setup" / "tik_manager_module"
+        )
 
         module_file = modules_folder / "tik_manager4.mod"
         module_content = f"+ tik_manager4 4.0.1 {tik_manager_module.as_posix()}"
@@ -128,7 +135,11 @@ class Installer:
         print_msg("Finding Houdini Versions...")
 
         # find all folders under user documents folder that start with "houdini"
-        houdini_folders = [x for x in self.user_documents.iterdir() if x.is_dir() and x.name.startswith("houdini")]
+        houdini_folders = [
+            x
+            for x in self.user_documents.iterdir()
+            if x.is_dir() and x.name.startswith("houdini")
+        ]
 
         if houdini_folders:
             print_msg("Houdini versions found:")
@@ -136,17 +147,27 @@ class Installer:
                 print_msg(f"{folder.name}")
         else:
             if prompt:
-                print_msg("No Houdini version can be found in the user's documents directory.")
-                print_msg("Make sure Houdini is installed and try again. Alternatively you can try manual install. "
-                          "Check the documentation for more information.")
+                print_msg(
+                    "No Houdini version can be found in the user's documents directory."
+                )
+                print_msg(
+                    "Make sure Houdini is installed and try again. Alternatively you can try manual install. "
+                    "Check the documentation for more information."
+                )
                 if prompt:
                     _r = input("Press Enter to continue...")
                     assert isinstance(_r, str)
             return
 
-        main_ui_icon = self.tik_dcc_folder / "houdini" / "setup" / "icons" / "tik4_main_ui.png"
-        new_version_icon = self.tik_dcc_folder / "houdini" / "setup" / "icons" / "tik4_new_version.png"
-        publish_icon = self.tik_dcc_folder / "houdini" / "setup" / "icons" / "tik4_publish.png"
+        main_ui_icon = (
+            self.tik_dcc_folder / "houdini" / "setup" / "icons" / "tik4_main_ui.png"
+        )
+        new_version_icon = (
+            self.tik_dcc_folder / "houdini" / "setup" / "icons" / "tik4_new_version.png"
+        )
+        publish_icon = (
+            self.tik_dcc_folder / "houdini" / "setup" / "icons" / "tik4_publish.png"
+        )
 
         script456_content = [
             "# Tik Manager 4 [Start]\n",
@@ -202,9 +223,11 @@ tui.on_publish_scene()
             print_msg("Path configuration added to 456.py")
 
             injector = Injector(script456_file)
-            injector.inject_between(script456_content,
-                                    start_line="# Tik Manager 4 [Start]\n",
-                                    end_line="# Tik Manager 4 [End]\n")
+            injector.inject_between(
+                script456_content,
+                start_line="# Tik Manager 4 [Start]\n",
+                end_line="# Tik Manager 4 [End]\n",
+            )
 
             shelf_folder = version / "toolbar"
             shelf_folder.mkdir(parents=True, exist_ok=True)
@@ -213,9 +236,11 @@ tui.on_publish_scene()
             injector.replace_all(shelf_content)
             print_msg("Shelf file created.")
 
-        print_msg("Inside Houdini, Tik Manager shelf should be enabled "
-                  "for the desired shelf set by clicking to '+' "
-                  "icon and selecting 'shelves' sub menu.")
+        print_msg(
+            "Inside Houdini, Tik Manager shelf should be enabled "
+            "for the desired shelf set by clicking to '+' "
+            "icon and selecting 'shelves' sub menu."
+        )
 
         print_msg("Houdini setup completed.")
         if prompt:
@@ -235,12 +260,20 @@ tui.on_publish_scene()
 
         user_max_dir = self.user_home / "AppData" / "Local" / "Autodesk" / "3dsMax"
 
-        pack_16a = self.tik_dcc_folder / "max" / "setup" / "icons" / "TikManager4_16a.bmp"
-        pack_16i = self.tik_dcc_folder / "max" / "setup" / "icons" / "TikManager4_16i.bmp"
-        pack_24a = self.tik_dcc_folder / "max" / "setup" / "icons" / "TikManager4_24a.bmp"
-        pack_24i = self.tik_dcc_folder / "max" / "setup" / "icons" / "TikManager4_24i.bmp"
+        pack_16a = (
+            self.tik_dcc_folder / "max" / "setup" / "icons" / "TikManager4_16a.bmp"
+        )
+        pack_16i = (
+            self.tik_dcc_folder / "max" / "setup" / "icons" / "TikManager4_16i.bmp"
+        )
+        pack_24a = (
+            self.tik_dcc_folder / "max" / "setup" / "icons" / "TikManager4_24a.bmp"
+        )
+        pack_24i = (
+            self.tik_dcc_folder / "max" / "setup" / "icons" / "TikManager4_24i.bmp"
+        )
 
-        work_space_injection ="""        <Window name="Tik Manager4" type="T" rank="0" subRank="2" hidden="0" dPanel="1" tabbed="0" curTab="-1" cType="1" toolbarRows="1" toolbarType="3">
+        work_space_injection = """        <Window name="Tik Manager4" type="T" rank="0" subRank="2" hidden="0" dPanel="1" tabbed="0" curTab="-1" cType="1" toolbarRows="1" toolbarType="3">
             <FRect left="198" top="125" right="350" bottom="199" />
             <DRect left="1395" top="53" right="1504" bottom="92" />
             <DRectPref left="2147483647" top="2147483647" right="-2147483648" bottom="-2147483648" />
@@ -260,18 +293,34 @@ tui.on_publish_scene()
                 print_msg(f"{folder.name}")
         else:
             if prompt:
-                print_msg("No 3dsMax version can be found in the 3ds Max user directory")
-                print_msg("Make sure 3ds Max is installed and try again. Alternatively you can try manual install. "
-                          "Check the documentation for more information.")
+                print_msg(
+                    "No 3dsMax version can be found in the 3ds Max user directory"
+                )
+                print_msg(
+                    "Make sure 3ds Max is installed and try again. Alternatively you can try manual install. "
+                    "Check the documentation for more information."
+                )
                 if prompt:
                     ret = input("Press Enter to continue...")
                     assert isinstance(ret, str)
             return
 
+        source_tik4_path = self.tik_dcc_folder / "max" / "setup" / "tik4_path.ms"
+
         for version in max_folders:
             print_msg(f"Setting up {version.name}...")
             scripts_folder = user_max_dir / version / "ENU" / "scripts" / "startup"
             scripts_folder.mkdir(parents=True, exist_ok=True)
+            # copy the source to the user's scripts folder
+            tik4_path_file = scripts_folder / "tik4_path.ms"
+            shutil.copy(source_tik4_path, tik4_path_file)
+            injector = Injector(tik4_path_file)
+            injector.match_mode = "contains"
+            injector.replace_single_line(
+                f"tik_path = '{self.tik_root.parent.as_posix()}'", line="tik_path = "
+            )
+            print_msg("Path configuration added to 3ds Max.")
+
             icons_folder = user_max_dir / version / "ENU" / "usericons"
             icons_folder.mkdir(parents=True, exist_ok=True)
             macros_folder = user_max_dir / version / "ENU" / "usermacros"
@@ -282,7 +331,15 @@ tui.on_publish_scene()
             shutil.copy(pack_24a, icons_folder / "TikManager4_24a.bmp")
             shutil.copy(pack_24i, icons_folder / "TikManager4_24i.bmp")
 
-            workspace_folder = user_max_dir / version / "ENU" / "en-US" / "UI" / "Workspaces" / "usersave"
+            workspace_folder = (
+                user_max_dir
+                / version
+                / "ENU"
+                / "en-US"
+                / "UI"
+                / "Workspaces"
+                / "usersave"
+            )
             workspace_folder.mkdir(parents=True, exist_ok=True)
             workspace_file = workspace_folder / "Workspace1__usersave__.cuix"
 
@@ -330,13 +387,21 @@ icon: #("TikManager4",3)
             injector.set_file_path(workspace_file)
             injector.force = False
             injector.match_mode = "contains"
-            state = injector.inject_between(work_space_injection, start_line='"Tik Manager4"',
-                                            end_line="</Window>", suppress_warnings=True)
-            if not state: # fresh install
-                state = injector.inject_before(work_space_injection, line="</CUIWindows>")
+            state = injector.inject_between(
+                work_space_injection,
+                start_line='"Tik Manager4"',
+                end_line="</Window>",
+                suppress_warnings=True,
+            )
+            if not state:  # fresh install
+                state = injector.inject_before(
+                    work_space_injection, line="</CUIWindows>"
+                )
                 if not state:
-                    print_msg("Toolbar cannot be injected to the workplace, "
-                              "you can set toolbar manually within 3ds max\n")
+                    print_msg(
+                        "Toolbar cannot be injected to the workplace, "
+                        "you can set toolbar manually within 3ds max\n"
+                    )
                     print_msg("3ds Max Setup FAILED.")
                     if prompt:
                         ret = input("Press Enter to continue...")
@@ -360,10 +425,13 @@ icon: #("TikManager4",3)
             print_msg("Installation aborted by user.")
             return
 
-        blender_user_folder = (self.user_home / "AppData" / "Roaming" /
-                               "Blender Foundation" / "Blender")
+        blender_user_folder = (
+            self.user_home / "AppData" / "Roaming" / "Blender Foundation" / "Blender"
+        )
         versions = [x for x in blender_user_folder.iterdir() if x.is_dir()]
-        init_source = self.tik_dcc_folder / "blender" / "setup" / "tik_4_init_windows.py"
+        init_source = (
+            self.tik_dcc_folder / "blender" / "setup" / "tik_4_init_windows.py"
+        )
 
         for version in versions:
             print_msg(f"Setting up {version.name}...")
@@ -375,8 +443,9 @@ icon: #("TikManager4",3)
             shutil.copy(init_source, init_file)
             injector = Injector(init_file)
             injector.match_mode = "contains"
-            injector.replace_single_line(f"tik_path = '{self.tik_root.parent.as_posix()}'",
-                                         line="tik_path = ")
+            injector.replace_single_line(
+                f"tik_path = '{self.tik_root.parent.as_posix()}'", line="tik_path = "
+            )
 
         print_msg("Blender setup completed.")
 
@@ -400,8 +469,10 @@ icon: #("TikManager4",3)
         if not user_nuke_folder.exists():
             if prompt:
                 print_msg("No Nuke version can be found in the user's home directory")
-                print_msg("Make sure Nuke is installed and try again. Alternatively you can try manual install. "
-                          "Check the documentation for more information.")
+                print_msg(
+                    "Make sure Nuke is installed and try again. Alternatively you can try manual install. "
+                    "Check the documentation for more information."
+                )
                 if prompt:
                     _r = input("Press Enter to continue...")
                     assert isinstance(_r, str)
@@ -410,9 +481,15 @@ icon: #("TikManager4",3)
         init_file = user_nuke_folder / "init.py"
         menu_file = user_nuke_folder / "menu.py"
 
-        main_ui_icon = self.tik_dcc_folder / "nuke" / "setup" / "icons" / "tik4_main_ui.png"
-        new_version_icon = self.tik_dcc_folder / "nuke" / "setup" / "icons" / "tik4_new_version.png"
-        publish_icon = self.tik_dcc_folder / "nuke" / "setup" / "icons" / "tik4_publish.png"
+        main_ui_icon = (
+            self.tik_dcc_folder / "nuke" / "setup" / "icons" / "tik4_main_ui.png"
+        )
+        new_version_icon = (
+            self.tik_dcc_folder / "nuke" / "setup" / "icons" / "tik4_new_version.png"
+        )
+        publish_icon = (
+            self.tik_dcc_folder / "nuke" / "setup" / "icons" / "tik4_publish.png"
+        )
 
         shutil.copyfile(main_ui_icon, user_nuke_folder / "tik4_main_ui.png")
         shutil.copyfile(new_version_icon, user_nuke_folder / "tik4_new_version.png")
@@ -428,22 +505,29 @@ icon: #("TikManager4",3)
         ]
 
         injector = Injector(init_file)
-        injector.inject_between(init_content, start_line="# Tik Manager 4 [Start]\n", end_line="# Tik Manager 4 [End]\n")
+        injector.inject_between(
+            init_content,
+            start_line="# Tik Manager 4 [Start]\n",
+            end_line="# Tik Manager 4 [End]\n",
+        )
         print_msg("init.py file updated.")
 
         menu_content = [
-        "# Tik Manager 4 [Start]\n",
-        "toolbar = nuke.menu('Nodes')\n",
-        "smMenu = toolbar.addMenu('TikManager4', icon='tik4_main_ui.png')\n",
-        "smMenu.addCommand('Main UI', 'from tik_manager4.ui import main as tik4_main\\ntik4_main.launch(dcc=\"Nuke\")', icon='tik4_main_ui.png')\n",
-        "smMenu.addCommand('New Version', 'from tik_manager4.ui import main\\ntui = main.launch(dcc=\"Nuke\", dont_show=True)\\ntui.on_new_version()', icon='tik4_new_version.png')\n",
-        "smMenu.addCommand('Publish', 'from tik_manager4.ui import main\\ntui = main.launch(dcc=\"Nuke\", dont_show=True)\\ntui.on_publish_scene()', icon='projectMaterials_ICON.png')\n",
-        "# Tik Manager 4 [End]\n"
+            "# Tik Manager 4 [Start]\n",
+            "toolbar = nuke.menu('Nodes')\n",
+            "smMenu = toolbar.addMenu('TikManager4', icon='tik4_main_ui.png')\n",
+            "smMenu.addCommand('Main UI', 'from tik_manager4.ui import main as tik4_main\\ntik4_main.launch(dcc=\"Nuke\")', icon='tik4_main_ui.png')\n",
+            "smMenu.addCommand('New Version', 'from tik_manager4.ui import main\\ntui = main.launch(dcc=\"Nuke\", dont_show=True)\\ntui.on_new_version()', icon='tik4_new_version.png')\n",
+            "smMenu.addCommand('Publish', 'from tik_manager4.ui import main\\ntui = main.launch(dcc=\"Nuke\", dont_show=True)\\ntui.on_publish_scene()', icon='projectMaterials_ICON.png')\n",
+            "# Tik Manager 4 [End]\n",
         ]
 
         injector.set_file_path(menu_file)
-        injector.inject_between(menu_content, start_line="# Tik Manager 4 [Start]\n",
-                                end_line="# Tik Manager 4 [End]\n")
+        injector.inject_between(
+            menu_content,
+            start_line="# Tik Manager 4 [Start]\n",
+            end_line="# Tik Manager 4 [End]\n",
+        )
         print_msg("menu.py file updated.")
 
         print_msg("Nuke setup completed.")
@@ -466,20 +550,23 @@ icon: #("TikManager4",3)
 
         init_file = user_katana_folder / "init.py"
         init_content = [
-        "# Tik Manager 4 [Start]\n",
-        "import sys\n",
-        "import os\n",
-        f"tik_path = '{self.tik_root.parent.as_posix()}'\n",
-        "if not tik_path in sys.path:\n",
-        "    sys.path.append(tik_path)\n",
-        """os.environ["QT_PREFERRED_BINDING_JSON"] = '{"tik_manager4.ui.Qt": ["PyQt5"], "default":["PyQt5"]}'\n"""
-        "# Tik Manager 4 [End]\n"
+            "# Tik Manager 4 [Start]\n",
+            "import sys\n",
+            "import os\n",
+            f"tik_path = '{self.tik_root.parent.as_posix()}'\n",
+            "if not tik_path in sys.path:\n",
+            "    sys.path.append(tik_path)\n",
+            """os.environ["QT_PREFERRED_BINDING_JSON"] = '{"tik_manager4.ui.Qt": ["PyQt5"], "default":["PyQt5"]}'\n"""
+            "# Tik Manager 4 [End]\n",
         ]
 
         print_msg("Updating init.py file...")
         injector = Injector(init_file)
-        injector.inject_between(init_content, start_line="# Tik Manager 4 [Start]\n",
-                                end_line="# Tik Manager 4 [End]\n")
+        injector.inject_between(
+            init_content,
+            start_line="# Tik Manager 4 [Start]\n",
+            end_line="# Tik Manager 4 [End]\n",
+        )
 
         print_msg("Creating shelves.")
         source_shelf_folder = self.tik_dcc_folder / "katana" / "setup" / "tik4"
@@ -489,12 +576,15 @@ icon: #("TikManager4",3)
             shutil.rmtree(target_shelf_folder)
         shutil.copytree(source_shelf_folder, target_shelf_folder)
 
-        main_ui_icon = (self.tik_dcc_folder / "katana" / "setup" / "icons" /
-                        "tik4_main_ui.png")
-        new_version_icon = (self.tik_dcc_folder / "katana" / "setup" / "icons" /
-                            "tik4_new_version.png")
-        publish_icon = (self.tik_dcc_folder / "katana" / "setup" / "icons" /
-                        "tik4_publish.png")
+        main_ui_icon = (
+            self.tik_dcc_folder / "katana" / "setup" / "icons" / "tik4_main_ui.png"
+        )
+        new_version_icon = (
+            self.tik_dcc_folder / "katana" / "setup" / "icons" / "tik4_new_version.png"
+        )
+        publish_icon = (
+            self.tik_dcc_folder / "katana" / "setup" / "icons" / "tik4_publish.png"
+        )
 
         main_ui_py = target_shelf_folder / "main_ui.py"
         new_version_py = target_shelf_folder / "new_version.py"
@@ -504,7 +594,9 @@ icon: #("TikManager4",3)
         injector.match_mode = "contains"
         injector.replace_single_line(f"ICON: {main_ui_icon.as_posix()}", line="ICON:")
         injector.set_file_path(new_version_py)
-        injector.replace_single_line(f"ICON: {new_version_icon.as_posix()}", line="ICON:")
+        injector.replace_single_line(
+            f"ICON: {new_version_icon.as_posix()}", line="ICON:"
+        )
         injector.set_file_path(publish_py)
         injector.replace_single_line(f"ICON: {publish_icon.as_posix()}", line="ICON:")
 
@@ -527,9 +619,11 @@ icon: #("TikManager4",3)
         mari_folder = self.user_home / "Documents" / "Mari"
         if not mari_folder.exists():
             print_msg("No Mari version can be found in the user's documents directory.")
-            print_msg("Make sure Mari is installed and try again. "
-                      "Alternatively you can try manual install. "
-                      "Check the documentation for more information.")
+            print_msg(
+                "Make sure Mari is installed and try again. "
+                "Alternatively you can try manual install. "
+                "Check the documentation for more information."
+            )
             if prompt:
                 ret = input("Press Enter to continue...")
                 assert isinstance(ret, str)
@@ -546,8 +640,9 @@ icon: #("TikManager4",3)
 
         injector = Injector(init_file)
         injector.match_mode = "contains"
-        injector.replace_single_line(f"tik_path = '{self.tik_root.parent.as_posix()}'",
-                                     line="tik_path = ")
+        injector.replace_single_line(
+            f"tik_path = '{self.tik_root.parent.as_posix()}'", line="tik_path = "
+        )
 
         print_msg("Mari setup completed.")
         if prompt:
@@ -565,16 +660,26 @@ icon: #("TikManager4",3)
             print_msg("Installation aborted by user.")
             return
 
-        extensions_source_folder = (self.tik_dcc_folder / "photoshop" / "setup" /
-                                    "extensions" / "tikManager4")
-        extensions_target_folder = (self.user_home / "AppData" / "Roaming" / "Adobe" /
-                                    "CEP" / "extensions" / "tikManager4")
+        extensions_source_folder = (
+            self.tik_dcc_folder / "photoshop" / "setup" / "extensions" / "tikManager4"
+        )
+        extensions_target_folder = (
+            self.user_home
+            / "AppData"
+            / "Roaming"
+            / "Adobe"
+            / "CEP"
+            / "extensions"
+            / "tikManager4"
+        )
 
         if not extensions_target_folder.exists():
             print_msg("No Photoshop version can be found in the user's home directory.")
-            print_msg("Make sure Photoshop is installed and try again. "
-                      "Alternatively you can try manual install. "
-                      "Check the documentation for more information.")
+            print_msg(
+                "Make sure Photoshop is installed and try again. "
+                "Alternatively you can try manual install. "
+                "Check the documentation for more information."
+            )
             if prompt:
                 ret = input("Press Enter to continue...")
                 assert isinstance(ret, str)
@@ -585,13 +690,26 @@ icon: #("TikManager4",3)
         if extensions_target_folder.exists():
             shutil.rmtree(extensions_target_folder)
         # copy the source folder and overwrite the target folder
-        shutil.copytree(extensions_source_folder, extensions_target_folder,
-                        dirs_exist_ok=True, symlinks=True)
+        shutil.copytree(
+            extensions_source_folder,
+            extensions_target_folder,
+            dirs_exist_ok=True,
+            symlinks=True,
+        )
 
-        main_ui_icon = self.tik_dcc_folder / "photoshop" / "setup" / "icons" / "tik4_main_ui.png"
-        new_version_icon = (self.tik_dcc_folder / "photoshop" / "setup" /
-                            "icons" / "tik4_new_version.png")
-        publish_icon = self.tik_dcc_folder / "photoshop" / "setup" / "icons" / "tik4_publish.png"
+        main_ui_icon = (
+            self.tik_dcc_folder / "photoshop" / "setup" / "icons" / "tik4_main_ui.png"
+        )
+        new_version_icon = (
+            self.tik_dcc_folder
+            / "photoshop"
+            / "setup"
+            / "icons"
+            / "tik4_new_version.png"
+        )
+        publish_icon = (
+            self.tik_dcc_folder / "photoshop" / "setup" / "icons" / "tik4_publish.png"
+        )
 
         html_file = extensions_target_folder / "client" / "index.html"
         html_content = f"""<!DOCTYPE html>
@@ -652,7 +770,12 @@ function tikPublish(){{
         print_msg("************************")
 
         # find the gaffer installation folder.
-        places_to_look = ["C:/Program Files", "C:/Program Files (x86)", "C:/opt", "C:/software"]
+        places_to_look = [
+            "C:/Program Files",
+            "C:/Program Files (x86)",
+            "C:/opt",
+            "C:/software",
+        ]
 
         gaffer_versions = []
         for place in places_to_look:
@@ -674,9 +797,11 @@ function tikPublish(){{
                 gaffer_versions.remove(version)
         if not gaffer_versions:
             print_msg("No Gaffer version can be found.")
-            print_msg(f"Make sure Gaffer is installed in one of the following folder and try again. {places_to_look}"
-                      "Alternatively you can try manual install. "
-                      "Check the documentation for more information.")
+            print_msg(
+                f"Make sure Gaffer is installed in one of the following folder and try again. {places_to_look}"
+                "Alternatively you can try manual install. "
+                "Check the documentation for more information."
+            )
             if prompt:
                 ret = input("Press Enter to continue...")
                 assert isinstance(ret, str)
@@ -690,8 +815,9 @@ function tikPublish(){{
             shutil.copy(source_init_file, init_file)
             injector = Injector(init_file)
             injector.match_mode = "contains"
-            injector.replace_single_line(f"tik_path = '{self.tik_root.parent.as_posix()}'",
-                                         line="tik_path = ")
+            injector.replace_single_line(
+                f"tik_path = '{self.tik_root.parent.as_posix()}'", line="tik_path = "
+            )
 
         print_msg("Gaffer setup completed.")
         if prompt:
@@ -706,13 +832,24 @@ function tikPublish(){{
         print_msg("**************************************")
 
         # find the substance installation folder.
-        substance_startup_folder = self.user_home / "Documents" / "Adobe" / "Adobe Substance 3D Painter" / "python" / "startup"
+        substance_startup_folder = (
+            self.user_home
+            / "Documents"
+            / "Adobe"
+            / "Adobe Substance 3D Painter"
+            / "python"
+            / "startup"
+        )
 
         if not substance_startup_folder.exists():
-            print_msg("No Substance version can be found. Automatic installer supports version 7.2 and above.")
-            print_msg("Make sure Substance is installed and try again. "
-                      "Alternatively you can try manual install. "
-                      "Check the documentation for more information.")
+            print_msg(
+                "No Substance version can be found. Automatic installer supports version 7.2 and above."
+            )
+            print_msg(
+                "Make sure Substance is installed and try again. "
+                "Alternatively you can try manual install. "
+                "Check the documentation for more information."
+            )
             if prompt:
                 ret = input("Press Enter to continue...")
                 assert isinstance(ret, str)
@@ -724,7 +861,9 @@ function tikPublish(){{
 
         injector = Injector(init_file)
         injector.match_mode = "contains"
-        injector.replace_single_line(f"tik_path = '{self.tik_root.parent.as_posix()}'", line="tik_path = ")
+        injector.replace_single_line(
+            f"tik_path = '{self.tik_root.parent.as_posix()}'", line="tik_path = "
+        )
 
         print_msg("Substance setup completed.")
         if prompt:
@@ -734,8 +873,12 @@ function tikPublish(){{
     def __set_csx_key(self, val):
         """Convenience function to set the csx key."""
         try:
-            key = reg.OpenKey(reg.HKEY_CURRENT_USER, fr"Software\Adobe\CSXS.{val}",
-                              0, reg.KEY_ALL_ACCESS)
+            key = reg.OpenKey(
+                reg.HKEY_CURRENT_USER,
+                rf"Software\Adobe\CSXS.{val}",
+                0,
+                reg.KEY_ALL_ACCESS,
+            )
             reg.SetValueEx(key, "PlayerDebugMode", 1, reg.REG_SZ, "1")
             reg.CloseKey(key)
             return key
@@ -762,16 +905,15 @@ function tikPublish(){{
 Tik Manager v{_version.__version__} - DCC Installer
 -----------------------------------"""
 
-        self.dcc_mapping.update({
-            "Install All": self.install_all,
-            "Exit": sys.exit
-        })
+        self.dcc_mapping.update({"Install All": self.install_all, "Exit": sys.exit})
         print_msg(header)
 
         while True:
-            print_msg("""
+            print_msg(
+                """
 Choose the software you want to setup Scene Manager:
-----------------------------------------------------""")
+----------------------------------------------------"""
+            )
 
             # convert the self.dcc_mapping into a list of dictionaries for the menu
             menu_items = [{k: v} for k, v in self.dcc_mapping.items()]
@@ -845,10 +987,11 @@ Choose the software you want to setup Scene Manager:
 
 class Injector:
     """Inject contents to ASCII files."""
+
     def __init__(self, file_path):
         self.file_path = None
         self.content = None
-        self.search_list = None # search content may be reversed or not
+        self.search_list = None  # search content may be reversed or not
 
         self._search_direction = "forward"
         self._match_mode = "equal"
@@ -900,12 +1043,18 @@ class Injector:
         if isinstance(new_content, str):
             new_content = [new_content]
         if self.search_direction == "forward":
-            added_content = self.content[:start_idx] + new_content + self.content[end_idx +1:]
+            added_content = (
+                self.content[:start_idx] + new_content + self.content[end_idx + 1 :]
+            )
         else:
-            added_content = self.content[:-end_idx] + new_content + self.content[-start_idx - 1:]
+            added_content = (
+                self.content[:-end_idx] + new_content + self.content[-start_idx - 1 :]
+            )
         return added_content
 
-    def inject_between(self, new_content, start_line, end_line, suppress_warnings=False):
+    def inject_between(
+        self, new_content, start_line, end_line, suppress_warnings=False
+    ):
         """Injects the new content between the start and end lines."""
         if not self.file_path.is_file():
             if self.force:
@@ -922,7 +1071,9 @@ class Injector:
         if start_idx is None or end_idx is None:
             if self.force:
                 if not suppress_warnings:
-                    print_msg("Start or end line not found. Injecting at the end of the file.")
+                    print_msg(
+                        "Start or end line not found. Injecting at the end of the file."
+                    )
                 self._dump_content(self.content + new_content)
                 return True
             if not suppress_warnings:
@@ -952,7 +1103,7 @@ class Injector:
             if not suppress_warnings:
                 print_msg("Line not found. Aborting.")
             return False
-        injected_content = self.__add_content(new_content, start_idx, start_idx+1)
+        injected_content = self.__add_content(new_content, start_idx, start_idx + 1)
         self._dump_content(injected_content)
         return True
 
@@ -976,7 +1127,7 @@ class Injector:
             if not suppress_warnings:
                 print_msg("Line not found. Aborting.")
             return False
-        injected_content = self.__add_content(new_content, start_idx, start_idx-1)
+        injected_content = self.__add_content(new_content, start_idx, start_idx - 1)
         self._dump_content(injected_content)
         return True
 
@@ -1028,7 +1179,9 @@ class Injector:
 
     def _dump_content(self, list_of_lines):
         """Write the content to the file."""
-        temp_file_path = self.file_path.parent / f"{self.file_path.stem}_TMP{self.file_path.suffix}"
+        temp_file_path = (
+            self.file_path.parent / f"{self.file_path.stem}_TMP{self.file_path.suffix}"
+        )
         with open(temp_file_path, "w+", encoding="utf-8") as temp_file:
             temp_file.writelines(list_of_lines)
         shutil.move(temp_file_path, self.file_path)
@@ -1043,6 +1196,7 @@ class Injector:
                 if line in search_list[idx]:
                     return idx
         return None
+
 
 if __name__ == "__main__":
     install_handler = Installer(sys.argv[1:])
