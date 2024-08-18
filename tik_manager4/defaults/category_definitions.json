@@ -2,7 +2,7 @@
   "Model": {
     "type": "asset",
     "validations": ["forbidden_nodes", "locked_normals", "ngons", "overlapping_uvs", "shape_names", "turtle", "unique_names"],
-    "extracts": ["source", "alembic", "usd"]
+    "extracts": ["source", "alembic"]
   },
   "Assembly": {
     "type": "asset",

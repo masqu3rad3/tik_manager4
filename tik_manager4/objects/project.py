@@ -238,8 +238,6 @@ class Project(Subproject):
             return -1
         parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
         task = parent_sub.add_task(name, categories=categories)
-        if not task:
-            return -1  # There is a task with same absolute path
         return task
 
     def __validate_and_get_sub(self, parent_uid, parent_path):
@@ -254,7 +252,6 @@ class Project(Subproject):
             Subproject: Parent subproject class
 
         """
-        # TODO requires test
         if not parent_uid and parent_path is None:
             raise Exception("Requires at least a parent uid or parent path ")
         if parent_uid is not None:
@@ -300,7 +297,6 @@ class Project(Subproject):
         Returns:
             Tuple(<work object>, <version number>)
         """
-        # dcc_handler = dcc.Dcc()
         dcc_handler = self.guard.dcc_handler
         current_scene_path = dcc_handler.get_scene_file()
 

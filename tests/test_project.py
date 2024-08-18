@@ -51,6 +51,20 @@ class TestProject:
         tik.create_project(project_path, structure_template="empty")
         return project_path
 
+    def _create_a_subproject_task_and_work(self, project_path, tik):
+        project_path = self._new_empty_project(project_path, tik)
+        tik.set_project(project_path)
+        sub = tik.project.create_sub_project(
+            "test_subproject", mode="asset", parent_path=""
+        )
+        task = tik.project.create_task(
+            "test_task",
+            categories=["Model", "Rig", "LookDev"],
+            parent_path=sub.path,
+        )
+        work = task.categories["Model"].create_work("test_work")
+        return sub, task, work
+
     def test_default_project_paths(self, project_default_path, tik):
         assert (
             tik.project.path == ""
@@ -120,6 +134,9 @@ class TestProject:
         new_sub = tik.project.create_sub_project("testSub", parent_path="")
         assert new_sub.path == "testSub"
 
+        # test when the parent sub doesnt exist.
+        assert tik.project.create_sub_project("no_parent", parent_path="burhan") == -1
+
         another_sub = tik.project.create_sub_project(
             "anotherSub", parent_uid=new_sub.id
         )
@@ -135,6 +152,10 @@ class TestProject:
             "anotherSub already exist in sub-projects of testSub",
             "warning",
         )
+
+        # raise an exception when none of the parent_uid or parent_path is provided
+        with pytest.raises(Exception):
+            tik.project.create_sub_project("anotherSub")
 
     def test_edit_sub_project(self, project_path, tik):
         """Test editing sub-projects with parent id and path"""
@@ -175,10 +196,12 @@ class TestProject:
             == 1
         )
 
+        # test when the parent sub cannot be found
+        tik.project.edit_sub_project(path="burhan") == -1
+
     def test_create_a_shot_asset_project_structure(
         self, project_manual_path, tik, print_results=False
     ):
-
         tik.user.set("Admin", password="1234")
         tik.create_project(project_manual_path, structure_template="empty")
         tik.set_project(project_manual_path)
@@ -314,6 +337,21 @@ class TestProject:
         assert task.creator == "Admin"
         assert list(task.categories.keys()) == ["Model", "Rig", "LookDev"]
         assert task.type == "asset"
+
+        # test when neither parent_uid nor parent_path provided
+        assert (
+            tik.project.create_task("burhan", parent_uid=None, parent_path=None) == -1
+        )
+
+        # test creating a duplicate task with the same path.
+        assert (
+            tik.project.create_task(
+                "superman",
+                categories=["Model", "Rig", "LookDev"],
+                parent_path="Assets/Characters/Soldier",
+            )
+            == -1
+        )
 
         # create a task directly from a sub-project
         task = (
@@ -865,6 +903,51 @@ class TestProject:
         # there should be only one lod300 work in Model category
         assert len(model_lod300) == 1
         assert model_lod300[0].name == "bizarro_Model_lod300"
+
+    def test_find_work_by_absolute_path(self, project_manual_path, tik):
+        sub, task, work = self._create_a_subproject_task_and_work(
+            project_manual_path, tik
+        )
+        version = work.versions[0]
+        version_path = work.get_abs_project_path(version["scene_path"])
+        found_work, version_number = tik.project.find_work_by_absolute_path(
+            version_path
+        )
+        assert found_work.id == work.id
+        assert version_number == 1
+
+        # test trying to find within the project but doesn't exist
+        non_existing_version_path = work.get_abs_project_path("burhan")
+        assert tik.project.find_work_by_absolute_path(non_existing_version_path) == (
+            None,
+            None,
+        )
+
+        # test trying to find outside the project
+        assert tik.project.find_work_by_absolute_path("/burhan") == (None, None)
+
+    def test_get_current_work(self, project_manual_path, tik, monkeypatch):
+        sub, task, work = self._create_a_subproject_task_and_work(
+            project_manual_path, tik
+        )
+
+        # mock the dcc_handler.get_scene_file() to return None for testing
+        monkeypatch.setattr(
+            tik.project.guard._dcc_handler, "get_scene_file", lambda: None
+        )
+        assert tik.project.get_current_work() == (None, None)
+
+        # mock the dcc_handler.get_scene_file() to return a valid value
+        version = work.versions[0]
+        version_path = work.get_abs_project_path(version["scene_path"])
+        monkeypatch.setattr(
+            tik.project.guard._dcc_handler,
+            "get_scene_file",
+            lambda: version_path,
+        )
+        found_work, found_version = tik.project.get_current_work()
+        assert found_work.id == work.id
+        assert found_version == 1
 
     def test_scanning_works(self, project_manual_path, tik, monkeypatch):
         self.test_creating_works_and_versions(project_manual_path, tik, monkeypatch)
