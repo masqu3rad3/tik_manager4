@@ -161,6 +161,7 @@ class Entity:
 
     def get_metadata(self, parent_task, key=None):
         """Convenience method to get the metadata for work and category objects."""
+
         if not parent_task:
             return None
         parent_sub = parent_task.parent_sub

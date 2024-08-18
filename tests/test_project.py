@@ -70,6 +70,9 @@ class TestProject:
             Path(utils.get_home_dir(), "TM4_default", "tikDatabase")
         )
 
+        # test what happens when the structure file is already present.
+        assert tik._create_default_project() == False
+
     def test_create_new_project(self, project_path, tik):
         # no user permission
         tik.user.set("Generic", "1234", save_to_db=False, clear_db=True)
@@ -99,6 +102,9 @@ class TestProject:
     def test_set_project_with_arguments(self, project_path, tik):
         test_project_path = self._new_asset_shot_project(project_path, tik)
         tik.project.__init__(path=test_project_path)
+        # try to set a non-existing project
+        assert tik.set_project(test_project_path) == 1
+        assert tik.set_project("Burhan") == -1
 
     def test_create_sub_project(self, project_path, tik):
         """Tests creating sub-projects with parent id and path"""
@@ -716,25 +722,34 @@ class TestProject:
 
         assert tik.collect_template_paths() == [template_file_path]
         assert tik.get_template_names() == ["test_template"]
-        assert tik.get_template_path_by_name("test_template") == ("maya", template_file_path.as_posix())
+        assert tik.get_template_path_by_name("test_template") == (
+            "maya",
+            template_file_path.as_posix(),
+        )
 
         # create a default task to test the create_work_from_template method
         tik.project.scan_tasks()
 
         from tik_manager4.dcc.standalone.main import Dcc
+
         def mock_text_to_image(*args, **kwargs):
             return Path(args[1]).with_suffix(".png")
+
         monkeypatch.setattr(Dcc, "text_to_image", mock_text_to_image)
 
-        work = tik.project.tasks["main"].categories["Model"].create_work_from_template(
-            "template_test", template_file_path, "maya"
+        work = (
+            tik.project.tasks["main"]
+            .categories["Model"]
+            .create_work_from_template("template_test", template_file_path, "maya")
         )
         # check if the file is created
         assert work.settings_file.exists()
 
         # add the same file again to create a new version
-        work = tik.project.tasks["main"].categories["Model"].create_work_from_template(
-            "template_test", template_file_path, "maya"
+        work = (
+            tik.project.tasks["main"]
+            .categories["Model"]
+            .create_work_from_template("template_test", template_file_path, "maya")
         )
 
         # validate that there are two versions of this work

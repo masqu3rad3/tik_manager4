@@ -1,4 +1,4 @@
-# -*- mode: python ; coding: utf-8 -*-
+ # -*- mode: python ; coding: utf-8 -*-
 
 st_a = Analysis(
     ['dcc\\standalone\\tik4_standalone.py'],
@@ -36,11 +36,8 @@ st_exe = EXE(
 ps_a = Analysis(
     [
         'dcc\\photoshop\\tik4_ps_main_ui.py',
-        'dcc\\photoshop\\extract\\jpg.py',
-        'dcc\\photoshop\\extract\\png.py',
+        'dcc\\photoshop\\extract\\image.py',
         'dcc\\photoshop\\extract\\source.py',
-        'dcc\\photoshop\\extract\\tga.py',
-        'dcc\\photoshop\\extract\\tif.py',
         'dcc\\photoshop\\ingest\\source.py',
      ],
     pathex=[],
