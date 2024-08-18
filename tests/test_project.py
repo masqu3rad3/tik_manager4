@@ -1,10 +1,13 @@
 # pylint: skip-file
 """Tests for Project related functions"""
+import time
 from pathlib import Path
 import shutil
 from pprint import pprint
 from unittest.mock import patch
 import pytest
+
+import tik_manager4
 from tik_manager4.core import settings
 from tik_manager4.core import utils
 
@@ -256,48 +259,82 @@ class TestProject:
             current_subtree == existing_subtree
         ), "Read and Write of project structure does not match"
 
-    def test_deleting_sub_projects(self, project_manual_path, tik):
-        """Tests deleting the sub-projects"""
-        test_project_path = self.test_create_a_shot_asset_project_structure(
-            project_manual_path, tik, print_results=False
-        )
-        tik.set_project(test_project_path)
-        tik.user.set("Generic")
-        assert tik.project.delete_sub_project(path="Assets/Props") == -1
+    def test_delete_sub_project(self, project_manual_path, tik):
+        """Test deleting sub-projects."""
+        sub, task, work = self._create_a_subproject_task_and_work(project_manual_path, tik)
 
-        tik.user.set("Admin", 1234)
-        # wrong arguments
-        assert tik.project.delete_sub_project(path=None, uid=None) == -1
-        # path methods
+        soft_sub = sub.add_sub_project("soft_sub")
 
-        # non existing path
+        # no uid or path provided
+        assert tik.project.delete_sub_project(uid=None, path=None) == -1
+
+        # not permissions to delete
+        tik.user.set("Generic", password="1234")
+        assert tik.project.delete_sub_project(uid=sub.id) == -1
+
+        # not enough permissions for populated sub-projects
+        tik.user.set("Experienced", password="1234")
+        assert tik.project.delete_sub_project(uid=sub.id) == -1
+
+        # wrong uid
+        tik.user.set("Admin", password="1234")
+        assert tik.project.delete_sub_project(uid=-999) == -1
+
+        # wrong path
         assert tik.project.delete_sub_project(path="Burhan/Altintop") == -1
 
-        # by path
-        assert tik.project.delete_sub_project(path="Assets/Props") == 1
+        # delete with uid
+        assert tik.project.delete_sub_project(uid=soft_sub.id) == 1
 
-        # uid methods
-        uid = tik.project.get_uid_by_path(path="Assets/Characters")
+        # delete with path
+        assert tik.project.delete_sub_project(path=sub.path) == 1
 
-        # non existing uid
-        assert tik.project.delete_sub_project(uid=123123123123123123) == -1
-        assert tik.project.delete_sub_project(uid=uid) == 1
 
-        # delete a sub-project on root
-        assert tik.project.delete_sub_project(path="Assets") == 1
+    # def test_deleting_sub_projects(self, project_manual_path, tik):
+    #     """Tests deleting the sub-projects"""
+    #     test_project_path = self.test_create_a_shot_asset_project_structure(
+    #         project_manual_path, tik, print_results=False
+    #     )
+    #     tik.set_project(test_project_path)
+    #     tik.user.set("Generic")
+    #     assert tik.project.delete_sub_project(path="Assets/Props") == -1
+    #
+    #     tik.user.set("Admin", 1234)
+    #     # wrong arguments
+    #     assert tik.project.delete_sub_project(path=None, uid=None) == -1
+    #     # path methods
+    #
+    #     # non existing path
+    #     assert tik.project.delete_sub_project(path="Burhan/Altintop") == -1
+    #
+    #     # by path
+    #     assert tik.project.delete_sub_project(path="Assets/Props") == 1
+    #
+    #     # uid methods
+    #     uid = tik.project.get_uid_by_path(path="Assets/Characters")
+    #
+    #     # non existing uid
+    #     assert tik.project.delete_sub_project(uid=123123123123123123) == -1
+    #     assert tik.project.delete_sub_project(uid=uid) == 1
+    #
+    #     # delete a sub-project on root
+    #     assert tik.project.delete_sub_project(path="Assets") == 1
 
-    def test_find_subs_by_path_and_id(self, project_path, tik):
-        test_project_path = self._new_asset_shot_project(project_path, tik)
+    def test_find_subs_by_path(self, project_manual_path, tik):
+        test_project_path = self._new_asset_shot_project(project_manual_path, tik)
         tik.set_project(test_project_path)
         sub_by_path = tik.project.find_sub_by_path("Assets")
         assert sub_by_path.path == "Assets"
-        sub_by_id = tik.project.find_sub_by_id(sub_by_path.id)
-        assert sub_by_id.path == "Assets"
-        assert sub_by_path == sub_by_id
-
-        # non existing path
         assert tik.project.find_sub_by_path("Burhan/Altintop") == -1
-        assert tik.project.find_sub_by_id(123123123123123123123) == -1
+
+    def test_find_subs_by_id(self, project_manual_path, tik):
+        sub, task, work = self._create_a_subproject_task_and_work(
+            project_manual_path, tik
+        )
+        assert tik.project.find_sub_by_id(sub.id) == sub
+        assert sub.find_sub_by_id(sub.id) == sub
+        assert tik.project.find_sub_by_id(-999) == -1
+
 
     def test_find_subs_by_wildcard(self, project_manual_path, tik):
         test_project_path = self.test_create_a_shot_asset_project_structure(
@@ -571,22 +608,42 @@ class TestProject:
         )
 
     def test_scanning_tasks(self, project_manual_path, tik):
-        self.test_creating_and_adding_new_tasks(project_manual_path, tik)
+        sub, task, work = self._create_a_subproject_task_and_work(
+            project_manual_path, tik
+        )
+
+        # self.test_creating_and_adding_new_tasks(project_manual_path, tik)
+
+        # sub = tik.project.subs["Assets"].subs["Characters"].subs["Soldier"]
+        # scan the tasks
+        assert sub.scan_tasks() == sub.tasks
+
+        # create another instance of the tik and pretend as someone else
+        tik2 = tik_manager4.initialize("Standalone")
+        tik2.user.set("Admin", password="1234")
+        tik2.set_project(project_manual_path)
+        tik2.project.subs[sub.name].add_task(
+            "second_task", categories=["Model", "Rig", "LookDev"]
+        )
 
         # scan the tasks
-        assert (
-            tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].scan_tasks()
-        )
+        assert sub.scan_tasks() == sub.tasks
 
-        # modify one of the tasks and scan again
-        # no permission
-        tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks[
-            "superman"
-        ].add_category("Temp")
-        tik.user.set("Admin", password=1234)
-        assert (
-            tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].scan_tasks()
+        tik2.project.subs[sub.name].tasks["second_task"].add_category("Temp")
+
+        assert sub.scan_tasks() == sub.tasks
+
+        tik2.project.subs[sub.name].delete_task("second_task")
+
+        assert sub.scan_tasks() == sub.tasks
+
+    def test_if_a_task_is_empty(self, project_manual_path, tik):
+        sub, task, work = self._create_a_subproject_task_and_work(
+            project_manual_path, tik
         )
+        assert sub.is_task_empty(task) == False
+        fresh_task = sub.add_task("fresh_task", categories=["Model"])
+        assert sub.is_task_empty(fresh_task) == True
 
     def test_creating_works_and_versions(self, project_manual_path, tik, monkeypatch):
         self.test_creating_and_adding_new_tasks(project_manual_path, tik)
@@ -877,6 +934,43 @@ class TestProject:
 
         monkeypatch.undo()
 
+    def test_find_tasks_by_wildcard(self, project_manual_path, tik):
+        sub, task, work = self._create_a_subproject_task_and_work(
+            project_manual_path, tik
+        )
+        assert sub.find_tasks_by_wildcard(f"{task.name[:-2]}*")
+
+        # create additional nested subprojects and find tasks by wildcard
+
+        sub1a = sub.add_sub_project("sub1a")
+        sub1a.add_task("wild_task1", categories=["Model"])
+        sub1b = sub.add_sub_project("sub1b")
+        sub1b.add_task("wild_task2", categories=["Model"])
+        sub2a = sub1a.add_sub_project("sub2a")
+        sub2a.add_task("wild_task3", categories=["Model"])
+        sub2b = sub1b.add_sub_project("sub2b")
+        sub2b.add_task("wild_task4", categories=["Model"])
+
+        collected_tasks = sub.find_tasks_by_wildcard("wild*")
+        assert len(collected_tasks) == 4
+
+    def test_find_task_by_id(self, project_manual_path, tik):
+        sub, task, work = self._create_a_subproject_task_and_work(
+            project_manual_path, tik
+        )
+        found_task = sub.find_task_by_id(task.id)
+        assert found_task.name == task.name
+
+        # create a task in a deeper level
+        sub1 = sub.add_sub_project("sub1")
+        sub2 = sub1.add_sub_project("sub2")
+        sub2_task = sub2.add_task("sub2_task", categories=["Model"])
+
+        sub.find_task_by_id(sub2_task.id) == sub2_task
+
+        # non existing task id
+        assert sub.find_task_by_id(123123123123123123123) == -1
+
     def test_find_works_by_wildcard(self, project_manual_path, tik, monkeypatch):
         self.test_creating_works_and_versions(project_manual_path, tik, monkeypatch)
         lod300_works = (
@@ -1077,6 +1171,43 @@ class TestProject:
             .delete_task("superman")[0]
             == 1
         )
+
+    def test_deleting_non_empty_task(self, project_manual_path, tik, monkeypatch):
+        sub, task, work = self._create_a_subproject_task_and_work(
+            project_manual_path, tik
+        )
+        tik.user.set("Admin", "1234")
+        # create an additional work
+        task.categories["Model"].create_work("test_work_to_double_delete")
+        result = sub.delete_task(task.name)
+        assert result == (1, "success")
+
+        # create the same task and same work again
+        task = sub.add_task(task.name, categories=["Model", "Rig", "LookDev"])
+        task.categories["Model"].create_work("test_work_to_double_delete")
+
+        # mock the shutil.rmtree to raise a PermissionError
+        def mock_rmtree(*args, **kwargs):
+            raise PermissionError
+
+        monkeypatch.setattr(shutil, "rmtree", mock_rmtree)
+        result = sub.delete_task(task.name)
+        assert result[0] == -1
+
+        # mock the unlink method to raise a PermissionError
+        monkeypatch.undo()
+
+        def mock_unlink(*args, **kwargs):
+            raise PermissionError
+
+        monkeypatch.setattr(Path, "unlink", mock_unlink)
+        result = sub.delete_task(task.name)
+        assert result[0] == -1
+
+        # remove the mock and clean the purgatory.
+        monkeypatch.undo()
+        result = sub.delete_task(task.name)
+        assert result == (1, "success")
 
     def test_deleting_empty_categories(self, project_manual_path, tik):
         self.test_adding_categories(project_manual_path, tik)

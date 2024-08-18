@@ -353,23 +353,61 @@ class Subproject(Entity):
 
         # move everything to the purgatory
         if not _is_empty:
-            LOG.warning(f"Sending task {task_name} "
-                        f"and everything underneath to purgatory.")
+            LOG.warning(
+                f"Sending task {task_name} " f"and everything underneath to purgatory."
+            )
 
-            Path(self.get_purgatory_database_path(task.file_name)).mkdir(parents=True, exist_ok=True)
-            Path(self.get_purgatory_project_path()).mkdir(parents=True, exist_ok=True)
-            _target_path = self.get_purgatory_database_path(task.file_name)
-            if Path(_target_path).exists():
-                try:
-                    shutil.rmtree(_target_path)
-                except PermissionError:
-                    msg = f"{task.file_name} folder already exists in purgatory and its read only." \
+            target_purgatory_database_folder = Path(
+                self.get_purgatory_database_path(task.name)
+            )
+            target_purgatory_project_folder = Path(
+                self.get_purgatory_project_path(task.name)
+            )
+            target_purgatory_task_path = Path(
+                self.get_purgatory_database_path(task.file_name)
+            )
+            for purgatory_folder in [
+                target_purgatory_database_folder,
+                target_purgatory_project_folder,
+            ]:
+                if purgatory_folder.exists():
+                    try:
+                        shutil.rmtree(purgatory_folder)
+                    except PermissionError:
+                        msg = (
+                            f"{purgatory_folder.as_posix()} folder already exists in purgatory and its read only."
                             f"Please delete it manually or purge the purgatory."
+                        )
+                        LOG.error(msg)
+                        return -1, msg
+
+            if target_purgatory_task_path.exists():
+                try:
+                    # remove the file
+                    target_purgatory_task_path.unlink()
+                except PermissionError:
+                    msg = (
+                        f"{target_purgatory_task_path.as_posix()} folder already exists in purgatory and its read only."
+                        f"Please delete it manually or purge the purgatory."
+                    )
                     LOG.error(msg)
                     return -1, msg
+            target_purgatory_database_folder.parent.mkdir(parents=True, exist_ok=True)
+            target_purgatory_project_folder.parent.mkdir(parents=True, exist_ok=True)
+
+
             shutil.move(
-                self.get_abs_database_path(task.file_name),
-                self.get_purgatory_database_path(task.file_name),
+                task.get_abs_database_path(task.name),
+                target_purgatory_database_folder.parent.as_posix(),
+                copy_function=shutil.copytree,
+            )
+            shutil.move(
+                task.get_abs_project_path(task.name),
+                target_purgatory_project_folder.parent.as_posix(),
+                copy_function=shutil.copytree,
+            )
+            shutil.move(
+                task.settings_file, target_purgatory_task_path.as_posix()
             )
         else:  # if the task is empty, just delete the database file
             Path(task.settings_file).unlink()

@@ -146,6 +146,24 @@ def test_adding_new_users(tik):
     )
     assert tik.user.create_new_user("Extra_User", "ext", "extra", 2) == (1, "Success")
 
+@pytest.mark.parametrize(
+    "user, expected_level",
+    [
+        ("Admin", 3),
+        ("Experienced", 2),
+        ("Generic", 1),
+        ("Observer", 0),
+    ]
+)
+def test_check_permission_levels(tik, user, expected_level):
+    tik.user.set(user)
+    # fail the permission level
+    assert tik.user.check_permissions(expected_level + 1) == -1
+    # fail the authentication
+    assert tik.user.check_permissions(expected_level) == -1
+    tik.user.authenticate("1234")
+    assert tik.user.check_permissions(expected_level) == 1
+
 
 def test_change_user_password(tik):
     tik.project.__init__()
