@@ -23,6 +23,7 @@ def test_validating_commons_folder(tik, tmp_path, monkeypatch):
     # pretend there is a permission error to the folder
     def mock_copy(src, dst):
         raise PermissionError
+
     monkeypatch.setattr("shutil.copy", mock_copy)
     # test what happens when there is a permission error
     tik.user.commons.__init__(mock_commons.as_posix())
@@ -146,6 +147,7 @@ def test_adding_new_users(tik):
     )
     assert tik.user.create_new_user("Extra_User", "ext", "extra", 2) == (1, "Success")
 
+
 @pytest.mark.parametrize(
     "user, expected_level",
     [
@@ -153,7 +155,7 @@ def test_adding_new_users(tik):
         ("Experienced", 2),
         ("Generic", 1),
         ("Observer", 0),
-    ]
+    ],
 )
 def test_check_permission_levels(tik, user, expected_level):
     tik.user.set(user)
@@ -164,6 +166,38 @@ def test_check_permission_levels(tik, user, expected_level):
     tik.user.authenticate("1234")
     assert tik.user.check_permissions(expected_level) == 1
 
+
+def test_get_and_set_last_project(tik):
+    tik.user.set("Admin")
+    assert tik.user.last_project
+    tik.user.last_project = "Test_Project"
+    assert tik.user.last_project == "Test_Project"
+
+
+def test_get_and_set_last_task(tik):
+    tik.user.set("Admin")
+    # print(tik.user.resume.get_property("task"))
+    assert tik.user.last_task == tik.user.resume.get_property("task")
+    tik.user.last_task = 999
+    assert tik.user.last_task == 999
+
+def test_get_and_set_last_category(tik):
+    tik.user.set("Admin")
+    assert tik.user.last_category == tik.user.resume.get_property("category")
+    tik.user.last_category = "Test_Category"
+    assert tik.user.last_category == "Test_Category"
+
+def test_get_and_set_last_work(tik):
+    tik.user.set("Admin")
+    assert tik.user.last_work == tik.user.resume.get_property("work")
+    tik.user.last_work = "Test_Work"
+    assert tik.user.last_work == "Test_Work"
+
+def test_get_and_set_last_version(tik):
+    tik.user.set("Admin")
+    assert tik.user.last_version == tik.user.resume.get_property("version")
+    tik.user.last_version = "Test_Version"
+    assert tik.user.last_version == "Test_Version"
 
 def test_change_user_password(tik):
     tik.project.__init__()
