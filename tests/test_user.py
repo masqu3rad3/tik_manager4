@@ -1,7 +1,10 @@
+# fmt: off
 """Tests for User related functions"""
 
 from pathlib import Path
 import pytest
+
+from tik_manager4.ui.dialog import feedback
 
 
 def test_reinitializing_user(tik):
@@ -11,6 +14,59 @@ def test_reinitializing_user(tik):
     assert (
         tik.user._validate_user_data() == 1
     ), "Existing user data failed to initialize"
+
+
+@pytest.mark.parametrize(
+    "query_response",
+    [
+        ("yes"),
+        ("no"),
+    ],
+)
+def test_validating_user_data(tik, monkeypatch, tmp_path, query_response):
+    """Tests validating the user information"""
+    tik.project.__init__()
+    tik.user.__init__()
+    test_dir = Path(tmp_path, "test_dir")
+    test_dir.mkdir(exist_ok=True)
+    from tik_manager4.ui.dialog import feedback
+
+    monkeypatch.setattr(tik.user.settings, "get_property", lambda key: None)
+    monkeypatch.setattr(feedback.Feedback, "pop_info", lambda *args, **kargs: None)
+    monkeypatch.setattr(feedback.Feedback,"browse_directory",lambda *args, **kwargs: test_dir.as_posix(),)
+    monkeypatch.setattr(feedback.Feedback, "pop_question", lambda *args, **kwargs: query_response)
+    tik.user.common_directory = None
+    tik.user._validate_user_data()
+
+    monkeypatch.setattr(feedback.Feedback,"browse_directory",lambda *args, **kwargs: str(test_dir / "somefile.txt"),)
+    tik.user.common_directory = None
+    if query_response == "yes":
+        with pytest.raises(FileNotFoundError):
+            tik.user._validate_user_data()
+    if query_response == "no":
+        with pytest.raises(Exception):
+            tik.user._validate_user_data()
+
+    monkeypatch.setattr(feedback.Feedback,"browse_directory",lambda *args, **kwargs: test_dir.as_posix(),)
+    # mock the commons to return as non-valid
+    from tik_manager4.objects import commons
+    monkeypatch.setattr(commons.Commons, "_validate_commons_folder", lambda self: False)
+    # tik.user.commons.is_valid = False
+    tik.user.common_directory = None
+    # with pytest.raises(AttributeError):
+    if query_response == "yes":
+        with pytest.raises(AttributeError):
+            tik.user._validate_user_data()
+    if query_response == "no":
+        with pytest.raises(Exception):
+            tik.user._validate_user_data()
+
+    monkeypatch.undo()
+
+    monkeypatch.setattr(tik.user.resume, "get_property", lambda key: "burhan_doesnt_exist")
+    tik.user._validate_user_data()
+    assert tik.user.name == "Generic"
+
 
 
 def test_validating_commons_folder(tik, tmp_path, monkeypatch):
@@ -181,11 +237,13 @@ def test_get_and_set_last_task(tik):
     tik.user.last_task = 999
     assert tik.user.last_task == 999
 
+
 def test_get_and_set_last_category(tik):
     tik.user.set("Admin")
     assert tik.user.last_category == tik.user.resume.get_property("category")
     tik.user.last_category = "Test_Category"
     assert tik.user.last_category == "Test_Category"
+
 
 def test_get_and_set_last_work(tik):
     tik.user.set("Admin")
@@ -193,11 +251,13 @@ def test_get_and_set_last_work(tik):
     tik.user.last_work = "Test_Work"
     assert tik.user.last_work == "Test_Work"
 
+
 def test_get_and_set_last_version(tik):
     tik.user.set("Admin")
     assert tik.user.last_version == tik.user.resume.get_property("version")
     tik.user.last_version = "Test_Version"
     assert tik.user.last_version == "Test_Version"
+
 
 def test_change_user_password(tik):
     tik.project.__init__()
@@ -244,6 +304,7 @@ def test_change_permission_levels(tik):
         "User Generic has no permission to change permission level of other users",
     )
     assert tik.user.set("Admin")
+    tik.user.change_permission_level("Test_TaskUser", 3, active_user_password="not_valid")
     assert tik.user.change_permission_level("Test_TaskUser", 3) == (
         -1,
         "Active user is not authenticated or the password is wrong",
@@ -266,17 +327,11 @@ def test_change_permission_levels(tik):
 
 def test_delete_user(tik):
     test_adding_new_users(tik)
-
+    tik.user.create_new_user("Extra_User2", "ext2", "1234", 2, active_user_password="1234")
     tik.user.set("Test_ProjectUser", password="password")
-    assert tik.user.delete_user("Extra_User") == (
-        -1,
-        "User Test_ProjectUser has no permission to delete users",
-    )
+    assert tik.user.delete_user("Extra_User") == (-1, "User Test_ProjectUser has no permission to delete users",)
     tik.user.set("Test_AdminUser")
-    assert tik.user.delete_user("Admin") == (
-        -1,
-        "Active user is not authenticated or the password is wrong",
-    )
+    assert tik.user.delete_user("Admin") == (-1, "Active user is not authenticated or the password is wrong",)
     tik.user.authenticate("password")
 
     assert tik.user.delete_user("Admin") == (-1, "Admin User cannot be deleted")
@@ -285,6 +340,10 @@ def test_delete_user(tik):
         -1,
         "User Burhan Altintop does not exist. Aborting",
     )
+    # try to authenticate with a wrong password
+    assert tik.user.delete_user("Extra_User2", active_user_password="WRONG_PASS") == (-1, "Active user is not authenticated or the password is wrong")
+    tik.user.set("Admin", password="1234")
+    assert tik.user.delete_user("Extra_User2")
     assert tik.user.delete_user("Extra_User") == (1, "Success")
 
 
@@ -307,3 +366,8 @@ def test_adding_new_project_bookmarks(tik):
     assert tik.user.add_project_bookmark("/path/to/projectA") == 1
     assert tik.user.add_project_bookmark("/path/to/projectB") == 1
     assert tik.user.add_project_bookmark("/path/to/projectB") == -1
+
+def test_adding_recent_projects(tik):
+    for x in range(11):
+        tik.user.add_recent_project(f"/path/to/project{x}")
+    assert len(tik.user.get_recent_projects()) == 10
