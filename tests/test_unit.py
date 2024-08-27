@@ -158,7 +158,9 @@ def test_opening_a_folder(tik, is_file, system, expected_cmd, monkeypatch):
     def mock_popen(cmd):
         popen_called.append(cmd)
 
-    monkeypatch.setattr(os, "startfile", mock_startfile)
+    # Only monkeypatch os.startfile if running on Windows
+    if system == "Windows":
+        monkeypatch.setattr(os, "startfile", mock_startfile)
     monkeypatch.setattr(subprocess, "Popen", mock_popen)
 
     tik.project._open_folder(target)
