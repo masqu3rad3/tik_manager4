@@ -14,12 +14,12 @@ import tik_manager4._version as version
 # for example, Maya and trigger.
 from importlib import reload
 reload(dcc)
-from tik_manager4.ui.Qt import (
-    QtWidgets,
-)  # Only for browsing if the common folder is not defined
+# from tik_manager4.ui.Qt import (
+#     QtWidgets,
+# )  # Only for browsing if the common folder is not defined
 
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
+# if __name__ == "__main__":
+#     app = QtWidgets.QApplication(sys.argv)
 
 
 class Main:
@@ -57,14 +57,14 @@ class Main:
         self.set_project(str(_project))
 
     def _create_default_project(self):
-        """Create a default project. Protected method."""
+        """Create a default project."""
         # this does not require any permissions
         _project_path = Path(utils.get_home_dir(), "TM4_default")
         _database_path = _project_path / "tikDatabase"
         _database_path.mkdir(parents=True, exist_ok=True)
         _structure_file = _database_path / "project_structure.json"
         if _structure_file.exists():
-            return
+            return False
 
         structure_data = self.user.commons.structures.get_property("empty") or {
             "name": "TM4_default",
@@ -87,6 +87,7 @@ class Main:
         # create an initial main task under the root
         categories = list(project_obj.guard.category_definitions.properties.keys())
         _main_task = project_obj.add_task("main", categories=categories)
+        return True
 
     def create_project(
         self,

@@ -21,7 +21,6 @@ class Commons:
     def __init__(self, folder_path):
         """Initialize the Commons class."""
         super().__init__()
-
         self._folder_path = folder_path
         self.is_valid = self._validate_commons_folder()
 
@@ -66,7 +65,6 @@ class Commons:
         self.metadata = Settings(
             file_path=str(Path(self._folder_path, "metadata.json"))
         )
-
         return True
 
     def check_user_permission_level(self, user_name):

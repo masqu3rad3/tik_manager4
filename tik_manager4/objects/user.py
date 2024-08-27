@@ -1,4 +1,5 @@
 """User module for Tik Manager 4."""
+
 import hashlib
 from pathlib import Path
 from tik_manager4.core import filelog
@@ -264,6 +265,7 @@ class User:
         self.common_directory = self.common_directory or self.settings.get_property(
             "commonFolder"
         )
+
         if not self.common_directory or not Path(self.common_directory).is_dir():
             # if it is not overridden while creating the object ask it from the user
             if not self.common_directory:
