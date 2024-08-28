@@ -206,6 +206,7 @@ class Publish(Entity):
             _import_obj.metadata = self.work_object.get_metadata(
                 self.work_object.parent_task
             )
+            _import_obj.namespace = self.name
             _import_obj.category = self.work_object.category
             _import_obj.ingest_path = (
                 abs_path  # This path can be a folder if its a bundled type.
@@ -240,6 +241,10 @@ class Publish(Entity):
             _import_obj = _func()
             _import_obj.sequential = sequential
             _import_obj.category = self.work_object.category
+            _import_obj.metadata = self.work_object.get_metadata(
+                self.work_object.parent_task
+            )
+            _import_obj.namespace = self.name
             _import_obj.ingest_path = abs_path
             _import_obj.reference()
 
@@ -635,15 +640,3 @@ class PublishVersion(Settings, Entity):
             if element["type"] == element_type:
                 return element.get("bundled", False)
         return None
-
-    # def get_metadata(self, parent_task, key=None):
-    #     """Convenience method to get the metadata for work and category objects."""
-    #     # if this is a subproject, get the metadata directly from the attribute.
-    #     if not parent_task:
-    #         return None
-    #     parent_sub = parent_task.parent_sub
-    #     if not parent_sub:
-    #         return None
-    #     if key:
-    #         return parent_sub.metadata.get_value(key, None)
-    #     return parent_sub.metadata
