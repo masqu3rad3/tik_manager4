@@ -714,7 +714,7 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
 
     def get_active_subproject(self):
         """Get the selected item and return the subproject object"""
-        selected_item = self.sub_view.get_selected_items()
-        if selected_item:
-            return selected_item.subproject
+        selected_items = self.sub_view.get_selected_items()
+        if selected_items:
+            return selected_items[0].subproject
         return None
