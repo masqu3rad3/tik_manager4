@@ -7,6 +7,7 @@ from tik_manager4.ui.widgets.common import TikButtonBox
 
 import tik_manager4.ui.layouts.settings_layout
 from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
+from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
 
 
 class EditSubprojectDialog(QtWidgets.QDialog):
@@ -321,3 +322,37 @@ class FilteredData(dict):
             _new_key = "__new_{}".format(key)
             if settings_data.get_property(_new_key):
                 self[key] = value
+
+
+class SelectSubprojectDialog(QtWidgets.QDialog):
+    """Convenience dialog for selecting a subproject."""
+    def __init__(self, tik_project):
+        super().__init__()
+        self.setWindowTitle("Select Subproject")
+        self.setModal(True)
+
+        self.tik_project = tik_project
+        self.selected_subproject = None
+
+        self.master_layout = QtWidgets.QVBoxLayout(self)
+        self.setLayout(self.master_layout)
+
+        self.subproject_layout = TikSubProjectLayout(self.tik_project)
+        self.master_layout.addLayout(self.subproject_layout)
+        self.button_box = TikButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
+        self.master_layout.addWidget(self.button_box)
+
+        self.button_box.accepted.connect(self._accept)
+        self.button_box.rejected.connect(self.reject)
+
+        # expand the first item
+        self.subproject_layout.sub_view.expand_first_item()
+
+
+    def _accept(self):
+        self.selected_subproject = self.subproject_layout.get_active_subproject()
+        self.accept()
+
+

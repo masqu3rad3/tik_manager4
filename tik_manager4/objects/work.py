@@ -518,6 +518,7 @@ class Work(Settings, Entity):
             _ingest_obj = self._dcc_handler.ingests[ingestor]()
             # feed the metadata from the parent subproject
             _ingest_obj.metadata = self.get_metadata(self.parent_task)
+            _ingest_obj.namespace = self.name
             _ingest_obj.category = self.category
             _ingest_obj.ingest_path = abs_path
             _ingest_obj.bring_in()
@@ -538,6 +539,8 @@ class Work(Settings, Entity):
             relative_path = version_obj.get("scene_path")
             abs_path = self.get_abs_project_path(relative_path)
             _ingest_obj = self._dcc_handler.ingests[ingestor]()
+            _ingest_obj.metadata = self.get_metadata(self.parent_task)
+            _ingest_obj.namespace = self.name
             _ingest_obj.category = self.category
             _ingest_obj.ingest_path = abs_path
             _ingest_obj.reference()
