@@ -347,8 +347,9 @@ class SelectSubprojectDialog(QtWidgets.QDialog):
         self.button_box.accepted.connect(self._accept)
         self.button_box.rejected.connect(self.reject)
 
-        # expand the root in subproject layout
-        # self.subproject_layout.expand_root()
+        # expand the first item
+        self.subproject_layout.sub_view.expand_first_item()
+
 
     def _accept(self):
         self.selected_subproject = self.subproject_layout.get_active_subproject()
