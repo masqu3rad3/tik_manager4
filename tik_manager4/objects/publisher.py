@@ -76,7 +76,8 @@ class Publisher:
         self._task_object = self._project_object.find_task_by_id(
             self._work_object.task_id
         )
-        self._metadata = self._task_object.parent_sub.metadata
+        # self._metadata = self._task_object.parent_sub.metadata
+        self._metadata = self._task_object.metadata
 
         _category_definitons = self._work_object.guard.category_definitions
         extracts = _category_definitons.properties.get(

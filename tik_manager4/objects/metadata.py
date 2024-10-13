@@ -76,6 +76,38 @@ class Metadata(dict):
         for key, data in data_dictionary.items():
             self[key] = Metaitem(data, overridden=True)
 
+    def copy(self):
+        """Return a copy of the metadata."""
+        return Metadata(dict(self.get_all_items()))
+
     def exists(self, key):
         """Check if the key exists."""
         return key in self
+
+class FilteredData(dict):
+    """Class to filter the overridden and new data."""
+    def __init__(self, **kwargs):
+        super(FilteredData, self).__init__()
+        self.update(kwargs)
+
+    def update_overridden_data(self, settings_data):
+        for key, value in settings_data.get_data().items():
+            # if it starts __override, skip
+            if key.startswith("__override"):
+                continue
+            # if the key has a __override key, check if it is True
+            _override_key = "__override_{}".format(key)
+            if _override_key not in list(settings_data.get_data().keys()):
+                self[key] = value
+            else:
+                if settings_data.get_property(_override_key):
+                    self[key] = value
+
+    def update_new_data(self, settings_data):
+        for key, value in settings_data.get_data().items():
+            if key.startswith("__new"):
+                continue
+            # if the new checked box is checked, add the key to the filtered_data
+            _new_key = "__new_{}".format(key)
+            if settings_data.get_property(_new_key):
+                self[key] = value

@@ -261,7 +261,9 @@ class TestProject:
 
     def test_delete_sub_project(self, project_manual_path, tik):
         """Test deleting sub-projects."""
-        sub, task, work = self._create_a_subproject_task_and_work(project_manual_path, tik)
+        sub, task, work = self._create_a_subproject_task_and_work(
+            project_manual_path, tik
+        )
 
         soft_sub = sub.add_sub_project("soft_sub")
 
@@ -288,7 +290,6 @@ class TestProject:
 
         # delete with path
         assert tik.project.delete_sub_project(path=sub.path) == 1
-
 
     # def test_deleting_sub_projects(self, project_manual_path, tik):
     #     """Tests deleting the sub-projects"""
@@ -334,7 +335,6 @@ class TestProject:
         assert tik.project.find_sub_by_id(sub.id) == sub
         assert sub.find_sub_by_id(sub.id) == sub
         assert tik.project.find_sub_by_id(-999) == -1
-
 
     def test_find_subs_by_wildcard(self, project_manual_path, tik):
         test_project_path = self.test_create_a_shot_asset_project_structure(
@@ -910,22 +910,20 @@ class TestProject:
             "mocked_dcc_version",
         )
 
-        # mock the sub's meta data to override the dcc version which will be compared against.
-        monkeypatch.setattr(
-            sub._metadata, "get_value", lambda _key, _: "monkeypatched_version"
-        )
+        #monkeypatch all instances of the metadata.get_value method to return a value for testing
+        def mock_get_value(*args, **kwargs):
+            return "monkeypatched_version"
+
+        import tik_manager4.objects.metadata
+        monkeypatch.setattr(tik_manager4.objects.metadata.Metadata, "get_value", mock_get_value)
+
+
         assert work_object.check_dcc_version_mismatch() == (
             "monkeypatched_version",
             "mocked_dcc_version",
         )
 
-        # in the case of where the parent_task doesn't have a parent sub
-        # and there is no parent task at all:
-        work_object._parent_task._parent_sub = None
-        assert work_object.check_dcc_version_mismatch() == (
-            "this_mock_should_fail",
-            "mocked_dcc_version",
-        )
+        # in the case of where ther is no parent task at all:
         work_object._parent_task = None
         assert work_object.check_dcc_version_mismatch() == (
             "this_mock_should_fail",

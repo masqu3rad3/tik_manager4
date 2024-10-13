@@ -12,6 +12,7 @@ class Guard:
     _last_warning = None
     _last_info = None
     _category_definitions = None
+    _metadata_definitions = None
     _asset_categories = []
     _shot_categories = []
     _null_categories = []
@@ -154,3 +155,17 @@ class Guard:
     def category_definitions(self):
         """Return the category definitions."""
         return self._category_definitions
+
+    @classmethod
+    def set_metadata_definitions(cls, definitions):
+        """Set the metadata definitions.
+
+        Args:
+            definitions (Settings): The metadata definitions.
+        """
+        cls._metadata_definitions = definitions
+
+    @property
+    def metadata_definitions(self):
+        """Return the metadata definitions."""
+        return self._metadata_definitions

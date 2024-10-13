@@ -4,6 +4,7 @@
 
 from pathlib import Path
 import shutil
+from tik_manager4.objects.metadata import Metadata
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.category import Category
 from tik_manager4.objects.entity import Entity
@@ -60,6 +61,8 @@ class Task(Settings, Entity):
 
         self._parent_sub = parent_sub
 
+        self._metadata_overrides = self.get_property("metadata_overrides") or {}
+
     @property
     def file_name(self):
         """File Name of the task settings file."""
@@ -94,6 +97,15 @@ class Task(Settings, Entity):
     def parent_sub(self):
         """Parent sub of the task."""
         return self._parent_sub
+
+    @property
+    def metadata(self):
+        """Metadata of the task."""
+        if self._parent_sub:
+            _metadata = self._parent_sub.metadata.copy()
+            _metadata.override(self._metadata_overrides)
+            return _metadata
+        return Metadata(self._metadata_overrides)
 
     def build_categories(self, category_list):
         """Create category objects.
@@ -141,7 +153,7 @@ class Task(Settings, Entity):
         self.apply_settings()
         return self._categories[category]
 
-    def edit(self, name=None, task_type=None, categories=None):
+    def edit(self, name=None, task_type=None, categories=None, metadata_overrides=None):
         """Edit the task.
 
         Edits the given arguments of the task and applies the settings.
@@ -188,6 +200,9 @@ class Task(Settings, Entity):
                     )
             self._categories = self.build_categories(categories)
             self.edit_property("categories", list(categories))
+        if metadata_overrides is not None: # explicitly check for None
+            self._metadata_overrides = metadata_overrides
+            self.edit_property("metadata_overrides", metadata_overrides)
         self.apply_settings()
         return 1
 
