@@ -1,0 +1,14 @@
+<RCC>
+  <qresource prefix="shotgun_authentication">
+    <file>shotgun_logo_light_medium.png</file>
+  </qresource>
+  <qresource prefix="shotgun_authentication">
+    <file>down-arrow.png</file>
+  </qresource>
+  <qresource prefix="backup_codes">
+    <file>backup_codes_light_bg.png</file>
+  </qresource>
+  <qresource prefix="google_authenticator">
+    <file>google_authenticator.png</file>
+  </qresource>
+</RCC>

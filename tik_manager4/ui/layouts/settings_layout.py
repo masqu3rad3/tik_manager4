@@ -277,7 +277,6 @@ def main():
 
     test_settings = Settings(test_file)
     _style_file = pick.style_file()
-    _style_file = pick.style_file()
     dialog = QtWidgets.QDialog(styleSheet=str(_style_file.readAll(), "utf-8"))
     setting_lay = SettingsLayout(test_settings.get_data())
 

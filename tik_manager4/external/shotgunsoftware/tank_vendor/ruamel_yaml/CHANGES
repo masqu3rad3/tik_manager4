@@ -1,0 +1,93 @@
+0.10.5: 2015-08-25
+- preservation of newlines after block scalars. Contributed by Sam Thursfield.
+
+0.10: 2015-06-22
+- preservation of hand crafted anchor names ( not of the form "idNNN")
+- preservation of map merges ( <<< )
+
+0.9: 2015-04-18
+- collections read in by the RoundTripLoader now have a ``lc`` property
+  that can be quired for line and column ( ``lc.line`` resp. ``lc.col``)
+
+0.8: 2015-04-15
+- bug fix for non-roundtrip save of ordereddict
+- adding/replacing end of line comments on block style mappings/sequences
+
+0.7.2: 2015-03-29
+- support for end-of-line comments on flow style sequences and mappings
+
+0.7.1: 2015-03-27
+- RoundTrip capability of flow style sequences ( 'a: b, c, d' )
+
+0.7 2015-03-26
+- tests (currently failing) for inline sequece and non-standard spacing between
+  block sequence dash and scalar (Anthony Sottile)
+- initial possibility (on list, i.e. CommentedSeq) to set the flow format
+  explicitly
+- RoundTrip capability of flow style sequences ( 'a: b, c, d' )
+
+0.6.1 2015-03-15
+- setup.py changed so ruamel.ordereddict no longer is a dependency
+  if not on CPython 2.x (used to test only for 2.x, which breaks pypy 2.5.0
+  reported by Anthony Sottile)
+
+0.6 2015-03-11
+- basic support for scalars with preserved newlines
+- html option for yaml command
+- check if yaml C library is available before trying to compile C extension
+- include unreleased change in PyYAML dd 20141128
+
+0.5 2015-01-14
+- move configobj -> YAML generator to own module
+- added dependency on ruamel.base (based on feedback from  Sess
+  <leycec@gmail.com>
+
+0.4: 20141125
+- move comment classes in own module comments
+- fix omap pre comment
+- make !!omap and !!set take parameters. There are still some restrictions:
+  - no comments before the !!tag
+- extra tests
+
+0.3: 20141124
+- fix value comment occuring as on previous line (looking like eol comment)
+- INI conversion in yaml + tests
+- (hidden) test in yaml for debugging with auto command
+- fix for missing comment in middel of simple map + test
+
+0.2: 20141123
+- add ext/_yaml.c etc to the source tree
+- tests for yaml to work on 2.6/3.3/3.4
+- change install so that you can include ruamel.yaml instead of ruamel.yaml.py
+- add "yaml" utility with initial subcommands (test rt, from json)
+
+0.1: 20141122
+- merge py2 and py3 code bases
+- remove support for 2.5/3.0/3.1/3.2 (this merge relies on u"" as
+  available in 3.3 and . imports not available in 2.5)
+- tox.ini for 2.7/3.4/2.6/3.3
+- remove lib3/ and tests/lib3 directories and content
+- commit
+- correct --verbose for test application
+- DATA=changed to be relative to __file__ of code
+- DATA using os.sep
+- remove os.path from imports as os is already imported
+- have test_yaml.py exit with value 0 on success, 1 on failures, 2 on
+  error
+- added support for octal integers starting with '0o'
+  keep support for 01234 as well as 0o1234
+- commit
+- added test_roundtrip_data:
+  requirest a .data file and .roundtrip (empty), yaml_load .data
+  and compare dump against original.
+- fix grammar as per David Pursehouse:
+  https://bitbucket.org/xi/pyyaml/pull-request/5/fix-grammar-in-error-messages/diff
+- http://www.json.org/ extra escaped char \/
+  add .skip-ext as libyaml is not updated
+- David Fraser: Extract a method to represent keys in mappings, so that
+  a subclass can choose not to quote them, used in repesent_mapping
+  https://bitbucket.org/davidfraser/pyyaml/
+- add CommentToken and percolate through parser and composer and constructor
+- add Comments to wrapped mapping and sequence constructs (not to scalars)
+- generate YAML with comments
+- initial README

@@ -109,7 +109,19 @@ class StyleEditor:
         return stylesheet
 
 
-class StyleFrame(QtWidgets.QFrame, StyleEditor):
+class ClickableFrame(QtWidgets.QFrame):
+    """Clickable frame widget."""
+
+    clicked = QtCore.Signal()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def mousePressEvent(self, event):
+        self.clicked.emit()
+        return super().mousePressEvent(event)
+
+class StyleFrame(ClickableFrame, StyleEditor):
     """Frame with custom styler."""
 
     pass

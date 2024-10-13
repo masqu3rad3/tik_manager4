@@ -268,7 +268,7 @@ class Subproject(Entity):
 
         return self._tasks
 
-    def add_task(self, name, categories, task_type=None):
+    def add_task(self, name, categories, task_type=None, uid=None):
         """
         Add a task to the subproject.
 
@@ -292,7 +292,7 @@ class Subproject(Entity):
                 "There is a task under this sub-project with the same name => %s" % name
             )
             return -1
-        _task_id = self.generate_id()
+        _task_id = uid or self.generate_id()
         _task = Task(
             str(abs_path),
             name=name,

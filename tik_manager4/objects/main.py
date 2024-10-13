@@ -1,5 +1,6 @@
 """Main Module for the Tik Manager"""
 
+import os
 import http.client
 import json
 from pathlib import Path

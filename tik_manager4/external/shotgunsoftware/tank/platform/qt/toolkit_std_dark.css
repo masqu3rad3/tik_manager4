@@ -1,0 +1,298 @@
+/*
+Copyright (c) 2013 Shotgun Software Inc.
+
+CONFIDENTIAL AND PROPRIETARY
+
+This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+Source Code License included in this distribution package. See LICENSE.
+By accessing, using, copying or modifying this work you indicate your
+agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+not expressly granted therein are reserved by Shotgun Software Inc.
+
+*/
+
+QWidget
+{
+    background-color:  rgb(52, 52, 52);
+    color: rgb(185, 185, 185);
+    border-radius: 2px;
+    selection-background-color: rgb(167, 167, 167);
+    selection-color: rgb(26, 26, 26);
+    font-size: 11px;
+}
+
+QSplashScreen
+{
+    background-color: none;
+    color: none;
+}
+
+QFrame, QLineEdit, QComboBox, QSpinBox
+{
+    background-color: rgb(52, 52, 52);
+}
+
+QLabel
+{
+    background-color: none;
+    border:none;
+}
+
+QComboBox:on
+{
+    padding-top: 3px;
+    padding-left: 4px;
+}
+
+QAbstractScrollArea
+{
+    border: 1px solid rgb(20, 20, 20);
+}
+
+QScrollArea > QWidget
+{
+    background-color: rgb(52, 52, 52);
+}
+
+
+QPlainTextEdit:Focus, QComboBox:Focus, QLineEdit:Focus, QSpinBox:Focus
+{
+    background-color:  rgb(70, 70, 70);
+}
+
+QPlainTextEdit:disabled, QComboBox:disabled QLineEdit:disabled, QSpinBox:disabled, QPushButton:disabled
+{
+    background-color: rgb(60, 60, 60);
+    color:rgb(100, 100, 100);
+}
+
+
+/*listviews+treeview+tableview*/
+QListView, QTreeView, QTableView
+{
+    alternate-background-color: rgb(60, 60, 60);
+}
+
+QListView::item:selected, QTreeView::item:selected, QTableView::item:selected
+{
+    border: 1px solid rgb(160, 160, 160);
+    background-color: rgb(160, 160, 160);
+}
+
+QListView::item:selected:hover, QTreeView::item:selected:hover
+{
+    background: rgb(180, 180, 180);
+}
+QListView::item:hover, QTreeView::item:hover
+{
+    background: rgb(100, 100, 100);
+}
+
+QTreeView QWidget, QTableView .QWidget
+{
+    background-color: rgb(52, 52, 52);
+    border: none
+}
+
+QHeaderView
+{
+    background: rgb(20, 20, 20);
+}
+
+QHeaderView::section
+{
+    background-color: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 rgba(55, 55, 55, 255),
+                                                            stop:0.130682 rgba(86, 86, 86, 255), stop:0.886364 rgba(86, 86, 86, 255),
+                                                            stop:1 rgba(66, 66, 66, 255));
+    color:  rgb(180 ,180,180);
+    padding-left: 4px;
+    border: 1px solid  rgba(50, 50, 50);
+}
+QHeaderView::section:checked
+{
+    background-color: rgb(120, 120, 120);
+}
+
+QTableView QTableCornerButton::section
+{
+    border-top-left-radius: 7px;
+    background-color: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 rgba(55, 55, 55, 255),
+                                                             stop:0.130682 rgba(86, 86, 86, 255), stop:0.886364 rgba(86, 86, 86, 255),
+                                                             stop:1 rgba(66, 66, 66, 255));
+    margin: 1px 0 0 1px;
+    border: 1px solid rgba(55, 55, 55);
+}
+
+
+/*tabwidget*/
+QTabWidget::pane
+{
+    border-radius: 2px;
+    border: 1px solid rgb(20, 20, 20);
+}
+
+QTabBar::tab
+{
+    border-radius: 1px;
+    padding: 3px 3px 3px 3px;
+}
+
+QTabBar::tab:selected, QTabBar::tab:hover
+{
+    background-color: rgb(90, 90, 90);
+}
+
+QTabBar::tab:!selected
+{
+    background-color: rgb(60, 60, 60);
+}
+
+/*radiobuttons+checkboxes*/
+QRadioButton, QCheckBox
+{
+    background:transparent;
+    border:none
+}
+
+QRadioButton:disabled, QCheckBox:disabled
+{
+    background:transparent;
+    color:rgb(120, 120, 120)
+}
+
+
+QAbstractItemView
+{
+    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #4A4A4A, stop: 1 #454545);
+}
+
+
+/*Push Button*/
+
+QPushButton
+{
+    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);
+    border-width: 1px;
+    border-color: rgb(20, 20, 20);
+    border-style: solid;
+    border-radius: 1;
+    padding: 3px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+QToolButton
+{
+    border-color: rgb(20, 20, 20);
+    border-style: solid;
+    border-radius: 1;
+    border-width: 1px;
+    padding: 3px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+QPushButton:pressed, QToolButton:pressed
+{
+    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #2d2d2d, stop: 0.1 #2b2b2b, stop: 0.5 #292929, stop: 0.9 #282828, stop: 1 #252525);
+}
+
+QComboBox
+{
+    selection-background-color: #ffaa00;
+    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);
+    border-style: solid;
+    border: 1px solid #1e1e1e;
+    border-radius: 5;
+}
+
+QComboBox:hover, QPushButton:hover, QLineEdit:focus, QToolButton:hover
+{
+    border: 1px solid QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);
+}
+
+
+/*ScrollBar*/
+QScrollBar
+{
+    background: rgb(50, 50, 50);
+    border-radius: 6px;
+}
+QScrollBar::add-page, QScrollBar::sub-page
+{
+    background: rgb(70, 70, 70);
+}
+
+QScrollBar::add-page:hover, QScrollBar::sub-page:hover
+{
+    background: rgb(70, 70, 70);
+}
+QScrollBar:vertical  {
+    margin: 15px 2px 15px 2px;
+    border: 2px solid  rgb(60, 60, 60);
+}
+QScrollBar:horizontal  {
+    margin: 2px 15px 2px 15px;
+    border: 2px solid  rgb(60, 60, 60);
+}
+QScrollBar::handle{
+    background:  rgb(25, 25, 25);
+    border-radius: 3px;
+}
+QScrollBar::handle:horizontal  {
+    margin: 0 -1px 0 -1px;
+}
+QScrollBar::handle:vertical  {
+    margin: -1px 0 -1px 0;
+}
+
+QScrollBar::sub-line,QScrollBar::add-line
+{
+     background-color: rgb(52, 52, 52);
+     height: 13px;
+     width: 13px;
+}
+
+
+QScrollBar::sub-line:vertical, QScrollBar::add-line:vertical
+{
+     subcontrol-position: top;
+     subcontrol-origin: margin;
+}
+QScrollBar::add-line:vertical
+{
+     subcontrol-position: bottom;
+}
+
+QScrollBar::sub-line:horizontal, QScrollBar::add-line:horizontal
+{
+     subcontrol-position: left;
+     subcontrol-origin: margin;
+}
+
+QScrollBar::add-line:horizontal
+{
+     subcontrol-position: right;
+}
+
+
+/*menu*/
+ QMenuBar
+ {
+     background-color: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 rgba(55, 55, 55, 255), stop:1 rgba(97, 97, 97, 255));
+    border-radius: 0;
+ }
+
+ QMenuBar::item
+ {
+     spacing: 3px;
+     padding: 1px 4px;
+     background: transparent;
+     border-radius: 4px;
+ }
+ QMenuBar::item:selected {
+     background: rgb(100, 100, 100)
+ }
+ QMenuBar::item:pressed {
+     background:  rgb(50, 50, 50)
+ }
