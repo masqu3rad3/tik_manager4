@@ -10,7 +10,7 @@ The primary objective of Tik Manager 4 is to maintain simplicity for small proje
 
 As with its predecessor, Tik Manager v4 remains cross-platform and cross-DCC (Digital Content Creation).
 
-![tik_peek](https://github.com/user-attachments/assets/84b21f81-0608-4ace-9050-3fbc1f5afe9d)
+<img src="https://github.com/user-attachments/assets/84b21f81-0608-4ace-9050-3fbc1f5afe9d" alt="tik_peek" autoplay loop>
 
 ------------------------------------------------------------------------------------
 Main Features
