@@ -4,8 +4,12 @@ import os
 from pathlib import Path
 import platform
 import subprocess
+import re
+import unicodedata
 
 CURRENT_PLATFORM = platform.system()
+
+
 def get_home_dir():
     """Get the user home directory."""
     # expanduser does not always return the same result (in Maya it returns user/Documents).
@@ -13,6 +17,7 @@ def get_home_dir():
     if CURRENT_PLATFORM == "Windows":
         return os.path.normpath(os.getenv("USERPROFILE"))
     return os.path.normpath(os.getenv("HOME"))
+
 
 def apply_stylesheet(file_path, widget):
     """Read and apply the qss file to the given widget.
@@ -30,6 +35,7 @@ def apply_stylesheet(file_path, widget):
             widget.setStyleSheet(_file.read())
         return True
     return False
+
 
 def execute(file_path, executable=None):
     """Execute a file.
@@ -54,3 +60,23 @@ def execute(file_path, executable=None):
             subprocess.Popen(["xdg-open", file_path])
         else:
             subprocess.Popen(["open", file_path])
+
+def sanitize_text(text, allow_spaces=False):
+    """
+    Sanitizes the given text by removing localized characters, replacing spaces
+    with underscores, and removing or replacing illegal characters based on the pattern.
+    """
+
+    # Normalize and remove special/localized characters
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(c if unicodedata.category(c) != "Mn" else "" for c in text)
+
+    # Replace spaces with underscores if spaces are not allowed
+    if not allow_spaces:
+        text = text.replace(" ", "_")
+
+    # Define pattern to match allowed characters and remove illegal ones
+    pattern = r"[^A-Za-z0-9A_-]"
+    sanitized_text = re.sub(pattern, "", text)
+
+    return sanitized_text

@@ -1,10 +1,10 @@
 """Main module for the Shotgrid integration."""
 
-import re
 import os
 import sys
 from pathlib import Path
 from copy import deepcopy
+from tik_manager4.core import utils
 
 external_folder = os.getenv("TIK_EXTERNAL_SOURCES")
 if not external_folder:
@@ -12,7 +12,6 @@ if not external_folder:
         "TIK_EXTERNAL_SOURCES environment variable is not set. Please make sure the tik_manager4 is initialized."
     )
 shotgun_folder = (Path(external_folder) / "shotgunsoftware").as_posix()
-print(shotgun_folder)
 
 if shotgun_folder not in sys.path:
     sys.path.append(shotgun_folder)
@@ -78,7 +77,8 @@ class ProductionPlatform(object):
     def create_from_project(self, project_root, shotgrid_project_id):
         """Create a tik_manager4 project from the existing Shotgrid project."""
         project = self.sg.find_one("Project", [["id", "is", shotgrid_project_id]], ["name"])
-        project_name = re.sub('[^\w_.)( -]', '', project["name"])
+        # project_name = re.sub('[^\w_.)( -]', '', project["name"])
+        project_name = utils.sanitize_text(project["name"])
         project_path = Path(project_root) / project_name
         project_path.mkdir(exist_ok=True)
         self.tik_main.create_project(
@@ -105,6 +105,7 @@ class ProductionPlatform(object):
             for x in self.sg.find("Step", [["entity_type", "is", "Shot"]], ["code"])
         ]
 
+        # Add the categories that doesnt exists in common
         _salvage_dict = deepcopy(self.tik_main.user.commons.category_definitions.get_data())
         new_dict = {}
         for category in asset_categories + shot_categories:
@@ -140,7 +141,7 @@ class ProductionPlatform(object):
                     sub = self.tik_main.project.subs["Assets"].subs[asset["sg_asset_type"]]
             else:
                 sub = self.tik_main.project.subs["Assets"]
-            asset_name = asset["code"]
+            asset_name = utils.sanitize_text(asset["code"])
 
             # collect the pipeline steps (categories) from the sg tasks
             # categories = []
@@ -151,19 +152,23 @@ class ProductionPlatform(object):
             #     step = task_data["step"]["name"]
             #     if step and step not in categories:
             #         categories.append(step)
-            # sub.add_task(asset_name, categories=categories, uid=asset["id"])
             sub.add_task(asset_name, categories=asset_categories, uid=asset["id"])
-            # sub.add_task(asset_name, categories=asset_categories)
 
         for shot in all_shots:
-            if shot["sg_sequence"]:
-                if shots_sub.subs.get(shot["sg_sequence"]["name"]) is None:
-                    sub = self.tik_main.project.create_sub_project(shot["sg_sequence"]["name"], parent_path="Shots")
+            # does it belong to an episode?
+            query_sub = shots_sub
+            if shot["sg_sequence.Sequence.episode"]:
+                episode = shot["sg_sequence.Sequence.episode"]["name"]
+                if query_sub.subs.get(episode) is None:
+                    query_sub = self.tik_main.project.create_sub_project(episode, parent_path=query_sub.path, uid=shot["sg_sequence.Sequence.episode"]["id"], mode="episode")
                 else:
-                    sub = self.tik_main.project.subs["Shots"].subs[shot["sg_sequence"]["name"]]
-            else:
-                sub = self.tik_main.project.subs["Shots"]
-            shot_name = shot["code"]
+                    query_sub = query_sub.subs[episode]
+            if shot["sg_sequence"]:
+                if query_sub.subs.get(shot["sg_sequence"]["name"]) is None:
+                    query_sub = self.tik_main.project.create_sub_project(shot["sg_sequence"]["name"], parent_path=query_sub.path, uid=shot["sg_sequence"]["id"])
+                else: # do not attempt to create the sequence if it already exists
+                    query_sub = self.tik_main.project.subs["Shots"].subs[shot["sg_sequence"]["name"]]
+            shot_name = utils.sanitize_text(shot["code"])
 
             # collect the pipeline steps (categories) from the sg tasks
             # categories = []
@@ -176,4 +181,8 @@ class ProductionPlatform(object):
             #         categories.append(step)
 
             # sub.add_task(shot_name, categories=categories, uid=shot["id"])
-            sub.add_task(shot_name, categories=shot_categories, uid=shot["id"])
+            metadata_overrides = {
+                "start_frame": shot["sg_cut_in"],
+                "end_frame": shot["sg_cut_out"],
+            }
+            query_sub.add_task(shot_name, categories=shot_categories, uid=shot["id"], metadata_overrides=metadata_overrides)

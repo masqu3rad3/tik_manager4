@@ -149,7 +149,7 @@ class Project(Subproject):
         self.save_structure()
         return 1
 
-    def create_sub_project(self, name, parent_uid=None, parent_path=None, **properties):
+    def create_sub_project(self, name, parent_uid=None, parent_path=None, uid=None, **properties):
         """Create a sub-project under a specified parent sub and write data to
         persistent database.
 
@@ -161,6 +161,7 @@ class Project(Subproject):
                                 Either this or parent_path needs to be defined
             parent_path (str): Parent Sub-Project Relative path. If uid defined this
                                 will be skipped
+            uid (int): Unique ID of the subproject. If not provided, a new one will be generated.
             **properties: Additional properties to be added to the subproject
 
         Returns:
@@ -171,7 +172,7 @@ class Project(Subproject):
             return -1
 
         new_sub = parent_sub.add_sub_project(
-            name, parent_sub=parent_sub, uid=None, **properties
+            name, parent_sub=parent_sub, uid=uid, **properties
         )
         if new_sub == -1:
             return -1

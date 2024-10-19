@@ -9,13 +9,6 @@ from tik_manager4.ui import pick
 
 
 class TikSubItem(QtGui.QStandardItem):
-    icon_dict = {
-        "root": "root.png",
-        "asset": "asset.png",
-        "shot": "shot.png",
-        "global": "global.png",
-    }
-
     def __init__(self, sub_obj):
         super(TikSubItem, self).__init__()
 
