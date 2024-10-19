@@ -268,7 +268,7 @@ class Subproject(Entity):
 
         return self._tasks
 
-    def add_task(self, name, categories, task_type=None, uid=None):
+    def add_task(self, name, categories, task_type=None, metadata_overrides=None, uid=None):
         """
         Add a task to the subproject.
 
@@ -282,6 +282,9 @@ class Subproject(Entity):
             Task or int: The created task object if successful, -1 otherwise.
 
         """
+
+        metadata_overrides = metadata_overrides or {}
+
         # inherit the task type from the parent subproject 'mode' if not specified
         task_type = task_type or self.metadata.get_value("mode", None)
         file_name = "{0}.ttask".format(name)
@@ -311,6 +314,7 @@ class Subproject(Entity):
         _task.add_property("categories", categories)
         _task.add_property("path", self.path)
         _task.add_property("file_name", file_name)
+        _task.add_property("metadata_overrides", metadata_overrides)
         _task.apply_settings()
         self._tasks[name] = _task
         return _task

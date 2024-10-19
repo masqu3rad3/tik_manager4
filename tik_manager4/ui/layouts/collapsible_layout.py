@@ -45,8 +45,8 @@ QPushButton
 }
 """
 
-    def __init__(self, text="", expanded=False, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, text="", expanded=False, parent=None):
+        super().__init__(parent)
 
         self.setContentsMargins(0, 0, 0, 0)
         self.setSpacing(0)

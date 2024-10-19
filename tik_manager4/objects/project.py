@@ -123,6 +123,8 @@ class Project(Subproject):
             self.guard.commons.metadata.settings_file
         )
 
+        self.guard.set_metadata_definitions(self.metadata_definitions)
+
     def delete_sub_project(self, uid=None, path=None):
         """Delete a subproject and all its children.
 
@@ -216,7 +218,7 @@ class Project(Subproject):
         self.save_structure()
         return 1
 
-    def create_task(self, name, categories=None, parent_uid=None, parent_path=None):
+    def create_task(self, name, categories=None, parent_uid=None, parent_path=None, metadata_overrides=None):
         """Create a task and stores it in persistent database.
 
         Either parent_uid or parent_path must be provided.
@@ -230,6 +232,7 @@ class Project(Subproject):
         Returns:
             int: 1 if successful, -1 otherwise.
         """
+        metadata_overrides = metadata_overrides or {}
         state = self.check_permissions(level=2)
         if state != 1:
             return -1
@@ -237,7 +240,7 @@ class Project(Subproject):
             self.log.error("Requires at least a parent uid or parent path ")
             return -1
         parent_sub = self.__validate_and_get_sub(parent_uid, parent_path)
-        task = parent_sub.add_task(name, categories=categories)
+        task = parent_sub.add_task(name, categories=categories, metadata_overrides=metadata_overrides)
         return task
 
     def __validate_and_get_sub(self, parent_uid, parent_path):
