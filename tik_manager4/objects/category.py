@@ -245,13 +245,3 @@ class Category(Entity):
             str: Constructed name.
         """
         return "{0}_{1}_{2}".format(self.parent_task.name, self.name, name)
-
-    # def get_metadata(self, parent_task, key=None):
-    #     """Convenience method to get the metadata for work and category objects."""
-    #     # if this is a subproject, get the metadata directly from the attribute.
-    #     parent_sub = parent_task.parent_sub
-    #     if not parent_sub:
-    #         return None
-    #     if key:
-    #         return parent_sub.metadata.get_value(key, None)
-    #     return parent_sub.metadata

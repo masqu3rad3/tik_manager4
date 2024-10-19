@@ -566,11 +566,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.ingest_here(selected_work_item)
 
     #
-    def _new_work_pre_checks(self, subproject):
+    def _new_work_pre_checks(self, task):
         """Collection of pre-checks for the new work method."""
         dcc_name = self.tik.project.guard.dcc
         current_dcc_version = self.tik.dcc.get_dcc_version()
-        metadata_dcc_version = subproject.metadata.get_value(f"{dcc_name.lower()}_version", None)
+        metadata_dcc_version = task.metadata.get_value(f"{dcc_name.lower()}_version", None)
         if metadata_dcc_version:
             if current_dcc_version != metadata_dcc_version:
                 msg = f"The current dcc version ({current_dcc_version}) \
@@ -578,7 +578,7 @@ class MainUI(QtWidgets.QMainWindow):
                 yield msg
 
         for msg in self.categories_mcv.work_tree_view.metadata_pre_checks(
-                self.tik.dcc, subproject.metadata):
+                self.tik.dcc, task.metadata):
             yield msg
 
     def on_work_from_template(self):
@@ -708,7 +708,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(title="DCC Error", text=dcc_issues, critical=True)
             return
 
-        pre_checks = self._new_work_pre_checks(subproject)
+        pre_checks = self._new_work_pre_checks(task)
         for check_msg in pre_checks:
             question = self.feedback.pop_question(
                 title="Metadata Mismatch",
@@ -738,7 +738,7 @@ class MainUI(QtWidgets.QMainWindow):
                    f"Defined DCC version: {dcc_version_mismatch[0]}\n\n")
             yield msg
 
-        for msg in self.categories_mcv.work_tree_view.metadata_pre_checks(self.tik.dcc, metadata):
+        for msg in self.categories_mcv.work_tree_view.metadata_pre_checks(self.tik.dcc, work_obj.get_metadata()):
             yield msg
 
     def on_new_version(self):

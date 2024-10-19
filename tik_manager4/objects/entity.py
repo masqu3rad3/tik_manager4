@@ -164,9 +164,13 @@ class Entity:
 
         if not parent_task:
             return None
-        parent_sub = parent_task.parent_sub
-        if not parent_sub:
-            return None
         if key:
-            return parent_sub.metadata.get_value(key, None)
-        return parent_sub.metadata
+            return parent_task.metadata.get_value(key, None)
+        return parent_task.metadata
+
+        # parent_sub = parent_task.parent_sub
+        # if not parent_sub:
+        #     return None
+        # if key:
+        #     return parent_sub.metadata.get_value(key, None)
+        # return parent_sub.metadata

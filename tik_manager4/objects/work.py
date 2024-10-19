@@ -777,15 +777,3 @@ class Work(Settings, Entity):
         if defined_dcc_version in ["NA", "", current_dcc]:
             return False
         return defined_dcc_version, current_dcc
-
-    # def get_metadata(self, parent_task, key=None):
-    #     """Convenience method to get the metadata for work and category objects."""
-    #     # if this is a subproject, get the metadata directly from the attribute.
-    #     if not parent_task:
-    #         return None
-    #     parent_sub = parent_task.parent_sub
-    #     if not parent_sub:
-    #         return None
-    #     if key:
-    #         return parent_sub.metadata.get_value(key, None)
-    #     return parent_sub.metadata

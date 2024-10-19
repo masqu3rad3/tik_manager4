@@ -1,5 +1,6 @@
 """Dialog for new subproject creation."""
 
+from tik_manager4.objects.metadata import FilteredData
 from tik_manager4.core.settings import Settings
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog.feedback import Feedback
@@ -87,7 +88,6 @@ class EditSubprojectDialog(QtWidgets.QDialog):
         self.secondary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
             self.secondary_definition, self.secondary_data, parent=self
         )
-        self.secondary_definition
         self.secondary_layout.contents_layout.addLayout(self.secondary_content)
         self.tertiary_content = tik_manager4.ui.layouts.settings_layout.SettingsLayout(
             self.tertiary_definition, self.tertiary_data, parent=self
@@ -296,32 +296,32 @@ class NewSubprojectDialog(EditSubprojectDialog):
         return self._new_subproject
 
 
-class FilteredData(dict):
-    def __init__(self, **kwargs):
-        super(FilteredData, self).__init__()
-        self.update(kwargs)
-
-    def update_overridden_data(self, settings_data):
-        for key, value in settings_data.get_data().items():
-            # if it starts __override, skip
-            if key.startswith("__override"):
-                continue
-            # if the key has a __override key, check if it is True
-            _override_key = "__override_{}".format(key)
-            if _override_key not in list(settings_data.get_data().keys()):
-                self[key] = value
-            else:
-                if settings_data.get_property(_override_key):
-                    self[key] = value
-
-    def update_new_data(self, settings_data):
-        for key, value in settings_data.get_data().items():
-            if key.startswith("__new"):
-                continue
-            # if the new checked box is checked, add the key to the filtered_data
-            _new_key = "__new_{}".format(key)
-            if settings_data.get_property(_new_key):
-                self[key] = value
+# class FilteredData(dict):
+#     def __init__(self, **kwargs):
+#         super(FilteredData, self).__init__()
+#         self.update(kwargs)
+#
+#     def update_overridden_data(self, settings_data):
+#         for key, value in settings_data.get_data().items():
+#             # if it starts __override, skip
+#             if key.startswith("__override"):
+#                 continue
+#             # if the key has a __override key, check if it is True
+#             _override_key = "__override_{}".format(key)
+#             if _override_key not in list(settings_data.get_data().keys()):
+#                 self[key] = value
+#             else:
+#                 if settings_data.get_property(_override_key):
+#                     self[key] = value
+#
+#     def update_new_data(self, settings_data):
+#         for key, value in settings_data.get_data().items():
+#             if key.startswith("__new"):
+#                 continue
+#             # if the new checked box is checked, add the key to the filtered_data
+#             _new_key = "__new_{}".format(key)
+#             if settings_data.get_property(_new_key):
+#                 self[key] = value
 
 
 class SelectSubprojectDialog(QtWidgets.QDialog):

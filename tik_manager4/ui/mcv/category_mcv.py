@@ -622,14 +622,13 @@ class TikCategoryView(QtWidgets.QTreeView):
 
         # get the metadata for the checks.
         parent_task = item.tik_obj.parent_task
-        metadata = parent_task.parent_sub.metadata
 
         # check the dcc for any issues that may prevent saving.
         dcc_issues = item.tik_obj.guard.dcc_handler.pre_save_issues()
         if dcc_issues:
             self.feedback.pop_info(title="DCC Error", text=dcc_issues, critical=True)
             return
-        pre_checks = self.new_version_pre_checks(item.tik_obj, metadata)
+        pre_checks = self.new_version_pre_checks(item.tik_obj, parent_task.metadata)
 
         if not item.dcc_check():
             self.feedback.pop_info(

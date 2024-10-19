@@ -204,10 +204,12 @@ def test_getting_metadata(tik, monkeypatch):
 
     assert tik.project.get_metadata(tasks["main"]) == {}
 
-    # mock the metadata
+    # # mock the metadata
     monkeypatch.setattr(
-        tik.project._metadata, "get_value", lambda _key, _: "monkeypatched_version"
+        tasks["main"].metadata, "get_value", lambda _key, _: "monkeypatched_version"
     )
+
+    tik.project._metadata.add_item("key", "monkeypatched_version")
 
     assert tik.project.get_metadata(tasks["main"], "key") == "monkeypatched_version"
     monkeypatch.undo()
