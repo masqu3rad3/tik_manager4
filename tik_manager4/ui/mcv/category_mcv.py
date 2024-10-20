@@ -6,7 +6,7 @@ from datetime import datetime
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.work_dialog import NewVersionDialog
-from tik_manager4.ui.widgets.common import VerticalSeparator
+from tik_manager4.ui.widgets.common import VerticalSeparator, TikIconButton
 
 from tik_manager4.ui import pick
 
@@ -760,12 +760,18 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
     def __init__(self, *args, **kwargs):
         """Initialize the layout."""
         super(TikCategoryLayout, self).__init__(*args, **kwargs)
-
-        self.setContentsMargins(0, 0, 0, 0)
-
+        # self.setContentsMargins(0, 0, 0, 0)
+        header_lay = QtWidgets.QHBoxLayout()
+        header_lay.setContentsMargins(0, 0, 0, 0)
+        self.addLayout(header_lay)
         self.label = QtWidgets.QLabel("Works")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
-        self.addWidget(self.label)
+        header_lay.addWidget(self.label)
+        header_lay.addStretch()
+        # add a refresh button
+        self.refresh_btn = TikIconButton(icon_name="refresh", circle=True, size=18, icon_size=14)
+        header_lay.addWidget(self.refresh_btn)
+
         self.addWidget(VerticalSeparator(color=(174, 215, 91)))
 
         # create two radio buttons one for work and one for publish
@@ -826,6 +832,8 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
             self.work_tree_view.hideColumn(idx)
 
         self.pre_tab = None
+
+        self.refresh_btn.clicked.connect(self.refresh)
 
     def get_active_category(self):
         """Get the active category object and return it."""
@@ -916,6 +924,11 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
                 if work_obj.publish.versions
             ]
             self.work_tree_view.model.set_publishes(_publishes)
+
+    def refresh(self):
+        """Refresh the current category."""
+        current_category_index = self.category_tab_widget.currentIndex()
+        self.on_category_change(current_category_index)
 
     def clear(self):
         """Refresh the layout."""
