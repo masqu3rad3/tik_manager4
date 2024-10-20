@@ -47,6 +47,8 @@ class Task(Settings, Entity):
         # self._task_id = None
         super().__init__()
         self.settings_file = absolute_path
+        self._parent_sub = parent_sub
+
         self._name = self.get_property("name") or name
         self._creator = self.get_property("creator") or self.guard.user
         self._works = {}
@@ -61,9 +63,12 @@ class Task(Settings, Entity):
         self._categories = {}
         self.build_categories(self.get_property("categories") or categories)
 
-        self._parent_sub = parent_sub
-
         self._metadata_overrides = self.get_property("metadata_overrides") or {}
+
+    def refresh(self):
+        """Refresh the task object."""
+        self.reload()
+        self.__init__(self.settings_file, parent_sub=self._parent_sub)
 
     @property
     def file_name(self):

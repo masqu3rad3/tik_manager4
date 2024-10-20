@@ -273,6 +273,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.tasks_mcv.task_view.add_tasks
         )
         self.tasks_mcv.task_view.item_selected.connect(self.categories_mcv.set_task)
+        self.tasks_mcv.task_view.refresh_requested.connect(self.subprojects_mcv.sub_view.get_tasks)
         self.categories_mcv.work_tree_view.item_selected.connect(
             self.versions_mcv.set_base
         )

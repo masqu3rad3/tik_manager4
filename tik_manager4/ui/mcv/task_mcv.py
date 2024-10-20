@@ -2,7 +2,7 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.core import filelog
 from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4.ui.dialog.task_dialog
-from tik_manager4.ui.widgets.common import VerticalSeparator
+from tik_manager4.ui.widgets.common import VerticalSeparator, TikIconButton
 
 from tik_manager4.ui import pick
 
@@ -84,20 +84,20 @@ class TikTaskModel(QtGui.QStandardItemModel):
         """Clear the model"""
         self.setRowCount(0)
 
-    def append_task(self, sub_data):
+    def append_task(self, task_obj):
         """Append a task to the model"""
-        _sub_item = TikTaskItem(sub_data)
-        pid = TikTaskColumnItem(str(sub_data.id))
-        path = TikTaskColumnItem(sub_data.path)
+        _task_item = TikTaskItem(task_obj)
+        pid = TikTaskColumnItem(str(task_obj.id))
+        path = TikTaskColumnItem(task_obj.path)
 
         self.appendRow(
             [
-                _sub_item,
+                _task_item,
                 pid,
                 path,
             ]
         )
-        return _sub_item
+        return _task_item
 
     def find_item_by_id_column(self, unique_id):
         """Search entire tree and find the matching item."""
@@ -113,6 +113,7 @@ class TikTaskModel(QtGui.QStandardItemModel):
 
 class TikTaskView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
+    refresh_requested = QtCore.Signal()
 
     def __init__(self):
         """Initialize the view"""
@@ -388,17 +389,28 @@ class TikTaskView(QtWidgets.QTreeView):
             return
 
     def refresh(self):
-        """Re-populates the model keeping the expanded state"""
-        pass
+        """Re-populate the model."""
+        self.refresh_requested.emit()
+        # self.model.clear()
+        # self.set_tasks(self.model._tasks)
+
 
 
 class TikTaskLayout(QtWidgets.QVBoxLayout):
     def __init__(self):
         """Initialize the layout"""
         super(TikTaskLayout, self).__init__()
+        header_lay = QtWidgets.QHBoxLayout()
+        header_lay.setContentsMargins(0, 0, 0, 0)
+        self.addLayout(header_lay)
         self.label = QtWidgets.QLabel("Tasks")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
-        self.addWidget(self.label)
+        header_lay.addWidget(self.label)
+        header_lay.addStretch()
+        # add a refresh button
+        self.refresh_btn = TikIconButton(icon_name="refresh", circle=True, size=18, icon_size=14)
+        header_lay.addWidget(self.refresh_btn)
+        # self.addWidget(self.label)
         self.addWidget(VerticalSeparator(color=(0, 255, 255)))
 
         self.task_view = TikTaskView()
@@ -414,6 +426,8 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
         # Hide all columns except the first one
         for idx in range(1, self.task_view.header().count()):
             self.task_view.hideColumn(idx)
+
+        self.refresh_btn.clicked.connect(self.refresh)
 
     def refresh(self):
         self.task_view.refresh()

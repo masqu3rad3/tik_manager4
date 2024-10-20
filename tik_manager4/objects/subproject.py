@@ -250,7 +250,7 @@ class Subproject(Entity):
                 self._tasks[_task_name] = _task
             else:
                 if existing_task.is_modified():
-                    existing_task.reload()
+                    existing_task.refresh()
 
         # if the lengths are not matching that means some tasks are deleted
         if len(_task_paths) != len(self._tasks):

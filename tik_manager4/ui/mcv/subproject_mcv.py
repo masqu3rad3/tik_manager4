@@ -55,6 +55,7 @@ class TikColumnItem(QtGui.QStandardItem):
         fnt.setBold(False)
         self.setFont(fnt)
 
+
 class TikSubModel(QtGui.QStandardItemModel):
     def __init__(self, structure_object):
         super(TikSubModel, self).__init__()
@@ -676,7 +677,9 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
         header_lay.addWidget(self.label)
         header_lay.addStretch()
         # add a refresh button
-        self.refresh_btn = TikIconButton(icon_name="refresh", circle=True, size=18, icon_size=14)
+        self.refresh_btn = TikIconButton(
+            icon_name="refresh", circle=True, size=18, icon_size=14
+        )
         header_lay.addWidget(self.refresh_btn)
         self.addWidget(VerticalSeparator(color=(221, 160, 221)))
 
@@ -707,12 +710,16 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
         for idx in range(1, self.sub_view.header().count()):
             self.sub_view.hideColumn(idx)
 
-        self.refresh_btn.clicked.connect(self.refresh)
+        self.refresh_btn.clicked.connect(self.manual_refresh)
+
+    def manual_refresh(self):
+        """Refresh the layout and the view"""
+        self.project_obj.structure.reload()
+        self.project_obj._set(self.project_obj._absolute_path)
+        self.refresh()
 
     def refresh(self):
         """Refresh the layout"""
-        self.project_obj.structure.reload()
-        self.project_obj._set(self.project_obj._absolute_path)
         self.sub_view.refresh()
 
     def get_active_subproject(self):
