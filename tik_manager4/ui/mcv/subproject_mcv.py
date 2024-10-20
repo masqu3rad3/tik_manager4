@@ -1,9 +1,8 @@
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 import tik_manager4.ui.dialog.subproject_dialog
 import tik_manager4.ui.dialog.task_dialog
-from tik_manager4.ui.widgets.common import VerticalSeparator
+from tik_manager4.ui.widgets.common import VerticalSeparator, TikIconButton
 from tik_manager4.ui.dialog.feedback import Feedback
-from tik_manager4.objects import guard
 import tik_manager4
 from tik_manager4.ui import pick
 
@@ -669,9 +668,16 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
         super(TikSubProjectLayout, self).__init__()
         self.project_obj = project_obj
         # add a label
+        header_lay = QtWidgets.QHBoxLayout()
+        header_lay.setContentsMargins(0, 0, 0, 0)
+        self.addLayout(header_lay)
         self.label = QtWidgets.QLabel("Sub-Projects")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
-        self.addWidget(self.label)
+        header_lay.addWidget(self.label)
+        header_lay.addStretch()
+        # add a refresh button
+        self.refresh_btn = TikIconButton(icon_name="refresh", circle=True, size=18, icon_size=14)
+        header_lay.addWidget(self.refresh_btn)
         self.addWidget(VerticalSeparator(color=(221, 160, 221)))
 
         # add a checkbox for recursive search
@@ -701,8 +707,12 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
         for idx in range(1, self.sub_view.header().count()):
             self.sub_view.hideColumn(idx)
 
+        self.refresh_btn.clicked.connect(self.refresh)
+
     def refresh(self):
         """Refresh the layout"""
+        self.project_obj.structure.reload()
+        self.project_obj._set(self.project_obj._absolute_path)
         self.sub_view.refresh()
 
     def get_active_subproject(self):
