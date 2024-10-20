@@ -31,15 +31,36 @@ class TikTaskItem(QtGui.QStandardItem):
 
         self.task = task_obj
         #
-        fnt = QtGui.QFont("Open Sans", 12)
-        fnt.setBold(True)
+        self.fnt = QtGui.QFont("Open Sans", 12)
+        self.fnt.setBold(True)
         self.setEditable(False)
 
-        _color = self.color_dict.get(task_obj.type, (255, 255, 255))
+        self._state = None
+
+        # _color = self.color_dict.get(task_obj.type, (255, 255, 255))
+        # self.setForeground(QtGui.QColor(*_color))
+
+        # self.setFont(fnt)
+        self.setText(task_obj.name)
+
+        self.refresh()
+
+    def refresh(self):
+        """Refresh the item"""
+        self.set_state(self.task.state)
+
+    def set_state(self, state):
+        """Set the state of the item.
+
+        Args:
+            state (str): State of the task
+        """
+        self._state = state
+        _color = self.color_dict.get(self.task.type, (255, 255, 255))
+        self.fnt.setStrikeOut(state == "omitted")
+        self.setFont(self.fnt)
         self.setForeground(QtGui.QColor(*_color))
 
-        self.setFont(fnt)
-        self.setText(task_obj.name)
 
 class TikTaskColumnItem(QtGui.QStandardItem):
     def __init__(self, text):
@@ -282,9 +303,18 @@ class TikTaskView(QtWidgets.QTreeView):
             level = 0
 
         act_edit_task = right_click_menu.addAction(self.tr("Edit Task"))
+        right_click_menu.addSeparator()
+
         act_edit_task.triggered.connect(lambda _=None, x=item: self.edit_task(item))
+
+        revive_item_act = right_click_menu.addAction(self.tr("Revive Task"))
+        revive_item_act.triggered.connect(lambda _=None, x=item: self.revive_task(item))
+        omit_item_act = right_click_menu.addAction(self.tr("Omit Task"))
+        omit_item_act.triggered.connect(lambda _=None, x=item: self.omit_task(item))
+
         act_delete_task = right_click_menu.addAction(self.tr("Delete Task"))
         act_delete_task.triggered.connect(lambda _=None, x=item: self.delete_task(item))
+
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
     def edit_task(self, item):
@@ -301,6 +331,22 @@ class TikTaskView(QtWidgets.QTreeView):
             self.item_selected.emit(_dialog.task_object)
         else:
             pass
+
+    def revive_task(self, item):
+        if item.task.check_permissions(level=2) == -1:
+            message, title = LOG.get_last_message()
+            self._feedback.pop_info(title.capitalize(), message)
+            return
+        item.task.revive()
+        item.refresh()
+
+    def omit_task(self, item):
+        if item.task.check_permissions(level=2) == -1:
+            message, title = LOG.get_last_message()
+            self._feedback.pop_info(title.capitalize(), message)
+            return
+        item.task.omit()
+        item.refresh()
 
     def delete_task(self, item):
         # first check for the user permission:

@@ -56,6 +56,8 @@ class Task(Settings, Entity):
         self._file_name = self.get_property("file_name") or file_name
         self._type = self.get_property("type") or task_type
 
+        self._state = self.get_property("state") or "active"
+
         self._categories = {}
         self.build_categories(self.get_property("categories") or categories)
 
@@ -106,6 +108,23 @@ class Task(Settings, Entity):
             _metadata.override(self._metadata_overrides)
             return _metadata
         return Metadata(self._metadata_overrides)
+
+    @property
+    def state(self):
+        """State of the task."""
+        return self._state
+
+    def omit(self):
+        """Omit the task."""
+        self._state = "omitted"
+        self.edit_property("state", self._state)
+        self.apply_settings()
+
+    def revive(self):
+        """Revive the task."""
+        self._state = "active"
+        self.edit_property("state", self._state)
+        self.apply_settings()
 
     def build_categories(self, category_list):
         """Create category objects.

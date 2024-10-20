@@ -315,6 +315,7 @@ class Subproject(Entity):
         _task.add_property("path", self.path)
         _task.add_property("file_name", file_name)
         _task.add_property("metadata_overrides", metadata_overrides)
+        _task.add_property("state", "active")
         _task.apply_settings()
         self._tasks[name] = _task
         return _task

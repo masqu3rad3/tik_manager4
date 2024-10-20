@@ -14,7 +14,8 @@ from tik_manager4.ui import pick
 class TikWorkItem(QtGui.QStandardItem):
     """Custom QStandardItem for the work items in the category view."""
     state_color_dict = {
-        "working": (255, 255, 0),
+        "active": (255, 255, 0),
+        # "working": (255, 255, 0),
         "published": (0, 255, 0),
         "omitted": (255, 255, 0),
         "promoted": (0, 255, 0),
@@ -51,13 +52,13 @@ class TikWorkItem(QtGui.QStandardItem):
         Args:
             state (str): The state of the work item.
                 Possible values are:
-                    "working": The work is currently being worked on.
+                    "active": The work is currently being worked on.
                     "published": The work is published.
                     "omitted": The work is omitted.
                     "promoted": The work is promoted.
         """
         self.state = state
-        _state_color = self.state_color_dict[state]
+        _state_color = self.state_color_dict.get(state, (255, 255, 0))
         # cross out omitted items
         self.fnt.setStrikeOut(state == "omitted")
         self.setFont(self.fnt)
@@ -76,7 +77,7 @@ class TikWorkItem(QtGui.QStandardItem):
 class TikPublishItem(QtGui.QStandardItem):
     """Custom QStandardItem for the publish items in the category view."""
     state_color_dict = {
-        "working": (0, 255, 255),
+        "active": (0, 255, 255),
         "published": (0, 255, 255),
         "omitted": (0, 255, 255),
         "promoted": (0, 255, 0),
@@ -112,7 +113,7 @@ class TikPublishItem(QtGui.QStandardItem):
         Args:
             state (str): The state of the publish item.
                 Possible values are:
-                    "working": The work is currently being worked on.
+                    "active": The work is currently being worked on.
                     "published": The work is published.
                     "omitted": The work is omitted.
                     "promoted": The work is promoted.
@@ -540,10 +541,10 @@ class TikCategoryView(QtWidgets.QTreeView):
 
         right_click_menu.addSeparator()
 
-        delete_item_act = right_click_menu.addAction(self.tr("Revive Work/Publish"))
-        delete_item_act.triggered.connect(lambda _=None, x=item: self.revive_item(item))
-        delete_item_act = right_click_menu.addAction(self.tr("Omit Work/Publish"))
-        delete_item_act.triggered.connect(lambda _=None, x=item: self.omit_item(item))
+        revive_item_act = right_click_menu.addAction(self.tr("Revive Work/Publish"))
+        revive_item_act.triggered.connect(lambda _=None, x=item: self.revive_item(item))
+        omit_item_act = right_click_menu.addAction(self.tr("Omit Work/Publish"))
+        omit_item_act.triggered.connect(lambda _=None, x=item: self.omit_item(item))
         delete_item_act = right_click_menu.addAction(self.tr("Delete Work/Publish"))
         delete_item_act.triggered.connect(lambda _=None, x=item: self.delete_item(item))
 

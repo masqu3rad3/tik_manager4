@@ -85,7 +85,7 @@ class Publish(Entity):
 
     def revive(self):
         """Revive the work."""
-        self.work_object._state = "working" if not self.versions else "published"
+        self.work_object._state = "active" if not self.versions else "published"
         self.work_object.edit_property("state", self.work_object._state)
         self.work_object.apply_settings()
 

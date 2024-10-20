@@ -143,15 +143,6 @@ class ProductionPlatform(object):
                 sub = self.tik_main.project.subs["Assets"]
             asset_name = utils.sanitize_text(asset["code"])
 
-            # collect the pipeline steps (categories) from the sg tasks
-            # categories = []
-            # for task in asset["tasks"]:
-            #     task_data = self.sg.find_one("Task", [["id", "is", task["id"]]], ["step"])
-            #     if not task_data:
-            #         continue
-            #     step = task_data["step"]["name"]
-            #     if step and step not in categories:
-            #         categories.append(step)
             sub.add_task(asset_name, categories=asset_categories, uid=asset["id"])
 
         for shot in all_shots:
@@ -169,16 +160,6 @@ class ProductionPlatform(object):
                 else: # do not attempt to create the sequence if it already exists
                     query_sub = self.tik_main.project.subs["Shots"].subs[shot["sg_sequence"]["name"]]
             shot_name = utils.sanitize_text(shot["code"])
-
-            # collect the pipeline steps (categories) from the sg tasks
-            # categories = []
-            # for task in shot["tasks"]:
-            #     task_data = self.sg.find_one("Task", [["id", "is", task["id"]]], ["step"])
-            #     if not task_data:
-            #         continue
-            #     step = task_data["step"]["name"]
-            #     if step and step not in categories:
-            #         categories.append(step)
 
             # sub.add_task(shot_name, categories=categories, uid=shot["id"])
             metadata_overrides = {
