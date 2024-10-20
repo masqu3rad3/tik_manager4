@@ -40,6 +40,11 @@ class User:
         return self._active_user
 
     @property
+    def email(self):
+        """Active User Email."""
+        return self.commons.users.get_property(self._active_user).get("email")
+
+    @property
     def is_authenticated(self):
         """Authentication Status for the active user."""
         return bool(self._guard.is_authenticated)
@@ -427,6 +432,7 @@ class User:
         new_user_password,
         permission_level,
         active_user_password=None,
+        email=None,
     ):
         """Create a new user and stores it in database.
 
@@ -437,6 +443,7 @@ class User:
             permission_level (int): The permission level.
             active_user_password (str, optional): The password of the
                 active user.
+            email (str, optional): The email address of the user.
 
         Returns:
             tuple: (1, "Success") if successful, (-1, LOG.warning) otherwise.
@@ -460,10 +467,12 @@ class User:
 
         if new_user_name in self.commons.users.keys:
             return -1, LOG.error("User %s already exists. Aborting" % new_user_name)
+        email = email or ""
         user_data = {
             "initials": new_user_initials,
             "pass": self.__hash_pass(new_user_password),
             "permissionLevel": self.__clamp_level(permission_level),
+            "email": email
         }
         self.commons.users.add_property(new_user_name, user_data)
         self.commons.users.apply_settings()
