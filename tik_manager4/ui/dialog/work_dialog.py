@@ -159,9 +159,10 @@ class NewWorkDialog(QtWidgets.QDialog):
     def update_labels(self, validation_status):
         """Update the path and name labels."""
         _name = self.primary_content.settings_data.get_property("name")
-        if not _name:
-            self.widgets.resolved_name_lbl.setText("No Name Entered")
-        elif not validation_status:
+        # if not _name:
+        #     self.widgets.resolved_name_lbl.setText("No Name Entered")
+        # elif not validation_status:
+        if not validation_status:
             self.widgets.resolved_name_lbl.setText("Invalid name")
         else:
             _file_format = self.primary_content.settings_data.get_property(
@@ -228,10 +229,11 @@ class NewWorkDialog(QtWidgets.QDialog):
                 "tooltip": "Category of the work file",
             },
             "name": {
-                "display_name": "Name",
+                "display_name": "Label",
                 "type": "validatedString",
                 "value": "",
-                "tooltip": "Name of the work file",
+                "tooltip": "Name of the work file that will be added as a label tag.",
+                "placeholder": "(Optional)"
             },
             "file_format": {
                 "display_name": "File Format",
