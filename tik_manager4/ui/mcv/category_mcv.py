@@ -760,7 +760,6 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
     def __init__(self, *args, **kwargs):
         """Initialize the layout."""
         super(TikCategoryLayout, self).__init__(*args, **kwargs)
-        # self.setContentsMargins(0, 0, 0, 0)
         header_lay = QtWidgets.QHBoxLayout()
         header_lay.setContentsMargins(0, 0, 0, 0)
         self.addLayout(header_lay)

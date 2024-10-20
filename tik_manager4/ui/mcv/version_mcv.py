@@ -4,7 +4,7 @@ from pathlib import Path
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
-from tik_manager4.ui.widgets.common import TikButton, VerticalSeparator
+from tik_manager4.ui.widgets.common import TikButton, VerticalSeparator, TikIconButton
 from tik_manager4.ui.dialog.bunde_ingest_dialog import BundleIngestDialog
 from tik_manager4.core import filelog
 from tik_manager4.ui import pick
@@ -26,9 +26,16 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.parent = kwargs.get("parent")
         self.feedback = Feedback(parent=kwargs.get("parent"))
 
+        header_lay = QtWidgets.QHBoxLayout()
+        header_lay.setContentsMargins(0, 0, 0, 0)
+        self.addLayout(header_lay)
         self.label = QtWidgets.QLabel("Versions")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
-        self.addWidget(self.label)
+        header_lay.addWidget(self.label)
+        header_lay.addStretch()
+        # add a refresh button
+        self.refresh_btn = TikIconButton(icon_name="refresh", circle=True, size=18, icon_size=14)
+        header_lay.addWidget(self.refresh_btn)
         self.addWidget(VerticalSeparator(color=(255, 180, 60)))
 
         version_layout = QtWidgets.QHBoxLayout()
@@ -139,6 +146,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.thumbnail_right_click_menu
         )
         self.element_view_btn.clicked.connect(self.on_element_view_event)
+
+        self.refresh_btn.clicked.connect(self.refresh)
 
     def on_import(self):
         """Import the current version."""
