@@ -126,6 +126,8 @@ class NewWorkDialog(QtWidgets.QDialog):
         self.widgets.tasks_combo = self.primary_content.find("task")
         self.widgets.categories_combo = self.primary_content.find("category")
         file_format_combo = self.primary_content.find("file_format")
+        # allow empty for the name widget.
+        self.widgets.name_le.allow_empty = True
 
         # create a notes widget for the right side
         self.widgets.notes_lbl = QtWidgets.QLabel(text="Notes:")

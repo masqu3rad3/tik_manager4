@@ -244,4 +244,7 @@ class Category(Entity):
         Returns:
             str: Constructed name.
         """
-        return "{0}_{1}_{2}".format(self.parent_task.name, self.name, name)
+        parts = [self.parent_task.name, self.name]
+        if name:
+            parts.append(name)
+        return "_".join(parts)
