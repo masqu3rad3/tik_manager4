@@ -120,7 +120,7 @@ class Category(Entity):
         work.add_property("task_name", self.parent_task.name)
         work.add_property("task_id", self.parent_task.id)
         work.add_property("path", relative_path)
-        work.add_property("state", "working")
+        work.add_property("state", "active")
         work.init_properties()
         work.new_version_from_path(file_path=file_path, notes=notes)
         return work
@@ -161,7 +161,7 @@ class Category(Entity):
         work.add_property("task_name", self.parent_task.name)
         work.add_property("task_id", self.parent_task.id)
         work.add_property("path", relative_path)
-        work.add_property("state", "working")
+        work.add_property("state", "active")
         work.init_properties()
         work.new_version_from_path(file_path=template_file, notes=notes)
         return work
@@ -215,7 +215,7 @@ class Category(Entity):
         work.add_property("task_name", self.parent_task.name)
         work.add_property("task_id", self.parent_task.id)
         work.add_property("path", relative_path)
-        work.add_property("state", "working")
+        work.add_property("state", "active")
         work.init_properties()
         work.new_version(file_format=file_format, notes=notes, ignore_checks=ignore_checks)
         return work
