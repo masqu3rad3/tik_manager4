@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 from copy import deepcopy
 from tik_manager4.core import utils
+from tik_manager4.management.management_core import ManagementCore
 
 external_folder = os.getenv("TIK_EXTERNAL_SOURCES")
 if not external_folder:
@@ -19,9 +20,10 @@ if shotgun_folder not in sys.path:
 import tank
 
 
-class ProductionPlatform(object):
+class ProductionPlatform(ManagementCore):
     """Main class for the Shotgrid integration."""
 
+    name = "ShotGrid"
     lock_subproject_creation = True
     lock_task_creation = True
 
@@ -31,6 +33,7 @@ class ProductionPlatform(object):
         self.authenticator = tank.authentication.ShotgunAuthenticator()
 
         self.user = self.authenticator.get_user()
+        # self.user = self.authenticator.get_user_from_prompt()
         self.sg = self.user.create_sg_connection()
 
     def get_projects(self):

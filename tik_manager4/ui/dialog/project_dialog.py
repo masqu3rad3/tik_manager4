@@ -337,6 +337,11 @@ class NewProjectDialog(EditSubprojectDialog):
         self.accept()
 
 
+class CreateFromManagementDialog(QtWidgets.QDialog):
+    """Create a new project from the management system."""
+
+
+
 # Test the set project dialog
 if __name__ == "__main__":
     import sys

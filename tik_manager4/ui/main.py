@@ -20,6 +20,7 @@ from tik_manager4.ui import main
 reload(main)
 main.launch(dcc="Maya")
 """
+
 import logging
 
 import webbrowser
@@ -34,7 +35,12 @@ from tik_manager4.ui.dialog.project_dialog import NewProjectDialog
 from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
 from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
-from tik_manager4.ui.dialog.work_dialog import NewWorkDialog, NewVersionDialog, SaveAnyFileDialog, WorkFromTemplateDialog
+from tik_manager4.ui.dialog.work_dialog import (
+    NewWorkDialog,
+    NewVersionDialog,
+    SaveAnyFileDialog,
+    WorkFromTemplateDialog,
+)
 from tik_manager4.ui.mcv.category_mcv import TikCategoryLayout
 from tik_manager4.ui.mcv.project_mcv import TikProjectLayout
 from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
@@ -257,10 +263,16 @@ class MainUI(QtWidgets.QMainWindow):
         self.category_layout.addLayout(self.categories_mcv)
         # if it is houdini, make an exception on the category tab widget
         if self.tik.dcc.name == "Houdini":
-            self.categories_mcv.category_tab_widget.setMaximumSize(QtCore.QSize(16777215, 30))
+            self.categories_mcv.category_tab_widget.setMaximumSize(
+                QtCore.QSize(16777215, 30)
+            )
         if self.tik.dcc.name == "Substance Painter":
-            self.categories_mcv.category_tab_widget.setMaximumSize(QtCore.QSize(16777215, 30))
-            self.categories_mcv.category_tab_widget.setStyleSheet("QTabBar::tab { font-size: 10px; spacing: 5px; }")
+            self.categories_mcv.category_tab_widget.setMaximumSize(
+                QtCore.QSize(16777215, 30)
+            )
+            self.categories_mcv.category_tab_widget.setStyleSheet(
+                "QTabBar::tab { font-size: 10px; spacing: 5px; }"
+            )
 
         self.versions_mcv = TikVersionLayout(self.tik.project, parent=self)
         self.version_layout.addLayout(self.versions_mcv)
@@ -273,7 +285,9 @@ class MainUI(QtWidgets.QMainWindow):
             self.tasks_mcv.task_view.add_tasks
         )
         self.tasks_mcv.task_view.item_selected.connect(self.categories_mcv.set_task)
-        self.tasks_mcv.task_view.refresh_requested.connect(self.subprojects_mcv.sub_view.get_tasks)
+        self.tasks_mcv.task_view.refresh_requested.connect(
+            self.subprojects_mcv.sub_view.get_tasks
+        )
         self.categories_mcv.work_tree_view.item_selected.connect(
             self.versions_mcv.set_base
         )
@@ -411,8 +425,12 @@ class MainUI(QtWidgets.QMainWindow):
 
         save_new_work_btn.clicked.connect(self.on_new_work)
         work_from_template_btn.clicked.connect(self.on_work_from_template)
-        save_file_as_work_btn.clicked.connect(lambda: self.on_save_any_file(folder=False))
-        save_folder_as_work_btn.clicked.connect(lambda: self.on_save_any_file(folder=True))
+        save_file_as_work_btn.clicked.connect(
+            lambda: self.on_save_any_file(folder=False)
+        )
+        save_folder_as_work_btn.clicked.connect(
+            lambda: self.on_save_any_file(folder=True)
+        )
         increment_version_btn.clicked.connect(self.on_new_version)
         self.ingest_version_btn.clicked.connect(self.on_ingest_version)
         publish_scene_btn.clicked.connect(self.on_publish_scene)
@@ -431,6 +449,10 @@ class MainUI(QtWidgets.QMainWindow):
         # File Menu
         create_project = QtWidgets.QAction("&Create New Project", self)
         file_menu.addAction(create_project)
+        create_project_from_management = QtWidgets.QAction(
+            "&Create Project from Management Platform    ", self
+        )
+        file_menu.addAction(create_project_from_management)
         set_project = QtWidgets.QAction("&Set Project", self)
         file_menu.addAction(set_project)
         file_menu.addSeparator()
@@ -470,7 +492,9 @@ class MainUI(QtWidgets.QMainWindow):
         # Tools Menu
 
         # Help Menu
-        issues_and_feature_requests = QtWidgets.QAction("&Issues & Feature Requests", self)
+        issues_and_feature_requests = QtWidgets.QAction(
+            "&Issues & Feature Requests", self
+        )
         help_menu.addAction(issues_and_feature_requests)
         online_docs = QtWidgets.QAction("&Online Documentation", self)
         help_menu.addAction(online_docs)
@@ -492,15 +516,21 @@ class MainUI(QtWidgets.QMainWindow):
 
         save_new_work.triggered.connect(self.on_new_work)
         save_file_as_work.triggered.connect(lambda: self.on_save_any_file(folder=False))
-        save_folder_as_work.triggered.connect(lambda: self.on_save_any_file(folder=True))
+        save_folder_as_work.triggered.connect(
+            lambda: self.on_save_any_file(folder=True)
+        )
         increment_version.triggered.connect(self.on_new_version)
         ingest_version.triggered.connect(self.on_ingest_version)
         publish_scene.triggered.connect(self.on_publish_scene)
         load_item.triggered.connect(self.versions_mcv.on_load)
         import_item.triggered.connect(self.versions_mcv.on_import)
         check_for_updates.triggered.connect(self.on_check_for_updates)
-        online_docs.triggered.connect(lambda: webbrowser.open("https://tik-manager4.readthedocs.io/en/latest/"))
-        issues_and_feature_requests.triggered.connect(lambda: webbrowser.open("https://github.com/masqu3rad3/tik_manager4/issues"))
+        online_docs.triggered.connect(
+            lambda: webbrowser.open("https://tik-manager4.readthedocs.io/en/latest/")
+        )
+        issues_and_feature_requests.triggered.connect(
+            lambda: webbrowser.open("https://github.com/masqu3rad3/tik_manager4/issues")
+        )
 
         # check if the tik.main.dcc has a preview method
         if self.tik.dcc.preview_enabled:
@@ -510,7 +540,16 @@ class MainUI(QtWidgets.QMainWindow):
             tools_menu.addAction(create_preview)
             create_preview.triggered.connect(self.on_create_preview)
 
+        create_project_from_management.triggered.connect(self.TEST)
+
         menu_bar.setMinimumWidth(menu_bar.sizeHint().width())
+
+    def TEST(self):
+        """Test method."""
+        from tik_manager4 import management
+        test = management.platforms["shotgrid"](self.tik)
+
+
 
     def _main_button_states(self):
         """Toggle the states of the main buttons according to certain conditions."""
@@ -571,7 +610,9 @@ class MainUI(QtWidgets.QMainWindow):
         """Collection of pre-checks for the new work method."""
         dcc_name = self.tik.project.guard.dcc
         current_dcc_version = self.tik.dcc.get_dcc_version()
-        metadata_dcc_version = task.metadata.get_value(f"{dcc_name.lower()}_version", None)
+        metadata_dcc_version = task.metadata.get_value(
+            f"{dcc_name.lower()}_version", None
+        )
         if metadata_dcc_version:
             if current_dcc_version != metadata_dcc_version:
                 msg = f"The current dcc version ({current_dcc_version}) \
@@ -579,7 +620,8 @@ class MainUI(QtWidgets.QMainWindow):
                 yield msg
 
         for msg in self.categories_mcv.work_tree_view.metadata_pre_checks(
-                self.tik.dcc, task.metadata):
+            self.tik.dcc, task.metadata
+        ):
             yield msg
 
     def on_work_from_template(self):
@@ -608,14 +650,19 @@ class MainUI(QtWidgets.QMainWindow):
                 self.feedback.pop_info(
                     title="No tasks found.",
                     text="Selected Sub-object does not have any tasks under it.\n"
-                         "Please create a task before creating a work.",
+                    "Please create a task before creating a work.",
                     critical=True,
                 )
                 return
             subproject = task.parent_sub
 
         dialog = WorkFromTemplateDialog(
-            self.tik, template_names=available_templates, parent=self, subproject=subproject, task_object=task, category_object=category,
+            self.tik,
+            template_names=available_templates,
+            parent=self,
+            subproject=subproject,
+            task_object=task,
+            category_object=category,
         )
         state = dialog.exec_()
         if state:
@@ -634,8 +681,11 @@ class MainUI(QtWidgets.QMainWindow):
             # Launch a file dialog to select the save file or folder
             dialog = QtWidgets.QFileDialog(self)
             # change the title to "Save File" or "Save Folder"
-            dialog_title = "Select a Single File to save as a Work" \
-                if not folder else "Select a Folder to save as a Work"
+            dialog_title = (
+                "Select a Single File to save as a Work"
+                if not folder
+                else "Select a Folder to save as a Work"
+            )
             dialog.setWindowTitle(dialog_title)
             # set the project root as start directory
             dialog.setDirectory(self.tik.project.absolute_path)
@@ -661,17 +711,19 @@ class MainUI(QtWidgets.QMainWindow):
                 self.feedback.pop_info(
                     title="No tasks found.",
                     text="Selected Sub-object does not have any tasks under it.\n"
-                         "Please create a task before creating a work.",
+                    "Please create a task before creating a work.",
                     critical=True,
                 )
                 return
             subproject = task.parent_sub
 
         save_any_dialog = SaveAnyFileDialog(
-            self.tik, file_or_folder_path=file_path,
-            parent=self, subproject=subproject,
+            self.tik,
+            file_or_folder_path=file_path,
+            parent=self,
+            subproject=subproject,
             task_object=task,
-            category_object=category
+            category_object=category,
         )
         state = save_any_dialog.exec_()
         if state:
@@ -697,7 +749,7 @@ class MainUI(QtWidgets.QMainWindow):
                 self.feedback.pop_info(
                     title="No tasks found.",
                     text="Selected Sub-object does not have any tasks under it.\n"
-                         "Please create a task before creating a work.",
+                    "Please create a task before creating a work.",
                     critical=True,
                 )
                 return
@@ -714,13 +766,17 @@ class MainUI(QtWidgets.QMainWindow):
             question = self.feedback.pop_question(
                 title="Metadata Mismatch",
                 text=f"{check_msg}\n\nDo you want to continue?",
-                buttons=["continue", "cancel"]
+                buttons=["continue", "cancel"],
             )
             if question == "cancel":
                 return
 
         dialog = NewWorkDialog(
-            self.tik, parent=self, subproject=subproject, task_object=task, category_object=category
+            self.tik,
+            parent=self,
+            subproject=subproject,
+            task_object=task,
+            category_object=category,
         )
         state = dialog.exec_()
         if state:
@@ -733,13 +789,17 @@ class MainUI(QtWidgets.QMainWindow):
         """Collection of pre-checks for the new version method."""
         dcc_version_mismatch = work_obj.check_dcc_version_mismatch()
         if dcc_version_mismatch:
-            msg = ("The current DCC version does not match the version "
-                   "of the work or metadata definition.\n\n"
-                   f"Current DCC version: {dcc_version_mismatch[1]}\n"
-                   f"Defined DCC version: {dcc_version_mismatch[0]}\n\n")
+            msg = (
+                "The current DCC version does not match the version "
+                "of the work or metadata definition.\n\n"
+                f"Current DCC version: {dcc_version_mismatch[1]}\n"
+                f"Defined DCC version: {dcc_version_mismatch[0]}\n\n"
+            )
             yield msg
 
-        for msg in self.categories_mcv.work_tree_view.metadata_pre_checks(self.tik.dcc, work_obj.get_metadata()):
+        for msg in self.categories_mcv.work_tree_view.metadata_pre_checks(
+            self.tik.dcc, work_obj.get_metadata()
+        ):
             yield msg
 
     def on_new_version(self):
@@ -751,8 +811,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(
                 title="Scene file cannot be found.",
                 text="Scene file cannot be found. "
-                     "Please either save your scene by creating a new work or "
-                     "ingest it into an existing one.",
+                "Please either save your scene by creating a new work or "
+                "ingest it into an existing one.",
                 critical=True,
             )
             return
@@ -762,8 +822,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(
                 title="Work object cannot be found.",
                 text="Work cannot be found. Versions can only saved on work objects.\n"
-                     "If there is no work associated with current scene either create a work "
-                     "or use the ingest method to save it into an existing work",
+                "If there is no work associated with current scene either create a work "
+                "or use the ingest method to save it into an existing work",
                 critical=True,
             )
             return
@@ -783,7 +843,7 @@ class MainUI(QtWidgets.QMainWindow):
             question = self.feedback.pop_question(
                 title="Metadata Mismatch",
                 text=f"{check_msg}\n\nDo you want to continue?",
-                buttons=["continue", "cancel"]
+                buttons=["continue", "cancel"],
             )
             if question == "cancel":
                 return
@@ -862,8 +922,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(
                 title="Scene file cannot be found.",
                 text="Scene file cannot be found. "
-                     "Please either save your scene by creating a new work or "
-                     "ingest it into an existing one.",
+                "Please either save your scene by creating a new work or "
+                "ingest it into an existing one.",
                 critical=True,
             )
             return
@@ -872,8 +932,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(
                 title="Work object cannot be found.",
                 text="Work cannot be found. Versions can only saved on work objects.\n"
-                     "If there is no work associated with current scene either create a work "
-                     "or use the ingest method to save it into an existing work",
+                "If there is no work associated with current scene either create a work "
+                "or use the ingest method to save it into an existing work",
                 critical=True,
             )
             return
@@ -929,7 +989,7 @@ class MainUI(QtWidgets.QMainWindow):
             temp_action.triggered.connect(
                 lambda ignore=z_key, item=_work_item.tik_obj.get_abs_project_path(
                     preview_dict[z_key]
-                ): utils.execute(str(item),  executable=executable)
+                ): utils.execute(str(item), executable=executable)
             )
 
         zort_menu.exec_((QtGui.QCursor.pos()))

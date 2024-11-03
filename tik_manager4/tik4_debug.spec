@@ -2,7 +2,7 @@
 
 st_a = Analysis(
     ['dcc\\standalone\\tik4_standalone.py'],
-    pathex=[],
+    pathex=['external\\shotgunsoftware'],
     binaries=[],
     datas=[('ui\\theme', 'ui\\theme')],
     hiddenimports=[],
