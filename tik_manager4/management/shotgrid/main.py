@@ -240,6 +240,8 @@ class ProductionPlatform(ManagementCore):
         if not set_project: # switch back to the original project
             self.tik_main.set_project(current_project_path)
 
+        return project_path
+
     @staticmethod
     def get_settings_ui():
         """Return the settings UI for the Shotgrid platform."""
