@@ -555,7 +555,10 @@ class MainUI(QtWidgets.QMainWindow):
         """Test method."""
         handler = management.platforms["shotgrid"](self.tik)
         dialog = CreateFromShotgridDialog(handler, parent=self)
-        dialog.show()
+        state = dialog.exec_()
+        if state:
+            self.refresh_project()
+            self.status_bar.showMessage("Project created successfully")
         # from tik_manager4 import management
 
         # test = management.platforms["shotgrid"](self.tik)

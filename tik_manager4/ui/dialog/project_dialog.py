@@ -392,20 +392,31 @@ class CreateFromShotgridDialog(QtWidgets.QDialog):
         button_layout.addWidget(self.set_project_cb)
 
         # SIGNALS
-        button_box.accepted.connect(self.create_project)
+        button_box.accepted.connect(self.create_project_from_sg)
 
-    def create_project(self):
+    def create_project_from_sg(self):
         """Create the project."""
         project_root = self.project_root_pathb.widget.text()
         project_id = self.sg_project_pick_widget.get_selected_project_id()
         if project_id:
-            self.handler.create_from_project(project_root, 190)
+            ret = self.handler.create_from_project(
+                project_root, 190, set_project=self.set_project_cb.isChecked()
+            )
+            if not ret:
+                msg, _msg_type = self.tik.log.get_last_message()
+                self.feedback.pop_info(
+                    title="Error Creating Project", text=msg, critical=True
+                )
+                return
+                # get the last log message from the logger
         else:
-            self.feedback.pop_error(
+            self.feedback.pop_info(
                 title="No Project Selected",
                 text="Please select a project from the list.",
+                critical=True
             )
             return
+        self.accept()
 
 
 # Test the set project dialog

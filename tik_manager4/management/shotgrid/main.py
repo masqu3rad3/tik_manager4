@@ -74,13 +74,13 @@ class ProductionPlatform(ManagementCore):
             api_key=api_key,
         )
 
-    def get_projects(self):
+    def get_projects(self, archived=False, is_template=False, is_demo=False):
         """Get all the projects from Shotgrid."""
         fields = ["name", "sg_status", "start_date", "end_date", "image"]
         filters = [
-            # ["archived", "is", False],
-            # ["is_template", "is", False],
-            # ["is_demo", "is", False],
+            # ["archived", "is", archived],
+            # ["is_template", "is", is_template],
+            # ["is_demo", "is", is_demo],
         ]
         projects = self.sg.find("Project", filters, fields)
         return projects
@@ -115,8 +115,9 @@ class ProductionPlatform(ManagementCore):
     #     self.sg.set_project(project["id"])
     #     return project
 
-    def create_from_project(self, project_root, shotgrid_project_id):
+    def create_from_project(self, project_root, shotgrid_project_id, set_project=True):
         """Create a tik_manager4 project from the existing Shotgrid project."""
+        current_project_path = self.tik_main.project.absolute_path
         project = self.sg.find_one(
             "Project", [["id", "is", shotgrid_project_id]], ["name"]
         )
@@ -124,9 +125,12 @@ class ProductionPlatform(ManagementCore):
         project_name = utils.sanitize_text(project["name"])
         project_path = Path(project_root) / project_name
         project_path.mkdir(exist_ok=True)
-        self.tik_main.create_project(
-            project_path.as_posix(), structure_template="empty"
+        ret = self.tik_main.create_project(
+            project_path.as_posix(), structure_template="empty",
+            set_after_creation=True # we ALWAYS set it for further operations
         )
+        if ret == -1:
+            return None
 
         all_assets = self.get_all_assets(shotgrid_project_id)
         all_shots = self.get_all_shots(shotgrid_project_id)
@@ -232,6 +236,9 @@ class ProductionPlatform(ManagementCore):
                 uid=shot["id"],
                 metadata_overrides=metadata_overrides,
             )
+
+        if not set_project: # switch back to the original project
+            self.tik_main.set_project(current_project_path)
 
     @staticmethod
     def get_settings_ui():
