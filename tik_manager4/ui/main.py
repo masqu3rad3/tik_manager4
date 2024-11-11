@@ -32,6 +32,7 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog
+from tik_manager4.ui.dialog.project_dialog import CreateFromShotgridDialog
 from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
 from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
@@ -49,6 +50,10 @@ from tik_manager4.ui.mcv.user_mcv import TikUserLayout
 from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
 from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator
 from tik_manager4.ui.dialog.update_dialog import UpdateDialog
+
+# from tik_manager4.ui.widgets.pop import WaitDialog
+from tik_manager4 import management
+
 
 LOG = logging.getLogger(__name__)
 WINDOW_NAME = f"Tik Manager {version.__version__}"
@@ -449,10 +454,10 @@ class MainUI(QtWidgets.QMainWindow):
         # File Menu
         create_project = QtWidgets.QAction("&Create New Project", self)
         file_menu.addAction(create_project)
-        create_project_from_management = QtWidgets.QAction(
-            "&Create Project from Management Platform    ", self
+        create_project_from_shotgrid = QtWidgets.QAction(
+            "&Create Project from Shotgrid    ", self
         )
-        file_menu.addAction(create_project_from_management)
+        file_menu.addAction(create_project_from_shotgrid)
         set_project = QtWidgets.QAction("&Set Project", self)
         file_menu.addAction(set_project)
         file_menu.addSeparator()
@@ -540,16 +545,30 @@ class MainUI(QtWidgets.QMainWindow):
             tools_menu.addAction(create_preview)
             create_preview.triggered.connect(self.on_create_preview)
 
-        create_project_from_management.triggered.connect(self.TEST)
+        create_project_from_shotgrid.triggered.connect(
+            self.on_create_project_from_shotgrid
+        )
 
         menu_bar.setMinimumWidth(menu_bar.sizeHint().width())
 
-    def TEST(self):
+    def on_create_project_from_shotgrid(self):
         """Test method."""
-        from tik_manager4 import management
-        test = management.platforms["shotgrid"](self.tik)
+        handler = management.platforms["shotgrid"](self.tik)
+        dialog = CreateFromShotgridDialog(handler, parent=self)
+        dialog.show()
+        # from tik_manager4 import management
 
+        # test = management.platforms["shotgrid"](self.tik)
+        # print(management.platforms["shotgrid"].get_settings_ui())
 
+        # test
+        # from time import sleep
+
+        # wait = WaitDialog(parent=self)
+        # wait.show_dialog()
+
+        # sleep(2)
+        # wait.close_dialog()
 
     def _main_button_states(self):
         """Toggle the states of the main buttons according to certain conditions."""
@@ -1024,4 +1043,5 @@ if __name__ == "__main__":
     launch()
     end = time()
     LOG.info("Took %s seconds", (end - start))
+    print("Took %s seconds", (end - start))
     sys.exit(app.exec_())

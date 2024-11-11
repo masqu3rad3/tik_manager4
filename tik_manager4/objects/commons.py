@@ -65,6 +65,9 @@ class Commons:
         self.metadata = Settings(
             file_path=str(Path(self._folder_path, "metadata.json"))
         )
+        self.management_settings = Settings(
+            file_path=str(Path(self._folder_path, "management_settings.json"))
+        )
         return True
 
     def check_user_permission_level(self, user_name):

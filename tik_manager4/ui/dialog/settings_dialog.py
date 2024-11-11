@@ -22,9 +22,11 @@ from tik_manager4.ui.dialog.user_dialog import NewUserDialog
 from tik_manager4.ui.layouts.settings_layout import (
     SettingsLayout,
     convert_to_ui_definition,
+    convert_to_settings_data,
     guess_data_type,
 )
 from tik_manager4.ui.dialog.data_containers import MainLayout
+from tik_manager4 import management
 
 LOG = logging.getLogger(__name__)
 
@@ -319,6 +321,9 @@ class SettingsDialog(QtWidgets.QDialog):
         project_widget_item.addChild(metadata)
         metadata.content = self._metadata_content()
 
+        # project_settings = SwitchTreeItem(["Project Settings"], permission_level=3)
+        # project_widget_item.addChild(project_settings)
+
     def common_title(self):
         """Create the common settings."""
         # create the menu items
@@ -339,6 +344,24 @@ class SettingsDialog(QtWidgets.QDialog):
         users_management = SwitchTreeItem(["Users Management"], permission_level=3)
         common_widget_item.addChild(users_management)
         users_management.content = self.__common_users_management_content()
+
+        # combine the ui definitions for all management platforms
+        ui_definition = {}
+        for plt in management.platforms.keys():
+            settings_ui = management.platforms[plt].get_settings_ui()
+            # update the management settings for any missing keys
+            settings_data = convert_to_settings_data(settings_ui)
+            self.main_object.user.commons.management_settings.add_missing_keys(settings_data)
+            ui_definition.update(settings_ui)
+
+        # ui_definition = management.platforms["shotgrid"].get_settings_ui()
+        platform_settings = SwitchTreeItem(["Platform Settings"], permission_level=3)
+        common_widget_item.addChild(platform_settings)
+        platform_settings.content = self.__create_generic_settings_layout(
+            settings_data=self.main_object.user.commons.management_settings,
+            title="Platform Settings",
+            ui_definition=ui_definition,
+        )
 
     def create_content_links(self):
         """Create content widgets for all top level items."""

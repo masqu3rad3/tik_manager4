@@ -8,7 +8,8 @@ from tik_manager4.ui.widgets.common import TikButtonBox
 
 import tik_manager4.ui.layouts.settings_layout
 from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
-from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
+# from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
+import tik_manager4.ui.mcv.subproject_mcv
 
 
 class EditSubprojectDialog(QtWidgets.QDialog):
@@ -337,7 +338,7 @@ class SelectSubprojectDialog(QtWidgets.QDialog):
         self.master_layout = QtWidgets.QVBoxLayout(self)
         self.setLayout(self.master_layout)
 
-        self.subproject_layout = TikSubProjectLayout(self.tik_project)
+        self.subproject_layout = tik_manager4.ui.mcv.subproject_mcv.TikSubProjectLayout(self.tik_project)
         self.master_layout.addLayout(self.subproject_layout)
         self.button_box = TikButtonBox(
             QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel

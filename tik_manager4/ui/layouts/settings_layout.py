@@ -65,7 +65,6 @@ def convert_to_ui_definition(settings_data):
 
     Args:
         settings_data (Settings or dict): Settings object or dictionary data
-        override_data (dict, optional): Override the settings data with this dictionary. Defaults to None.
     """
     if isinstance(settings_data, Settings):
         source_dict = settings_data.get_data()
@@ -92,6 +91,25 @@ def convert_to_ui_definition(settings_data):
             value = data
         ui_definition[key]["value"] = value
     return ui_definition
+
+def convert_to_settings_data(ui_definition):
+    """Converts the ui definition to settings data.
+
+    Args:
+        ui_definition (dict): UI definition data
+    """
+    settings_data = {}
+
+    for key, data in ui_definition.items():
+        if data.get("value") is None:
+            continue # skip if the keys without value. (like separators)
+        if data["type"] == "multi":
+            settings_data[key] = convert_to_settings_data(data["value"])
+        elif data["type"] == "group":
+            continue
+        else:
+            settings_data[key] = data["value"]
+    return settings_data
 
 class SettingsLayout(QtWidgets.QFormLayout):
     """Visualizes and edits Setting objects in a vertical layout"""
@@ -142,6 +160,8 @@ class SettingsLayout(QtWidgets.QFormLayout):
                     self.settings_data.add_property(
                         sub_key, sub_data["value"], force=False
                     )
+            elif data.get("value") is None:
+                continue # skip if the keys without value. (like separators)
             else:
                 self.settings_data.add_property(
                     key, data["value"], force=False
@@ -196,10 +216,21 @@ class SettingsLayout(QtWidgets.QFormLayout):
                     _widget.com.valueChanged.connect(lambda x, k=key: self._setting_data_modified(k, x))
                     _widgets.append(_widget)
                 self.addRow(_label, _layout)
+            elif _type == "separator":
+                # first add a blank line
+                self.addRow("", QtWidgets.QLabel())
+                # if the type is separator, simply add a new row.
+                _widget = QtWidgets.QLabel(text=_display_name)
+                # make it bold and larger
+                _widget.setStyleSheet("font-weight: bold; font-size: 14px;")
+                self.addRow("", _widget)
             else:
                 _widget_class = self.widget_dict.get(_type)
                 if not _widget_class:
                     continue
+                # if the key is available in the settings data and if it has a value, use that one
+                if self.settings_data.get(name) is not None:
+                    properties["value"] = self.settings_data.get(name)
                 _widget = _widget_class(name, **properties)
                 _widget.com.valueChanged.connect(lambda x, n=name: self._setting_data_modified(n, x))
                 self.addRow(_label, _widget)

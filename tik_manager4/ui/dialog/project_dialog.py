@@ -1,12 +1,15 @@
 """Dialog for setting project."""
+
 import os
 
+from pathlib import Path
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.widgets import path_browser
 from tik_manager4.ui.widgets.common import TikButton, TikButtonBox
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.value_widgets import DropList
 from tik_manager4.ui.dialog.subproject_dialog import EditSubprojectDialog, FilteredData
+from tik_manager4.ui.mcv.management_mcv import SgProjectPickWidget
 
 
 class SetProjectDialog(QtWidgets.QDialog):
@@ -26,6 +29,7 @@ class SetProjectDialog(QtWidgets.QDialog):
         self.populate_bookmarks()
 
     def build_ui(self):
+        """Build the UI."""
         main_layout = QtWidgets.QVBoxLayout(self)
         header_layout = QtWidgets.QHBoxLayout()
         main_layout.addLayout(header_layout)
@@ -107,7 +111,7 @@ class SetProjectDialog(QtWidgets.QDialog):
         button_box.accepted.connect(self.set_and_close)
         button_box.rejected.connect(self.close)
         self.bookmarks_droplist.list.doubleClicked.connect(
-            lambda: self.set_and_close()
+            lambda: self.set_and_close()  # pylint: disable=unnecessary-lambda
         )  # lambda is needed to pass the argument
         selection_model.selectionChanged.connect(self.activate_folders)
         self.bookmarks_droplist.list.currentRowChanged.connect(self.activate_bookmarks)
@@ -131,10 +135,7 @@ class SetProjectDialog(QtWidgets.QDialog):
                 lambda _ignore=p, item=p: self.set_and_close(item)
             )
 
-        if zort_menu.exec_((QtGui.QCursor.pos())):
-            return True
-        else:
-            return False
+        return bool(zort_menu.exec_((QtGui.QCursor.pos())))
 
     def activate_folders(self):
         """Get the active project from folders tree and
@@ -190,6 +191,7 @@ class SetProjectDialog(QtWidgets.QDialog):
         self.populate_bookmarks()
 
     def populate_bookmarks(self):
+        """Populate the bookmarks list."""
         self.bookmarks_droplist.list.clear()
         self.bookmarks_droplist.list.addItems(self.main_object.user.bookmark_names)
 
@@ -204,8 +206,9 @@ class NewProjectDialog(EditSubprojectDialog):
         self.structure_list = list(
             self.main_object.user.commons.structures.properties.values()
         )
-        super(NewProjectDialog, self).__init__(main_object.project, *args, **kwargs)
+        super().__init__(main_object.project, *args, **kwargs)
         self.structure_data = None
+        self.set_after_create_cb = None
 
         self.setWindowTitle("Create New Project")
         self.setMinimumSize(300, 200)
@@ -216,9 +219,9 @@ class NewProjectDialog(EditSubprojectDialog):
         self.secondary_layout.label.setText("Root Properties")
         self.tertiary_layout.label.setHidden(True)
 
-
     def _get_metadata_override(self, key):
         """Override the function to return always False."""
+        _key = key
         return False
 
     def define_primary_ui(self):
@@ -259,7 +262,7 @@ class NewProjectDialog(EditSubprojectDialog):
         for key, data in self.metadata_definitions.properties.items():
             _value_type, _default_value, _enum = self._get_metadata_type(data)
             if _default_value is None:
-                raise ValueError("No default value defined for metadata {}".format(key))
+                raise ValueError(f"No default value defined for metadata {key}")
             _check = False
             if structure_template:
                 _structure_value = structure_template.get(key, None)
@@ -268,11 +271,11 @@ class NewProjectDialog(EditSubprojectDialog):
                     _check = True
 
             _secondary_ui[key] = {
-                "display_name": "{} :".format(key),
+                "display_name": f"{key} :",
                 "type": "multi",
-                "tooltip": "New {}".format(key),
+                "tooltip": f"New {key}",
                 "value": {
-                    "__new_{}".format(key): {
+                    f"__new_{key}": {
                         "type": "boolean",
                         "value": _check,
                         "disables": [[False, key]],
@@ -317,6 +320,7 @@ class NewProjectDialog(EditSubprojectDialog):
         self.button_box_layout.addWidget(self.set_after_create_cb)
 
     def _execute(self):
+        """Create the project."""
         # build a new kwargs dictionary by filtering the settings_data
         path = os.path.join(
             self.primary_data.get_property("project_root"),
@@ -337,9 +341,71 @@ class NewProjectDialog(EditSubprojectDialog):
         self.accept()
 
 
-class CreateFromManagementDialog(QtWidgets.QDialog):
+class CreateFromShotgridDialog(QtWidgets.QDialog):
     """Create a new project from the management system."""
 
+    def __init__(self, management_handler, parent=None):
+        super().__init__(parent=parent)
+        self.tik = management_handler.tik_main
+        self.feedback = Feedback(parent=self)
+        self.handler = management_handler
+        self.setWindowTitle("Create New Project from Shotgrid")
+        self.setModal(True)
+        self.setMinimumSize(300, 200)
+        self.resize(600, 650)
+
+        self.master_layout = QtWidgets.QVBoxLayout()
+        self.setLayout(self.master_layout)
+        self.project_root_pathb = None
+        self.set_project_cb = None
+        self.sg_project_pick_widget = None
+
+        self.build_ui()
+
+    def build_ui(self):
+        """Build the UI."""
+        # path browser
+        path_browser_layout = QtWidgets.QHBoxLayout()
+        self.master_layout.addLayout(path_browser_layout)
+        path_browser_lbl = QtWidgets.QLabel("Projects Root :")
+        path_browser_layout.addWidget(path_browser_lbl)
+        _value = Path(self.tik.project.absolute_path).parent.as_posix()
+        self.project_root_pathb = path_browser.PathBrowser("project_root", value=_value)
+        path_browser_layout.addWidget(self.project_root_pathb)
+
+        self.sg_project_pick_widget = SgProjectPickWidget(self.handler, parent=self)
+        self.master_layout.addWidget(self.sg_project_pick_widget)
+
+        # create a button box as "create" and "cancel"
+        button_box = TikButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
+
+        button_layout = QtWidgets.QHBoxLayout()
+        self.master_layout.addLayout(button_layout)
+        create_btn = button_box.button(QtWidgets.QDialogButtonBox.Ok)
+        create_btn.setText("Create")
+        button_layout.addWidget(button_box)
+
+        self.set_project_cb = QtWidgets.QCheckBox("Set After Creation")
+        self.set_project_cb.setChecked(True)
+        button_layout.addWidget(self.set_project_cb)
+
+        # SIGNALS
+        button_box.accepted.connect(self.create_project)
+
+    def create_project(self):
+        """Create the project."""
+        project_root = self.project_root_pathb.widget.text()
+        project_id = self.sg_project_pick_widget.get_selected_project_id()
+        if project_id:
+            self.handler.create_from_project(project_root, 190)
+        else:
+            self.feedback.pop_error(
+                title="No Project Selected",
+                text="Please select a project from the list.",
+            )
+            return
 
 
 # Test the set project dialog
@@ -347,10 +413,13 @@ if __name__ == "__main__":
     import sys
     import tik_manager4
     from tik_manager4.ui import pick
+    from tik_manager4 import management
 
     app = QtWidgets.QApplication(sys.argv)
     tik = tik_manager4.initialize("Standalone")
-    dialog = SetProjectDialog(tik)
+    handler = management.platforms["shotgrid"](tik)
+    # dialog = SetProjectDialog(tik)
+    dialog = CreateFromShotgridDialog(handler)
     _style_file = pick.style_file()
     dialog.setStyleSheet(str(_style_file.readAll(), "utf-8"))
     dialog.show()

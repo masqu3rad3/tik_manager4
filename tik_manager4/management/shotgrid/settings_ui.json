@@ -1,0 +1,38 @@
+{
+  "sg_group": {
+      "display_name": "Autodesk Flow Production",
+      "type": "group"
+  },
+"sg_url": {
+      "display_name": "ShotGrid URL",
+      "tooltip": "The URL of the ShotGrid server to connect to.",
+      "type": "string",
+      "value": ""
+  },
+  "sg_authentication_method": {
+      "display_name": "Authentication Method",
+      "tooltip": "Select the authentication method to use when connecting to ShotGrid.",
+      "type": "combo",
+      "items": [
+        "User",
+        "Script"
+      ],
+      "value": "User",
+      "disables": [
+        [true, "script_name"],
+        [true, "api_key"]
+      ]
+  },
+  "sg_script_name": {
+      "display_name": "Script Name",
+      "tooltip": "The name of the script to use when connecting to ShotGrid.",
+      "type": "string",
+      "value": ""
+  },
+  "sg_api_key": {
+    "display_name": "API Key",
+    "tooltip": "The API key to use when connecting to ShotGrid.",
+    "type": "string",
+    "value": ""
+  }
+}

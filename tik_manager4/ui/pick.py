@@ -7,14 +7,14 @@ from tik_manager4.ui.Qt import QtCore, QtGui
 # if it is frozen,
 _FROZEN = getattr(sys, 'frozen', False)
 DIRECTORY = Path(__file__).parent if not _FROZEN else Path(sys.executable).parent / "_internal" /"ui"
-IMAGES_FOLDER = DIRECTORY / "images"
+# IMAGES_FOLDER = DIRECTORY / "images"
 THEME_FOLDER = DIRECTORY / "theme"
 # ICON_FOLDER = DIRECTORY / "icons"
 RC_FOLDER = THEME_FOLDER / "rc"
 
 def pixmap(image_name):
     """Instantiate an QPixmap from an image in the images' folder."""
-    return QtGui.QPixmap(str(IMAGES_FOLDER / image_name))
+    return QtGui.QPixmap(str(RC_FOLDER / image_name))
 
 
 def icon(icon_name):

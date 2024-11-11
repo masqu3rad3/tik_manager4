@@ -7,17 +7,22 @@ from copy import deepcopy
 from tik_manager4.core import utils
 from tik_manager4.management.management_core import ManagementCore
 
-external_folder = os.getenv("TIK_EXTERNAL_SOURCES")
-if not external_folder:
-    raise Exception(
-        "TIK_EXTERNAL_SOURCES environment variable is not set. Please make sure the tik_manager4 is initialized."
-    )
-shotgun_folder = (Path(external_folder) / "shotgunsoftware").as_posix()
+# raise Exception("This module is not ready for use.")
+
+# external_folder = os.getenv("TIK_EXTERNAL_SOURCES")
+external_folder = Path(__file__).parents[2] / "external"
+# if not external_folder:
+#     raise Exception(
+#         "TIK_EXTERNAL_SOURCES environment variable is not set. Please make sure the tik_manager4 is initialized."
+#     )
+# shotgun_folder = (Path(external_folder) / "shotgunsoftware").as_posix()
+shotgun_folder = (external_folder / "shotgunsoftware").as_posix()
 
 if shotgun_folder not in sys.path:
     sys.path.append(shotgun_folder)
 
 import tank
+from tank_vendor import shotgun_api3
 
 
 class ProductionPlatform(ManagementCore):
@@ -29,20 +34,53 @@ class ProductionPlatform(ManagementCore):
 
     def __init__(self, tik_main_obj):
         self.tik_main = tik_main_obj
+        self.sg = self.authenticate()
+
+    def authenticate(self):
+        """Connect to Shotgrid."""
+        method = self.tik_main.user.commons.management_settings.get(
+            "sg_authentication_method", "User"
+        )
+        if method == "User":
+            return self._user_authenticate()
+        elif method == "Script":
+            return self._script_authenticate()
+        else:
+            raise Exception("Invalid authentication method.")
+
+    def _user_authenticate(self):
+        """Make a user based authentication."""
         tank.authentication.set_shotgun_authenticator_support_web_login(True)
         self.authenticator = tank.authentication.ShotgunAuthenticator()
+        user = self.authenticator.get_user()
+        return user.create_sg_connection()
 
-        self.user = self.authenticator.get_user()
-        # self.user = self.authenticator.get_user_from_prompt()
-        self.sg = self.user.create_sg_connection()
+    def _script_authenticate(self):
+        """Make a script based authentication."""
+        script_name = self.tik_main.user.commons.management_settings.get(
+            "sg_script_name"
+        )
+        if not script_name:
+            raise Exception("Script name not set in Settings -> Platform Settings.")
+        api_key = self.tik_main.user.commons.management_settings.get("sg_api_key")
+        if not api_key:
+            raise Exception("Api key not set in Settings -> Platform Settings.")
+        base_url = self.tik_main.user.commons.management_settings.get("sg_url")
+        if not api_key:
+            raise Exception("Url not set in Settings -> Platform Settings.")
+        return shotgun_api3.Shotgun(
+            base_url=base_url,
+            script_name=script_name,
+            api_key=api_key,
+        )
 
     def get_projects(self):
         """Get all the projects from Shotgrid."""
         fields = ["name", "sg_status", "start_date", "end_date", "image"]
         filters = [
-            ["archived", "is", False],
-            ["is_template", "is", False],
-            ["is_demo", "is", False],
+            # ["archived", "is", False],
+            # ["is_template", "is", False],
+            # ["is_demo", "is", False],
         ]
         projects = self.sg.find("Project", filters, fields)
         return projects
@@ -79,7 +117,9 @@ class ProductionPlatform(ManagementCore):
 
     def create_from_project(self, project_root, shotgrid_project_id):
         """Create a tik_manager4 project from the existing Shotgrid project."""
-        project = self.sg.find_one("Project", [["id", "is", shotgrid_project_id]], ["name"])
+        project = self.sg.find_one(
+            "Project", [["id", "is", shotgrid_project_id]], ["name"]
+        )
         # project_name = re.sub('[^\w_.)( -]', '', project["name"])
         project_name = utils.sanitize_text(project["name"])
         project_path = Path(project_root) / project_name
@@ -109,7 +149,9 @@ class ProductionPlatform(ManagementCore):
         ]
 
         # Add the categories that doesnt exists in common
-        _salvage_dict = deepcopy(self.tik_main.user.commons.category_definitions.get_data())
+        _salvage_dict = deepcopy(
+            self.tik_main.user.commons.category_definitions.get_data()
+        )
         new_dict = {}
         for category in asset_categories + shot_categories:
             # if the category in both asset and shot categories, _type should be ""
@@ -128,7 +170,7 @@ class ProductionPlatform(ManagementCore):
                 new_dict[category] = {
                     "type": _type,
                     "validations": [],
-                    "extracts": ["source"]
+                    "extracts": ["source"],
                 }
 
         self.tik_main.project.category_definitions.set_data(new_dict)
@@ -139,9 +181,13 @@ class ProductionPlatform(ManagementCore):
         for asset in all_assets:
             if asset["sg_asset_type"]:
                 if assets_sub.subs.get(asset["sg_asset_type"]) is None:
-                    sub = self.tik_main.project.create_sub_project(asset["sg_asset_type"], parent_path="Assets")
+                    sub = self.tik_main.project.create_sub_project(
+                        asset["sg_asset_type"], parent_path="Assets"
+                    )
                 else:
-                    sub = self.tik_main.project.subs["Assets"].subs[asset["sg_asset_type"]]
+                    sub = self.tik_main.project.subs["Assets"].subs[
+                        asset["sg_asset_type"]
+                    ]
             else:
                 sub = self.tik_main.project.subs["Assets"]
             asset_name = utils.sanitize_text(asset["code"])
@@ -154,14 +200,25 @@ class ProductionPlatform(ManagementCore):
             if shot["sg_sequence.Sequence.episode"]:
                 episode = shot["sg_sequence.Sequence.episode"]["name"]
                 if query_sub.subs.get(episode) is None:
-                    query_sub = self.tik_main.project.create_sub_project(episode, parent_path=query_sub.path, uid=shot["sg_sequence.Sequence.episode"]["id"], mode="episode")
+                    query_sub = self.tik_main.project.create_sub_project(
+                        episode,
+                        parent_path=query_sub.path,
+                        uid=shot["sg_sequence.Sequence.episode"]["id"],
+                        mode="episode",
+                    )
                 else:
                     query_sub = query_sub.subs[episode]
             if shot["sg_sequence"]:
                 if query_sub.subs.get(shot["sg_sequence"]["name"]) is None:
-                    query_sub = self.tik_main.project.create_sub_project(shot["sg_sequence"]["name"], parent_path=query_sub.path, uid=shot["sg_sequence"]["id"])
-                else: # do not attempt to create the sequence if it already exists
-                    query_sub = self.tik_main.project.subs["Shots"].subs[shot["sg_sequence"]["name"]]
+                    query_sub = self.tik_main.project.create_sub_project(
+                        shot["sg_sequence"]["name"],
+                        parent_path=query_sub.path,
+                        uid=shot["sg_sequence"]["id"],
+                    )
+                else:  # do not attempt to create the sequence if it already exists
+                    query_sub = self.tik_main.project.subs["Shots"].subs[
+                        shot["sg_sequence"]["name"]
+                    ]
             shot_name = utils.sanitize_text(shot["code"])
 
             # sub.add_task(shot_name, categories=categories, uid=shot["id"])
@@ -169,4 +226,46 @@ class ProductionPlatform(ManagementCore):
                 "start_frame": shot["sg_cut_in"],
                 "end_frame": shot["sg_cut_out"],
             }
-            query_sub.add_task(shot_name, categories=shot_categories, uid=shot["id"], metadata_overrides=metadata_overrides)
+            query_sub.add_task(
+                shot_name,
+                categories=shot_categories,
+                uid=shot["id"],
+                metadata_overrides=metadata_overrides,
+            )
+
+    @staticmethod
+    def get_settings_ui():
+        """Return the settings UI for the Shotgrid platform."""
+        # Make sure the keys are unique accross all other platforms
+        return {
+            "_shotgrid": {
+                "type": "separator",
+                "display_name": "Autodesk Flow Production Settings",
+            },
+            "sg_url": {
+                "display_name": "ShotGrid URL",
+                "tooltip": "The URL of the ShotGrid server to connect to.",
+                "type": "string",
+                "value": "",
+            },
+            "sg_authentication_method": {
+                "display_name": "Authentication Method",
+                "tooltip": "Select the authentication method to use when connecting to ShotGrid.",
+                "type": "combo",
+                "items": ["User", "Script"],
+                "value": "User",
+                "disables": [["User", "sg_script_name"], ["User", "sg_api_key"]],
+            },
+            "sg_script_name": {
+                "display_name": "Script Name",
+                "tooltip": "The name of the script to use when connecting to ShotGrid.",
+                "type": "string",
+                "value": "",
+            },
+            "sg_api_key": {
+                "display_name": "API Key",
+                "tooltip": "The API key to use when connecting to ShotGrid.",
+                "type": "string",
+                "value": "",
+            },
+        }
