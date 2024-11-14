@@ -50,8 +50,7 @@ from tik_manager4.ui.mcv.user_mcv import TikUserLayout
 from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
 from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator
 from tik_manager4.ui.dialog.update_dialog import UpdateDialog
-
-# from tik_manager4.ui.widgets.pop import WaitDialog
+from tik_manager4.ui.widgets.pop import WaitDialog
 from tik_manager4 import management
 
 
@@ -553,7 +552,13 @@ class MainUI(QtWidgets.QMainWindow):
 
     def on_create_project_from_shotgrid(self):
         """Test method."""
+        self.wait_dialog = WaitDialog(
+            message="Please wait while collecting projects from Shotgrid...",
+            parent=self,
+        )
+        self.wait_dialog.show()
         handler = management.platforms["shotgrid"](self.tik)
+        self.wait_dialog.close()
         dialog = CreateFromShotgridDialog(handler, parent=self)
         state = dialog.exec_()
         if state:

@@ -1,7 +1,6 @@
 """Model View Controller for Platform management."""
 
 import dataclasses
-from tik_manager4 import management
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui, QtNetwork
 from tik_manager4.ui.widgets.pop import WaitDialog
@@ -202,7 +201,7 @@ class SgProjectPickWidget(QtWidgets.QWidget):
         self.widgets = SgWidgetDataContainer()
 
         self.wait_dialog = WaitDialog(
-            message="Please wait while collectiong projects from Shotgrid...",
+            message="Please wait while collecting projects from Shotgrid...",
             parent=parent,
         )
         self.wait_dialog.show()
