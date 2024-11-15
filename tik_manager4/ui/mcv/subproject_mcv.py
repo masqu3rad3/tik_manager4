@@ -201,6 +201,8 @@ class TikSubView(QtWidgets.QTreeView):
         # show the root
         self.setRootIsDecorated(False)
 
+        self.is_management_locked = False
+
         # allow multiple selection but only with ctrl
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
@@ -488,6 +490,11 @@ class TikSubView(QtWidgets.QTreeView):
         menu.exec_(self.mapToGlobal(position))
 
     def right_click_menu(self, position):
+        """Create a right click menu for the view.
+
+        Args:
+            position (QPoint): The position of the right click.
+        """
         indexes = self.sender().selectedIndexes()
         index_under_pointer = self.indexAt(position)
         if not index_under_pointer.isValid():
@@ -510,12 +517,14 @@ class TikSubView(QtWidgets.QTreeView):
             level = 0
         right_click_menu = QtWidgets.QMenu(self)
         act_new_sub = right_click_menu.addAction(self.tr("New Sub-Project"))
+        act_new_sub.setEnabled(not self.is_management_locked)
         act_new_sub.triggered.connect(lambda _=None, x=item: self.new_sub_project(item))
         act_edit_sub = right_click_menu.addAction(self.tr("Edit Sub-Project"))
         act_edit_sub.triggered.connect(
             lambda _=None, x=item: self.edit_sub_project(item)
         )
         act_delete_sub = right_click_menu.addAction(self.tr("Delete Sub-Project(s)"))
+        act_delete_sub.setEnabled(not self.is_management_locked)
         act_delete_sub.triggered.connect(
             lambda _=None, x=item: self.delete_sub_project(item)
         )
@@ -523,6 +532,7 @@ class TikSubView(QtWidgets.QTreeView):
         right_click_menu.addSeparator()
 
         act_new_task = right_click_menu.addAction(self.tr("New Task"))
+        act_new_task.setEnabled(not self.is_management_locked)
         act_new_task.triggered.connect(self.new_task)
 
         right_click_menu.addSeparator()

@@ -1,6 +1,7 @@
 """Model View Controller for Platform management."""
 
 import dataclasses
+import functools
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui, QtNetwork
 from tik_manager4.ui.widgets.pop import WaitDialog
@@ -10,6 +11,7 @@ from tik_manager4.ui import pick
 
 class SgProjectItem(QtGui.QStandardItem):
     """Item for the project model."""
+
     def __init__(self, definition_dict):
         """Initialize the item."""
         super().__init__()
@@ -24,7 +26,9 @@ class SgProjectItem(QtGui.QStandardItem):
     def _load_icon_from_url(self, url):
         """Load the icon from the url."""
         self.network_manager = QtNetwork.QNetworkAccessManager()
-        self.network_manager.finished.connect(self._set_icon_from_reply)
+        self.network_manager.finished.connect(
+            functools.partial(self._set_icon_from_reply)
+        )
         self.network_manager.get(QtNetwork.QNetworkRequest(QtCore.QUrl(url)))
 
     def _set_icon_from_reply(self, reply):
@@ -40,6 +44,7 @@ class SgProjectItem(QtGui.QStandardItem):
 
 class SgProjectColumnItem(QtGui.QStandardItem):
     """Item for the columns of the project model."""
+
     # pylint: disable=too-few-public-methods
     def __init__(self, text):
         """Initialize the item."""
@@ -49,6 +54,7 @@ class SgProjectColumnItem(QtGui.QStandardItem):
 
 class SgProjectModel(QtGui.QStandardItemModel):
     """Model for the Shotgrid projects."""
+
     columns = ["Name", "Id", "Status", "Start Date", "End Date"]
     filter_key = "super"
 
@@ -92,6 +98,7 @@ class SgProjectModel(QtGui.QStandardItemModel):
 
 class SgProjectIconView(QtWidgets.QListView):
     """Custom QListView for the Shotgrid platform."""
+
     # pylint: disable=too-few-public-methods
     def __init__(self):
         """Initialize the view."""
@@ -110,6 +117,7 @@ class SgProjectIconView(QtWidgets.QListView):
 
 class SgProjectTreeView(QtWidgets.QTreeView):
     """Custom QTreeView for the Shotgrid platform."""
+
     def __init__(self):
         """Initialize the view."""
         super().__init__()
@@ -130,7 +138,7 @@ class SgProjectTreeView(QtWidgets.QTreeView):
 
         # adjust the size of the columns
 
-    def expandAll(self): # pylint: disable=invalid-name
+    def expandAll(self):  # pylint: disable=invalid-name
         """Expand all the items in the view and resize the columns."""
         super().expandAll()
         self.resizeColumnToContents(0)

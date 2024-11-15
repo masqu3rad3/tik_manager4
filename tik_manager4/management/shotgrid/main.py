@@ -237,6 +237,13 @@ class ProductionPlatform(ManagementCore):
                 metadata_overrides=metadata_overrides,
             )
 
+        # tag the project as management driven
+        self.tik_main.project.settings.edit_property("management_driven", True)
+        self.tik_main.project.settings.edit_property("host_project_name", project["name"])
+        self.tik_main.project.settings.edit_property("host_project_id", shotgrid_project_id)
+
+        self.tik_main.project.settings.apply_settings(force=True)
+
         if not set_project: # switch back to the original project
             self.tik_main.set_project(current_project_path)
 

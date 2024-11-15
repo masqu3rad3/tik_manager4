@@ -172,7 +172,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.build_buttons()
         #
         self.resume_last_state()
-        #
+        self.management_lock()
+
         self.status_bar.showMessage("Status | Ready")
 
     def resume_last_state(self):
@@ -553,30 +554,19 @@ class MainUI(QtWidgets.QMainWindow):
     def on_create_project_from_shotgrid(self):
         """Test method."""
         self.wait_dialog = WaitDialog(
-            message="Please wait while collecting projects from Shotgrid...",
+            message="Please wait while connecting to Shotgrid...",
             parent=self,
         )
         self.wait_dialog.show()
+        # process the ui
+        QtWidgets.QApplication.processEvents()
         handler = management.platforms["shotgrid"](self.tik)
-        self.wait_dialog.close()
         dialog = CreateFromShotgridDialog(handler, parent=self)
         state = dialog.exec_()
+        self.wait_dialog.close()
         if state:
             self.refresh_project()
             self.status_bar.showMessage("Project created successfully")
-        # from tik_manager4 import management
-
-        # test = management.platforms["shotgrid"](self.tik)
-        # print(management.platforms["shotgrid"].get_settings_ui())
-
-        # test
-        # from time import sleep
-
-        # wait = WaitDialog(parent=self)
-        # wait.show_dialog()
-
-        # sleep(2)
-        # wait.close_dialog()
 
     def _main_button_states(self):
         """Toggle the states of the main buttons according to certain conditions."""
@@ -914,8 +904,19 @@ class MainUI(QtWidgets.QMainWindow):
 
     def on_set_project(self, message=""):
         """Show a status message."""
+        self.management_lock()
         self.status_bar.showMessage(message, 3000)
         self.refresh_subprojects()
+
+    def management_lock(self):
+        """Lock certain UI elements if the project is getting driven by a
+        management platform."""
+        if self.tik.project.settings.get("management_driven", False):
+            print("Management Lock")
+            self.subprojects_mcv.sub_view.is_management_locked = True
+        else:
+            print("Management Not Locked")
+            self.subprojects_mcv.sub_view.is_management_locked = False
 
     def on_create_new_project(self):
         """Create a new project."""
