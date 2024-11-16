@@ -85,6 +85,7 @@ class MainUI(QtWidgets.QMainWindow):
         # pylint: disable=too-many-statements
         super(MainUI, self).__init__(**kwargs)
         self.tik = main_object
+        self._management_handler = None
 
         self.setWindowTitle(window_name)
         self.setObjectName(window_name)
@@ -553,20 +554,38 @@ class MainUI(QtWidgets.QMainWindow):
 
     def on_create_project_from_shotgrid(self):
         """Test method."""
-        self.wait_dialog = WaitDialog(
-            message="Please wait while connecting to Shotgrid...",
-            parent=self,
-        )
-        self.wait_dialog.show()
-        # process the ui
-        QtWidgets.QApplication.processEvents()
-        handler = management.platforms["shotgrid"](self.tik)
+        if not self._pre_check(level=3):
+            return
+
+        # self.wait_dialog = WaitDialog(
+        #     message="Please wait while connecting to Shotgrid...",
+        #     parent=self,
+        # )
+        # self.wait_dialog.show_dialog()
+        handler = self.get_management_handler("shotgrid")
+        # self.wait_dialog.close_dialog()
+
         dialog = CreateFromShotgridDialog(handler, parent=self)
-        state = dialog.exec_()
-        self.wait_dialog.close()
+        state = dialog.exec()
         if state:
             self.refresh_project()
             self.status_bar.showMessage("Project created successfully")
+
+    def get_management_handler(self, platform_name="shotgrid"):
+        """Resolve the management handler.
+
+        Args:
+            platform_name (str): The name of the platform.
+        """
+        if not self._management_handler or self._management_handler.name != platform_name:
+            self.wait_dialog = WaitDialog(
+                message=f"Connecting to {platform_name}...",
+                parent=self,
+            )
+            self.wait_dialog.show_dialog()
+            self._management_handler = management.platforms[platform_name](self.tik)
+            self.wait_dialog.close_dialog()
+        return self._management_handler
 
     def _main_button_states(self):
         """Toggle the states of the main buttons according to certain conditions."""
@@ -622,7 +641,6 @@ class MainUI(QtWidgets.QMainWindow):
             return
         self.categories_mcv.work_tree_view.ingest_here(selected_work_item)
 
-    #
     def _new_work_pre_checks(self, task):
         """Collection of pre-checks for the new work method."""
         dcc_name = self.tik.project.guard.dcc
@@ -911,12 +929,21 @@ class MainUI(QtWidgets.QMainWindow):
     def management_lock(self):
         """Lock certain UI elements if the project is getting driven by a
         management platform."""
-        if self.tik.project.settings.get("management_driven", False):
-            print("Management Lock")
+        is_management_driven = self.tik.project.settings.get("management_driven", False)
+        if is_management_driven:
             self.subprojects_mcv.sub_view.is_management_locked = True
+            self.tasks_mcv.task_view.is_management_locked = True
+            management_platform = self.tik.project.settings.get("management_platform")
+            management_handler = self.get_management_handler(management_platform)
+            synced = management_handler.sync_project()
+            if synced:
+                self.set_last_state()
+                self.subprojects_mcv.manual_refresh()
+                self.refresh_subprojects()
+                self.resume_last_state()
         else:
-            print("Management Not Locked")
             self.subprojects_mcv.sub_view.is_management_locked = False
+            self.tasks_mcv.task_view.is_management_locked = False
 
     def on_create_new_project(self):
         """Create a new project."""

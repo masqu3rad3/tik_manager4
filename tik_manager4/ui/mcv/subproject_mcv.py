@@ -590,7 +590,8 @@ class TikSubView(QtWidgets.QTreeView):
             self._feedback.pop_info(title.capitalize(), message)
             return
         _dialog = tik_manager4.ui.dialog.subproject_dialog.EditSubprojectDialog(
-            self.model.project, parent_sub=item.subproject, parent=self
+            self.model.project, parent_sub=item.subproject, parent=self,
+            management_lock=self.is_management_locked
         )
         state = _dialog.exec_()
         if state:

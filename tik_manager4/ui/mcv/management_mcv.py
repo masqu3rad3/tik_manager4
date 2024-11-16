@@ -1,6 +1,5 @@
 """Model View Controller for Platform management."""
 
-import dataclasses
 import functools
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui, QtNetwork
@@ -152,40 +151,33 @@ class SgProjectTreeView(QtWidgets.QTreeView):
         self.setIconSize(QtCore.QSize(size, size))
 
 
-@dataclasses.dataclass
 class SgLayoutsDataContainer:
     """Layouts data container for the Shotgrid platform."""
 
-    master_layout: (QtWidgets.QVBoxLayout, QtWidgets.QHBoxLayout) = (
-        QtWidgets.QVBoxLayout()
-    )
-    button_layout: QtWidgets.QHBoxLayout = QtWidgets.QHBoxLayout()
-    widget_layout: QtWidgets.QVBoxLayout = QtWidgets.QVBoxLayout()
+    def __init__(self):
+        self.master_layout: (QtWidgets.QVBoxLayout, QtWidgets.QHBoxLayout) = (
+            QtWidgets.QVBoxLayout()
+        )
+        self.button_layout: QtWidgets.QHBoxLayout = QtWidgets.QHBoxLayout()
+        self.widget_layout: QtWidgets.QVBoxLayout = QtWidgets.QVBoxLayout()
+        self.__post_init__()
 
     def __post_init__(self):
         self.master_layout.addLayout(self.button_layout)
         self.master_layout.addLayout(self.widget_layout)
 
 
-@dataclasses.dataclass
 class SgWidgetDataContainer:
     """Widget data container for the Shotgrid platform."""
-
-    list_view: QtWidgets.QListView = None
-    icon_view: QtWidgets.QListView = None
-    icon_size_slider: QtWidgets.QSlider = None
-    # test_button: QtWidgets.QPushButton = None
-    list_view_button: QtWidgets.QPushButton = None
-    icon_view_button: QtWidgets.QPushButton = None
+    def __init__(self):
+        self.list_view: QtWidgets.QListView = SgProjectTreeView()
+        self.icon_view: QtWidgets.QListView = SgProjectIconView()
+        self.icon_size_slider: QtWidgets.QSlider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.list_view_button: QtWidgets.QPushButton = TikIconButton(icon_name="view-list", circle=False)
+        self.icon_view_button: QtWidgets.QPushButton = TikIconButton(icon_name="view-icon", circle=False)
+        self.__post_init__()
 
     def __post_init__(self):
-        self.list_view = SgProjectTreeView()
-        self.icon_view = SgProjectIconView()
-        self.icon_size_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        # self.test_button = QtWidgets.QPushButton("Test")
-        self.list_view_button = TikIconButton(icon_name="view-list", circle=False)
-        self.icon_view_button = TikIconButton(icon_name="view-icon", circle=False)
-
         self.icon_size_slider.setFixedSize(QtCore.QSize(200, 50))
         self.icon_size_slider.setMinimum(20)
         self.icon_size_slider.setMaximum(250)

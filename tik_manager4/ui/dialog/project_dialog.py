@@ -10,6 +10,7 @@ from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.value_widgets import DropList
 from tik_manager4.ui.dialog.subproject_dialog import EditSubprojectDialog, FilteredData
 from tik_manager4.ui.mcv.management_mcv import SgProjectPickWidget
+from tik_manager4.ui.widgets.pop import WaitDialog
 
 
 class SetProjectDialog(QtWidgets.QDialog):
@@ -346,10 +347,20 @@ class CreateFromShotgridDialog(QtWidgets.QDialog):
 
     def __init__(self, management_handler, parent=None):
         super().__init__(parent=parent)
+        all_widgets = QtWidgets.QApplication.allWidgets()
+        for entry in all_widgets:
+            try:
+                if entry.objectName() == "CreateFromShotgridDialog":
+                    entry.close()
+                    entry.deleteLater()
+            except (AttributeError, TypeError):
+                pass
+
         self.tik = management_handler.tik_main
         self.feedback = Feedback(parent=self)
         self.handler = management_handler
         self.setWindowTitle("Create New Project from Shotgrid")
+        self.setObjectName("CreateFromShotgridDialog")
         self.setModal(True)
         self.setMinimumSize(300, 200)
         self.resize(600, 650)
@@ -359,7 +370,6 @@ class CreateFromShotgridDialog(QtWidgets.QDialog):
         self.project_root_pathb = None
         self.set_project_cb = None
         self.sg_project_pick_widget = None
-
         self.build_ui()
 
     def build_ui(self):
@@ -393,15 +403,23 @@ class CreateFromShotgridDialog(QtWidgets.QDialog):
 
         # SIGNALS
         button_box.accepted.connect(self.create_project_from_sg)
+        button_box.rejected.connect(self.close)
 
     def create_project_from_sg(self):
         """Create the project."""
         project_root = self.project_root_pathb.widget.text()
         project_id = self.sg_project_pick_widget.get_selected_project_id()
         if project_id:
-            ret = self.handler.create_from_project(
-                project_root, 190, set_project=self.set_project_cb.isChecked()
+            self.wait_dialog = WaitDialog(
+                message="Creating project from Shotgrid...",
+                parent=self,
             )
+            self.wait_dialog.show_dialog()
+
+            ret = self.handler.create_from_project(
+                project_root, project_id, set_project=self.set_project_cb.isChecked()
+            )
+            self.wait_dialog.close_dialog()
             if not ret:
                 msg, _msg_type = self.tik.log.get_last_message()
                 self.feedback.pop_info(
