@@ -32,6 +32,14 @@ LOG = logging.getLogger(__name__)
 class ProductionPlatform(ManagementCore):
     """Main class for the Shotgrid integration."""
 
+    # define any metadata that needs to be paired with tik manager counterparts
+    metadata_pairing = {
+        "sg_cut_in": "start_frame",
+        "sg_cut_out": "end_frame",
+        "sg_head_in": "pre_handle",
+        "sg_tail_out": "post_handle",
+    }
+
     nice_name = "Autodesk Flow Production"
     name = "shotgrid"
     lock_subproject_creation = True
@@ -121,14 +129,13 @@ class ProductionPlatform(ManagementCore):
         fields = [
             "id",
             "code",
-            "image",
-            "sg_cut_in",
-            "sg_cut_out",
             # "tasks",
             "sg_sequence",
             "sg_sequence.Sequence.episode",
-            "image",
+            # "image",
         ]
+        # we are adding the extra metadata fields here:
+        fields.extend(self.metadata_pairing.keys())
         filters = [["project", "is", {"type": "Project", "id": project_id}]]
         shots = self.sg.find("Shot", filters, fields)
         return shots
@@ -151,12 +158,6 @@ class ProductionPlatform(ManagementCore):
         filters = [["project", "is", {"type": "Project", "id": project_id}]]
         assets = self.sg.find("Asset", filters, fields)
         return assets
-
-    # def set_project_by_name(self, project_name):
-    #     """Set the project by name."""
-    #     project = self.sg.find_one("Project", [["name", "is", project_name]])
-    #     self.sg.set_project(project["id"])
-    #     return project
 
     @staticmethod
     def date_stamp():
@@ -188,16 +189,6 @@ class ProductionPlatform(ManagementCore):
 
         assets_sub = self._get_assets_sub()
         shots_sub = self._get_shots_sub()
-
-        # Match the project categories to shotgrid categories
-        # asset_categories = [
-        #     x["code"]
-        #     for x in self.sg.find("Step", [["entity_type", "is", "Asset"]], ["code"])
-        # ]
-        # shot_categories = [
-        #     x["code"]
-        #     for x in self.sg.find("Step", [["entity_type", "is", "Shot"]], ["code"])
-        # ]
 
         asset_categories = self._get_asset_categories()
         shot_categories = self._get_shot_categories()
@@ -234,60 +225,9 @@ class ProductionPlatform(ManagementCore):
 
         for asset in all_assets:
             self._sync_new_asset(asset, assets_sub, asset_categories)
-            # if asset["sg_asset_type"]:
-            #     if assets_sub.subs.get(asset["sg_asset_type"]) is None:
-            #         sub = self.tik_main.project.create_sub_project(
-            #             asset["sg_asset_type"], parent_path="Assets"
-            #         )
-            #     else:
-            #         sub = self.tik_main.project.subs["Assets"].subs[
-            #             asset["sg_asset_type"]
-            #         ]
-            # else:
-            #     sub = self.tik_main.project.subs["Assets"]
-            # asset_name = utils.sanitize_text(asset["code"])
-            #
-            # sub.add_task(asset_name, categories=asset_categories, uid=asset["id"])
 
         for shot in all_shots:
             self._sync_new_shot(shot, shots_sub, shot_categories)
-            # does it belong to an episode?
-            # query_sub = shots_sub
-            # if shot["sg_sequence.Sequence.episode"]:
-            #     episode = shot["sg_sequence.Sequence.episode"]["name"]
-            #     if query_sub.subs.get(episode) is None:
-            #         query_sub = self.tik_main.project.create_sub_project(
-            #             episode,
-            #             parent_path=query_sub.path,
-            #             uid=shot["sg_sequence.Sequence.episode"]["id"],
-            #             mode="episode",
-            #         )
-            #     else:
-            #         query_sub = query_sub.subs[episode]
-            # if shot["sg_sequence"]:
-            #     if query_sub.subs.get(shot["sg_sequence"]["name"]) is None:
-            #         query_sub = self.tik_main.project.create_sub_project(
-            #             shot["sg_sequence"]["name"],
-            #             parent_path=query_sub.path,
-            #             uid=shot["sg_sequence"]["id"],
-            #         )
-            #     else:  # do not attempt to create the sequence if it already exists
-            #         query_sub = self.tik_main.project.subs["Shots"].subs[
-            #             shot["sg_sequence"]["name"]
-            #         ]
-            # shot_name = utils.sanitize_text(shot["code"])
-            #
-            # # sub.add_task(shot_name, categories=categories, uid=shot["id"])
-            # metadata_overrides = {
-            #     "start_frame": shot["sg_cut_in"],
-            #     "end_frame": shot["sg_cut_out"],
-            # }
-            # query_sub.add_task(
-            #     shot_name,
-            #     categories=shot_categories,
-            #     uid=shot["id"],
-            #     metadata_overrides=metadata_overrides,
-            # )
 
         # tag the project as management driven
         self.tik_main.project.settings.edit_property("management_driven", True)
@@ -313,14 +253,14 @@ class ProductionPlatform(ManagementCore):
                     'action': 'new_asset',
                     'sg_asset_type': 'Character',
                     'code': 'dragon'
-                }
+                },
                 {
                     'id': 1405,
                     'action': 'new_shot',
                     'sg_sequence': {'id': 108, 'name': 'AAA', 'type': 'Sequence'},
                     'sg_sequence.Sequence.episode': None,
                     'code': 'AAA_170'
-                }
+                },
                 {
                     'id': 1265,
                     'action': 'omitted'
@@ -356,9 +296,12 @@ class ProductionPlatform(ManagementCore):
         # Initialize an empty list to hold event information
         event_list = []
 
-        # Process the events to add them to the list
+        # Lists to hold IDs for additional data queries
         asset_ids = []
         shot_ids = []
+
+        # Get keys from the metadata pairing dictionary
+        metadata_keys = self.metadata_pairing.keys()
 
         for event in events:
             event_type = event.get('event_type')
@@ -393,6 +336,15 @@ class ProductionPlatform(ManagementCore):
                             action = 'omitted'
                         elif old_value == 'omt' and new_value != 'omt':
                             action = 'revived'
+                    elif meta.get('attribute_name') in metadata_keys:
+                        action = 'meta_change'
+                        event_data.update(
+                            {
+                                "attribute_name": meta['attribute_name'],
+                                "value": meta['new_value']
+                             }
+                            # {meta['attribute_name']: meta['new_value']}
+                        )
 
                 # Add the event to the list if an action was determined
                 if action:
@@ -404,13 +356,10 @@ class ProductionPlatform(ManagementCore):
         if asset_ids:
             asset_filters = [
                 ["project", "is", {"type": "Project", "id": project_id}],
-                ['id', 'in', asset_ids]]
+                ['id', 'in', asset_ids]
+            ]
             asset_fields = ['id', 'sg_asset_type', 'code']
-            asset_details = self.sg.find(
-                'Asset',
-                asset_filters,
-                asset_fields
-            )
+            asset_details = self.sg.find('Asset', asset_filters, asset_fields)
             # Map asset details by ID for quick lookup
             asset_data_map = {asset['id']: asset for asset in asset_details}
 
@@ -418,14 +367,11 @@ class ProductionPlatform(ManagementCore):
         if shot_ids:
             shot_filters = [
                 ["project", "is", {"type": "Project", "id": project_id}],
-                ['id', 'in', shot_ids]]
+                ['id', 'in', shot_ids]
+            ]
             shot_fields = ['id', 'sg_sequence', 'sg_sequence.Sequence.episode',
-                           'code', "sg_cut_in", "sg_cut_out"]
-            shot_details = self.sg.find(
-                'Shot',
-                shot_filters,
-                shot_fields
-            )
+                           'code'] + list(metadata_keys)
+            shot_details = self.sg.find('Shot', shot_filters, shot_fields)
             # Map shot details by ID for quick lookup
             shot_data_map = {shot['id']: shot for shot in shot_details}
 
@@ -501,10 +447,13 @@ class ProductionPlatform(ManagementCore):
                 query_sub = shots_sub.subs[sequence["name"]]
         shot_name = utils.sanitize_text(shot_code)
 
-        metadata_overrides = {
-            "start_frame": shot_data["sg_cut_in"],
-            "end_frame": shot_data["sg_cut_out"],
-        }
+        metadata_overrides = {}
+        # Map the metadata from Shotgrid to Tik Manager
+        for sg_meta_key, tik_meta_key in self.metadata_pairing.items():
+            meta_value = shot_data.get(sg_meta_key)
+            if meta_value:
+                metadata_overrides[tik_meta_key] = meta_value
+
         task = query_sub.add_task(
             shot_name,
             categories=shot_categories,
@@ -512,7 +461,6 @@ class ProductionPlatform(ManagementCore):
             metadata_overrides=metadata_overrides,
         )
         return task
-
 
     def _get_asset_categories(self):
         """Collect the steps for assets from the Shotgrid server."""
@@ -552,6 +500,54 @@ class ProductionPlatform(ManagementCore):
         )
         return shots_sub
 
+    def _omit_task(self, entity_id):
+        """Omit a task from the project."""
+        # get the task
+        task = self.tik_main.project.find_task_by_id(entity_id)
+        if task == -1:
+            return False
+        # omit the task
+        task.omit()
+        return True
+
+    def _revive_task(self, entity_id):
+        task = self.tik_main.project.find_task_by_id(entity_id)
+        if task == -1:
+            return False
+        task.revive()
+        return True
+
+    def _meta_change(self, data_dict):
+        task = self.tik_main.project.find_task_by_id(data_dict["id"])
+        print("pre_metadata", task._metadata_overrides)
+        # Map the metadata from Shotgrid to Tik Manager
+        sg_meta_key = data_dict["attribute_name"]
+        tik_meta_key = self.metadata_pairing.get(sg_meta_key)
+        if not tik_meta_key:
+            return False
+        meta_value = data_dict["value"]
+        # if the metadata is a new override add it to the task overrides.
+        if meta_value:
+            task._metadata_overrides[tik_meta_key] = meta_value
+        # if the metadata is None and the override exists, remove it
+        elif task._metadata_overrides.get(tik_meta_key):
+            task._metadata_overrides.pop(tik_meta_key)
+        print("post_metadata", task._metadata_overrides)
+
+        # for sg_meta_key, tik_meta_key in self.metadata_pairing.items():
+        #     meta_value = data_dict.get(sg_meta_key)
+        #     # if the metadata is a new override add it to the task overrides.
+        #     if meta_value:
+        #         task._metadata_overrides[tik_meta_key] = meta_value
+        #     # if the metadata is None and the override exists, remove it
+        #     elif task._metadata_overrides.get(tik_meta_key):
+        #         task._metadata_overrides.pop(tik_meta_key)
+        # print("post_metadata", task._metadata_overrides)
+        task.edit_property("metadata_overrides", task._metadata_overrides)
+        # task.update()
+        task.apply_settings()
+        return task._metadata_overrides
+
     def sync_project(self):
         """Sync the project with Shotgrid."""
         # Get the changes from the log
@@ -573,21 +569,24 @@ class ProductionPlatform(ManagementCore):
                 self._sync_new_asset(data_dict, assets_sub, asset_categories)
             elif action == 'new_shot':
                 self._sync_new_shot(data_dict, shots_sub, shot_categories)
-            # elif action == 'deleted_asset':
-            #     self._sync_deleted_asset(entity_id)
-            # elif action == 'deleted_shot':
-            #     self._sync_deleted_shot(entity_id)
-            # elif action == 'omitted':
-            #     self._sync_omitted(entity_id)
-            # elif action == 'revived':
-            #     self._sync_revived(entity_id)
+            elif action == 'deleted_asset':
+                # we don't delete anything. Let's omit instead.
+                self._omit_task(entity_id)
+            elif action == 'deleted_shot':
+                # we don't delete anything. Let's omit instead.
+                self._omit_task(entity_id)
+            elif action == 'omitted':
+                self._omit_task(entity_id)
+            elif action == 'revived':
+                self._revive_task(entity_id)
+            elif action == 'meta_change':
+                self._meta_change(data_dict)
 
         # Update the last sync date
         self.tik_main.project.settings.edit_property("last_sync", self.date_stamp())
         self.tik_main.project.settings.apply_settings(force=True)
 
         return changes
-
 
 
     @staticmethod

@@ -36,6 +36,14 @@
     "default": 2,
     "type": "integer"
   },
+  "pre_handle": {
+    "default": 0,
+    "type": "integer"
+  },
+  "post_handle": {
+    "default": 0,
+    "type": "integer"
+  },
   "lens": {
     "default": 50.0,
     "type": "float"

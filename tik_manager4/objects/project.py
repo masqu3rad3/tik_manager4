@@ -145,7 +145,6 @@ class Project(Subproject):
         if self._remove_sub_project(uid, path) == -1:
             return -1
         self._delete_folders(str(Path(self._database_path, _remove_path)))
-        # self._delete_folders(os.path.join(self._database_path, _remove_path))
         self.save_structure()
         return 1
 

@@ -557,18 +557,13 @@ class MainUI(QtWidgets.QMainWindow):
         if not self._pre_check(level=3):
             return
 
-        # self.wait_dialog = WaitDialog(
-        #     message="Please wait while connecting to Shotgrid...",
-        #     parent=self,
-        # )
-        # self.wait_dialog.show_dialog()
         handler = self.get_management_handler("shotgrid")
-        # self.wait_dialog.close_dialog()
 
         dialog = CreateFromShotgridDialog(handler, parent=self)
         state = dialog.exec()
         if state:
-            self.refresh_project()
+            # hard refresh the project
+            self.subprojects_mcv.manual_refresh()
             self.status_bar.showMessage("Project created successfully")
 
     def get_management_handler(self, platform_name="shotgrid"):
