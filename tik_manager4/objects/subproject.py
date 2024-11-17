@@ -277,6 +277,8 @@ class Subproject(Entity):
             categories (list): List of categories.
             task_type (str, optional): Type of the task. If not given,
                 it is inherited from the parent subproject (mode).
+            metadata_overrides (dict, optional): Metadata overrides for the task.
+            uid (int, optional): Unique id of the task.
 
         Returns:
             Task or int: The created task object if successful, -1 otherwise.
@@ -302,13 +304,12 @@ class Subproject(Entity):
             categories=categories,
             path=self.path,
             file_name=file_name,
-            task_type=task_type,
             parent_sub=self,
             task_id=_task_id,
+            metadata_overrides=metadata_overrides,
         )
         _task.add_property("name", name)
         _task.add_property("creator", self.guard.user)
-        _task.add_property("type", task_type)
         _task.add_property("task_id", _task_id)
         _task.add_property("subproject_id", self.id)
         _task.add_property("categories", categories)

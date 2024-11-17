@@ -10,6 +10,7 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class TikTaskItem(QtGui.QStandardItem):
+    """Item class for the task view"""
     color_dict = {
         "asset": (0, 187, 184),
         "shot": (0, 115, 255),
@@ -26,7 +27,7 @@ class TikTaskItem(QtGui.QStandardItem):
         super(TikTaskItem, self).__init__()
 
         # # test
-        _icon = pick.icon("{}.png".format(task_obj.type))
+        _icon = pick.icon(f"{task_obj.type}.png")
         self.setIcon(_icon)
 
         self.task = task_obj

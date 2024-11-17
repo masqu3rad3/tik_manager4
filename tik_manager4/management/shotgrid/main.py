@@ -47,35 +47,39 @@ class ProductionPlatform(ManagementCore):
 
     def __init__(self, tik_main_obj):
         self.tik_main = tik_main_obj
-        self.sg = self.authenticate()
+        self.sg = None
 
     def authenticate(self):
         """Connect to Shotgrid."""
         method = self.tik_main.user.commons.management_settings.get(
             "sg_authentication_method", "User"
         )
-        try:
-            if method == "User":
-                return self._user_authenticate()
-            elif method == "Script":
-                return self._script_authenticate()
-            else:
-                raise ValueError("Invalid authentication method.")
-        except Exception as e:
-            LOG.error(f"Authentication failed: {e}")
-            raise
+        if method == "User":
+            self.sg, msg = self._user_authenticate()
+        elif method == "Script":
+            self.sg, msg = self._script_authenticate()
+        else:
+            self.sg = None
+            msg = "Invalid authentication method."
+        return self.sg, msg
+
+
 
     def _user_authenticate(self):
         """Make a user based authentication."""
         try:
             tank.authentication.set_shotgun_authenticator_support_web_login(
                 True)
-            self.authenticator = tank.authentication.ShotgunAuthenticator()
-            user = self.authenticator.get_user()
-            return user.create_sg_connection()
+            authenticator = tank.authentication.ShotgunAuthenticator()
+            user = authenticator.get_user()
+            sg_connection = user.create_sg_connection()
+            # test connection
+            sg_connection.find_one("Project", [])
+            return sg_connection, "Success"
         except Exception as e:
-            LOG.error(f"User authentication failed: {e}")
-            raise
+            msg = f"User authentication failed: {e}"
+            LOG.error(msg)
+            return None, msg
 
     def _script_authenticate(self):
         """Make a script based authentication."""
@@ -84,26 +88,33 @@ class ProductionPlatform(ManagementCore):
                 "sg_script_name"
             )
             if not script_name:
-                raise ValueError(
-                    "Script name not set in Settings -> Platform Settings.")
+                msg = "Script name not set in Settings -> Platform Settings."
+                LOG.error(msg)
+                return None, msg
+
             api_key = self.tik_main.user.commons.management_settings.get(
                 "sg_api_key")
             if not api_key:
-                raise ValueError(
-                    "API key not set in Settings -> Platform Settings.")
+                msg = "API key not set in Settings -> Platform Settings."
+                LOG.error(msg)
+                return None, msg
+
             base_url = self.tik_main.user.commons.management_settings.get(
                 "sg_url")
             if not base_url:
-                raise ValueError(
-                    "URL not set in Settings -> Platform Settings.")
+                msg = "URL not set in Settings -> Platform Settings."
+                LOG.error(msg)
+                return None, msg
+
             return shotgun_api3.Shotgun(
                 base_url=base_url,
                 script_name=script_name,
                 api_key=api_key,
-            )
+            ), "Success"
         except Exception as e:
-            LOG.error(f"Script authentication failed: {e}")
-            raise
+            msg = f"Script authentication failed: {e}"
+            LOG.error(msg)
+            return None, msg
 
     def get_projects(self, archived: bool = False, is_template: bool = False,
                      is_demo: bool = False) -> list:
@@ -532,7 +543,6 @@ class ProductionPlatform(ManagementCore):
         # if the metadata is None and the override exists, remove it
         elif task._metadata_overrides.get(tik_meta_key):
             task._metadata_overrides.pop(tik_meta_key)
-        print("post_metadata", task._metadata_overrides)
 
         # for sg_meta_key, tik_meta_key in self.metadata_pairing.items():
         #     meta_value = data_dict.get(sg_meta_key)

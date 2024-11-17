@@ -370,7 +370,6 @@ class EditTask(TaskDialog):
         filtered_data = FilteredData()
         filtered_data.update_overridden_data(self.secondary_data)
         filtered_data.update_new_data(self.tertiary_data)
-
         _name = self.primary_data.get_property("name")
         self.task_object.edit(
             name=_name,

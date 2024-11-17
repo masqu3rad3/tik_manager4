@@ -228,6 +228,7 @@ class Project(Subproject):
             categories (list): List of categories.
             parent_uid (int): Parent subproject unique id.
             parent_path (str): Parent subproject relative path.
+            metadata_overrides (dict): Metadata overrides for the task.
 
         Returns:
             int: 1 if successful, -1 otherwise.

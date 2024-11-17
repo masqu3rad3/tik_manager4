@@ -97,12 +97,12 @@ class Publisher:
                 # define the category
                 self._resolved_extractors[extract].category = self._work_object.category
                 self._resolved_extractors[extract].metadata = self._metadata
-            else:
-                LOG.warning(
-                    "Extract {0} defined in category settings but it is not available on {1}".format(
-                        extract, self._dcc_handler.name
-                    )
-                )
+            # else:
+            #     LOG.warning(
+            #         "Extract {0} defined in category settings but it is not available on {1}".format(
+            #             extract, self._dcc_handler.name
+            #         )
+            #     )
 
         for validation in validations:
             if validation in list(self._dcc_handler.validations.keys()):
@@ -110,12 +110,12 @@ class Publisher:
                     validation
                 ]()
                 self._resolved_validators[validation].metadata = self._metadata
-            else:
-                LOG.warning(
-                    "Validation {0} defined in category settings but it is not available on {1}".format(
-                        validation, self._dcc_handler.name
-                    )
-                )
+            # else:
+            #     LOG.warning(
+            #         "Validation {0} defined in category settings but it is not available on {1}".format(
+            #             validation, self._dcc_handler.name
+            #         )
+            #     )
 
         latest_publish_version = self._work_object.publish.get_last_version()
 

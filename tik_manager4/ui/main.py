@@ -558,6 +558,8 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
         handler = self.get_management_handler("shotgrid")
+        if not handler:
+            return
 
         dialog = CreateFromShotgridDialog(handler, parent=self)
         state = dialog.exec()
@@ -565,6 +567,7 @@ class MainUI(QtWidgets.QMainWindow):
             # hard refresh the project
             self.subprojects_mcv.manual_refresh()
             self.status_bar.showMessage("Project created successfully")
+        return
 
     def get_management_handler(self, platform_name="shotgrid"):
         """Resolve the management handler.
@@ -579,7 +582,14 @@ class MainUI(QtWidgets.QMainWindow):
             )
             self.wait_dialog.show_dialog()
             self._management_handler = management.platforms[platform_name](self.tik)
+            state, msg = self._management_handler.authenticate()
+            print(state, msg)
+            if not state:
+                self.wait_dialog.close_dialog()
+                self.feedback.pop_info(title="Authentication Failed", text=f"Authentication failed while connecting to {self._management_handler.nice_name}\n\n{msg}", critical=True)
+                return None
             self.wait_dialog.close_dialog()
+
         return self._management_handler
 
     def _main_button_states(self):
@@ -930,6 +940,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.tasks_mcv.task_view.is_management_locked = True
             management_platform = self.tik.project.settings.get("management_platform")
             management_handler = self.get_management_handler(management_platform)
+            if not management_handler:
+                return
             synced = management_handler.sync_project()
             if synced:
                 self.set_last_state()
