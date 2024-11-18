@@ -8,6 +8,7 @@ import sys
 from tik_manager4.core import filelog, settings, utils
 from tik_manager4.objects import user, project
 from tik_manager4 import dcc
+from tik_manager4 import management
 from tik_manager4.external.packaging.version import Version
 import tik_manager4._version as version
 # the reload is necessary to make sure the dcc is reloaded
@@ -40,6 +41,10 @@ class Main:
         self.project.guard.set_dcc(dcc.NAME)
         self.project.guard.set_dcc_handler(self.dcc)
         self.project.guard.set_commons(self.user.commons)
+        management_platform = self.user.settings.get("management_platform")
+        if management_platform:
+            self.project.guard.set_management_handler(
+                management.platforms[management_platform](self))
 
         default_project = Path(utils.get_home_dir(), "TM4_default")
         # default_project = os.path.join(utils.get_home_dir(), "TM4_default")
@@ -274,6 +279,47 @@ class Main:
 
         finally:
             conn.close()
+
+    def get_management_handler(self, platform_name=None):
+    # def get_management_handler(self):
+        """Resolve the management handler.
+
+        Args:
+            platform_name (str, optional): The name of the platform.
+                if the platform name is not matching to the current one,
+                a new handler will be created.
+        """
+        msg = "Success"
+        defined_handler = self.project.guard.management_handler
+        if defined_handler:
+            if defined_handler.name == platform_name:
+                if defined_handler.is_authenticated:
+                    return defined_handler, msg
+                else:
+                    _sg, msg = defined_handler.authenticate()
+                    return defined_handler, msg
+            else:
+                # if we are requesting a different platform than the defined one
+                # Create a new loose handler
+                handler = (management.platforms[platform_name](self))
+                _sg, msg = handler.authenticate()
+                return handler, msg
+        else:
+            # if there is no defined handler, create a new one
+            project_defined_platform = self.project.settings.get("management_platform")
+            if platform_name:
+                handler = management.platforms[platform_name](self)
+                _sg, msg = handler.authenticate()
+                return handler, msg
+            elif project_defined_platform:
+                handler = management.platforms[project_defined_platform](self)
+                self.project.guard.set_management_handler(handler)
+                _sg, msg = handler.authenticate()
+                return handler, msg
+            else:
+                msg = "No management platform defined or provided."
+                self.log.warning(msg)
+                return None, msg
 
 
 class ReleaseObject:

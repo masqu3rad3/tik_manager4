@@ -4,6 +4,8 @@ Inherits from Subproject and adds project specific methods and properties.
 """
 
 from pathlib import Path
+
+import management
 from tik_manager4.objects.publisher import Publisher, SnapshotPublisher
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
@@ -36,8 +38,6 @@ class Project(Subproject):
         self._path = path
         self._database_path = None
         self._name = name
-        # self._resolution = resolution
-        # self._fps = fps
         self.__mode = ""
 
         # This makes sure the project folder is tik_manager4 ready

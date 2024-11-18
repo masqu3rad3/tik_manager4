@@ -402,10 +402,10 @@ class CreateFromShotgridDialog(QtWidgets.QDialog):
         button_layout.addWidget(self.set_project_cb)
 
         # SIGNALS
-        button_box.accepted.connect(self.create_project_from_sg)
+        button_box.accepted.connect(self.execute)
         button_box.rejected.connect(self.close)
 
-    def create_project_from_sg(self):
+    def execute(self):
         """Create the project."""
         project_root = self.project_root_pathb.widget.text()
         project_id = self.sg_project_pick_widget.get_selected_project_id()

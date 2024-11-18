@@ -48,6 +48,7 @@ class ProductionPlatform(ManagementCore):
     def __init__(self, tik_main_obj):
         self.tik_main = tik_main_obj
         self.sg = None
+        self.is_authenticated = False
 
     def authenticate(self):
         """Connect to Shotgrid."""
@@ -61,9 +62,8 @@ class ProductionPlatform(ManagementCore):
         else:
             self.sg = None
             msg = "Invalid authentication method."
+        self.is_authenticated = bool(self.sg)
         return self.sg, msg
-
-
 
     def _user_authenticate(self):
         """Make a user based authentication."""
@@ -184,7 +184,6 @@ class ProductionPlatform(ManagementCore):
         project = self.sg.find_one(
             "Project", [["id", "is", shotgrid_project_id]], ["name"]
         )
-        # project_name = re.sub('[^\w_.)( -]', '', project["name"])
         project_name = utils.sanitize_text(project["name"])
         project_path = Path(project_root) / project_name
         project_path.mkdir(exist_ok=True)
@@ -530,7 +529,6 @@ class ProductionPlatform(ManagementCore):
 
     def _meta_change(self, data_dict):
         task = self.tik_main.project.find_task_by_id(data_dict["id"])
-        print("pre_metadata", task._metadata_overrides)
         # Map the metadata from Shotgrid to Tik Manager
         sg_meta_key = data_dict["attribute_name"]
         tik_meta_key = self.metadata_pairing.get(sg_meta_key)
@@ -544,17 +542,7 @@ class ProductionPlatform(ManagementCore):
         elif task._metadata_overrides.get(tik_meta_key):
             task._metadata_overrides.pop(tik_meta_key)
 
-        # for sg_meta_key, tik_meta_key in self.metadata_pairing.items():
-        #     meta_value = data_dict.get(sg_meta_key)
-        #     # if the metadata is a new override add it to the task overrides.
-        #     if meta_value:
-        #         task._metadata_overrides[tik_meta_key] = meta_value
-        #     # if the metadata is None and the override exists, remove it
-        #     elif task._metadata_overrides.get(tik_meta_key):
-        #         task._metadata_overrides.pop(tik_meta_key)
-        # print("post_metadata", task._metadata_overrides)
         task.edit_property("metadata_overrides", task._metadata_overrides)
-        # task.update()
         task.apply_settings()
         return task._metadata_overrides
 
@@ -598,6 +586,30 @@ class ProductionPlatform(ManagementCore):
 
         return changes
 
+    def get_platform_tasks(self, entity_id, entity_type, step=None, project_id=None):
+        """Get all the tasks from a Shotgrid entity ID.
+
+        Args:
+            entity_id (int): The ID of the entity.
+            entity_type (str): The type of the entity. Asset or Shot.
+            step (str, optional): The step of the task. Defaults to None.
+            project_id (int, optional): The ID of the project. Defaults to None.
+        """
+        filters = [
+            ["entity", "is", {"type": entity_type, "id": entity_id}]
+        ]
+        if step:
+            filters.append(["step.Step.code", "is", {"type": "Step", "id": step}])
+        if project_id:
+            filters.append(["project", "is", {"type": "Project", "id": project_id}])
+
+        fields = [
+            "content",
+            # "sg_status_list",
+            # "task_assignees",
+            # "step"
+        ]
+        return self.sg.find("Task", filters, fields)
 
     @staticmethod
     def get_settings_ui():

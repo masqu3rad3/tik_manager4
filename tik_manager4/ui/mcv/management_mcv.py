@@ -191,7 +191,7 @@ class SgProjectPickWidget(QtWidgets.QWidget):
 
     def __init__(self, management_handler, parent=None):
         super().__init__()
-        self.tik_main = management_handler.tik_main
+        # self.tik_main = management_handler.tik_main
 
         self.model = SgProjectModel()
 

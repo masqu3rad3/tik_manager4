@@ -349,6 +349,17 @@ class Publisher:
             )
         return None
 
+    def get_management_tasks(self):
+        """Get the management tasks from the platform manager (i.e. Shotgrid).
+
+        This method collects the platform tasks associated with the work
+        object and returns them. It is important to note that platform tasks
+        are not the same as the tik tasks.
+        """
+
+        # get the platform manager
+
+
 
 class SnapshotPublisher(Publisher):
     """Separate publisher to handle arbitrary file and folder publishing.
