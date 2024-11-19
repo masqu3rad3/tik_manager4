@@ -357,7 +357,16 @@ class Publisher:
         are not the same as the tik tasks.
         """
 
-        # get the platform manager
+        # get the id from the project settings
+        entity_id = self._work_object.task_id
+        entity_type = self._task_object.type
+        step = self._work_object.category
+        project_id = self._project_object.settings.get("host_project_id")
+        # get the tasks from the platform manager
+        list_of_tasks = self.guard.management_handler.request_tasks(
+            entity_id, entity_type, step, project_id
+        )
+        return list_of_tasks
 
 
 

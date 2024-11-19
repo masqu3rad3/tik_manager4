@@ -5,7 +5,6 @@ Inherits from Subproject and adds project specific methods and properties.
 
 from pathlib import Path
 
-import management
 from tik_manager4.objects.publisher import Publisher, SnapshotPublisher
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings

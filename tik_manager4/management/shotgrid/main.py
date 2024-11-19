@@ -586,8 +586,15 @@ class ProductionPlatform(ManagementCore):
 
         return changes
 
-    def get_platform_tasks(self, entity_id, entity_type, step=None, project_id=None):
+    def request_tasks(self, entity_id, entity_type, step=None, project_id=None):
         """Get all the tasks from a Shotgrid entity ID.
+
+        Example output:
+            [
+                {'type': 'Task', 'id': 5981, 'content': 'Cloth'},
+                {'type': 'Task', 'id': 5983, 'content': 'Rig'},
+                {'type': 'Task', 'id': 5984, 'content': 'Muscle'}
+            ]
 
         Args:
             entity_id (int): The ID of the entity.
@@ -596,10 +603,11 @@ class ProductionPlatform(ManagementCore):
             project_id (int, optional): The ID of the project. Defaults to None.
         """
         filters = [
-            ["entity", "is", {"type": entity_type, "id": entity_id}]
+            ["entity", "is", {"type": entity_type.capitalize(), "id": entity_id}]
         ]
         if step:
-            filters.append(["step.Step.code", "is", {"type": "Step", "id": step}])
+            # filters.append(["step.Step.code", "is", {"type": "Step", "id": step}])
+            filters.append(["step.Step.code", "is", step])
         if project_id:
             filters.append(["project", "is", {"type": "Project", "id": project_id}])
 

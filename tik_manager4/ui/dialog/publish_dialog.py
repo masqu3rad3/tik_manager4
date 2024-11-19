@@ -103,14 +103,17 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         # class widgets
         self.notes_text = None
+        self.management_tasks_combo = None
 
         # build the layouts
         self.build_ui()
 
-        self.resize(1000, 600)
+        # self.resize(1000, 600)
+        self.setMinimumWidth(1000)
+        self.setMinimumHeight(400)
 
         self.horizontal_splitter.setSizes([500, 500])
-        self.vertical_splitter.setSizes([800, 200])
+        self.vertical_splitter.setSizes([700, 300])
 
     def check_eligibility(self):
         """Checks if the current scene is eligible for publishing."""
@@ -268,6 +271,26 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
     def _build_bottom(self):
         """Build the bottom section."""
+
+        # management platform tasks
+        m_handler = self.project.guard.management_handler
+        if m_handler:
+            if not m_handler.is_authenticated:
+                m_handler.authenticate()
+            management_tasks_lay = QtWidgets.QHBoxLayout()
+            management_tasks_lay.setContentsMargins(0, 0, 0, 0)
+            self.bottom_layout.addLayout(management_tasks_lay)
+            management_tasks_label = QtWidgets.QLabel(f"{m_handler.nice_name} Task:")
+            self.management_tasks_combo = QtWidgets.QComboBox()
+            tasks_data_list = self.project.publisher.get_management_tasks()
+            task_model = ManagementTasksComboBoxModel(tasks_data_list)
+            self.management_tasks_combo.setModel(task_model)
+            management_tasks_lay.addWidget(management_tasks_label)
+            management_tasks_lay.addWidget(self.management_tasks_combo)
+            management_tasks_lay.addStretch()
+
+
+
 
         # notes layout
         notes_label = QtWidgets.QLabel("Notes:")
@@ -721,6 +744,28 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         else:
             pass
         return
+
+class ManagementTasksComboBoxModel(QtCore.QAbstractListModel):
+    def __init__(self, items, parent=None):
+        super().__init__(parent)
+        self.items = items
+
+    def rowCount(self, parent=None):
+        return len(self.items)
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        if not index.isValid() or not (0 <= index.row() < len(self.items)):
+            return None
+        if role == QtCore.Qt.DisplayRole:
+            # Display only the 'content' key's value
+            return self.items[index.row()].get('content', '')
+        return None
+
+    def getItem(self, index):
+        """Method to get the full dictionary item."""
+        if 0 <= index < len(self.items):
+            return self.items[index]
+        return None
 
 
 # test this dialog
