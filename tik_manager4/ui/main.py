@@ -48,10 +48,10 @@ from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
 from tik_manager4.ui.mcv.task_mcv import TikTaskLayout
 from tik_manager4.ui.mcv.user_mcv import TikUserLayout
 from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
-from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator
+from tik_manager4.ui.widgets.common import TikButton, VerticalSeparator
 from tik_manager4.ui.dialog.update_dialog import UpdateDialog
 from tik_manager4.ui.widgets.pop import WaitDialog
-from tik_manager4 import management
+# from tik_manager4 import management
 
 
 LOG = logging.getLogger(__name__)
@@ -111,7 +111,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.user_layout = QtWidgets.QHBoxLayout()
 
         project_user_layout.addLayout(self.project_layout)
-        line = HorizontalSeparator()
+        line = VerticalSeparator()
         project_user_layout.addWidget(line)
 
         project_user_layout.addLayout(self.user_layout)
@@ -587,13 +587,13 @@ class MainUI(QtWidgets.QMainWindow):
                         message=f"Connecting to {platform_name}...",
                         parent=self,
                     )
-        self.wait_dialog.show_dialog()
+        self.wait_dialog.display()
         handler, msg = self.tik.get_management_handler(platform_name)
         if not handler:
-            self.wait_dialog.close_dialog()
+            self.wait_dialog.kill()
             self.feedback.pop_info(title="Authentication Failed", text=f"Authentication failed while connecting to {platform_name}\n\n{msg}", critical=True)
             return None
-        self.wait_dialog.close_dialog()
+        self.wait_dialog.kill()
         return handler
 
     # def get_management_handler(self, platform_name="shotgrid"):

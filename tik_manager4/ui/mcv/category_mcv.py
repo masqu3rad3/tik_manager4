@@ -6,7 +6,7 @@ from datetime import datetime
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.work_dialog import NewVersionDialog
-from tik_manager4.ui.widgets.common import VerticalSeparator, TikIconButton
+from tik_manager4.ui.widgets.common import HorizontalSeparator, TikIconButton
 
 from tik_manager4.ui import pick
 
@@ -771,7 +771,7 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.refresh_btn = TikIconButton(icon_name="refresh", circle=True, size=18, icon_size=14)
         header_lay.addWidget(self.refresh_btn)
 
-        self.addWidget(VerticalSeparator(color=(174, 215, 91)))
+        self.addWidget(HorizontalSeparator(color=(174, 215, 91)))
 
         # create two radio buttons one for work and one for publish
         self.work_radio_button = QtWidgets.QRadioButton("Work")

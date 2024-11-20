@@ -1,6 +1,7 @@
 """Main module for the Shotgrid integration."""
 
 import os
+import json
 import logging
 from datetime import datetime, timezone
 import sys
@@ -28,6 +29,8 @@ from tank_vendor import shotgun_api3
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
+
+STATUS_LISTS = []
 
 class ProductionPlatform(ManagementCore):
     """Main class for the Shotgrid integration."""
@@ -613,11 +616,56 @@ class ProductionPlatform(ManagementCore):
 
         fields = [
             "content",
-            # "sg_status_list",
+            "sg_status_list",
             # "task_assignees",
             # "step"
         ]
         return self.sg.find("Task", filters, fields)
+
+    def get_available_status_lists(self, force=False):
+        """Get the status codes from Shotgrid."""
+        #try to get the status list from the environment variable
+        status_values = os.environ.get("TIK_SG_STATUS_LISTS")
+        if status_values and not force:
+            # replace all single quotes with double quotes
+            status_values = status_values.replace("'", '"')
+            return json.loads(status_values)
+        status_schema = self.sg.schema_field_read("Task", "sg_status_list")
+        status_values = \
+        status_schema["sg_status_list"]["properties"]["valid_values"]["value"]
+        # write the status to an environment variable
+        os.environ["TIK_SG_STATUS_LISTS"] = str(status_values)
+        return status_values
+
+    def publish_version(self, entity_type, entity_id, task_id, name, path, project_id, description="", preview=None):
+        """Publish a version to Shotgrid.
+
+        Args:
+            entity_type (str): The type of the entity. Asset or Shot.
+            entity_id (int): The ID of the entity.
+            task_id (int): The ID of the task.
+            name (str): The name of the version.
+            path (str): Project relative path to the file.
+            project_id (int): The ID of the project.
+            description (str, optional): The description of the version. Defaults to "".
+            preview (str, optional): The path to the preview file. Defaults to None.
+
+        Returns:
+            dict: The published version data.
+        """
+
+        # build the publish data
+        data = {
+            "project": {"type": "Project", "id": project_id},
+            "entity": {"type": entity_type.capitalize(), "id": entity_id},
+            "code": name,
+            "description": description,
+            "sg_task": {"type": "Task", "id": task_id},
+            "sg_path_to_geometry": path
+        }
+
+
+
 
     @staticmethod
     def get_settings_ui():

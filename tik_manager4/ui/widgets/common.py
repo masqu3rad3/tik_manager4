@@ -373,11 +373,11 @@ class ResolvedText(TikLabel):
         # self.setFont(QtGui.QFont(FONT, font_size, QtGui.QFont.Bold))
 
 
-class HorizontalSeparator(QtWidgets.QLabel):
+class VerticalSeparator(QtWidgets.QLabel):
     """Simple horizontal separator."""
 
     def __init__(self, color=(100, 100, 100), height=25, width=20):
-        super(HorizontalSeparator, self).__init__()
+        super(VerticalSeparator, self).__init__()
         self._pixmap = QtGui.QPixmap(2, 100)
         self.set_color(color)
         self.setPixmap(self._pixmap)
@@ -389,11 +389,11 @@ class HorizontalSeparator(QtWidgets.QLabel):
         self._pixmap.fill(QtGui.QColor(*color))
 
 
-class VerticalSeparator(QtWidgets.QLabel):
+class HorizontalSeparator(QtWidgets.QLabel):
     """Simple vertical separator."""
 
     def __init__(self, color=(100, 100, 100), height=1, width=None):
-        super(VerticalSeparator, self).__init__()
+        super(HorizontalSeparator, self).__init__()
         self.set_color(color)
         self.setFrameShape(QtWidgets.QFrame.HLine)
         self.setFrameShadow(QtWidgets.QFrame.Sunken)

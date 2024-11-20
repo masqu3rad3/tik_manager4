@@ -9,6 +9,7 @@ from pathlib import Path
 
 from tik_manager4.core import filelog
 
+from tik_manager4.objects.preview import PreviewContext
 from tik_manager4.dcc.standalone import main as standalone
 from tik_manager4.objects.publish import PublishVersion
 from tik_manager4.objects.guard import Guard
@@ -27,7 +28,7 @@ class Publisher:
         self._project_object = project_object
         self._work_object = None
         self._work_version = None
-        self._task_object = None
+        # self._task_object = None
         self._metadata = None
 
         # resolved variables
@@ -57,6 +58,12 @@ class Publisher:
         """The Work object that will be published."""
         return self._work_object
 
+    @property
+    def task_object(self):
+        """The Task object that will be published."""
+        return self._work_object.parent_task or \
+        self._project_object.find_task_by_id(self._work_object.task_id)
+
     def resolve(self):
         """Resolve the publish data file name.
 
@@ -73,11 +80,10 @@ class Publisher:
         self._resolved_validators = {}
 
         # get the task object
-        self._task_object = self._project_object.find_task_by_id(
-            self._work_object.task_id
-        )
+        # self._task_object = self._work_object.parent_task or \
+        # self._project_object.find_task_by_id(self._work_object.task_id)
         # self._metadata = self._task_object.parent_sub.metadata
-        self._metadata = self._task_object.metadata
+        self._metadata = self.task_object.metadata
 
         _category_definitons = self._work_object.guard.category_definitions
         extracts = _category_definitons.properties.get(
@@ -97,12 +103,6 @@ class Publisher:
                 # define the category
                 self._resolved_extractors[extract].category = self._work_object.category
                 self._resolved_extractors[extract].metadata = self._metadata
-            # else:
-            #     LOG.warning(
-            #         "Extract {0} defined in category settings but it is not available on {1}".format(
-            #             extract, self._dcc_handler.name
-            #         )
-            #     )
 
         for validation in validations:
             if validation in list(self._dcc_handler.validations.keys()):
@@ -110,12 +110,6 @@ class Publisher:
                     validation
                 ]()
                 self._resolved_validators[validation].metadata = self._metadata
-            # else:
-            #     LOG.warning(
-            #         "Validation {0} defined in category settings but it is not available on {1}".format(
-            #             validation, self._dcc_handler.name
-            #         )
-            #     )
 
         latest_publish_version = self._work_object.publish.get_last_version()
 
@@ -220,7 +214,7 @@ class Publisher:
         for _extract_type_name, extract_object in self._resolved_extractors.items():
             self.extract_single(extract_object)
 
-    def publish(self, notes=None):
+    def publish(self, notes=None, preview_context=None):
         """Finalize the publish by updating the reserved slot.
 
         Args:
@@ -265,9 +259,21 @@ class Publisher:
 
         self._generate_thumbnail()
 
+        if preview_context:
+            # validate the type
+            # if not isinstance(preview_context, PreviewContext):
+
+
         self._published_object.apply_settings(force=True)
+
+        # hook for post publish can be defined in per dcc handler.
         self._published_object._dcc_handler.post_publish()
         return self._published_object
+
+    def _generate_preview(self, preview_context):
+        """Generate the preview."""
+        if not preview_context.enabled:
+            return
 
     def _generate_thumbnail(self):
         """Generate the thumbnail."""
@@ -359,7 +365,7 @@ class Publisher:
 
         # get the id from the project settings
         entity_id = self._work_object.task_id
-        entity_type = self._task_object.type
+        entity_type = self.task_object.type
         step = self._work_object.category
         project_id = self._project_object.settings.get("host_project_id")
         # get the tasks from the platform manager

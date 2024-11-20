@@ -42,24 +42,25 @@ dialog.show()
 
 from time import time
 import logging
+
+from tik_manager4.objects.preview import PreviewContext
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 from tik_manager4.ui.widgets.common import (
     TikLabel,
-    TikLabelButton,
-    HeaderLabel,
     ResolvedText,
     TikButtonBox,
     TikButton,
     TikIconButton,
-    # ExpandableLayout,
+    VerticalSeparator
 )
 from tik_manager4.ui.layouts.settings_layout import (
     SettingsLayout,
-    convert_to_ui_definition,
 )
 from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui import pick
+from tik_manager4.ui.widgets.value_widgets import Vector2Int
+from tik_manager4.ui.widgets.pop import WaitDialog
 
 LOG = logging.getLogger(__name__)
 
@@ -103,7 +104,18 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         # class widgets
         self.notes_text = None
+
+        # preview related variables and widgets
+        self.preview_context = PreviewContext()
+        self.preview_context.set_enabled(False) # disable by default
+        self.preview_enabled_cb = None
+        self.camera_combo = None
+        self.resolution_vc2 = None
+        self.range_vc2 = None
+
+        # management related widgets
         self.management_tasks_combo = None
+        self.management_status_combo = None
 
         # build the layouts
         self.build_ui()
@@ -113,7 +125,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
         self.setMinimumHeight(400)
 
         self.horizontal_splitter.setSizes([500, 500])
-        self.vertical_splitter.setSizes([700, 300])
+        self.vertical_splitter.setSizes([600, 400])
 
     def check_eligibility(self):
         """Checks if the current scene is eligible for publishing."""
@@ -269,33 +281,152 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         self.extracts_scroll_lay.addStretch()
 
-    def _build_bottom(self):
-        """Build the bottom section."""
-
-        # management platform tasks
+    def _management_widgets(self):
+        """Check if the management platform is available."""
         m_handler = self.project.guard.management_handler
+        if not m_handler:
+            return
+        platform_name = m_handler.nice_name
+        wait_dialog = WaitDialog(parent=self)
+        wait_dialog.display()
         if m_handler:
             if not m_handler.is_authenticated:
-                m_handler.authenticate()
+                wait_dialog.set_message(f"Authenticating to {platform_name}...")
+                _handler, _msg = m_handler.authenticate()
+                if not _handler:
+                    wait_dialog.kill()
+                    ret = self.feedback.pop_question(
+                        title="Authentication Failed",
+                        text=f"Authentication failed for {platform_name}. Please check your credentials.\n\n Do you want to continue without {platform_name} support?",
+                    )
+                    if ret == "cancel":
+                        return
+
             management_tasks_lay = QtWidgets.QHBoxLayout()
             management_tasks_lay.setContentsMargins(0, 0, 0, 0)
             self.bottom_layout.addLayout(management_tasks_lay)
-            management_tasks_label = QtWidgets.QLabel(f"{m_handler.nice_name} Task:")
+
+            management_tasks_label = QtWidgets.QLabel(
+                f"{m_handler.nice_name} Task:")
+
             self.management_tasks_combo = QtWidgets.QComboBox()
+            wait_dialog.set_message("Fetching Tasks...")
             tasks_data_list = self.project.publisher.get_management_tasks()
             task_model = ManagementTasksComboBoxModel(tasks_data_list)
             self.management_tasks_combo.setModel(task_model)
             management_tasks_lay.addWidget(management_tasks_label)
             management_tasks_lay.addWidget(self.management_tasks_combo)
+
+            separator = VerticalSeparator()
+            management_tasks_lay.addWidget(separator)
+
+            # management status
+            management_status_label = QtWidgets.QLabel("Status to:")
+            management_status_combo = QtWidgets.QComboBox()
+            wait_dialog.set_message("Fetching Status Lists...")
+            management_status_combo.addItems(
+                m_handler.get_available_status_lists())
+            management_tasks_lay.addWidget(management_status_label)
+            management_tasks_lay.addWidget(management_status_combo)
             management_tasks_lay.addStretch()
+            wait_dialog.kill()
+
+    def _preview_widgets(self):
+        """Build the preview widgets if the preview is available."""
+        if not self.project.publisher._dcc_handler.preview_enabled:
+            return
+        if self.project.publisher.task_object.type.lower() != "shot":
+            return
+        # if not self.project.publisher.work_object
+        scene_cameras = self.project.publisher._dcc_handler.get_scene_cameras()
+        if not scene_cameras:
+            return
+
+        self.preview_context.set_enabled(True)
+
+        # get the resolution with the following priority: metadata_inherited_resolution, preview_settings_resolution, 1920x1080
+        metadata_inherited_resolution = self.project.publisher.task_object.metadata.get_value("resolution", None)
+        preview_settings_resolution = self.project.preview_settings.get("Resolution", [1920, 1080])
+        resolution_percentage = self.project.preview_settings.get("ResolutionPercentage", 100)
+
+        full_resolution = metadata_inherited_resolution or preview_settings_resolution
+        preview_resolution = [int(x * resolution_percentage / 100) for x in full_resolution]
+        self.preview_context.set_resolution(preview_resolution)
+
+        # get the range with this priority: metadata_inherited_range, scene range, 1001-1100
+        metadata_start = self.project.publisher.task_object.metadata.get_value("start_frame", None)
+        metadata_end = self.project.publisher.task_object.metadata.get_value("end_frame", None)
+        _raw_scene_ranges = self.project.publisher._dcc_handler.get_ranges()
+        if _raw_scene_ranges:
+            scene_start = _raw_scene_ranges[0]
+            scene_end = _raw_scene_ranges[-1]
+        else:
+            scene_start = 1001
+            scene_end = 1100
+
+        preview_start = metadata_start or scene_start
+        preview_end = metadata_end or scene_end
+        self.preview_context.set_frame_range([preview_start, preview_end])
+
+        preview_layout = QtWidgets.QHBoxLayout()
+        self.bottom_layout.addLayout(preview_layout)
+
+        # preview_lbl = QtWidgets.QLabel("Preview: ")
+        # preview_layout.addWidget(preview_lbl)
+
+        self.preview_enabled_cb = QtWidgets.QCheckBox(text="Take Preview")
+        self.preview_enabled_cb.setChecked(True)
+        preview_layout.addWidget(self.preview_enabled_cb)
+
+        preview_layout.addWidget(VerticalSeparator())
+
+        camera_lbl = QtWidgets.QLabel("Camera: ")
+        preview_layout.addWidget(camera_lbl)
+        self.camera_combo = QtWidgets.QComboBox()
+        self.camera_combo.addItems(list(scene_cameras.keys()))
+        preview_layout.addWidget(self.camera_combo)
+
+        preview_layout.addWidget(VerticalSeparator())
+        resolution_lbl = QtWidgets.QLabel("Resolution: ")
+        preview_layout.addWidget(resolution_lbl)
+        self.resolution_vc2 = Vector2Int("resolution", value=self.preview_context.resolution)
+        preview_layout.addWidget(self.resolution_vc2)
+
+        preview_layout.addWidget(VerticalSeparator())
+
+        range_lbl = QtWidgets.QLabel("Range: ")
+        preview_layout.addWidget(range_lbl)
+        self.range_vc2 = Vector2Int("range", value=self.preview_context.frame_range)
+        preview_layout.addWidget(self.range_vc2)
+
+        preview_layout.addStretch()
+
+        # SIGNALS
+
+        self.preview_enabled_cb.stateChanged.connect(self.camera_combo.setEnabled)
+        self.preview_enabled_cb.stateChanged.connect(self.resolution_vc2.setEnabled)
+        self.preview_enabled_cb.stateChanged.connect(self.range_vc2.setEnabled)
+        self.preview_enabled_cb.stateChanged.connect(self.preview_context.set_enabled)
+
+        self.camera_combo.currentTextChanged.connect(self.preview_context.set_camera)
+        self.resolution_vc2.com.valueChanged.connect(self.preview_context.set_resolution)
+        self.range_vc2.com.valueChanged.connect(self.preview_context.set_frame_range)
 
 
+    def _build_bottom(self):
+        """Build the bottom section."""
 
+        # management platform tasks
+        self._management_widgets()
+
+        # preview widgets
+        self._preview_widgets()
 
         # notes layout
         notes_label = QtWidgets.QLabel("Notes:")
         self.bottom_layout.addWidget(notes_label)
         self.notes_text = QtWidgets.QTextEdit()
+
         # add a placeholder text
         self.notes_text.setPlaceholderText("Notes are mandatory for publishes.")
         self.bottom_layout.addWidget(self.notes_text)
@@ -445,7 +576,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
             return
 
         # finalize publish
-        self.project.publisher.publish(notes=self.notes_text.toPlainText())
+        self.project.publisher.publish(notes=self.notes_text.toPlainText(), preview_context=self.preview_context)
         # prepare publish report and feedback
         if warnings:
             msg = f"Publish Successful with following warnings:\n\n{warnings}"
@@ -761,7 +892,7 @@ class ManagementTasksComboBoxModel(QtCore.QAbstractListModel):
             return self.items[index.row()].get('content', '')
         return None
 
-    def getItem(self, index):
+    def get_item(self, index):
         """Method to get the full dictionary item."""
         if 0 <= index < len(self.items):
             return self.items[index]

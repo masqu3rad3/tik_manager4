@@ -28,13 +28,19 @@ class WaitDialog(QtWidgets.QDialog):
         layout.addWidget(self.label)
         self.setLayout(layout)
 
+    def set_message(self, message):
+        self.label.setText(message)
+        QtWidgets.QApplication.processEvents()  # Ensure the UI updates immediately
+
     # Function to show the dialog
-    def show_dialog(self):
+    def display(self, message=None):
+        if message:
+            self.set_message(message)
         self.show()
         QtWidgets.QApplication.processEvents()  # Ensure the UI updates immediately
 
     # Function to close the dialog
-    def close_dialog(self):
+    def kill(self):
         self.close()
 
 
@@ -44,8 +50,8 @@ if __name__ == "__main__":
     from time import sleep
     app = QtWidgets.QApplication(sys.argv)
     dialog = WaitDialog("Please wait...")
-    dialog.show_dialog()
+    dialog.display()
     # app.exec_()
     sleep(2)
-    dialog.close_dialog()
+    dialog.kill()
     sys.exit()

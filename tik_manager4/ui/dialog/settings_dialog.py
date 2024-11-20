@@ -15,7 +15,7 @@ from tik_manager4.ui.widgets.common import (
     TikButtonBox,
     TikButton,
     TikIconButton,
-    VerticalSeparator,
+    HorizontalSeparator,
 )
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.user_dialog import NewUserDialog
@@ -210,7 +210,7 @@ class SettingsDialog(QtWidgets.QDialog):
             f"Change user password of {self.main_object.user.name}"
         )
         header_layout.addWidget(path_label)
-        header_layout.addWidget(VerticalSeparator(color=(255, 141, 28), height=1))
+        header_layout.addWidget(HorizontalSeparator(color=(255, 141, 28), height=1))
 
         # form layout
         form_layout = QtWidgets.QFormLayout()
@@ -483,7 +483,7 @@ class SettingsDialog(QtWidgets.QDialog):
         # add a label to show the path of the settings file
         path_label = ResolvedText(settings_data.settings_file)
         header_layout.addWidget(path_label)
-        header_layout.addWidget(VerticalSeparator(color=(255, 141, 28), height=1))
+        header_layout.addWidget(HorizontalSeparator(color=(255, 141, 28), height=1))
 
         # make a scroll area for the main content
         scroll_area = QtWidgets.QScrollArea()
@@ -652,7 +652,7 @@ class UsersDefinitions(QtWidgets.QWidget):
         self.layouts.header_layout.addWidget(path_label)
 
         self.layouts.header_layout.addWidget(
-            VerticalSeparator(color=(255, 141, 28), height=1)
+            HorizontalSeparator(color=(255, 141, 28), height=1)
         )
 
         self.switch_tree_widget = SwitchTreeWidget()
@@ -830,7 +830,7 @@ class MetadataDefinitions(QtWidgets.QWidget):
         self.layouts.header_layout.addWidget(path_label)
 
         self.layouts.header_layout.addWidget(
-            VerticalSeparator(color=(255, 141, 28), height=1)
+            HorizontalSeparator(color=(255, 141, 28), height=1)
         )
 
         self.switch_tree_widget = SwitchTreeWidget()
@@ -1053,7 +1053,7 @@ class CategoryDefinitions(QtWidgets.QWidget):
         self.layouts.header_layout.addWidget(path_label)
 
         self.layouts.header_layout.addWidget(
-            VerticalSeparator(color=(255, 141, 28), height=1)
+            HorizontalSeparator(color=(255, 141, 28), height=1)
         )
 
         self.switch_tree_widget = SwitchTreeWidget()

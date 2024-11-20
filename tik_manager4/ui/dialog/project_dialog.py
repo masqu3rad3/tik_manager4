@@ -414,12 +414,12 @@ class CreateFromShotgridDialog(QtWidgets.QDialog):
                 message="Creating project from Shotgrid...",
                 parent=self,
             )
-            self.wait_dialog.show_dialog()
+            self.wait_dialog.display()
 
             ret = self.handler.create_from_project(
                 project_root, project_id, set_project=self.set_project_cb.isChecked()
             )
-            self.wait_dialog.close_dialog()
+            self.wait_dialog.kill()
             if not ret:
                 msg, _msg_type = self.tik.log.get_last_message()
                 self.feedback.pop_info(

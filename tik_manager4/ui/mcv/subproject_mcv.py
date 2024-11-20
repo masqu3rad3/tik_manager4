@@ -1,7 +1,7 @@
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 import tik_manager4.ui.dialog.subproject_dialog
 import tik_manager4.ui.dialog.task_dialog
-from tik_manager4.ui.widgets.common import VerticalSeparator, TikIconButton
+from tik_manager4.ui.widgets.common import HorizontalSeparator, TikIconButton
 from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4
 from tik_manager4.ui import pick
@@ -692,7 +692,7 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
             icon_name="refresh", circle=True, size=18, icon_size=14
         )
         header_lay.addWidget(self.refresh_btn)
-        self.addWidget(VerticalSeparator(color=(221, 160, 221)))
+        self.addWidget(HorizontalSeparator(color=(221, 160, 221)))
 
         # add a checkbox for recursive search
         if recursive_enabled:

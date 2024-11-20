@@ -2,7 +2,7 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.core import filelog
 from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4.ui.dialog.task_dialog
-from tik_manager4.ui.widgets.common import VerticalSeparator, TikIconButton
+from tik_manager4.ui.widgets.common import HorizontalSeparator, TikIconButton
 
 from tik_manager4.ui import pick
 
@@ -418,7 +418,7 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
         self.refresh_btn = TikIconButton(icon_name="refresh", circle=True, size=18, icon_size=14)
         header_lay.addWidget(self.refresh_btn)
         # self.addWidget(self.label)
-        self.addWidget(VerticalSeparator(color=(0, 255, 255)))
+        self.addWidget(HorizontalSeparator(color=(0, 255, 255)))
 
         self.task_view = TikTaskView()
         self.addWidget(self.task_view)

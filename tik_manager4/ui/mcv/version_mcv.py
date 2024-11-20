@@ -4,7 +4,7 @@ from pathlib import Path
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
-from tik_manager4.ui.widgets.common import TikButton, VerticalSeparator, TikIconButton
+from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator, TikIconButton
 from tik_manager4.ui.dialog.bunde_ingest_dialog import BundleIngestDialog
 from tik_manager4.core import filelog
 from tik_manager4.ui import pick
@@ -36,7 +36,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         # add a refresh button
         self.refresh_btn = TikIconButton(icon_name="refresh", circle=True, size=18, icon_size=14)
         header_lay.addWidget(self.refresh_btn)
-        self.addWidget(VerticalSeparator(color=(255, 180, 60)))
+        self.addWidget(HorizontalSeparator(color=(255, 180, 60)))
 
         version_layout = QtWidgets.QHBoxLayout()
         self.addLayout(version_layout)
