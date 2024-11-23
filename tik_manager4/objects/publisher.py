@@ -61,6 +61,8 @@ class Publisher:
     @property
     def task_object(self):
         """The Task object that will be published."""
+        if not self._work_object:
+            return None
         return self._work_object.parent_task or \
         self._project_object.find_task_by_id(self._work_object.task_id)
 
@@ -260,6 +262,7 @@ class Publisher:
         self._generate_thumbnail()
 
         if preview_context:
+            pass
             # validate the type
             # if not isinstance(preview_context, PreviewContext):
 
@@ -362,7 +365,9 @@ class Publisher:
         object and returns them. It is important to note that platform tasks
         are not the same as the tik tasks.
         """
-
+        if not self._work_object:
+            LOG.warning("No work object found. Aborting.")
+            return []
         # get the id from the project settings
         entity_id = self._work_object.task_id
         entity_type = self.task_object.type

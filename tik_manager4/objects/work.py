@@ -95,6 +95,11 @@ class Work(Settings, Entity):
         return self._dcc_version
 
     @property
+    def dcc_handler(self):
+        """DCC handler object."""
+        return self._dcc_handler
+
+    @property
     def id(self):
         """Unique id of the work."""
         return self._work_id

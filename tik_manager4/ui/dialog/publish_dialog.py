@@ -333,6 +333,8 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
     def _preview_widgets(self):
         """Build the preview widgets if the preview is available."""
+        if not self.project.publisher.task_object:
+            return
         if not self.project.publisher._dcc_handler.preview_enabled:
             return
         if self.project.publisher.task_object.type.lower() != "shot":
