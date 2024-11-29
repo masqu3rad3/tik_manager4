@@ -129,21 +129,36 @@ class PreviewContext:
 
 class Preview:
     """Preview class."""
-    def __init__(self, preview_context, work_object, settings=None):
+    def __init__(self, preview_context, database_object, settings=None, message_callback=None):
         """Initialize the Preview object.
 
         Args:
             preview_context (PreviewContext): The preview context.
-            work_object (WorkObject): The work object.
+            database_object (WorkObject): The Work object. or PublishVersion
             settings (dict, optional): Additional settings. Defaults to None.
+            message_callback (function, optional): The message callback function. Defaults to None.
         """
+
         self.context = preview_context
-        self.work = work_object
+        self.database_obj = database_object
         self._settings = settings or {}
         self._path = None
+        self._message_callback = message_callback or LOG.info
 
-        self._folder = self.work.get_abs_project_path("previews")
+        self._folder = self.database_obj.get_abs_project_path("previews")
         Path(self._folder).mkdir(parents=True, exist_ok=True)
+
+    def set_message_callback(self, callback):
+        """Set the message callback function.
+
+        Args:
+            callback (function): The message callback function.
+        """
+        if callback:
+            self._message_callback = callback
+        else:
+            # if there is no message callback, use stdout
+            self._message_callback = LOG.info
 
     @property
     def settings(self):
@@ -167,39 +182,56 @@ class Preview:
         nice_name, full_name = self.resolve_preview_name()
 
         # camera code can be a node, path, uuid or name depending on the dcc
-        camera_code = self.work.dcc_handler.get_scene_cameras()[self.context.camera]
-        abs_path = self.work.dcc_handler.generate_preview(
+        camera_code = self.database_obj.dcc_handler.get_scene_cameras()[self.context.camera]
+        abs_path = self.database_obj.dcc_handler.generate_preview(
             full_name,
             self._folder,
             camera_code=camera_code,
             resolution=self.context.resolution,
-            frame_range=self.context.frame_range,
+            range=self.context.frame_range,
             settings=self._settings,
         )
         if not abs_path:
+            self._message_callback("Preview generation failed.")
             LOG.error("Preview generation failed.")
             return False
 
         suffix = Path(abs_path).suffix
         if self._settings.get("PostConversion", False) and suffix != ".mp4":
+            self._message_callback("Converting the preview to MP4 format.")
             ffmpeg = self._check_ffmpeg()
             if ffmpeg:
                 abs_path = self._convert_preview(abs_path, ffmpeg, overwrite=True)
             else:
+                self._message_callback("FFMPEG not found. Skipping conversion.")
                 LOG.warning("FFMPEG not found. Skipping conversion.")
 
         relative_path = Path("previews") / Path(abs_path).name
-        version = self.work.get_version(self.context.version_number)
+
         preview_data = {nice_name: relative_path.as_posix()}
 
-        if "previews" in version.keys():
-            version["previews"].update(preview_data)
-        else:
-            version["previews"] = preview_data
-        self.work.apply_settings(force=True)
+        self._message_callback("Registering preview data.")
+        self.register_data(preview_data)
+
         if show_after:
             utils.execute(abs_path)
         return True
+
+    def register_data(self, preview_data):
+        """Register the preview data to the database object."""
+        if self.database_obj.object_type == "work":
+            # if this is a work object, we need to update the specific version dictionary.
+            version = self.database_obj.get_version(self.context.version_number)
+            if "previews" in version.keys():
+                version["previews"].update(preview_data)
+            else:
+                version["previews"] = preview_data
+            self.database_obj.apply_settings(force=True)
+        elif self.database_obj.object_type == "publish_version":
+            # PublishVersion object has no version number, so we update the previews directly
+            # Unlike the work objects version, this is a Tik Settings class.
+            self.database_obj.add_property("previews", preview_data)
+            self.database_obj.apply_settings(force=True)
 
     def _verify_context(self):
         """Verify the preview context."""
@@ -208,9 +240,13 @@ class Preview:
             LOG.error("Camera not set.")
             return False
 
-        if not self.context.version_number:
-            LOG.error("Version number not set.")
-            return False
+        # work object requires version number
+        if self.database_obj.object_type == "work":
+            if not self.context.version_number:
+                LOG.error("Version number not set. Work object requires version number.")
+                return False
+        elif self.database_obj.object_type == "publish_version":
+            self.context.set_version_number(self.database_obj.version)
         return True
 
     def resolve_preview_name(self):
@@ -226,7 +262,7 @@ class Preview:
             nice_name = [camera, self.context.label]
 
         full_name_tags = (nice_name + [
-            self.work.name,
+            self.database_obj.name,
             f"v{self.context.version_number:03d}"
         ])
         return "_".join(nice_name), "_".join(full_name_tags)
@@ -295,9 +331,9 @@ class Preview:
             flag_start = [ffmpeg, "-i", str(_file_path)]
         else:
             # get the frame rate from dcc
-            fps = self.work.dcc_handler.get_scene_fps()
+            fps = self.database_obj.dcc_handler.get_scene_fps()
             # the incoming _file_path needs to have %04d in it in order to be recognized as a sequence
-            flag_start = [ffmpeg, "-r", str(fps), "-i", str(_file_path)]
+            flag_start = [ffmpeg, "-r", str(fps), "-start_number", str(self.context.frame_range[0]), "-i", str(_file_path)]
             # remove the digits section from the file name e.g. test_v001.0001.jpg -> test_v001.jpg
             output_file_str = str(output_file).replace(output_file.suffixes[0], "")
         full_flag_list = (

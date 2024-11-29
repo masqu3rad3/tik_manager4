@@ -560,17 +560,6 @@ class MainUI(QtWidgets.QMainWindow):
         handler = self.management_connect("shotgrid")
         if not handler:
             return
-        # self.wait_dialog = WaitDialog(
-        #                 message=f"Connecting to Shotgrid...",
-        #                 parent=self,
-        #             )
-        # self.wait_dialog.show_dialog()
-        # handler, msg = self.tik.get_management_handler("shotgrid")
-        # if not handler:
-        #     self.wait_dialog.close_dialog()
-        #     self.feedback.pop_info(title="Authentication Failed", text=f"Authentication failed while connecting to Shotgrid\n\n{msg}", critical=True)
-        #     return
-        # self.wait_dialog.close_dialog()
 
         dialog = CreateFromShotgridDialog(handler, parent=self)
         state = dialog.exec()
@@ -595,28 +584,6 @@ class MainUI(QtWidgets.QMainWindow):
             return None
         self.wait_dialog.kill()
         return handler
-
-    # def get_management_handler(self, platform_name="shotgrid"):
-    #     """Resolve the management handler.
-    #
-    #     Args:
-    #         platform_name (str): The name of the platform.
-    #     """
-    #     if not self._management_handler or self._management_handler.name != platform_name:
-    #         self.wait_dialog = WaitDialog(
-    #             message=f"Connecting to {platform_name}...",
-    #             parent=self,
-    #         )
-    #         self.wait_dialog.show_dialog()
-    #         self._management_handler = management.platforms[platform_name](self.tik)
-    #         state, msg = self._management_handler.authenticate()
-    #         if not state:
-    #             self.wait_dialog.close_dialog()
-    #             self.feedback.pop_info(title="Authentication Failed", text=f"Authentication failed while connecting to {self._management_handler.nice_name}\n\n{msg}", critical=True)
-    #             return None
-    #         self.wait_dialog.close_dialog()
-    #
-    #     return self._management_handler
 
     def _main_button_states(self):
         """Toggle the states of the main buttons according to certain conditions."""
@@ -965,11 +932,13 @@ class MainUI(QtWidgets.QMainWindow):
             self.subprojects_mcv.sub_view.is_management_locked = True
             self.tasks_mcv.task_view.is_management_locked = True
             management_platform = self.tik.project.settings.get("management_platform")
-            # management_handler = self.tik.get_management_handler(management_platform)
             handler = self.management_connect(management_platform)
             if not handler:
                 return
+            wait_popup = WaitDialog(message="Syncing Project...", parent=self)
+            wait_popup.display()
             synced = handler.sync_project()
+            wait_popup.kill()
             if synced:
                 self.set_last_state()
                 self.subprojects_mcv.manual_refresh()
@@ -1030,13 +999,14 @@ class MainUI(QtWidgets.QMainWindow):
         # find the task from the work
         _task = self.tik.project.find_task_by_id(_work.task_id)
         # get the resolution from the task (if any)
-        _resolution = _task.parent_sub.metadata.get_value(
+        _task_metadata = _task.metadata
+        _resolution = _task_metadata.get_value(
             "resolution", fallback_value=None
         )
-        _range_start = _task.parent_sub.metadata.get_value(
+        _range_start = _task_metadata.get_value(
             "start_frame", fallback_value=None
         )
-        _range_end = _task.parent_sub.metadata.get_value(
+        _range_end = _task_metadata.get_value(
             "end_frame", fallback_value=None
         )
         _range = [_range_start, _range_end]

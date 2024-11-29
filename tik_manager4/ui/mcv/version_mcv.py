@@ -438,7 +438,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.element_combo.clear()
         self.element_mapping.clear()
         if self.base.object_type == "publish":
-            self.show_preview_btn.setEnabled(False)
+            # self.show_preview_btn.setEnabled(False)
+            self.show_preview_btn.setEnabled(bool(_version.get("previews")))
             self.element_combo.setEnabled(True)
             self.element_view_btn.setEnabled(True)
             self.ingest_with_combo.setEnabled(True)
@@ -449,7 +450,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.element_type_changed(self.element_combo.currentText())
             owner = _version.creator
         else:  # WORK
-            # disable
             self.element_combo.setEnabled(False)
             self.element_view_btn.setEnabled(False)
             self.ingest_with_combo.setEnabled(False)

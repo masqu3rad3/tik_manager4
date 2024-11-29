@@ -4,12 +4,12 @@
 
 This module is responsible for handling the publish process.
 """
-
+import logging
 from pathlib import Path
 
 from tik_manager4.core import filelog
 
-from tik_manager4.objects.preview import PreviewContext
+from tik_manager4.objects.preview import PreviewContext, Preview
 from tik_manager4.dcc.standalone import main as standalone
 from tik_manager4.objects.publish import PublishVersion
 from tik_manager4.objects.guard import Guard
@@ -81,10 +81,6 @@ class Publisher:
         self._resolved_extractors = {}
         self._resolved_validators = {}
 
-        # get the task object
-        # self._task_object = self._work_object.parent_task or \
-        # self._project_object.find_task_by_id(self._work_object.task_id)
-        # self._metadata = self._task_object.parent_sub.metadata
         self._metadata = self.task_object.metadata
 
         _category_definitons = self._work_object.guard.category_definitions
@@ -95,7 +91,6 @@ class Publisher:
             self._work_object.category, {}
         ).get("validations", [])
         # collect the matching extracts and validations from the dcc_handler.
-        # dcc_extracts = [x.lower() for x in list(self._dcc_handler.extracts.keys())]
         category_extracts = [x.lower() for x in extracts]
         for extract in list(self._dcc_handler.extracts.keys()):
             if extract.lower() in category_extracts:
@@ -216,7 +211,7 @@ class Publisher:
         for _extract_type_name, extract_object in self._resolved_extractors.items():
             self.extract_single(extract_object)
 
-    def publish(self, notes=None, preview_context=None):
+    def publish(self, notes=None, preview_context=None, message_callback=None):
         """Finalize the publish by updating the reserved slot.
 
         Args:
@@ -225,6 +220,8 @@ class Publisher:
         Returns:
             PublishVersion: The published object.
         """
+        # use either given message callback function or a generic logging function
+        message_callback = message_callback or logging.getLogger(__name__).info
         # collect the validation states and log it into the publish object
         validations = {}
         for validation_name, validation_object in self._resolved_validators.items():
@@ -262,7 +259,12 @@ class Publisher:
         self._generate_thumbnail()
 
         if preview_context:
-            pass
+            message_callback(f"Generating preview")
+            try:
+                self._generate_preview(preview_context, message_callback)
+            except Exception as e:  # pylint: disable=broad-except
+                message_callback(f"Preview generation failed")
+                LOG.error(f"Preview generation failed: {e}")
             # validate the type
             # if not isinstance(preview_context, PreviewContext):
 
@@ -273,10 +275,14 @@ class Publisher:
         self._published_object._dcc_handler.post_publish()
         return self._published_object
 
-    def _generate_preview(self, preview_context):
+    def _generate_preview(self, preview_context, message_callback=None):
         """Generate the preview."""
         if not preview_context.enabled:
             return
+        preview_handler = Preview(preview_context, self._published_object)
+        preview_handler.settings = self._published_object.guard.preview_settings.properties
+        preview_handler.set_message_callback(message_callback)
+        return preview_handler.generate(show_after=False)
 
     def _generate_thumbnail(self):
         """Generate the thumbnail."""
@@ -436,9 +442,9 @@ class SnapshotPublisher(Publisher):
 
         # get either the snapshot or snapshot_bundle depending if its a folder or file
         if Path(abs_path).is_dir():
-            snapshot_extractor = self._dcc_handler.extracts["snapshot_bundle"]()
+            snapshot_extractor = self.__dcc_handler.extracts["snapshot_bundle"]()
         else:
-            snapshot_extractor = self._dcc_handler.extracts["snapshot"]()
+            snapshot_extractor = self.__dcc_handler.extracts["snapshot"]()
         snapshot_extractor.category = self._work_object.category  # define the category
 
         snapshot_extractor.source_path = abs_path
@@ -469,7 +475,7 @@ class SnapshotPublisher(Publisher):
         )
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
         extension = self._resolved_extractors["snapshot"].extension or "Bundle"
-        self._dcc_handler.text_to_image(
+        self.__dcc_handler.text_to_image(
             extension, thumbnail_path, 220, 124, color="cyan"
         )
         self._published_object.add_property(

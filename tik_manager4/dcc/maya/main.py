@@ -245,7 +245,7 @@ class Dcc(MainCore):
         return None, None, None
 
     @staticmethod
-    def generate_preview(name, folder, camera_code, resolution, frame_range, settings=None):
+    def generate_preview(name, folder, camera_code, resolution, range, settings=None):
         """
         Create a preview from the current scene
         Args:
@@ -253,7 +253,7 @@ class Dcc(MainCore):
             folder: (String) Folder to save the preview
             camera_code: (String) Camera code. In Maya, this is the UUID of the camera transform node.
             resolution: (list) Resolution of the preview
-            frame_range: (list) Range of the preview
+            range: (list) Range of the preview
             settings: (dict) Global Settings dictionary
         """
 
@@ -345,8 +345,8 @@ class Dcc(MainCore):
             offScreenViewportUpdate=True,
             activeEditor=False,
             editorPanelName=pb_panel.panel,
-            startTime=frame_range[0],
-            endTime=frame_range[1],
+            startTime=range[0],
+            endTime=range[1],
         )
         if not _output:
             LOG.error("Playblast failed")

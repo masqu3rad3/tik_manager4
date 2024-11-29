@@ -108,6 +108,7 @@ class PreviewDialog(QtWidgets.QDialog):
         message_box.set_message_size(12)
         message_box.display()
 
+        self.preview_handler.set_message_callback(message_box.set_message)
         self.preview_handler.settings = self.work.guard.preview_settings.properties
         state = self.preview_handler.generate(show_after=True)
 

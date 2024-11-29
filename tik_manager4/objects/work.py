@@ -4,19 +4,12 @@
 
 import socket
 import shutil
-import platform
-import subprocess
 from pathlib import Path
-from tik_manager4.core import utils
 from tik_manager4.dcc.standalone.main import Dcc as StandaloneDcc
 from tik_manager4.core.settings import Settings
 from tik_manager4.core import filelog
-from tik_manager4.objects.preview import Preview, PreviewContext
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.publish import Publish
-
-# from tik_manager4.objects.publish import PublishVersion
-# from tik_manager4 import dcc
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 

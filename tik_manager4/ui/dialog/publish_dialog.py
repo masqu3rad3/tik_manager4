@@ -488,16 +488,20 @@ class PublishSceneDialog(QtWidgets.QDialog):
             # keep updating the ui
             QtWidgets.QApplication.processEvents()
 
-    def extract_all(self):
+    def extract_all(self, callback_handler=None):
         """Extract all the extractors."""
         # single extractors are not saving the scene. Make sure the scene saved first
         self.project.publisher._dcc_handler.save_scene()
         for extractor_widget in self._extractor_widgets:
             if not extractor_widget.extract.enabled:
                 continue
+            if callback_handler:
+                callback_handler.set_message(f"Extracting {extractor_widget.extract.name}...")
+                callback_handler.display()
             self.project.publisher.extract_single(extractor_widget.extract)
             extractor_widget.set_state(extractor_widget.extract.state)
             if extractor_widget.extract.state == "failed":
+                callback_handler.kill()
                 q = self.feedback.pop_question(
                     title="Extraction Failed",
                     text=f"Extraction failed for: \n\n{extractor_widget.extract.name}\n\nDo you want to continue?",
@@ -548,6 +552,8 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
     def publish(self):
         """Command to publish the scene."""
+        pop = WaitDialog(message="Publishing...", parent=self)
+        pop.display()
         self.reset_validators()  # only resets if the scene is modified
         self.validate_all()
         # check the state of the validations
@@ -557,6 +563,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         # if there are fails, pop up a dialog
         if fails:
+            pop.kill()
             self.feedback.pop_info(
                 title="Validation Failed",
                 text=f"Validation failed for: \n\n{fails}\n\nPlease fix the validation issues before publishing.",
@@ -564,6 +571,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
             return
         # if there are warnings, pop up a dialog
         if warnings:
+            pop.kill()
             q = self.feedback.pop_question(
                 title="Validation Warnings",
                 text=f"Validation warnings for: \n\n{warnings}\n\nDo you want IGNORE them and continue?",
@@ -573,6 +581,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
                 return
 
         if unavailable_extractors:
+            pop.kill()
             q = self.feedback.pop_question(
                 title="Extraction Unavailable",
                 text=f"Extraction unavailable for: \n\n{unavailable_extractors}\n\nDo you want to continue?",
@@ -582,16 +591,20 @@ class PublishSceneDialog(QtWidgets.QDialog):
                 return
 
         # reserve the slot
+        pop.set_message("Reserving Slot...")
+        pop.display()
         self.project.publisher.reserve()
         # extract the elements
-        state = self.extract_all()
+        state = self.extract_all(callback_handler=pop)
         if not state:
+            pop.kill()
             # user cancellation due to failed extracts
             return
 
         # finalize publish
-        self.project.publisher.publish(notes=self.notes_text.toPlainText(), preview_context=self.preview_context)
+        self.project.publisher.publish(notes=self.notes_text.toPlainText(), preview_context=self.preview_context, message_callback=pop.set_message)
         # prepare publish report and feedback
+        pop.kill()
         if warnings:
             msg = f"Publish Successful with following warnings:\n\n{warnings}"
         else:

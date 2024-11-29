@@ -11,18 +11,9 @@ class WaitDialog(QtWidgets.QDialog):
             self.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.Dialog)
 
         self.setModal(True)  # Make it a modal dialog
-        # self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
-        # self.setWindowOpacity(0.9)  # Set transparency
-
-        # create a bold fond with 20pt size
-        # font = self.font()
-        # self.font.setPointSize(20)
-        # font.setBold(True)
 
         # Create a label to show the message
         self.label = QtWidgets.QLabel(message)
-        # self.label.setStyleSheet("font: 20pt; color: black; background-color: white;")
-        # self.label.setFont(font)
         self.set_message_size(message_size)
         self.label.setAlignment(QtCore.Qt.AlignCenter)
 

@@ -637,7 +637,9 @@ class ProductionPlatform(ManagementCore):
         os.environ["TIK_SG_STATUS_LISTS"] = str(status_values)
         return status_values
 
-    def publish_version(self, entity_type, entity_id, task_id, name, path, project_id, description="", preview=None):
+    def publish_version(self, entity_type, entity_id, task_id, name, path,
+                        project_id, description="", thumbnail=None,
+                        preview=None):
         """Publish a version to Shotgrid.
 
         Args:
@@ -648,22 +650,37 @@ class ProductionPlatform(ManagementCore):
             path (str): Project relative path to the file.
             project_id (int): The ID of the project.
             description (str, optional): The description of the version. Defaults to "".
+            thumbnail (str, optional): The path to the thumbnail file. Defaults to None.
             preview (str, optional): The path to the preview file. Defaults to None.
 
         Returns:
             dict: The published version data.
         """
-
-        # build the publish data
+        # Build the publish data
         data = {
             "project": {"type": "Project", "id": project_id},
             "entity": {"type": entity_type.capitalize(), "id": entity_id},
             "code": name,
             "description": description,
             "sg_task": {"type": "Task", "id": task_id},
-            "sg_path_to_geometry": path
+            "sg_path_to_geometry": path,
         }
 
+        # Create the version in ShotGrid
+        version = self.sg.create("Version", data)
+
+        # Upload thumbnail if provided
+        if thumbnail:
+            self.sg.upload_thumbnail("Version", version["id"], thumbnail)
+
+        # Upload preview media if provided
+        if preview:
+            self.sg.upload(
+                "Version", version["id"], preview,
+                field_name="sg_uploaded_movie"
+            )
+
+        return version
 
 
 
