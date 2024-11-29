@@ -43,7 +43,7 @@ dialog.show()
 from time import time
 import logging
 
-from tik_manager4.objects.preview import PreviewContext
+from tik_manager4.objects.preview import PreviewContext, Preview
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 from tik_manager4.ui.widgets.common import (
     TikLabel,
@@ -109,7 +109,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
         self.preview_context = PreviewContext()
         self.preview_context.set_enabled(False) # disable by default
         self.preview_enabled_cb = None
-        self.camera_combo = None
+        # self.camera_combo = None
         self.resolution_vc2 = None
         self.range_vc2 = None
 
@@ -283,6 +283,10 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
     def _management_widgets(self):
         """Check if the management platform is available."""
+        is_management_driven = self.project.settings.get(
+            "management_driven", False)
+        if not is_management_driven:
+            return
         m_handler = self.project.guard.management_handler
         if not m_handler:
             return
@@ -376,43 +380,51 @@ class PublishSceneDialog(QtWidgets.QDialog):
         # preview_lbl = QtWidgets.QLabel("Preview: ")
         # preview_layout.addWidget(preview_lbl)
 
-        self.preview_enabled_cb = QtWidgets.QCheckBox(text="Take Preview")
-        self.preview_enabled_cb.setChecked(True)
-        preview_layout.addWidget(self.preview_enabled_cb)
+        preview_enabled_cb = QtWidgets.QCheckBox(text="Take Preview")
+        preview_enabled_cb.setChecked(True)
+        preview_layout.addWidget(preview_enabled_cb)
 
         preview_layout.addWidget(VerticalSeparator())
 
         camera_lbl = QtWidgets.QLabel("Camera: ")
         preview_layout.addWidget(camera_lbl)
-        self.camera_combo = QtWidgets.QComboBox()
-        self.camera_combo.addItems(list(scene_cameras.keys()))
-        preview_layout.addWidget(self.camera_combo)
+        camera_combo = QtWidgets.QComboBox()
+        cameras = list(scene_cameras.keys())
+        camera_combo.addItems(cameras)
+        # Try to get the camera other than [front, back, top, bottom, persp]
+        # if there isn't any, select try to select persp.
+        # if no persp, select the first camera
+        default_camera = self.preview_context.get_default_camera(cameras)
+        camera_combo.setCurrentText(default_camera)
+        self.preview_context.set_camera(default_camera)
+
+        preview_layout.addWidget(camera_combo)
 
         preview_layout.addWidget(VerticalSeparator())
         resolution_lbl = QtWidgets.QLabel("Resolution: ")
         preview_layout.addWidget(resolution_lbl)
-        self.resolution_vc2 = Vector2Int("resolution", value=self.preview_context.resolution)
-        preview_layout.addWidget(self.resolution_vc2)
+        resolution_vc2 = Vector2Int("resolution", value=self.preview_context.resolution)
+        preview_layout.addWidget(resolution_vc2)
 
         preview_layout.addWidget(VerticalSeparator())
 
         range_lbl = QtWidgets.QLabel("Range: ")
         preview_layout.addWidget(range_lbl)
-        self.range_vc2 = Vector2Int("range", value=self.preview_context.frame_range)
-        preview_layout.addWidget(self.range_vc2)
+        range_vc2 = Vector2Int("range", value=self.preview_context.frame_range)
+        preview_layout.addWidget(range_vc2)
 
         preview_layout.addStretch()
 
         # SIGNALS
 
-        self.preview_enabled_cb.stateChanged.connect(self.camera_combo.setEnabled)
-        self.preview_enabled_cb.stateChanged.connect(self.resolution_vc2.setEnabled)
-        self.preview_enabled_cb.stateChanged.connect(self.range_vc2.setEnabled)
-        self.preview_enabled_cb.stateChanged.connect(self.preview_context.set_enabled)
+        preview_enabled_cb.stateChanged.connect(camera_combo.setEnabled)
+        preview_enabled_cb.stateChanged.connect(resolution_vc2.setEnabled)
+        preview_enabled_cb.stateChanged.connect(range_vc2.setEnabled)
+        preview_enabled_cb.stateChanged.connect(self.preview_context.set_enabled)
 
-        self.camera_combo.currentTextChanged.connect(self.preview_context.set_camera)
-        self.resolution_vc2.com.valueChanged.connect(self.preview_context.set_resolution)
-        self.range_vc2.com.valueChanged.connect(self.preview_context.set_frame_range)
+        camera_combo.currentTextChanged.connect(self.preview_context.set_camera)
+        resolution_vc2.com.valueChanged.connect(self.preview_context.set_resolution)
+        range_vc2.com.valueChanged.connect(self.preview_context.set_frame_range)
 
 
     def _build_bottom(self):
@@ -647,11 +659,11 @@ class ValidateRow(QtWidgets.QHBoxLayout):
     def validate(self):
         """Validate the validator."""
         start = time()
-        LOG.info(f"validating {self.button.text()}...")
+        LOG.info("validating %s...", self.button.text())
         self.validator.validate()
         self.update_state()
         end = time()
-        LOG.info(f"took {end-start} seconds")
+        LOG.info("took %s seconds", end-start)
 
     def pop_info(self):
         """Pop up an information dialog for informing the user what went wrong."""
@@ -676,7 +688,7 @@ class ValidateRow(QtWidgets.QHBoxLayout):
     def fix(self):
         """Auto Fix the scene."""
         start = time()
-        LOG.info(f"fixing {self.button.text()}...")
+        LOG.info("fixing %s...", self.button.text())
         self.validator.fix()
         self.validator.validate()
         if self.validator.state != "passed":
@@ -684,7 +696,7 @@ class ValidateRow(QtWidgets.QHBoxLayout):
             pass
         self.update_state()
         end = time()
-        LOG.info(f"took {end - start} seconds")
+        LOG.info("took %s seconds", end - start)
 
     def select(self):
         """Select the objects related to the validator."""
@@ -733,7 +745,7 @@ class ValidateRow(QtWidgets.QHBoxLayout):
 
         else:
             _fail_colour = "yellow" if _ignorable else "red"
-            self.status_icon.setStyleSheet("background-color: {};".format(_fail_colour))
+            self.status_icon.setStyleSheet(f"background-color: {_fail_colour};")
             if _autofixable:
                 self.fix_pb.setEnabled(True)
             else:
@@ -750,7 +762,7 @@ class ExtractRow(QtWidgets.QHBoxLayout):
 
     def __init__(self, extract_object, *args, **kwargs):
         """Initialize the ExtractRow."""
-        super(ExtractRow, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.extract = extract_object
         self.status_icon = None
         self.label = None

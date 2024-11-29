@@ -3,30 +3,38 @@
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 
 class WaitDialog(QtWidgets.QDialog):
-    def __init__(self, message="Please wait...", parent=None):
+    def __init__(self, message="Please wait...", frameless=True, message_size=20, parent=None):
         super(WaitDialog, self).__init__(parent)
 
         # Set up the dialog
-        self.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.Dialog)
+        if frameless:
+            self.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.Dialog)
+
         self.setModal(True)  # Make it a modal dialog
         # self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         # self.setWindowOpacity(0.9)  # Set transparency
 
         # create a bold fond with 20pt size
-        font = self.font()
-        font.setPointSize(20)
+        # font = self.font()
+        # self.font.setPointSize(20)
         # font.setBold(True)
 
         # Create a label to show the message
         self.label = QtWidgets.QLabel(message)
         # self.label.setStyleSheet("font: 20pt; color: black; background-color: white;")
-        self.label.setFont(font)
+        # self.label.setFont(font)
+        self.set_message_size(message_size)
         self.label.setAlignment(QtCore.Qt.AlignCenter)
 
         # Set up the layout
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.label)
         self.setLayout(layout)
+
+    def set_message_size(self, size):
+        font = self.font()
+        font.setPointSize(size)
+        self.label.setFont(font)
 
     def set_message(self, message):
         self.label.setText(message)

@@ -12,28 +12,20 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class PreviewContext:
     """Data class to hold the preview context."""
-    def __init__(self):
+    def __init__(self,
+                 enabled=True,
+                 camera=None,
+                 label=None,
+                 resolution=None,
+                 frame_range=None,
+                 version_number=None):
         """Initialize the PreviewContext object."""
-        self._name: str = None
-        self._enabled: bool = True
-        self._camera: str = None
-        self._label: str = None
-        self._resolution: List[int] = None
-        self._frame_range: Tuple[int, int] = None
-        self._version_number: int = None
-
-    @property
-    def name(self):
-        """Preview context name."""
-        return self._name
-
-    def set_name(self, value):
-        """Set the name.
-
-        Args:
-            value (str): The name.
-        """
-        self._name = value
+        self._enabled: bool = enabled
+        self._camera: str = camera
+        self._label: str = label
+        self._resolution: List[int] = resolution
+        self._frame_range: Tuple[int, int] = frame_range
+        self._version_number: int = version_number
 
     @property
     def enabled(self):
@@ -113,6 +105,26 @@ class PreviewContext:
         """
         self._version_number = value
 
+    @staticmethod
+    def get_default_camera(cameras):
+        """Convenience function to get the default camera with priority."""
+        # Define the priority list
+        priority_list = ['front', 'back', 'top', 'bottom', 'persp']
+
+        # Filter out cameras that are not in the priority list
+        filtered_cameras = [cam for cam in cameras if cam not in priority_list]
+
+        # If there are cameras not in the priority list, return the first one
+        if filtered_cameras:
+            return filtered_cameras[0]
+
+        # If 'persp' is in the list, return it
+        if 'persp' in cameras:
+            return 'persp'
+
+        # Otherwise, return the first camera in the list
+        return cameras[0]
+
 # TODO:  Move the preview functions from work object here and make it available to be used by work and publishes (or maybe more)
 
 class Preview:
@@ -127,14 +139,31 @@ class Preview:
         """
         self.context = preview_context
         self.work = work_object
-        self.settings = settings or {}
+        self._settings = settings or {}
         self._path = None
 
         self._folder = self.work.get_abs_project_path("previews")
         Path(self._folder).mkdir(parents=True, exist_ok=True)
 
+    @property
+    def settings(self):
+        """Preview settings."""
+        return self._settings
+
+    @settings.setter
+    def settings(self, value):
+        """Set the preview settings.
+
+        Args:
+            value (dict): The preview settings.
+        """
+        self._settings = value
+
     def generate(self, show_after=True):
         """Generate the preview."""
+        if not self._verify_context():
+            return False
+
         nice_name, full_name = self.resolve_preview_name()
 
         # camera code can be a node, path, uuid or name depending on the dcc
@@ -144,15 +173,15 @@ class Preview:
             self._folder,
             camera_code=camera_code,
             resolution=self.context.resolution,
-            range=self.context.frame_range,
-            settings=self.settings,
+            frame_range=self.context.frame_range,
+            settings=self._settings,
         )
         if not abs_path:
             LOG.error("Preview generation failed.")
             return False
 
         suffix = Path(abs_path).suffix
-        if self.settings.get("PostConversion", False) and suffix != ".mp4":
+        if self._settings.get("PostConversion", False) and suffix != ".mp4":
             ffmpeg = self._check_ffmpeg()
             if ffmpeg:
                 abs_path = self._convert_preview(abs_path, ffmpeg, overwrite=True)
@@ -172,6 +201,17 @@ class Preview:
             utils.execute(abs_path)
         return True
 
+    def _verify_context(self):
+        """Verify the preview context."""
+
+        if not self.context.camera:
+            LOG.error("Camera not set.")
+            return False
+
+        if not self.context.version_number:
+            LOG.error("Version number not set.")
+            return False
+        return True
 
     def resolve_preview_name(self):
         """Resolve the preview name.

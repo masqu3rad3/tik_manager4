@@ -59,11 +59,16 @@ class Main:
 
         self.set_project(str(_project))
 
-        management_platform = self.project.settings.get("management_platform")
-        print("management_platform", management_platform)
+        self._globalize_management_platform()
+
+    def _globalize_management_platform(self):
+        """Globalize the management platform."""
+        management_platform = self.project.settings.get("management_platform", None)
         if management_platform:
             self.project.guard.set_management_handler(
                 management.platforms[management_platform](self))
+        else:
+            self.project.guard.set_management_handler(None)
 
     def _create_default_project(self):
         """Create a default project."""
@@ -166,6 +171,8 @@ class Main:
         categories = list(project_obj.guard.category_definitions.properties.keys())
         _main_task = project_obj.add_task("main", categories=categories)
 
+        self._globalize_management_platform()
+
         if set_after_creation:
             self.set_project(path)
         return 1
@@ -189,6 +196,7 @@ class Main:
         self.user.add_recent_project(absolute_path)
         self.user.last_project = absolute_path
         self.dcc.set_project(absolute_path)
+        self._globalize_management_platform()
         return 1
 
     def collect_template_paths(self):
@@ -294,7 +302,6 @@ class Main:
         """
         msg = "Success"
         defined_handler = self.project.guard.management_handler
-        print(defined_handler)
         if defined_handler:
             if defined_handler.name == platform_name:
                 if defined_handler.is_authenticated:

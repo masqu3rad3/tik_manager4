@@ -1045,7 +1045,7 @@ class MainUI(QtWidgets.QMainWindow):
             work_object=_work,
             version=_version,
             resolution=_resolution,
-            range=_range,
+            frame_range=_range,
             parent=self,
         )
         dialog.show()
