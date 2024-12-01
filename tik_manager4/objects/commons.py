@@ -81,6 +81,17 @@ class Commons:
         """
         return self.users.get_property(user_name).get("permissionLevel", 0)
 
+    def get_user_email(self, user_name):
+        """Return the email of the user.
+
+        Args:
+            user_name (str): The name of the user.
+
+        Returns:
+            str: The email of the user.
+        """
+        return self.users.get_property(user_name).get("email", "")
+
     def get_users(self):
         """Return the list of all active users."""
         return self.users.keys

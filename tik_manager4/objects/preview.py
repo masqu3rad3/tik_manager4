@@ -125,8 +125,6 @@ class PreviewContext:
         # Otherwise, return the first camera in the list
         return cameras[0]
 
-# TODO:  Move the preview functions from work object here and make it available to be used by work and publishes (or maybe more)
-
 class Preview:
     """Preview class."""
     def __init__(self, preview_context, database_object, settings=None, message_callback=None):
@@ -215,7 +213,7 @@ class Preview:
 
         if show_after:
             utils.execute(abs_path)
-        return True
+        return abs_path
 
     def register_data(self, preview_data):
         """Register the preview data to the database object."""

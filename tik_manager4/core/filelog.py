@@ -105,7 +105,7 @@ class Filelog:
         """
         stamped_msg = "%sERROR    : %s" % (self._get_now(), msg)
         self._start_logging()
-        self.logger.error(stamped_msg)
+        self.logger.error(stamped_msg, exc_info=True)
         self.__set_last_message(msg, "error")
         self._end_logging()
         if not proceed:

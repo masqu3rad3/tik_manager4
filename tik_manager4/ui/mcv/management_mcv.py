@@ -2,7 +2,10 @@
 
 import functools
 
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui, QtNetwork
+from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+# we need to import the QtNetwork module from Qt like this to make sure it's
+# available with pyinstaller
+from tik_manager4.ui import Qt
 from tik_manager4.ui.widgets.pop import WaitDialog
 from tik_manager4.ui.widgets.common import TikIconButton
 from tik_manager4.ui import pick
@@ -24,15 +27,15 @@ class SgProjectItem(QtGui.QStandardItem):
 
     def _load_icon_from_url(self, url):
         """Load the icon from the url."""
-        self.network_manager = QtNetwork.QNetworkAccessManager()
+        self.network_manager = Qt.QtNetwork.QNetworkAccessManager()
         self.network_manager.finished.connect(
             functools.partial(self._set_icon_from_reply)
         )
-        self.network_manager.get(QtNetwork.QNetworkRequest(QtCore.QUrl(url)))
+        self.network_manager.get(Qt.QtNetwork.QNetworkRequest(QtCore.QUrl(url)))
 
     def _set_icon_from_reply(self, reply):
         """Set the icon from the reply."""
-        if reply.error() == QtNetwork.QNetworkReply.NoError:
+        if reply.error() == Qt.QtNetwork.QNetworkReply.NoError:
             pixmap = QtGui.QPixmap()
             pixmap.loadFromData(reply.readAll())
             self.setIcon(QtGui.QIcon(pixmap))

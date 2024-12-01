@@ -178,7 +178,7 @@ class Publish(Entity):
                     )
             else:
                 raise ValueError(
-                    f"{element_type} element is not found in the publish version."
+                    f"{element_type} element cannot be found in the publish version."
                 )
 
     def import_version(

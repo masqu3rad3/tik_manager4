@@ -93,7 +93,7 @@ class Guard:
 
     @classmethod
     def set_user(cls, user):
-        """Set the user object.
+        """Set the user name.
 
         Args:
             user (User): The user object.
@@ -102,8 +102,13 @@ class Guard:
 
     @property
     def user(self):
-        """Return the user object."""
+        """Return the user name."""
         return self._user
+
+    @property
+    def email(self):
+        """Return the email of the user."""
+        return self.commons.get_user_email(self._user)
 
     @classmethod
     def set_permission_level(cls, level):

@@ -109,7 +109,6 @@ class PublishSceneDialog(QtWidgets.QDialog):
         self.preview_context = PreviewContext()
         self.preview_context.set_enabled(False) # disable by default
         self.preview_enabled_cb = None
-        # self.camera_combo = None
         self.resolution_vc2 = None
         self.range_vc2 = None
 
@@ -281,11 +280,14 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         self.extracts_scroll_lay.addStretch()
 
+    @property
+    def is_management_driven(self):
+        """Check if the management platform is available."""
+        return self.project.settings.get("management_driven", False)
+
     def _management_widgets(self):
         """Check if the management platform is available."""
-        is_management_driven = self.project.settings.get(
-            "management_driven", False)
-        if not is_management_driven:
+        if not self.is_management_driven:
             return
         m_handler = self.project.guard.management_handler
         if not m_handler:
@@ -313,11 +315,12 @@ class PublishSceneDialog(QtWidgets.QDialog):
             management_tasks_label = QtWidgets.QLabel(
                 f"{m_handler.nice_name} Task:")
 
-            self.management_tasks_combo = QtWidgets.QComboBox()
+            # self.management_tasks_combo = QtWidgets.QComboBox()
             wait_dialog.set_message("Fetching Tasks...")
             tasks_data_list = self.project.publisher.get_management_tasks()
-            task_model = ManagementTasksComboBoxModel(tasks_data_list)
-            self.management_tasks_combo.setModel(task_model)
+            self.management_tasks_combo = ManagementTasksCombo(tasks_data_list)
+            # task_model = ManagementTasksComboBoxModel(tasks_data_list)
+            # self.management_tasks_combo.setModel(task_model)
             management_tasks_lay.addWidget(management_tasks_label)
             management_tasks_lay.addWidget(self.management_tasks_combo)
 
@@ -326,12 +329,12 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
             # management status
             management_status_label = QtWidgets.QLabel("Status to:")
-            management_status_combo = QtWidgets.QComboBox()
+            self.management_status_combo = QtWidgets.QComboBox()
             wait_dialog.set_message("Fetching Status Lists...")
-            management_status_combo.addItems(
+            self.management_status_combo.addItems(
                 m_handler.get_available_status_lists())
             management_tasks_lay.addWidget(management_status_label)
-            management_tasks_lay.addWidget(management_status_combo)
+            management_tasks_lay.addWidget(self.management_status_combo)
             management_tasks_lay.addStretch()
             wait_dialog.kill()
 
@@ -602,7 +605,23 @@ class PublishSceneDialog(QtWidgets.QDialog):
             return
 
         # finalize publish
-        self.project.publisher.publish(notes=self.notes_text.toPlainText(), preview_context=self.preview_context, message_callback=pop.set_message)
+        management_task_id = None
+        management_task_status = None
+        if self.is_management_driven:
+            # get the management task and status
+            task_dict = self.management_tasks_combo.get_current_item()
+            if task_dict:
+                management_task_id = task_dict.get("id", None)
+            management_task_status = self.management_status_combo.currentText()
+
+        self.project.publisher.publish(
+            notes=self.notes_text.toPlainText(),
+            preview_context=self.preview_context,
+            message_callback=pop.set_message,
+            management_task_id=management_task_id,
+            management_task_status_to=management_task_status,
+        )
+        warnings.extend(self.project.publisher.warnings)
         # prepare publish report and feedback
         pop.kill()
         if warnings:
@@ -924,6 +943,19 @@ class ManagementTasksComboBoxModel(QtCore.QAbstractListModel):
         if 0 <= index < len(self.items):
             return self.items[index]
         return None
+
+class ManagementTasksCombo(QtWidgets.QComboBox):
+    """Custom ComboBox for Management Tasks."""
+    def __init__(self, items, parent=None):
+        super().__init__(parent)
+        self.items = items
+        self.model = ManagementTasksComboBoxModel(items)
+        self.setModel(self.model)
+
+    def get_current_item(self):
+        """Get the current selected item."""
+        index = self.currentIndex()
+        return self.model.get_item(index)
 
 
 # test this dialog

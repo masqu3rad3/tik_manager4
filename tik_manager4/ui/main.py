@@ -51,7 +51,6 @@ from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
 from tik_manager4.ui.widgets.common import TikButton, VerticalSeparator
 from tik_manager4.ui.dialog.update_dialog import UpdateDialog
 from tik_manager4.ui.widgets.pop import WaitDialog
-# from tik_manager4 import management
 
 
 LOG = logging.getLogger(__name__)

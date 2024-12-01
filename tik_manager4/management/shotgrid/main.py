@@ -52,6 +52,7 @@ class ProductionPlatform(ManagementCore):
         self.tik_main = tik_main_obj
         self.sg = None
         self.is_authenticated = False
+        self.user = None
 
     def authenticate(self):
         """Connect to Shotgrid."""
@@ -74,8 +75,8 @@ class ProductionPlatform(ManagementCore):
             tank.authentication.set_shotgun_authenticator_support_web_login(
                 True)
             authenticator = tank.authentication.ShotgunAuthenticator()
-            user = authenticator.get_user()
-            sg_connection = user.create_sg_connection()
+            self.user = authenticator.get_user()
+            sg_connection = self.user.create_sg_connection()
             # test connection
             sg_connection.find_one("Project", [])
             return sg_connection, "Success"
@@ -116,7 +117,7 @@ class ProductionPlatform(ManagementCore):
             ), "Success"
         except Exception as e:
             msg = f"Script authentication failed: {e}"
-            LOG.error(msg)
+            LOG.error(msg, exc_info=True)
             return None, msg
 
     def get_projects(self, archived: bool = False, is_template: bool = False,
@@ -179,7 +180,6 @@ class ProductionPlatform(ManagementCore):
         # Get the current time in UTC and format it as ISO 8601
         return datetime.now(timezone.utc).strftime(
             '%Y-%m-%dT%H:%M:%SZ')
-
 
     def create_from_project(self, project_root, shotgrid_project_id, set_project=True):
         """Create a tik_manager4 project from the existing Shotgrid project."""
@@ -637,9 +637,18 @@ class ProductionPlatform(ManagementCore):
         os.environ["TIK_SG_STATUS_LISTS"] = str(status_values)
         return status_values
 
+    def get_user_id(self, email):
+        """Get a user from Shotgrid by email."""
+        user = self.sg.find_one(
+            "HumanUser",
+            [["email", "is", email]],
+            fields=["id"]
+        )
+        return user["id"] if user else None
+
     def publish_version(self, entity_type, entity_id, task_id, name, path,
-                        project_id, description="", thumbnail=None,
-                        preview=None):
+                        project_id, status=None, description="", thumbnail=None,
+                        preview=None, email=None):
         """Publish a version to Shotgrid.
 
         Args:
@@ -666,6 +675,11 @@ class ProductionPlatform(ManagementCore):
             "sg_path_to_geometry": path,
         }
 
+        if not self.user and email: # authenticated by script
+            user = self.sg.find_one("HumanUser", [["email", "is", email]], fields=["id"])
+            if user:
+                data["user"] = {"type": "HumanUser", "id": user["id"]}
+
         # Create the version in ShotGrid
         version = self.sg.create("Version", data)
 
@@ -679,6 +693,10 @@ class ProductionPlatform(ManagementCore):
                 "Version", version["id"], preview,
                 field_name="sg_uploaded_movie"
             )
+
+        # Update task status if a status is provided
+        if status:
+            self.sg.update("Task", task_id, {"sg_status_list": status})
 
         return version
 

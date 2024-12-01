@@ -4,7 +4,7 @@ st_a = Analysis(
     ['dcc\\standalone\\tik4_standalone.py'],
     pathex=['external\\shotgunsoftware'],
     binaries=[],
-    datas=[('ui\\theme', 'ui\\theme')],
+    datas=[('ui\\theme', 'ui\\theme'), ('external\\shotgunsoftware\\tank_vendor\\shotgun_api3\\lib\\certifi\\cacert.pem', 'tank_vendor\\shotgun_api3\\lib\\certifi')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -40,7 +40,7 @@ ps_a = Analysis(
         'dcc\\photoshop\\extract\\source.py',
         'dcc\\photoshop\\ingest\\source.py',
      ],
-    pathex=[],
+    pathex=['external\\shotgunsoftware'],
     binaries=[],
     datas=[],
     hiddenimports=[],
@@ -73,7 +73,7 @@ ps_exe = EXE(
 
 ps_b = Analysis(
     ['dcc\\photoshop\\tik4_ps_new_version.py'],
-    pathex=[],
+    pathex=['external\\shotgunsoftware'],
     binaries=[],
     datas=[],
     hiddenimports=[],
@@ -106,7 +106,7 @@ ps_b_exe = EXE(
 
 ps_c = Analysis(
     ['dcc\\photoshop\\tik4_ps_publish.py'],
-    pathex=[],
+    pathex=['external\\shotgunsoftware'],
     binaries=[],
     datas=[],
     hiddenimports=[],

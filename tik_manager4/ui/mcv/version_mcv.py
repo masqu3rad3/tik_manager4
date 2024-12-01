@@ -258,8 +258,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         read_only = False
         if self.base.object_type == "publish":
 
-            if self.base.dcc.lower() == self.base.guard.dcc.lower():
-                question = "Publish versions are protected. The file will be loaded and saved as a new WORK version immediately.\n Do you want to continue?"
+            if self.base.dcc.lower() == self.base.guard.dcc.lower() and element_type.lower() == "source":
+                question = f"Publish versions are protected. The file will be loaded and saved as a new WORK version immediately.\n\nDo you want to continue?"
                 state = self.feedback.pop_question(
                     title="Load publish version?",
                     text=question,

@@ -8,7 +8,6 @@ from tik_manager4.ui.widgets.common import TikButtonBox
 
 import tik_manager4.ui.layouts.settings_layout
 from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
-# from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
 import tik_manager4.ui.mcv.subproject_mcv
 
 
