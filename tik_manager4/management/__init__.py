@@ -5,6 +5,7 @@ from .management_core import ManagementCore
 
 # Dictionary to store platform classes
 platforms = {}
+ui_extensions = {}
 
 # # Path to the directory containing platform folders
 # _FROZEN = getattr(sys, "frozen", False)
@@ -32,7 +33,9 @@ platforms = {}
 
 # test
 from tik_manager4.management.shotgrid.main import ProductionPlatform
+from tik_manager4.management.shotgrid.ui_extension import UiExtensions
 platforms["shotgrid"] = ProductionPlatform
+ui_extensions["shotgrid"] = UiExtensions
 
 # Optional: Explicitly make platforms accessible from the management package
 __all__ = ["platforms"]

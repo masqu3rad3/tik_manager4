@@ -43,7 +43,7 @@ dialog.show()
 from time import time
 import logging
 
-from tik_manager4.objects.preview import PreviewContext, Preview
+from tik_manager4.objects.preview import PreviewContext
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 from tik_manager4.ui.widgets.common import (
     TikLabel,

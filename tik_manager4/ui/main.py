@@ -32,7 +32,7 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog
-from tik_manager4.ui.dialog.project_dialog import CreateFromShotgridDialog
+# from tik_manager4.ui.dialog.project_dialog import CreateFromShotgridDialog
 from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
 from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
@@ -51,10 +51,11 @@ from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
 from tik_manager4.ui.widgets.common import TikButton, VerticalSeparator
 from tik_manager4.ui.dialog.update_dialog import UpdateDialog
 from tik_manager4.ui.widgets.pop import WaitDialog
-
+from tik_manager4 import management
 
 LOG = logging.getLogger(__name__)
 WINDOW_NAME = f"Tik Manager {version.__version__}"
+
 
 
 def launch(dcc="Standalone", dont_show=False):
@@ -168,9 +169,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.ingest_version_btn = None
 
         self.initialize_mcv()
+        self.menu_bar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 680, 18))
         self.build_bars()
         self.build_buttons()
         #
+        self.build_extensions()
+
         self.resume_last_state()
         self.management_lock()
 
@@ -445,19 +449,19 @@ class MainUI(QtWidgets.QMainWindow):
         """Build the menu bar."""
         # pylint: disable=too-many-locals
         # pylint: disable=too-many-statements
-        menu_bar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 680, 18))
-        self.setMenuBar(menu_bar)
-        file_menu = menu_bar.addMenu("File")
-        tools_menu = menu_bar.addMenu("Tools")
-        help_menu = menu_bar.addMenu("Help")
+        # menu_bar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 680, 18))
+        self.setMenuBar(self.menu_bar)
+        file_menu = self.menu_bar.addMenu("File")
+        tools_menu = self.menu_bar.addMenu("Tools")
+        help_menu = self.menu_bar.addMenu("Help")
 
         # File Menu
         create_project = QtWidgets.QAction("&Create New Project", self)
         file_menu.addAction(create_project)
-        create_project_from_shotgrid = QtWidgets.QAction(
-            "&Create Project from Shotgrid    ", self
-        )
-        file_menu.addAction(create_project_from_shotgrid)
+        # create_project_from_shotgrid = QtWidgets.QAction(
+        #     "&Create Project from Shotgrid    ", self
+        # )
+        # file_menu.addAction(create_project_from_shotgrid)
         set_project = QtWidgets.QAction("&Set Project", self)
         file_menu.addAction(set_project)
         file_menu.addSeparator()
@@ -545,28 +549,14 @@ class MainUI(QtWidgets.QMainWindow):
             tools_menu.addAction(create_preview)
             create_preview.triggered.connect(self.on_create_preview)
 
-        create_project_from_shotgrid.triggered.connect(
-            self.on_create_project_from_shotgrid
-        )
+        self.menu_bar.setMinimumWidth(self.menu_bar.sizeHint().width())
 
-        menu_bar.setMinimumWidth(menu_bar.sizeHint().width())
-
-    def on_create_project_from_shotgrid(self):
-        """Test method."""
-        if not self._pre_check(level=3):
-            return
-
-        handler = self.management_connect("shotgrid")
-        if not handler:
-            return
-
-        dialog = CreateFromShotgridDialog(handler, parent=self)
-        state = dialog.exec()
-        if state:
-            # hard refresh the project
-            self.subprojects_mcv.manual_refresh()
-            self.status_bar.showMessage("Project created successfully")
-        return
+    def build_extensions(self):
+        """Collect the management extensions and build the menu."""
+        # get the management extensions
+        for platform_name, extension_class in management.ui_extensions.items():
+            extension = extension_class(self)
+            extension.build_ui()
 
     def management_connect(self, platform_name=None):
         """Convenience function to connect to a management platform."""
@@ -577,7 +567,7 @@ class MainUI(QtWidgets.QMainWindow):
                     )
         self.wait_dialog.display()
         handler, msg = self.tik.get_management_handler(platform_name)
-        if not handler:
+        if not handler or not handler.is_authenticated:
             self.wait_dialog.kill()
             self.feedback.pop_info(title="Authentication Failed", text=f"Authentication failed while connecting to {platform_name}\n\n{msg}", critical=True)
             return None
@@ -934,6 +924,9 @@ class MainUI(QtWidgets.QMainWindow):
             handler = self.management_connect(management_platform)
             if not handler:
                 return
+            # # create the UI extensions
+            # ui_extensions = management.ui_extensions[management_platform](handler, self)
+            # ui_extensions.add_main_menu()
             wait_popup = WaitDialog(message="Syncing Project...", parent=self)
             wait_popup.display()
             synced = handler.sync_project()

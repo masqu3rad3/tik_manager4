@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Code Generation Terminology</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pyside.css" />
+    <link rel="next" title="Modifying Arguments" href="typesystem_arguments.html" />
+    <link rel="prev" title="Specifying Types" href="typesystem_specifying_types.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png"/></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="typesystem_arguments.html" title="Modifying Arguments"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="typesystem_specifying_types.html" title="Specifying Types"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="typesystem.html" accesskey="U">Type System Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Code Generation Terminology</a></li> 
+      </ul>
+    </div>
+    </div>
+</div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="code-generation-terminology">
+<span id="codegenerationterminology"></span><h1>Code Generation Terminology</h1>
+<section id="types-of-generated-code">
+<h2>Types of generated code</h2>
+<dl class="simple">
+<dt><strong>Python Wrapper</strong></dt><dd><p>The code that exports the C++ wrapped class to Python. <strong>Python wrapper</strong>
+refers to all the code needed to export a C++ class to Python, and
+<strong>Python method/function wrapper</strong> means the specific function that calls
+the C++ method/function on behalf of Python. This code is invoked from
+the Python side.</p>
+</dd>
+<dt><strong>C++ Wrapper</strong></dt><dd><p>This term refers to a generated C++ class that extends a class from the
+wrapped library. It is generated only when a wrapped C++ class is
+polymorphic, i.e. it has or inherits any virtual methods.
+The <strong>C++ Wrapper</strong> overrides the virtual methods of the wrapped C++ class
+with code that allows for overriding the method with a Python implementation.
+It checks whether a corresponding method in the Python instance exists and
+calls it. This code is invoked from the C++ side.</p>
+</dd>
+</dl>
+</section>
+<section id="specifying-a-target-for-modifications">
+<h2>Specifying a target for modifications</h2>
+<p>In the typesystem files, the <code class="docutils literal notranslate"><span class="pre">class</span></code> attribute is used to which class a
+modification is applied (see <a class="reference internal" href="typesystem_codeinjection.html#codeinjectionsemantics"><span class="std std-ref">Code Injection Semantics</span></a>,
+<a class="reference internal" href="typesystem_ownership.html#objectownership"><span class="std std-ref">Object ownership</span></a>).
+The value <strong>Target</strong> means the modification is applied to the
+<strong>Python Wrapper</strong>. The value <strong>Native</strong> means the modification is applied to
+the <strong>C++ Wrapper</strong>.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

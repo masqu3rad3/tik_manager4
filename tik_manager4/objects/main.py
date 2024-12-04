@@ -1,10 +1,8 @@
 """Main Module for the Tik Manager"""
 
-import os
 import http.client
 import json
 from pathlib import Path
-import sys
 from tik_manager4.core import filelog, settings, utils
 from tik_manager4.objects import user, project
 from tik_manager4 import dcc
@@ -16,19 +14,12 @@ import tik_manager4._version as version
 # for example, Maya and trigger.
 from importlib import reload
 reload(dcc)
-# from tik_manager4.ui.Qt import (
-#     QtWidgets,
-# )  # Only for browsing if the common folder is not defined
-
-# if __name__ == "__main__":
-#     app = QtWidgets.QApplication(sys.argv)
 
 
 class Main:
     """Main Tik Manager class. Handles User and Project related functions."""
     # set the dcc to the guard object
     dcc = dcc.Dcc()
-    # dcc = dcc.get_dcc_class()
     log = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
@@ -44,7 +35,6 @@ class Main:
 
 
         default_project = Path(utils.get_home_dir(), "TM4_default")
-        # default_project = os.path.join(utils.get_home_dir(), "TM4_default")
 
         if not (default_project / "tikDatabase" / "project_structure.json").exists():
             self._create_default_project()
@@ -307,6 +297,9 @@ class Main:
                 if defined_handler.is_authenticated:
                     return defined_handler, msg
                 _sg, msg = defined_handler.authenticate()
+                if not _sg:
+                    self.log.error(msg)
+                    return None, msg
                 return defined_handler, msg
             # if we are requesting a different platform than the defined one
             # Create a new loose handler

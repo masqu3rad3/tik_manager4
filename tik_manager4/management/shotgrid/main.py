@@ -10,15 +10,9 @@ from copy import deepcopy
 from tik_manager4.core import utils
 from tik_manager4.management.management_core import ManagementCore
 
-# raise Exception("This module is not ready for use.")
 
-# external_folder = os.getenv("TIK_EXTERNAL_SOURCES")
 external_folder = Path(__file__).parents[2] / "external"
-# if not external_folder:
-#     raise Exception(
-#         "TIK_EXTERNAL_SOURCES environment variable is not set. Please make sure the tik_manager4 is initialized."
-#     )
-# shotgun_folder = (Path(external_folder) / "shotgunsoftware").as_posix()
+
 shotgun_folder = (external_folder / "shotgunsoftware").as_posix()
 
 if shotgun_folder not in sys.path:
@@ -54,6 +48,11 @@ class ProductionPlatform(ManagementCore):
         self.is_authenticated = False
         self.user = None
 
+    @property
+    def host(self):
+        return self.tik_main.user.commons.management_settings.get(
+        "sg_url")
+
     def authenticate(self):
         """Connect to Shotgrid."""
         method = self.tik_main.user.commons.management_settings.get(
@@ -69,12 +68,19 @@ class ProductionPlatform(ManagementCore):
         self.is_authenticated = bool(self.sg)
         return self.sg, msg
 
+    def logout(self):
+        """Log out from Shotgrid."""
+        authenticator = tank.authentication.ShotgunAuthenticator()
+        authenticator.clear_default_user()
+
     def _user_authenticate(self):
         """Make a user based authentication."""
         try:
             tank.authentication.set_shotgun_authenticator_support_web_login(
                 True)
-            authenticator = tank.authentication.ShotgunAuthenticator()
+            defaults_manager = tank.authentication.DefaultsManager(
+                fixed_host=self.host)
+            authenticator = tank.authentication.ShotgunAuthenticator(defaults_manager=defaults_manager)
             self.user = authenticator.get_user()
             sg_connection = self.user.create_sg_connection()
             # test connection
@@ -103,18 +109,17 @@ class ProductionPlatform(ManagementCore):
                 LOG.error(msg)
                 return None, msg
 
-            base_url = self.tik_main.user.commons.management_settings.get(
-                "sg_url")
-            if not base_url:
+            if not self.host:
                 msg = "URL not set in Settings -> Platform Settings."
                 LOG.error(msg)
                 return None, msg
-
-            return shotgun_api3.Shotgun(
-                base_url=base_url,
+            sg_connection = shotgun_api3.Shotgun(
+                base_url=self.host,
                 script_name=script_name,
                 api_key=api_key,
-            ), "Success"
+            )
+            sg_connection.find_one("Project", [])
+            return sg_connection, "Success"
         except Exception as e:
             msg = f"Script authentication failed: {e}"
             LOG.error(msg, exc_info=True)
@@ -180,6 +185,27 @@ class ProductionPlatform(ManagementCore):
         # Get the current time in UTC and format it as ISO 8601
         return datetime.now(timezone.utc).strftime(
             '%Y-%m-%dT%H:%M:%SZ')
+
+    def force_sync(self):
+        """Force sync the project with Shotgrid."""
+        project_id = self.tik_main.project.settings.get("host_project_id")
+        if not project_id:
+            raise Exception("Project is not linked to a Shotgrid project.")
+
+        all_assets = self.get_all_assets(project_id)
+        all_shots = self.get_all_shots(project_id)
+
+        assets_sub = self._get_assets_sub()
+        shots_sub = self._get_shots_sub()
+
+        asset_categories = self._get_asset_categories()
+        shot_categories = self._get_shot_categories()
+
+        for asset in all_assets:
+            self._sync_new_asset(asset, assets_sub, asset_categories)
+
+        for shot in all_shots:
+            self._sync_new_shot(shot, shots_sub, shot_categories)
 
     def create_from_project(self, project_root, shotgrid_project_id, set_project=True):
         """Create a tik_manager4 project from the existing Shotgrid project."""

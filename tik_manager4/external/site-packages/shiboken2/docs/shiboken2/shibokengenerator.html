@@ -1,0 +1,326 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Generator Overview</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pyside.css" />
+    <link rel="next" title="Shiboken module" href="shibokenmodule.html" />
+    <link rel="prev" title="Getting started" href="gettingstarted.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png"/></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="shibokenmodule.html" title="Shiboken module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="gettingstarted.html" title="Getting started"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Generator Overview</a></li> 
+      </ul>
+    </div>
+    </div>
+</div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="generator-overview">
+<span id="gen-overview"></span><h1>Generator Overview</h1>
+<p>The following diagram summarizes Shiboken’s role in the Qt for Python
+project.</p>
+<img alt="_images/qtforpython-underthehood.png" src="_images/qtforpython-underthehood.png" />
+<p>An XML typesystem file is used to specify the types to be exposed to Python
+and to apply modifications to properly represent and manipulate the types in
+the Python World. For example, you can remove and add methods to certain types,
+and also modify the arguments of each method. These actions are inevitable to
+properly handle the data structures or types.</p>
+<p>The final outcome of this process is a set of wrappers written in CPython,
+which can be used as a module in your Python code.</p>
+<p>In a few words, the Generator is a utility that parses a collection of header and
+typesystem files, generating other files (code, documentation, etc.) as result.</p>
+<section id="creating-new-bindings">
+<h2>Creating new bindings</h2>
+<figure class="align-center" id="id2">
+<a class="reference internal image-reference" href="_images/bindinggen-development.png"><img alt="_images/bindinggen-development.png" src="_images/bindinggen-development.png" style="width: 480.0px; height: 150.4px;" /></a>
+<figcaption>
+<p><span class="caption-text">Creating new bindings</span></p>
+</figcaption>
+</figure>
+<p>Each module of the generator system has an specific role.</p>
+<ol class="arabic simple">
+<li><p>Provide enough data about the classes and functions.</p></li>
+<li><p>Generate valid code, with modifications from typesystems and injected codes.</p></li>
+<li><p>Modify the API to expose the objects in a way that fits you target language best.</p></li>
+<li><p>Insert customizations where handwritten code is needed.</p></li>
+</ol>
+<figure class="align-center" id="id3">
+<a class="reference internal image-reference" href="_images/shibokenqtarch.png"><img alt="_images/shibokenqtarch.png" src="_images/shibokenqtarch.png" style="width: 206.4px; height: 148.0px;" /></a>
+<figcaption>
+<p><span class="caption-text">Runtime architecture</span></p>
+</figcaption>
+</figure>
+<p>The newly created binding will run on top of Shiboken which takes
+care of interfacing Python and the underlying C++ library.</p>
+</section>
+<section id="handwritten-inputs">
+<h2>Handwritten inputs</h2>
+<p>Creating new bindings involves creating two pieces of “code”: the typesystem and
+the inject code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">typesystem</dt>
+<dd class="field-odd"><p>XML files that provides the developer with a tool to customize the
+way that the generators will see the classes and functions. For
+example, functions can be renamed, have its signature changed and
+many other actions.</p>
+</dd>
+<dt class="field-even">inject code</dt>
+<dd class="field-even"><p>allows the developer to insert handwritten code where the generated
+code is not suitable or needs some customization.</p>
+</dd>
+</dl>
+<section id="command-line-options">
+<span id="command-line"></span><h3>Command line options</h3>
+<section id="usage">
+<h4>Usage</h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">shiboken</span> <span class="p">[</span><span class="n">options</span><span class="p">]</span> <span class="n">header</span><span class="o">-</span><span class="n">file</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="n">typesystem</span><span class="o">-</span><span class="n">file</span>
+</pre></div>
+</div>
+</section>
+<section id="options">
+<h4>Options</h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--disable-verbose-error-messages</span></code></dt><dd><p>Disable verbose error messages. Turn the CPython code hard to debug but saves a few kilobytes
+in the generated binding.</p>
+</dd>
+</dl>
+<dl class="simple" id="parent-heuristic">
+<dt><code class="docutils literal notranslate"><span class="pre">--enable-parent-ctor-heuristic</span></code></dt><dd><p>This flag enable an useful heuristic which can save a lot of work related to object ownership when
+writing the typesystem.
+For more info, check <a class="reference internal" href="typesystem_ownership.html#ownership-parent-heuristics"><span class="std std-ref">Parentship heuristics</span></a>.</p>
+</dd>
+</dl>
+<dl class="simple" id="pyside-extensions">
+<dt><code class="docutils literal notranslate"><span class="pre">--enable-pyside-extensions</span></code></dt><dd><p>Enable pyside extensions like support for signal/slots. Use this if you are creating a binding based
+on PySide.</p>
+</dd>
+</dl>
+<dl class="simple" id="return-heuristic">
+<dt><code class="docutils literal notranslate"><span class="pre">--enable-return-value-heuristic</span></code></dt><dd><p>Enable heuristics to detect parent relationship on return values.
+For more info, check <a class="reference internal" href="typesystem_ownership.html#return-value-heuristics"><span class="std std-ref">Return value heuristics</span></a>.</p>
+</dd>
+</dl>
+<dl class="simple" id="avoid-protected-hack">
+<dt><code class="docutils literal notranslate"><span class="pre">--avoid-protected-hack</span></code></dt><dd><p>Avoid the use of the ‘#define protected public’ hack.</p>
+</dd>
+</dl>
+<dl class="simple" id="use-isnull-as-nb-nonzero">
+<dt><code class="docutils literal notranslate"><span class="pre">--use-isnull-as-nb_nonzero</span></code></dt><dd><p>If a class have an isNull() const method, it will be used to
+compute the value of boolean casts</p>
+</dd>
+</dl>
+<dl class="simple" id="api-version">
+<dt><code class="docutils literal notranslate"><span class="pre">--api-version=&lt;version&gt;</span></code></dt><dd><p>Specify the supported api version used to generate the bindings.</p>
+</dd>
+</dl>
+<dl class="simple" id="documentation-only">
+<dt><code class="docutils literal notranslate"><span class="pre">--documentation-only</span></code></dt><dd><p>Do not generate any code, just the documentation.</p>
+</dd>
+</dl>
+<dl class="simple" id="drop-type-entries">
+<dt><code class="docutils literal notranslate"><span class="pre">--drop-type-entries=&quot;&lt;TypeEntry0&gt;[;TypeEntry1;...]&quot;</span></code></dt><dd><p>Semicolon separated list of type system entries (classes, namespaces,
+global functions and enums) to be dropped from generation. Values are
+fully qualified Python type names (‘Module.Class’), but the module can
+be omitted (‘Class’).</p>
+</dd>
+</dl>
+<dl class="simple" id="generation-set">
+<dt><code class="docutils literal notranslate"><span class="pre">--generation-set</span></code></dt><dd><p>Generator set to be used (e.g. qtdoc).</p>
+</dd>
+</dl>
+<dl class="simple" id="skip-deprecated">
+<dt><code class="docutils literal notranslate"><span class="pre">--skip-deprecated</span></code></dt><dd><p>Skip deprecated functions.</p>
+</dd>
+</dl>
+<dl class="simple" id="diff">
+<dt><code class="docutils literal notranslate"><span class="pre">--diff</span></code></dt><dd><p>Print a diff of wrapper files.</p>
+</dd>
+</dl>
+<dl class="simple" id="dryrun">
+<dt><code class="docutils literal notranslate"><span class="pre">--dryrun</span></code></dt><dd><p>Dry run, do not generate wrapper files.</p>
+</dd>
+</dl>
+<dl class="simple" id="project-file">
+<dt><code class="docutils literal notranslate"><span class="pre">--project-file=&lt;file&gt;</span></code></dt><dd><p>Text file containing a description of the binding project.
+Replaces and overrides command line arguments.</p>
+</dd>
+</dl>
+<dl class="simple" id="include-paths">
+<dt><code class="docutils literal notranslate"><span class="pre">-I&lt;path&gt;,</span> <span class="pre">--include-paths=&lt;path&gt;[:&lt;path&gt;:...]</span></code></dt><dd><p>Include paths used by the C++ parser.</p>
+</dd>
+</dl>
+<p>… _system-include-paths:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">-isystem&lt;path&gt;,</span> <span class="pre">--system-include-paths=&lt;path&gt;[:&lt;path&gt;:...]</span></code></dt><dd><p>System include paths used by the C++ parser</p>
+</dd>
+</dl>
+<dl class="simple" id="framework-include-paths">
+<dt><code class="docutils literal notranslate"><span class="pre">-F&lt;path&gt;,</span> <span class="pre">--framework-include-paths=&lt;path&gt;[:&lt;path&gt;:...]</span></code></dt><dd><p>Framework include paths used by the C++ parser</p>
+</dd>
+</dl>
+<dl class="simple" id="language-level">
+<dt><code class="docutils literal notranslate"><span class="pre">--language-level=,</span> <span class="pre">-std=&lt;level&gt;</span></code></dt><dd><p>C++ Language level (c++11..c++17, default=c++14)</p>
+</dd>
+</dl>
+<dl class="simple" id="typesystem-paths">
+<dt><code class="docutils literal notranslate"><span class="pre">-T&lt;path&gt;,</span> <span class="pre">--typesystem-paths=&lt;path&gt;[:&lt;path&gt;:...]</span></code></dt><dd><p>Paths used when searching for type system files.</p>
+</dd>
+</dl>
+<dl class="simple" id="output-directory">
+<dt><code class="docutils literal notranslate"><span class="pre">--output-directory=[dir]</span></code></dt><dd><p>The directory where the generated files will be written.</p>
+</dd>
+</dl>
+<dl class="simple" id="license-file-license-file">
+<dt><code class="docutils literal notranslate"><span class="pre">--license-file=[license-file]</span></code></dt><dd><p>File used for copyright headers of generated files.</p>
+</dd>
+</dl>
+<dl class="simple" id="no-suppress-warnings">
+<dt><code class="docutils literal notranslate"><span class="pre">--no-suppress-warnings</span></code></dt><dd><p>Show all warnings.</p>
+</dd>
+</dl>
+<dl class="simple" id="silent">
+<dt><code class="docutils literal notranslate"><span class="pre">--silent</span></code></dt><dd><p>Avoid printing any message.</p>
+</dd>
+</dl>
+<dl class="simple" id="debug-level">
+<dt><code class="docutils literal notranslate"><span class="pre">--debug-level=[sparse|medium|full]</span></code></dt><dd><p>Set the debug level.</p>
+</dd>
+</dl>
+<dl class="simple" id="help">
+<dt><code class="docutils literal notranslate"><span class="pre">--help</span></code></dt><dd><p>Display this help and exit.</p>
+</dd>
+</dl>
+<dl class="simple" id="version">
+<dt><code class="docutils literal notranslate"><span class="pre">--version</span></code></dt><dd><p>Output version information and exit.</p>
+</dd>
+</dl>
+</section>
+<section id="qtdocgenerator-options">
+<h4>QtDocGenerator Options</h4>
+<dl class="simple" id="doc-parser">
+<dt><code class="docutils literal notranslate"><span class="pre">--doc-parser=&lt;parser&gt;</span></code></dt><dd><p>The documentation parser used to interpret the documentation
+input files (qdoc|doxygen).</p>
+</dd>
+</dl>
+<dl class="simple" id="documentation-code-snippets-dir">
+<dt><code class="docutils literal notranslate"><span class="pre">--documentation-code-snippets-dir=&lt;dir&gt;</span></code></dt><dd><p>Directory used to search code snippets used by the documentation.</p>
+</dd>
+</dl>
+<dl class="simple" id="documentation-data-dir">
+<dt><code class="docutils literal notranslate"><span class="pre">--documentation-data-dir=&lt;dir&gt;</span></code></dt><dd><p>Directory with XML files generated by documentation tool.</p>
+</dd>
+</dl>
+<dl class="simple" id="documentation-extra-sections-dir-dir">
+<dt><code class="docutils literal notranslate"><span class="pre">--documentation-extra-sections-dir=&lt;dir&gt;</span></code></dt><dd><p>Directory used to search for extra documentation sections.</p>
+</dd>
+</dl>
+<dl class="simple" id="library-source-dir">
+<dt><code class="docutils literal notranslate"><span class="pre">--library-source-dir=&lt;dir&gt;</span></code></dt><dd><p>Directory where library source code is located.</p>
+</dd>
+</dl>
+<dl class="simple" id="additional-documentation">
+<dt><code class="docutils literal notranslate"><span class="pre">--additional-documentation=&lt;file&gt;</span></code></dt><dd><p>List of additional XML files to be converted to .rst files
+(for example, tutorials).</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+</section>
+<section id="binding-project-file">
+<span id="id1"></span><h1>Binding Project File</h1>
+<p>Instead of directing the Generator behavior via command line, the binding
+developer can write a text project file describing the same information, and
+avoid the hassle of a long stream of command line arguments.</p>
+<section id="the-project-file-structure">
+<span id="project-file-structure"></span><h2>The project file structure</h2>
+<p>Here follows a comprehensive example of a generator project file.</p>
+<blockquote>
+<div><div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[generator-project]</span><span class="w"></span>
+<span class="na">generator-set</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">path/to/generator/CHOICE_GENERATOR</span><span class="w"></span>
+<span class="na">header-file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">DIR/global.h&quot; /&gt;</span><span class="w"></span>
+<span class="na">typesystem-file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">DIR/typesystem_for_your_binding.xml</span><span class="w"></span>
+<span class="na">output-directory location</span><span class="o">=</span><span class="s">&quot;OUTPUTDIR&quot; /&gt;</span><span class="w"></span>
+<span class="na">include-path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">path/to/library/being/wrapped/headers/1</span><span class="w"></span>
+<span class="na">include-path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">path/to/library/being/wrapped/headers/2</span><span class="w"></span>
+<span class="na">typesystem-path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">path/to/directory/containing/type/system/files/1</span><span class="w"></span>
+<span class="na">typesystem-path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">path/to/directory/containing/type/system/files/2</span><span class="w"></span>
+<span class="na">enable-parent-ctor-heuristic</span><span class="w"></span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="project-file-tags">
+<h2>Project file tags</h2>
+<p>The generator project file tags are in direct relation to the
+<a class="reference internal" href="#command-line"><span class="std std-ref">command line arguments</span></a>. All of the current command line
+options provided by Shiboken were already seen on the
+<a class="reference internal" href="#project-file-structure"><span class="std std-ref">The project file structure</span></a>, for new command line options provided by
+additional generator modules (e.g.: qtdoc, Shiboken) could also be used in the
+generator project file following simple conversion rules.</p>
+<p>For tags without options, just write as an empty tag without any attributes.
+Example:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>--BOOLEAN-ARGUMENT
+</pre></div>
+</div>
+</div></blockquote>
+<p>becomes</p>
+<blockquote>
+<div><div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">BOOLEAN-ARGUMENT</span><span class="w"></span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>and</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>--VALUE-ARGUMENT<span class="o">=</span>VALUE
+</pre></div>
+</div>
+</div></blockquote>
+<p>becomes</p>
+<blockquote>
+<div><div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">VALUE-ARGUMENT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">VALUE</span><span class="w"></span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>
