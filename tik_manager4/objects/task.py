@@ -28,9 +28,9 @@ class Task(Settings, Entity):
         categories=None,
         path="",
         file_name=None,
-        task_type=None,
         parent_sub=None,
         task_id=None,
+        metadata_overrides=None,
     ):
         """Initialize Task object.
 
@@ -47,21 +47,30 @@ class Task(Settings, Entity):
         # self._task_id = None
         super().__init__()
         self.settings_file = absolute_path
+        self._parent_sub = parent_sub
+
         self._name = self.get_property("name") or name
         self._creator = self.get_property("creator") or self.guard.user
         self._works = {}
         self._publishes = {}
+        self._metadata_overrides = metadata_overrides or self.get_property("metadata_overrides", default={})
         self._task_id = self.get_property("task_id") or task_id
         self._relative_path = self.get_property("path") or path
         self._file_name = self.get_property("file_name") or file_name
-        self._type = self.get_property("type") or task_type
+        # self._type = self.get_property("type") or task_type
+        # get the type from metadata
+        self._type = self.metadata.get_value("mode", "")
+
+        self._state = self.get_property("state") or "active"
 
         self._categories = {}
         self.build_categories(self.get_property("categories") or categories)
 
-        self._parent_sub = parent_sub
 
-        self._metadata_overrides = self.get_property("metadata_overrides") or {}
+    def refresh(self):
+        """Refresh the task object."""
+        self.reload()
+        self.__init__(self.settings_file, parent_sub=self._parent_sub)
 
     @property
     def file_name(self):
@@ -106,6 +115,23 @@ class Task(Settings, Entity):
             _metadata.override(self._metadata_overrides)
             return _metadata
         return Metadata(self._metadata_overrides)
+
+    @property
+    def state(self):
+        """State of the task."""
+        return self._state
+
+    def omit(self):
+        """Omit the task."""
+        self._state = "omitted"
+        self.edit_property("state", self._state)
+        self.apply_settings()
+
+    def revive(self):
+        """Revive the task."""
+        self._state = "active"
+        self.edit_property("state", self._state)
+        self.apply_settings()
 
     def build_categories(self, category_list):
         """Create category objects.
@@ -153,7 +179,8 @@ class Task(Settings, Entity):
         self.apply_settings()
         return self._categories[category]
 
-    def edit(self, name=None, task_type=None, categories=None, metadata_overrides=None):
+    # def edit(self, name=None, task_type=None, categories=None, metadata_overrides=None):
+    def edit(self, name=None, categories=None, metadata_overrides=None):
         """Edit the task.
 
         Edits the given arguments of the task and applies the settings.
@@ -182,9 +209,9 @@ class Task(Settings, Entity):
                 return -1
             self._name = name
             self.edit_property("name", name)
-        if task_type and task_type != self.type:
-            self._type = task_type
-            self.edit_property("type", task_type)
+        # if task_type and task_type != self.type:
+        #     self._type = task_type
+        #     self.edit_property("type", task_type)
         if categories and categories != list(self.categories.keys()):
             # check if the categories are list or tuple
             if not isinstance(categories, (list, tuple)):

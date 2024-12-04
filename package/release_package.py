@@ -57,4 +57,5 @@ if __name__ == "__main__":
     _debug_mode = any([opt in ("-d", "--debug") for opt, _ in opts])
     release_utility = ReleaseUtility(debug_mode=_debug_mode)
     release_utility.freeze()
-    release_utility.inno_setup()
+    if not _debug_mode:
+        release_utility.inno_setup()

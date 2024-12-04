@@ -42,24 +42,25 @@ dialog.show()
 
 from time import time
 import logging
+
+from tik_manager4.objects.preview import PreviewContext
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 from tik_manager4.ui.widgets.common import (
     TikLabel,
-    TikLabelButton,
-    HeaderLabel,
     ResolvedText,
     TikButtonBox,
     TikButton,
     TikIconButton,
-    # ExpandableLayout,
+    VerticalSeparator
 )
 from tik_manager4.ui.layouts.settings_layout import (
     SettingsLayout,
-    convert_to_ui_definition,
 )
 from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui import pick
+from tik_manager4.ui.widgets.value_widgets import Vector2Int
+from tik_manager4.ui.widgets.pop import WaitDialog
 
 LOG = logging.getLogger(__name__)
 
@@ -104,13 +105,26 @@ class PublishSceneDialog(QtWidgets.QDialog):
         # class widgets
         self.notes_text = None
 
+        # preview related variables and widgets
+        self.preview_context = PreviewContext()
+        self.preview_context.set_enabled(False) # disable by default
+        self.preview_enabled_cb = None
+        self.resolution_vc2 = None
+        self.range_vc2 = None
+
+        # management related widgets
+        self.management_tasks_combo = None
+        self.management_status_combo = None
+
         # build the layouts
         self.build_ui()
 
-        self.resize(1000, 600)
+        # self.resize(1000, 600)
+        self.setMinimumWidth(1000)
+        self.setMinimumHeight(400)
 
         self.horizontal_splitter.setSizes([500, 500])
-        self.vertical_splitter.setSizes([800, 200])
+        self.vertical_splitter.setSizes([600, 400])
 
     def check_eligibility(self):
         """Checks if the current scene is eligible for publishing."""
@@ -266,13 +280,170 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         self.extracts_scroll_lay.addStretch()
 
+    @property
+    def is_management_driven(self):
+        """Check if the management platform is available."""
+        return self.project.settings.get("management_driven", False)
+
+    def _management_widgets(self):
+        """Check if the management platform is available."""
+        if not self.is_management_driven:
+            return
+        m_handler = self.project.guard.management_handler
+        if not m_handler:
+            return
+        platform_name = m_handler.nice_name
+        wait_dialog = WaitDialog(parent=self)
+        wait_dialog.display()
+        if m_handler:
+            if not m_handler.is_authenticated:
+                wait_dialog.set_message(f"Authenticating to {platform_name}...")
+                _handler, _msg = m_handler.authenticate()
+                if not _handler:
+                    wait_dialog.kill()
+                    ret = self.feedback.pop_question(
+                        title="Authentication Failed",
+                        text=f"Authentication failed for {platform_name}. Please check your credentials.\n\n Do you want to continue without {platform_name} support?",
+                    )
+                    if ret == "cancel":
+                        return
+
+            management_tasks_lay = QtWidgets.QHBoxLayout()
+            management_tasks_lay.setContentsMargins(0, 0, 0, 0)
+            self.bottom_layout.addLayout(management_tasks_lay)
+
+            management_tasks_label = QtWidgets.QLabel(
+                f"{m_handler.nice_name} Task:")
+
+            # self.management_tasks_combo = QtWidgets.QComboBox()
+            wait_dialog.set_message("Fetching Tasks...")
+            tasks_data_list = self.project.publisher.get_management_tasks()
+            self.management_tasks_combo = ManagementTasksCombo(tasks_data_list)
+            # task_model = ManagementTasksComboBoxModel(tasks_data_list)
+            # self.management_tasks_combo.setModel(task_model)
+            management_tasks_lay.addWidget(management_tasks_label)
+            management_tasks_lay.addWidget(self.management_tasks_combo)
+
+            separator = VerticalSeparator()
+            management_tasks_lay.addWidget(separator)
+
+            # management status
+            management_status_label = QtWidgets.QLabel("Status to:")
+            self.management_status_combo = QtWidgets.QComboBox()
+            wait_dialog.set_message("Fetching Status Lists...")
+            self.management_status_combo.addItems(
+                m_handler.get_available_status_lists())
+            management_tasks_lay.addWidget(management_status_label)
+            management_tasks_lay.addWidget(self.management_status_combo)
+            management_tasks_lay.addStretch()
+            wait_dialog.kill()
+
+    def _preview_widgets(self):
+        """Build the preview widgets if the preview is available."""
+        if not self.project.publisher.task_object:
+            return
+        if not self.project.publisher._dcc_handler.preview_enabled:
+            return
+        if self.project.publisher.task_object.type.lower() != "shot":
+            return
+        # if not self.project.publisher.work_object
+        scene_cameras = self.project.publisher._dcc_handler.get_scene_cameras()
+        if not scene_cameras:
+            return
+
+        self.preview_context.set_enabled(True)
+
+        # get the resolution with the following priority: metadata_inherited_resolution, preview_settings_resolution, 1920x1080
+        metadata_inherited_resolution = self.project.publisher.task_object.metadata.get_value("resolution", None)
+        preview_settings_resolution = self.project.preview_settings.get("Resolution", [1920, 1080])
+        resolution_percentage = self.project.preview_settings.get("ResolutionPercentage", 100)
+
+        full_resolution = metadata_inherited_resolution or preview_settings_resolution
+        preview_resolution = [int(x * resolution_percentage / 100) for x in full_resolution]
+        self.preview_context.set_resolution(preview_resolution)
+
+        # get the range with this priority: metadata_inherited_range, scene range, 1001-1100
+        metadata_start = self.project.publisher.task_object.metadata.get_value("start_frame", None)
+        metadata_end = self.project.publisher.task_object.metadata.get_value("end_frame", None)
+        _raw_scene_ranges = self.project.publisher._dcc_handler.get_ranges()
+        if _raw_scene_ranges:
+            scene_start = _raw_scene_ranges[0]
+            scene_end = _raw_scene_ranges[-1]
+        else:
+            scene_start = 1001
+            scene_end = 1100
+
+        preview_start = metadata_start or scene_start
+        preview_end = metadata_end or scene_end
+        self.preview_context.set_frame_range([preview_start, preview_end])
+
+        preview_layout = QtWidgets.QHBoxLayout()
+        self.bottom_layout.addLayout(preview_layout)
+
+        # preview_lbl = QtWidgets.QLabel("Preview: ")
+        # preview_layout.addWidget(preview_lbl)
+
+        preview_enabled_cb = QtWidgets.QCheckBox(text="Take Preview")
+        preview_enabled_cb.setChecked(True)
+        preview_layout.addWidget(preview_enabled_cb)
+
+        preview_layout.addWidget(VerticalSeparator())
+
+        camera_lbl = QtWidgets.QLabel("Camera: ")
+        preview_layout.addWidget(camera_lbl)
+        camera_combo = QtWidgets.QComboBox()
+        cameras = list(scene_cameras.keys())
+        camera_combo.addItems(cameras)
+        # Try to get the camera other than [front, back, top, bottom, persp]
+        # if there isn't any, select try to select persp.
+        # if no persp, select the first camera
+        default_camera = self.preview_context.get_default_camera(cameras)
+        camera_combo.setCurrentText(default_camera)
+        self.preview_context.set_camera(default_camera)
+
+        preview_layout.addWidget(camera_combo)
+
+        preview_layout.addWidget(VerticalSeparator())
+        resolution_lbl = QtWidgets.QLabel("Resolution: ")
+        preview_layout.addWidget(resolution_lbl)
+        resolution_vc2 = Vector2Int("resolution", value=self.preview_context.resolution)
+        preview_layout.addWidget(resolution_vc2)
+
+        preview_layout.addWidget(VerticalSeparator())
+
+        range_lbl = QtWidgets.QLabel("Range: ")
+        preview_layout.addWidget(range_lbl)
+        range_vc2 = Vector2Int("range", value=self.preview_context.frame_range)
+        preview_layout.addWidget(range_vc2)
+
+        preview_layout.addStretch()
+
+        # SIGNALS
+
+        preview_enabled_cb.stateChanged.connect(camera_combo.setEnabled)
+        preview_enabled_cb.stateChanged.connect(resolution_vc2.setEnabled)
+        preview_enabled_cb.stateChanged.connect(range_vc2.setEnabled)
+        preview_enabled_cb.stateChanged.connect(self.preview_context.set_enabled)
+
+        camera_combo.currentTextChanged.connect(self.preview_context.set_camera)
+        resolution_vc2.com.valueChanged.connect(self.preview_context.set_resolution)
+        range_vc2.com.valueChanged.connect(self.preview_context.set_frame_range)
+
+
     def _build_bottom(self):
         """Build the bottom section."""
+
+        # management platform tasks
+        self._management_widgets()
+
+        # preview widgets
+        self._preview_widgets()
 
         # notes layout
         notes_label = QtWidgets.QLabel("Notes:")
         self.bottom_layout.addWidget(notes_label)
         self.notes_text = QtWidgets.QTextEdit()
+
         # add a placeholder text
         self.notes_text.setPlaceholderText("Notes are mandatory for publishes.")
         self.bottom_layout.addWidget(self.notes_text)
@@ -320,16 +491,20 @@ class PublishSceneDialog(QtWidgets.QDialog):
             # keep updating the ui
             QtWidgets.QApplication.processEvents()
 
-    def extract_all(self):
+    def extract_all(self, callback_handler=None):
         """Extract all the extractors."""
         # single extractors are not saving the scene. Make sure the scene saved first
         self.project.publisher._dcc_handler.save_scene()
         for extractor_widget in self._extractor_widgets:
             if not extractor_widget.extract.enabled:
                 continue
+            if callback_handler:
+                callback_handler.set_message(f"Extracting {extractor_widget.extract.name}...")
+                callback_handler.display()
             self.project.publisher.extract_single(extractor_widget.extract)
             extractor_widget.set_state(extractor_widget.extract.state)
             if extractor_widget.extract.state == "failed":
+                callback_handler.kill()
                 q = self.feedback.pop_question(
                     title="Extraction Failed",
                     text=f"Extraction failed for: \n\n{extractor_widget.extract.name}\n\nDo you want to continue?",
@@ -380,6 +555,8 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
     def publish(self):
         """Command to publish the scene."""
+        pop = WaitDialog(message="Publishing...", parent=self)
+        pop.display()
         self.reset_validators()  # only resets if the scene is modified
         self.validate_all()
         # check the state of the validations
@@ -389,6 +566,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         # if there are fails, pop up a dialog
         if fails:
+            pop.kill()
             self.feedback.pop_info(
                 title="Validation Failed",
                 text=f"Validation failed for: \n\n{fails}\n\nPlease fix the validation issues before publishing.",
@@ -396,6 +574,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
             return
         # if there are warnings, pop up a dialog
         if warnings:
+            pop.kill()
             q = self.feedback.pop_question(
                 title="Validation Warnings",
                 text=f"Validation warnings for: \n\n{warnings}\n\nDo you want IGNORE them and continue?",
@@ -405,6 +584,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
                 return
 
         if unavailable_extractors:
+            pop.kill()
             q = self.feedback.pop_question(
                 title="Extraction Unavailable",
                 text=f"Extraction unavailable for: \n\n{unavailable_extractors}\n\nDo you want to continue?",
@@ -414,16 +594,36 @@ class PublishSceneDialog(QtWidgets.QDialog):
                 return
 
         # reserve the slot
+        pop.set_message("Reserving Slot...")
+        pop.display()
         self.project.publisher.reserve()
         # extract the elements
-        state = self.extract_all()
+        state = self.extract_all(callback_handler=pop)
         if not state:
+            pop.kill()
             # user cancellation due to failed extracts
             return
 
         # finalize publish
-        self.project.publisher.publish(notes=self.notes_text.toPlainText())
+        management_task_id = None
+        management_task_status = None
+        if self.is_management_driven:
+            # get the management task and status
+            task_dict = self.management_tasks_combo.get_current_item()
+            if task_dict:
+                management_task_id = task_dict.get("id", None)
+            management_task_status = self.management_status_combo.currentText()
+
+        self.project.publisher.publish(
+            notes=self.notes_text.toPlainText(),
+            preview_context=self.preview_context,
+            message_callback=pop.set_message,
+            management_task_id=management_task_id,
+            management_task_status_to=management_task_status,
+        )
+        warnings.extend(self.project.publisher.warnings)
         # prepare publish report and feedback
+        pop.kill()
         if warnings:
             msg = f"Publish Successful with following warnings:\n\n{warnings}"
         else:
@@ -491,11 +691,11 @@ class ValidateRow(QtWidgets.QHBoxLayout):
     def validate(self):
         """Validate the validator."""
         start = time()
-        LOG.info(f"validating {self.button.text()}...")
+        LOG.info("validating %s...", self.button.text())
         self.validator.validate()
         self.update_state()
         end = time()
-        LOG.info(f"took {end-start} seconds")
+        LOG.info("took %s seconds", end-start)
 
     def pop_info(self):
         """Pop up an information dialog for informing the user what went wrong."""
@@ -520,7 +720,7 @@ class ValidateRow(QtWidgets.QHBoxLayout):
     def fix(self):
         """Auto Fix the scene."""
         start = time()
-        LOG.info(f"fixing {self.button.text()}...")
+        LOG.info("fixing %s...", self.button.text())
         self.validator.fix()
         self.validator.validate()
         if self.validator.state != "passed":
@@ -528,7 +728,7 @@ class ValidateRow(QtWidgets.QHBoxLayout):
             pass
         self.update_state()
         end = time()
-        LOG.info(f"took {end - start} seconds")
+        LOG.info("took %s seconds", end - start)
 
     def select(self):
         """Select the objects related to the validator."""
@@ -577,7 +777,7 @@ class ValidateRow(QtWidgets.QHBoxLayout):
 
         else:
             _fail_colour = "yellow" if _ignorable else "red"
-            self.status_icon.setStyleSheet("background-color: {};".format(_fail_colour))
+            self.status_icon.setStyleSheet(f"background-color: {_fail_colour};")
             if _autofixable:
                 self.fix_pb.setEnabled(True)
             else:
@@ -594,7 +794,7 @@ class ExtractRow(QtWidgets.QHBoxLayout):
 
     def __init__(self, extract_object, *args, **kwargs):
         """Initialize the ExtractRow."""
-        super(ExtractRow, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.extract = extract_object
         self.status_icon = None
         self.label = None
@@ -721,6 +921,41 @@ class ExtractRow(QtWidgets.QHBoxLayout):
         else:
             pass
         return
+
+class ManagementTasksComboBoxModel(QtCore.QAbstractListModel):
+    def __init__(self, items, parent=None):
+        super().__init__(parent)
+        self.items = items
+
+    def rowCount(self, parent=None):
+        return len(self.items)
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        if not index.isValid() or not (0 <= index.row() < len(self.items)):
+            return None
+        if role == QtCore.Qt.DisplayRole:
+            # Display only the 'content' key's value
+            return self.items[index.row()].get('content', '')
+        return None
+
+    def get_item(self, index):
+        """Method to get the full dictionary item."""
+        if 0 <= index < len(self.items):
+            return self.items[index]
+        return None
+
+class ManagementTasksCombo(QtWidgets.QComboBox):
+    """Custom ComboBox for Management Tasks."""
+    def __init__(self, items, parent=None):
+        super().__init__(parent)
+        self.items = items
+        self.model = ManagementTasksComboBoxModel(items)
+        self.setModel(self.model)
+
+    def get_current_item(self):
+        """Get the current selected item."""
+        index = self.currentIndex()
+        return self.model.get_item(index)
 
 
 # test this dialog

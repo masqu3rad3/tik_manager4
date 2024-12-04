@@ -51,6 +51,11 @@ class Publish(Entity):
         return self.work_object.dcc
 
     @property
+    def dcc_handler(self):
+        """DCC handler object."""
+        return self._dcc_handler
+
+    @property
     def versions(self):
         """Versions of the publish."""
         self.scan_publish_versions()
@@ -85,7 +90,7 @@ class Publish(Entity):
 
     def revive(self):
         """Revive the work."""
-        self.work_object._state = "working" if not self.versions else "published"
+        self.work_object._state = "active" if not self.versions else "published"
         self.work_object.edit_property("state", self.work_object._state)
         self.work_object.apply_settings()
 
@@ -173,7 +178,7 @@ class Publish(Entity):
                     )
             else:
                 raise ValueError(
-                    f"{element_type} element is not found in the publish version."
+                    f"{element_type} element cannot be found in the publish version."
                 )
 
     def import_version(
@@ -432,6 +437,7 @@ class PublishVersion(Settings, Entity):
     name and path properties are required during first creation.
     When read from the file, these properties are initialized from the file.
     """
+    object_type = "publish_version"
 
     def __init__(self, absolute_path, name=None, path=None):
         """Initialize the publish version object.
@@ -503,6 +509,11 @@ class PublishVersion(Settings, Entity):
     def dcc_version(self):
         """Dcc version used while publishing the version."""
         return self._dcc_version
+
+    @property
+    def dcc_handler(self):
+        """DCC handler object."""
+        return self._dcc_handler
 
     @property
     def publish_id(self):

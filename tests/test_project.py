@@ -453,7 +453,7 @@ class TestProject:
             task.edit(
                 name="Aquaman",
                 categories=["Model", "Rig", "LookDev", "Animation"],
-                task_type="Shot",
+                metadata_overrides={"mode": "shot"},
             )
             == -1
         )
@@ -473,7 +473,7 @@ class TestProject:
             task.edit(
                 name="Wonderboy",
                 categories=["Model", "Rig", "LookDev", "Animation"],
-                task_type="Shot",
+                metadata_overrides={"mode": "shot"},
             )
             == -1
         )
@@ -484,25 +484,24 @@ class TestProject:
 
         # wrong category type
         with pytest.raises(Exception):
-            task.edit(name="Aquaman", categories="ThisIsWrong", task_type="Shot")
+            task.edit(name="Aquaman", categories="ThisIsWrong", metadata_overrides={"mode": "shot"})
         # category not defined
         with pytest.raises(Exception):
             task.edit(
                 name="Aquaman",
                 categories=["Model", "Rig", "LookDev", "Animation", "ThisIsWrong"],
-                task_type="Shot",
+                metadata_overrides={"mode": "shot"},
             )
 
         # edit the task
         task.edit(
             name="Aquaman",
             categories=["Model", "Rig", "LookDev", "Animation"],
-            task_type="Shot",
+            metadata_overrides={"mode": "shot"},
         )
 
         assert list(task.categories.keys()) == ["Model", "Rig", "LookDev", "Animation"]
         assert task.name == "Aquaman"
-        assert task.type == "Shot"
 
     def test_adding_categories(self, project_manual_path, tik):
         self.test_creating_and_adding_new_tasks(project_manual_path, tik)

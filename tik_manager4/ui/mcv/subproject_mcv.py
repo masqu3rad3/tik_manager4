@@ -1,21 +1,13 @@
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 import tik_manager4.ui.dialog.subproject_dialog
 import tik_manager4.ui.dialog.task_dialog
-from tik_manager4.ui.widgets.common import VerticalSeparator
+from tik_manager4.ui.widgets.common import HorizontalSeparator, TikIconButton
 from tik_manager4.ui.dialog.feedback import Feedback
-from tik_manager4.objects import guard
 import tik_manager4
 from tik_manager4.ui import pick
 
 
 class TikSubItem(QtGui.QStandardItem):
-    icon_dict = {
-        "root": "root.png",
-        "asset": "asset.png",
-        "shot": "shot.png",
-        "global": "global.png",
-    }
-
     def __init__(self, sub_obj):
         super(TikSubItem, self).__init__()
 
@@ -62,6 +54,7 @@ class TikColumnItem(QtGui.QStandardItem):
         fnt = QtGui.QFont("Open Sans", 10)
         fnt.setBold(False)
         self.setFont(fnt)
+
 
 class TikSubModel(QtGui.QStandardItemModel):
     def __init__(self, structure_object):
@@ -207,6 +200,8 @@ class TikSubView(QtWidgets.QTreeView):
 
         # show the root
         self.setRootIsDecorated(False)
+
+        self.is_management_locked = False
 
         # allow multiple selection but only with ctrl
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -495,6 +490,11 @@ class TikSubView(QtWidgets.QTreeView):
         menu.exec_(self.mapToGlobal(position))
 
     def right_click_menu(self, position):
+        """Create a right click menu for the view.
+
+        Args:
+            position (QPoint): The position of the right click.
+        """
         indexes = self.sender().selectedIndexes()
         index_under_pointer = self.indexAt(position)
         if not index_under_pointer.isValid():
@@ -517,12 +517,14 @@ class TikSubView(QtWidgets.QTreeView):
             level = 0
         right_click_menu = QtWidgets.QMenu(self)
         act_new_sub = right_click_menu.addAction(self.tr("New Sub-Project"))
+        act_new_sub.setEnabled(not self.is_management_locked)
         act_new_sub.triggered.connect(lambda _=None, x=item: self.new_sub_project(item))
         act_edit_sub = right_click_menu.addAction(self.tr("Edit Sub-Project"))
         act_edit_sub.triggered.connect(
             lambda _=None, x=item: self.edit_sub_project(item)
         )
         act_delete_sub = right_click_menu.addAction(self.tr("Delete Sub-Project(s)"))
+        act_delete_sub.setEnabled(not self.is_management_locked)
         act_delete_sub.triggered.connect(
             lambda _=None, x=item: self.delete_sub_project(item)
         )
@@ -530,6 +532,7 @@ class TikSubView(QtWidgets.QTreeView):
         right_click_menu.addSeparator()
 
         act_new_task = right_click_menu.addAction(self.tr("New Task"))
+        act_new_task.setEnabled(not self.is_management_locked)
         act_new_task.triggered.connect(self.new_task)
 
         right_click_menu.addSeparator()
@@ -587,7 +590,8 @@ class TikSubView(QtWidgets.QTreeView):
             self._feedback.pop_info(title.capitalize(), message)
             return
         _dialog = tik_manager4.ui.dialog.subproject_dialog.EditSubprojectDialog(
-            self.model.project, parent_sub=item.subproject, parent=self
+            self.model.project, parent_sub=item.subproject, parent=self,
+            management_lock=self.is_management_locked
         )
         state = _dialog.exec_()
         if state:
@@ -676,10 +680,19 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
         super(TikSubProjectLayout, self).__init__()
         self.project_obj = project_obj
         # add a label
+        header_lay = QtWidgets.QHBoxLayout()
+        header_lay.setContentsMargins(0, 0, 0, 0)
+        self.addLayout(header_lay)
         self.label = QtWidgets.QLabel("Sub-Projects")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
-        self.addWidget(self.label)
-        self.addWidget(VerticalSeparator(color=(221, 160, 221)))
+        header_lay.addWidget(self.label)
+        header_lay.addStretch()
+        # add a refresh button
+        self.refresh_btn = TikIconButton(
+            icon_name="refresh", circle=True, size=18, icon_size=14
+        )
+        header_lay.addWidget(self.refresh_btn)
+        self.addWidget(HorizontalSeparator(color=(221, 160, 221)))
 
         # add a checkbox for recursive search
         if recursive_enabled:
@@ -707,6 +720,14 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
         # Hide all columns except the first one
         for idx in range(1, self.sub_view.header().count()):
             self.sub_view.hideColumn(idx)
+
+        self.refresh_btn.clicked.connect(self.manual_refresh)
+
+    def manual_refresh(self):
+        """Refresh the layout and the view"""
+        self.project_obj.structure.reload()
+        self.project_obj._set(self.project_obj._absolute_path)
+        self.refresh()
 
     def refresh(self):
         """Refresh the layout"""

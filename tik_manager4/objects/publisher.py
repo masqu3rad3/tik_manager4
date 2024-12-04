@@ -4,11 +4,12 @@
 
 This module is responsible for handling the publish process.
 """
-
+import logging
 from pathlib import Path
 
 from tik_manager4.core import filelog
 
+from tik_manager4.objects.preview import PreviewContext, Preview
 from tik_manager4.dcc.standalone import main as standalone
 from tik_manager4.objects.publish import PublishVersion
 from tik_manager4.objects.guard import Guard
@@ -27,7 +28,6 @@ class Publisher:
         self._project_object = project_object
         self._work_object = None
         self._work_version = None
-        self._task_object = None
         self._metadata = None
 
         # resolved variables
@@ -38,9 +38,9 @@ class Publisher:
         self._publish_file_name = None
         self._publish_version = None
 
-        # classs variables
-
+        # class variables
         self._published_object = None
+        self.warnings = []
 
     @property
     def validators(self):
@@ -57,6 +57,14 @@ class Publisher:
         """The Work object that will be published."""
         return self._work_object
 
+    @property
+    def task_object(self):
+        """The Task object that will be published."""
+        if not self._work_object:
+            return None
+        return self._work_object.parent_task or \
+        self._project_object.find_task_by_id(self._work_object.task_id)
+
     def resolve(self):
         """Resolve the publish data file name.
 
@@ -72,12 +80,7 @@ class Publisher:
         self._resolved_extractors = {}
         self._resolved_validators = {}
 
-        # get the task object
-        self._task_object = self._project_object.find_task_by_id(
-            self._work_object.task_id
-        )
-        # self._metadata = self._task_object.parent_sub.metadata
-        self._metadata = self._task_object.metadata
+        self._metadata = self.task_object.metadata
 
         _category_definitons = self._work_object.guard.category_definitions
         extracts = _category_definitons.properties.get(
@@ -87,7 +90,6 @@ class Publisher:
             self._work_object.category, {}
         ).get("validations", [])
         # collect the matching extracts and validations from the dcc_handler.
-        # dcc_extracts = [x.lower() for x in list(self._dcc_handler.extracts.keys())]
         category_extracts = [x.lower() for x in extracts]
         for extract in list(self._dcc_handler.extracts.keys()):
             if extract.lower() in category_extracts:
@@ -97,12 +99,6 @@ class Publisher:
                 # define the category
                 self._resolved_extractors[extract].category = self._work_object.category
                 self._resolved_extractors[extract].metadata = self._metadata
-            else:
-                LOG.warning(
-                    "Extract {0} defined in category settings but it is not available on {1}".format(
-                        extract, self._dcc_handler.name
-                    )
-                )
 
         for validation in validations:
             if validation in list(self._dcc_handler.validations.keys()):
@@ -110,12 +106,6 @@ class Publisher:
                     validation
                 ]()
                 self._resolved_validators[validation].metadata = self._metadata
-            else:
-                LOG.warning(
-                    "Validation {0} defined in category settings but it is not available on {1}".format(
-                        validation, self._dcc_handler.name
-                    )
-                )
 
         latest_publish_version = self._work_object.publish.get_last_version()
 
@@ -220,15 +210,29 @@ class Publisher:
         for _extract_type_name, extract_object in self._resolved_extractors.items():
             self.extract_single(extract_object)
 
-    def publish(self, notes=None):
+    def publish(self,
+                notes=None,
+                preview_context=None,
+                message_callback=None,
+                management_task_id=None,
+                management_task_status_to=None
+                ):
         """Finalize the publish by updating the reserved slot.
 
         Args:
             notes (str, optional): The notes to add to the publish.
+            preview_context (PreviewContext, optional): The preview context.
+            message_callback (function, optional): The message callback function.
+            management_task_id (str, optional): The management task id.
+            management_task_status_to (str, optional): When defined, the task
+                on management platform will be set to the given value.
 
         Returns:
             PublishVersion: The published object.
         """
+        self.warnings = []
+        # use either given message callback function or a generic logging function
+        message_callback = message_callback or logging.getLogger(__name__).info
         # collect the validation states and log it into the publish object
         validations = {}
         for validation_name, validation_object in self._resolved_validators.items():
@@ -263,15 +267,60 @@ class Publisher:
             notes = "[Auto Generated]"
         self._published_object.add_property("notes", notes)
 
-        self._generate_thumbnail()
+        abs_thumbnail_path = self._generate_thumbnail()
+
+        preview_abs_path = None
+        if preview_context:
+            message_callback(f"Generating preview")
+            try:
+                preview_abs_path = self._generate_preview(preview_context, message_callback)
+            except Exception as e:  # pylint: disable=broad-except
+                message_callback("Preview generation failed.")
+                self.warnings.append("Preview generation failed. See the log for details.")
+                LOG.error(f"Preview generation failed: {e}")
+            # validate the type
+            # if not isinstance(preview_context, PreviewContext):
+
+
+
+        if management_task_id:
+            management_platform = self._project_object.settings.get(
+                "management_platform", "Management Platform")
+            message_callback(f"Publishing to {management_platform}")
+            try:
+                self.publish_to_management(
+                    management_task_id,
+                    management_task_status_to,
+                    description=notes,
+                    thumbnail=abs_thumbnail_path,
+                    preview=preview_abs_path,
+                )
+            except Exception as e:  # pylint: disable=broad-except
+                msg = f"Publish to {management_platform} failed. See the log for details."
+                message_callback(msg)
+                self.warnings.append(msg)
+                LOG.error(f"Publish to {management_platform} failed: {e}")
+
 
         self._published_object.apply_settings(force=True)
+
+        # hook for post publish can be defined in per dcc handler.
+        message_callback("Performing post publish operations")
         self._published_object._dcc_handler.post_publish()
         return self._published_object
 
+    def _generate_preview(self, preview_context, message_callback=None):
+        """Generate the preview."""
+        if not preview_context.enabled:
+            return
+        preview_handler = Preview(preview_context, self._published_object)
+        preview_handler.settings = self._published_object.guard.preview_settings.properties
+        preview_handler.set_message_callback(message_callback)
+        return preview_handler.generate(show_after=False)
+
     def _generate_thumbnail(self):
         """Generate the thumbnail."""
-        thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.png"
+        thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.jpg"
         thumbnail_path = self._published_object.get_abs_database_path(
             "thumbnails", thumbnail_name
         )
@@ -280,6 +329,7 @@ class Publisher:
         self._published_object.add_property(
             "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
         )
+        return thumbnail_path # abs path
 
     def discard(self):
         """Discard the reserved slot."""
@@ -349,6 +399,62 @@ class Publisher:
             )
         return None
 
+    def publish_to_management(self, management_task_id, status, description="", thumbnail=None, preview=None):
+        """Publish the data to the management system."""
+        entity_type = self.task_object.type
+        entity_id = self._work_object.task_id
+        path = self.relative_scene_path
+        name = self.publish_name
+        project_id = self._project_object.settings.get("host_project_id")
+
+        # Check if the thumbnail and preview paths are existing
+        if thumbnail and not Path(thumbnail).exists():
+            LOG.warning(f"Thumbnail path does not exist: {thumbnail}")
+            thumbnail = None
+
+        if preview and not Path(preview).exists():
+            LOG.warning(f"Preview path does not exist: {preview}")
+            preview = None
+
+        user_email = self.guard.email
+        management_version = self.guard.management_handler.publish_version(
+            entity_type=entity_type,
+            entity_id=entity_id,
+            task_id=management_task_id,
+            name=name,
+            path=path,
+            project_id=project_id,
+            status=status,
+            description=description,
+            thumbnail=thumbnail,
+            preview=preview,
+            email=user_email
+        )
+        self._published_object.edit_property("publish_id", management_version["id"])
+
+
+    def get_management_tasks(self):
+        """Get the management tasks from the platform manager (i.e. Shotgrid).
+
+        This method collects the platform tasks associated with the work
+        object and returns them. It is important to note that platform tasks
+        are not the same as the tik tasks.
+        """
+        if not self._work_object:
+            LOG.warning("No work object found. Aborting.")
+            return []
+        # get the id from the project settings
+        entity_id = self._work_object.task_id
+        entity_type = self.task_object.type
+        step = self._work_object.category
+        project_id = self._project_object.settings.get("host_project_id")
+        # get the tasks from the platform manager
+        list_of_tasks = self.guard.management_handler.request_tasks(
+            entity_id, entity_type, step, project_id
+        )
+        return list_of_tasks
+
+
 
 class SnapshotPublisher(Publisher):
     """Separate publisher to handle arbitrary file and folder publishing.
@@ -405,9 +511,9 @@ class SnapshotPublisher(Publisher):
 
         # get either the snapshot or snapshot_bundle depending if its a folder or file
         if Path(abs_path).is_dir():
-            snapshot_extractor = self._dcc_handler.extracts["snapshot_bundle"]()
+            snapshot_extractor = self.__dcc_handler.extracts["snapshot_bundle"]()
         else:
-            snapshot_extractor = self._dcc_handler.extracts["snapshot"]()
+            snapshot_extractor = self.__dcc_handler.extracts["snapshot"]()
         snapshot_extractor.category = self._work_object.category  # define the category
 
         snapshot_extractor.source_path = abs_path
@@ -438,7 +544,7 @@ class SnapshotPublisher(Publisher):
         )
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
         extension = self._resolved_extractors["snapshot"].extension or "Bundle"
-        self._dcc_handler.text_to_image(
+        self.__dcc_handler.text_to_image(
             extension, thumbnail_path, 220, 124, color="cyan"
         )
         self._published_object.add_property(

@@ -98,7 +98,7 @@ class Preview(ExtractCore):
             pb_panel.hud = display_huds
 
             cmds.select(camera)
-            nice_name = camera.split("|")[-1]
+            nice_name = camera.split("|")[-1].replace(":", "_")
             file_path_without_extension = bundle_directory / f"{nice_name}"
             cmds.playblast(
                 format="image",

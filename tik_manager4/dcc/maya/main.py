@@ -348,6 +348,10 @@ class Dcc(MainCore):
             startTime=range[0],
             endTime=range[1],
         )
+        if not _output:
+            LOG.error("Playblast failed")
+            pb_panel.kill()
+            return None
 
         final_clip = f"{_output}.{extension}"
         pb_panel.kill()

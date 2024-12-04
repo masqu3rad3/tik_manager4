@@ -1,0 +1,63 @@
+/*
+Copyright (c) 2013 Shotgun Software Inc.
+
+CONFIDENTIAL AND PROPRIETARY
+
+This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+Source Code License included in this distribution package. See LICENSE.
+By accessing, using, copying or modifying this work you indicate your
+agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+not expressly granted therein are reserved by Shotgun Software Inc.
+
+*/
+
+/*
+
+Some notes about this stylesheet
+------------------------------------------------
+
+This stylesheet is meant to be used in conjunction with a QPalette
+which contains the key colours and shades of gray that Maya 2014 is
+using - with one exception -- the selection color has been changed
+to match our "Shotgun Blue".
+
+The strategy is to run a clean plastique style with a QPalette on top
+of that. QT unfortunately seem to contain a number of cases where the Palette
+isn't properly picked up by widgets or families of widgets.
+
+This is where this style sheet comes into play: This is used to work around
+and augment those places where the palette isn't being properly respected.
+
+*/
+
+
+QWidget
+{
+
+    /*
+    This is the font that is bundled with core. This implies that any
+    apps that use the dark look and feel will use this font by default.
+    */
+    font-family: "Open Sans";
+
+    /*
+    Maya uses an 11px font size throughout.
+    Note that QLabels with <small> or <big> tags
+    will scale accordingly around this baseline size.
+    */
+    font-size: 11px;
+
+    /*
+    A number of widgets aren't picking up the main "light" color
+    from the stylesheet. Adding this color directive seems to gracefully
+    resolve this
+    */
+    color: {{SG_FOREGROUND_COLOR}};
+}
+
+QTreeView, QTableView, QListView, QTreeWidget, QTableWidget, QListWidget, QColumnView
+{
+    /* Certain widgets don't pick up the selection bg color properly from the palette */
+    selection-background-color: {{SG_HIGHLIGHT_COLOR}};
+    selection-color: #FFFFFF;
+}

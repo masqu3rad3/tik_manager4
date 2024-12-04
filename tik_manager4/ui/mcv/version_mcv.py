@@ -4,7 +4,7 @@ from pathlib import Path
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
-from tik_manager4.ui.widgets.common import TikButton, VerticalSeparator
+from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator, TikIconButton
 from tik_manager4.ui.dialog.bunde_ingest_dialog import BundleIngestDialog
 from tik_manager4.core import filelog
 from tik_manager4.ui import pick
@@ -26,10 +26,17 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.parent = kwargs.get("parent")
         self.feedback = Feedback(parent=kwargs.get("parent"))
 
+        header_lay = QtWidgets.QHBoxLayout()
+        header_lay.setContentsMargins(0, 0, 0, 0)
+        self.addLayout(header_lay)
         self.label = QtWidgets.QLabel("Versions")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
-        self.addWidget(self.label)
-        self.addWidget(VerticalSeparator(color=(255, 180, 60)))
+        header_lay.addWidget(self.label)
+        header_lay.addStretch()
+        # add a refresh button
+        self.refresh_btn = TikIconButton(icon_name="refresh", circle=True, size=18, icon_size=14)
+        header_lay.addWidget(self.refresh_btn)
+        self.addWidget(HorizontalSeparator(color=(255, 180, 60)))
 
         version_layout = QtWidgets.QHBoxLayout()
         self.addLayout(version_layout)
@@ -140,6 +147,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         )
         self.element_view_btn.clicked.connect(self.on_element_view_event)
 
+        self.refresh_btn.clicked.connect(self.refresh)
+
     def on_import(self):
         """Import the current version."""
         if not self.base:
@@ -249,8 +258,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         read_only = False
         if self.base.object_type == "publish":
 
-            if self.base.dcc.lower() == self.base.guard.dcc.lower():
-                question = "Publish versions are protected. The file will be loaded and saved as a new WORK version immediately.\n Do you want to continue?"
+            if self.base.dcc.lower() == self.base.guard.dcc.lower() and element_type.lower() == "source":
+                question = f"Publish versions are protected. The file will be loaded and saved as a new WORK version immediately.\n\nDo you want to continue?"
                 state = self.feedback.pop_question(
                     title="Load publish version?",
                     text=question,
@@ -429,7 +438,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.element_combo.clear()
         self.element_mapping.clear()
         if self.base.object_type == "publish":
-            self.show_preview_btn.setEnabled(False)
+            # self.show_preview_btn.setEnabled(False)
+            self.show_preview_btn.setEnabled(bool(_version.get("previews")))
             self.element_combo.setEnabled(True)
             self.element_view_btn.setEnabled(True)
             self.ingest_with_combo.setEnabled(True)
@@ -440,7 +450,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.element_type_changed(self.element_combo.currentText())
             owner = _version.creator
         else:  # WORK
-            # disable
             self.element_combo.setEnabled(False)
             self.element_view_btn.setEnabled(False)
             self.ingest_with_combo.setEnabled(False)

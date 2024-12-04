@@ -22,12 +22,14 @@ class TaskDialog(QtWidgets.QDialog):
         self,
         parent_sub,
         parent=None,
+        management_locked=False,
     ):
         super(TaskDialog, self).__init__(parent=parent)
 
         if parent_sub and not isinstance(parent_sub, list):
             parent_sub = [parent_sub]
         self._parent_sub = parent_sub
+        self.management_locked = management_locked
         self.metadata_definitions = self._parent_sub[0].guard.metadata_definitions
         self.inherited_metadata = self._parent_sub[0].metadata
 
@@ -226,6 +228,7 @@ class TaskDialog(QtWidgets.QDialog):
         scroll_layout.setContentsMargins(0, 0, 0, 0)
 
         self.secondary_layout = CollapsibleLayout("Inherited Properties", expanded=True)
+        # self.secondary_layout.contents_widget.setEnabled(not self.management_locked)
         scroll_layout.addLayout(self.secondary_layout)
         self.tertiary_layout = CollapsibleLayout("New Properties", expanded=False)
         scroll_layout.addLayout(self.tertiary_layout)
@@ -309,10 +312,10 @@ class NewTask(TaskDialog):
 class EditTask(TaskDialog):
     """Dialog for task editing."""
 
-    def __init__(self, task_object, parent_sub=None, parent=None, *args, **kwargs):
+    def __init__(self, task_object, parent_sub=None, parent=None, management_locked=False, *args, **kwargs):
         self.task_object = task_object
         super(EditTask, self).__init__(
-            parent_sub=parent_sub, parent=parent, *args, **kwargs
+            parent_sub=parent_sub, parent=parent, management_locked=management_locked, *args, **kwargs
         )
         self.setWindowTitle("Edit Task")
         self.inherited_metadata = self.task_object.metadata
@@ -367,7 +370,6 @@ class EditTask(TaskDialog):
         filtered_data = FilteredData()
         filtered_data.update_overridden_data(self.secondary_data)
         filtered_data.update_new_data(self.tertiary_data)
-
         _name = self.primary_data.get_property("name")
         self.task_object.edit(
             name=_name,

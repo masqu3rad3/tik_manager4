@@ -1,7 +1,7 @@
 # pylint: disable=import-error
 """Dialog for settings."""
 
-import sys # This is required for the 'frozen' attribute DO NOT REMOVE
+import sys  # This is required for the 'frozen' attribute DO NOT REMOVE
 from pathlib import Path
 import logging
 
@@ -15,16 +15,18 @@ from tik_manager4.ui.widgets.common import (
     TikButtonBox,
     TikButton,
     TikIconButton,
-    VerticalSeparator,
+    HorizontalSeparator,
 )
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.user_dialog import NewUserDialog
 from tik_manager4.ui.layouts.settings_layout import (
     SettingsLayout,
     convert_to_ui_definition,
+    convert_to_settings_data,
     guess_data_type,
 )
 from tik_manager4.ui.dialog.data_containers import MainLayout
+from tik_manager4 import management
 
 LOG = logging.getLogger(__name__)
 
@@ -92,10 +94,16 @@ class SettingsDialog(QtWidgets.QDialog):
 
         tik_button_box = TikButtonBox(parent=self)
         self.layouts.buttons_layout.addWidget(tik_button_box)
-        self.apply_button = tik_button_box.addButton("Apply", QtWidgets.QDialogButtonBox.ApplyRole)
+        self.apply_button = tik_button_box.addButton(
+            "Apply", QtWidgets.QDialogButtonBox.ApplyRole
+        )
         self.apply_button.setEnabled(False)
-        cancel_button = tik_button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
-        ok_button = tik_button_box.addButton("Ok", QtWidgets.QDialogButtonBox.AcceptRole)
+        cancel_button = tik_button_box.addButton(
+            "Cancel", QtWidgets.QDialogButtonBox.RejectRole
+        )
+        ok_button = tik_button_box.addButton(
+            "Ok", QtWidgets.QDialogButtonBox.AcceptRole
+        )
 
         # SIGNALS
         self.apply_button.clicked.connect(self.apply_settings)
@@ -132,7 +140,9 @@ class SettingsDialog(QtWidgets.QDialog):
                 "display_name": "User Templates Directory",
                 "tooltip": "The folder where all user template files stored for all Dccs. Supports flags.",
                 "type": "pathBrowser",
-                "value": self.main_object.user.settings.get_property("user_templates_directory"),
+                "value": self.main_object.user.settings.get_property(
+                    "user_templates_directory"
+                ),
             },
             "alembic_viewer": {
                 "display_name": "Alembic Viewer",
@@ -196,26 +206,34 @@ class SettingsDialog(QtWidgets.QDialog):
         header_layout.addWidget(title_label)
 
         # add a label to show the path of the settings file
-        path_label = ResolvedText(f"Change user password of {self.main_object.user.name}")
+        path_label = ResolvedText(
+            f"Change user password of {self.main_object.user.name}"
+        )
         header_layout.addWidget(path_label)
-        header_layout.addWidget(VerticalSeparator(color=(255, 141, 28), height=1))
+        header_layout.addWidget(HorizontalSeparator(color=(255, 141, 28), height=1))
 
         # form layout
         form_layout = QtWidgets.QFormLayout()
         settings_v_lay.addLayout(form_layout)
 
         old_password_lbl = QtWidgets.QLabel("Old Password :")
-        old_password_le = ValidatedString(name="old_password", allow_special_characters=True)
+        old_password_le = ValidatedString(
+            name="old_password", allow_special_characters=True
+        )
         old_password_le.setEchoMode(QtWidgets.QLineEdit.Password)
         form_layout.addRow(old_password_lbl, old_password_le)
 
         new_password_lbl = QtWidgets.QLabel("New Password :")
-        new_password_le = ValidatedString(name="new_password", allow_special_characters=True)
+        new_password_le = ValidatedString(
+            name="new_password", allow_special_characters=True
+        )
         new_password_le.setEchoMode(QtWidgets.QLineEdit.Password)
         form_layout.addRow(new_password_lbl, new_password_le)
 
         new_password2_lbl = QtWidgets.QLabel("New Password Again :")
-        new_password2_le = ValidatedString(name="new_password2", allow_special_characters=True)
+        new_password2_le = ValidatedString(
+            name="new_password2", allow_special_characters=True
+        )
         new_password2_le.setEchoMode(QtWidgets.QLineEdit.Password)
         form_layout.addRow(new_password2_lbl, new_password2_le)
 
@@ -231,7 +249,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 self.feedback.pop_info(
                     title="Cannot change password",
                     text="New passwords do not match.",
-                    critical=True
+                    critical=True,
                 )
                 return
             result, msg = self.main_object.user.change_user_password(
@@ -239,7 +257,9 @@ class SettingsDialog(QtWidgets.QDialog):
                 new_password=new_password_le.text(),
             )
             if result == -1:
-                self.feedback.pop_info(title="Cannot change password", text=msg, critical=True)
+                self.feedback.pop_info(
+                    title="Cannot change password", text=msg, critical=True
+                )
             else:
                 self.feedback.pop_info(title="Password Changed", text=msg)
                 old_password_le.clear()
@@ -301,6 +321,9 @@ class SettingsDialog(QtWidgets.QDialog):
         project_widget_item.addChild(metadata)
         metadata.content = self._metadata_content()
 
+        # project_settings = SwitchTreeItem(["Project Settings"], permission_level=3)
+        # project_widget_item.addChild(project_settings)
+
     def common_title(self):
         """Create the common settings."""
         # create the menu items
@@ -321,6 +344,24 @@ class SettingsDialog(QtWidgets.QDialog):
         users_management = SwitchTreeItem(["Users Management"], permission_level=3)
         common_widget_item.addChild(users_management)
         users_management.content = self.__common_users_management_content()
+
+        # combine the ui definitions for all management platforms
+        ui_definition = {}
+        for plt in management.platforms.keys():
+            settings_ui = management.platforms[plt].get_settings_ui()
+            # update the management settings for any missing keys
+            settings_data = convert_to_settings_data(settings_ui)
+            self.main_object.user.commons.management_settings.add_missing_keys(settings_data)
+            ui_definition.update(settings_ui)
+
+        # ui_definition = management.platforms["shotgrid"].get_settings_ui()
+        platform_settings = SwitchTreeItem(["Platform Settings"], permission_level=3)
+        common_widget_item.addChild(platform_settings)
+        platform_settings.content = self.__create_generic_settings_layout(
+            settings_data=self.main_object.user.commons.management_settings,
+            title="Platform Settings",
+            ui_definition=ui_definition,
+        )
 
     def create_content_links(self):
         """Create content widgets for all top level items."""
@@ -381,7 +422,7 @@ class SettingsDialog(QtWidgets.QDialog):
         validations = []
         extracts = []
 
-        is_frozen = getattr(sys, 'frozen', False)
+        is_frozen = getattr(sys, "frozen", False)
         # get the location of the file
         if not is_frozen:
             # get the location of the file. tik_manager/ui/dialog/settings_dialog.py
@@ -442,7 +483,7 @@ class SettingsDialog(QtWidgets.QDialog):
         # add a label to show the path of the settings file
         path_label = ResolvedText(settings_data.settings_file)
         header_layout.addWidget(path_label)
-        header_layout.addWidget(VerticalSeparator(color=(255, 141, 28), height=1))
+        header_layout.addWidget(HorizontalSeparator(color=(255, 141, 28), height=1))
 
         # make a scroll area for the main content
         scroll_area = QtWidgets.QScrollArea()
@@ -550,7 +591,7 @@ class SettingsDialog(QtWidgets.QDialog):
         user_management_widget = UsersDefinitions(
             self.main_object.user, title="Users Management", parent=self
         )
-        user_management_widget.setVisible(False) # hide by default
+        user_management_widget.setVisible(False)  # hide by default
         self.layouts.right_layout.addWidget(user_management_widget)
 
         # SIGNALS
@@ -567,6 +608,7 @@ class UsersDefinitions(QtWidgets.QWidget):
     }
 
     modified = QtCore.Signal(bool)
+
     def __init__(self, user_object, *args, title="", **kwargs):
         """Initiate the class."""
         super().__init__(*args, **kwargs)
@@ -610,7 +652,7 @@ class UsersDefinitions(QtWidgets.QWidget):
         self.layouts.header_layout.addWidget(path_label)
 
         self.layouts.header_layout.addWidget(
-            VerticalSeparator(color=(255, 141, 28), height=1)
+            HorizontalSeparator(color=(255, 141, 28), height=1)
         )
 
         self.switch_tree_widget = SwitchTreeWidget()
@@ -685,15 +727,17 @@ class UsersDefinitions(QtWidgets.QWidget):
         content_layout.addLayout(form_layout)
         # type label. We don't want to make it editable.
         # Easier to delete the metadata and add a new one.
-        type_label = QtWidgets.QLabel("Initials: ")
         type_name = ResolvedText(data["initials"])
-        form_layout.addRow(type_label, type_name)
+        form_layout.addRow("Initials: ", type_name)
+
+        user_email = ValidatedString(name="user_email", value=data.get("email", ""), allow_special_characters=True)
+
+        form_layout.addRow("Email: ", user_email)
 
         # Parse the value to the string
         permission_levels = ["Observer", "Generic", "Experienced", "Admin"]
         permission_as_string = permission_levels[data["permissionLevel"]]
 
-        permission_label = QtWidgets.QLabel("Permission Level: ")
         permission_widget = self.value_widgets["combo"](
             name="permissionLevel", value=permission_as_string, items=permission_levels
         )
@@ -701,7 +745,7 @@ class UsersDefinitions(QtWidgets.QWidget):
         if name == "Admin":
             permission_widget.setEnabled(False)
 
-        form_layout.addRow(permission_label, permission_widget)
+        form_layout.addRow("Permission Level: ", permission_widget)
         permission_widget.currentIndexChanged.connect(
             lambda value: data.update({"permissionLevel": value})
         )
@@ -709,6 +753,9 @@ class UsersDefinitions(QtWidgets.QWidget):
             lambda value: self.modified.emit(True)
         )
 
+        # user_email.com.valueChanged.connect(lambda value: self.modified.emit(True))
+        user_email.textChanged.connect(lambda value: data.update({"email": value}))
+        user_email.com.valueChanged.connect(lambda value: self.modified.emit(True))
 
         content_widget.setVisible(False)
         self.layouts.right_layout.addWidget(content_widget)
@@ -719,6 +766,7 @@ class UsersDefinitions(QtWidgets.QWidget):
 
         for metadata_key, data in self.settings_data.properties.items():
             self._add_value_widget(metadata_key, data)
+
 
 class MetadataDefinitions(QtWidgets.QWidget):
     """Widget for metadata definitions management."""
@@ -782,7 +830,7 @@ class MetadataDefinitions(QtWidgets.QWidget):
         self.layouts.header_layout.addWidget(path_label)
 
         self.layouts.header_layout.addWidget(
-            VerticalSeparator(color=(255, 141, 28), height=1)
+            HorizontalSeparator(color=(255, 141, 28), height=1)
         )
 
         self.switch_tree_widget = SwitchTreeWidget()
@@ -1005,7 +1053,7 @@ class CategoryDefinitions(QtWidgets.QWidget):
         self.layouts.header_layout.addWidget(path_label)
 
         self.layouts.header_layout.addWidget(
-            VerticalSeparator(color=(255, 141, 28), height=1)
+            HorizontalSeparator(color=(255, 141, 28), height=1)
         )
 
         self.switch_tree_widget = SwitchTreeWidget()
@@ -1034,7 +1082,9 @@ class CategoryDefinitions(QtWidgets.QWidget):
             if name in self.settings_data.properties:
                 if self.settings_data.get_property(name).get("archived", False):
                     self.settings_data.edit_sub_property((name, "archived"), False)
-                    self._add_value_widget(name, data=self.settings_data.get_property(name))
+                    self._add_value_widget(
+                        name, data=self.settings_data.get_property(name)
+                    )
                     # emit the modified signal
                     self.modified.emit(True)
                     add_category_dialog.close()
@@ -1072,9 +1122,13 @@ class CategoryDefinitions(QtWidgets.QWidget):
         horizontal_layout.addWidget(name_line_edit)
         # create a button box
         button_box = TikButtonBox()
-        add_category_pb = button_box.addButton("Add", QtWidgets.QDialogButtonBox.AcceptRole)
+        add_category_pb = button_box.addButton(
+            "Add", QtWidgets.QDialogButtonBox.AcceptRole
+        )
         name_line_edit.set_connected_widgets(add_category_pb)
-        _cancel_pb = button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
+        _cancel_pb = button_box.addButton(
+            "Cancel", QtWidgets.QDialogButtonBox.RejectRole
+        )
         dialog_layout.addWidget(button_box)
         # if user clicks ok return the selected items
         # button_box.accepted.connect(add_category_dialog.accept)
@@ -1171,6 +1225,7 @@ class CategoryDefinitions(QtWidgets.QWidget):
                 validations_model, data["validations"], "validations"
             )
         )
+
     def __add_extracts(self, form_layout, data):
         """Convenience method to add extracts view."""
         extracts_layout = QtWidgets.QHBoxLayout()
@@ -1302,11 +1357,13 @@ class ReorderListModel(QtCore.QStringListModel):
     """Custom QStringListModel that disables the overwrite
     when reordering items by drag and drop.
     """
+
     # pylint: disable=too-few-public-methods
     def __init__(self, strings=None, parent=None):
         super().__init__(parent)
         if strings is not None:
             self.setStringList(strings)
+
     def flags(self, index):
         """Override the flags method to disable the overwrite."""
         if index.isValid():
@@ -1328,6 +1385,7 @@ if __name__ == "__main__":
     import sys
     import tik_manager4
     from tik_manager4.ui import pick
+
     app = QtWidgets.QApplication(sys.argv)
     tik = tik_manager4.initialize("Standalone")
     _style_file = pick.style_file()

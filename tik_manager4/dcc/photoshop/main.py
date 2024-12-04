@@ -65,84 +65,6 @@ class Dcc(MainCore):
             pass
         return keys
 
-    # @staticmethod
-    # def get_photoshop_registry_keys():
-    #     photoshop_keys = []
-    #     try:
-    #         # Open the registry key
-    #         key = winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, "Photoshop.Application")
-    #
-    #         # Enumerate all subkeys
-    #         index = 0
-    #         while True:
-    #             try:
-    #                 subkey = winreg.EnumKey(key, index)
-    #                 if subkey.startswith("Photoshop.Application"):
-    #                     photoshop_keys.append(subkey)
-    #                 index += 1
-    #             except OSError:
-    #                 break
-    #
-    #         # Close the registry key
-    #         winreg.CloseKey(key)
-    #
-    #     except Exception as e:
-    #         print(f"Error accessing registry: {e}")
-    #
-    #     return photoshop_keys
-
-    # def getPhotoshopDispatchName(self, excludes=None):
-    #     """Get the name of the Photoshop dispatch object."""
-    #
-    #     name = "Photoshop.Application"
-    #     classBase = "SOFTWARE\\Classes\\"
-    #     try:
-    #         if excludes and name in excludes:
-    #             raise Exception()
-    #
-    #         winreg.OpenKey(
-    #             winreg.HKEY_LOCAL_MACHINE,
-    #             classBase + name,
-    #             0,
-    #             winreg.KEY_READ | winreg.KEY_WOW64_64KEY,
-    #         )
-    #     except:
-    #         classKey = winreg.OpenKey(
-    #             winreg.HKEY_LOCAL_MACHINE,
-    #             classBase,
-    #             0,
-    #             winreg.KEY_READ | winreg.KEY_WOW64_64KEY,
-    #         )
-    #         try:
-    #             i = 0
-    #             keyName = None
-    #             while True:
-    #                 classNameKey = winreg.EnumKey(classKey, i)
-    #                 if excludes and classNameKey in excludes:
-    #                     i += 1
-    #                     continue
-    #
-    #                 if classNameKey.startswith("Photoshop.Application."):
-    #                     if keyName:
-    #                         try:
-    #                             if float(classNameKey.replace("Photoshop.Application.", "")) > float(keyName.replace("Photoshop.Application.", "")):
-    #                                 keyName = classNameKey
-    #                         except:
-    #                             pass
-    #                     else:
-    #                         keyName = classNameKey
-    #
-    #                 elif keyName:
-    #                     return keyName
-    #
-    #                 i += 1
-    #         except WindowsError:
-    #             pass
-    #
-    #     else:
-    #         return name
-
-
     def save_as(self, file_path):
         """Save the current scene as a new file.
 
@@ -177,9 +99,6 @@ class Dcc(MainCore):
         Args:
             file_path (str): Path to the file to load.
         """
-        # import pdb
-        # pdb.set_trace()
-        print("file_path: ", file_path)
         self.com_link.Open(file_path)
 
     def get_scene_file(self):

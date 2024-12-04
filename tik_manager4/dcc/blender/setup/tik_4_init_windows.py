@@ -11,7 +11,7 @@ import bpy
 
 tik_path = "PATH\\TO\\PARENT\\FOLDER\\OF\\TIKMANAGER4\\"
 
-pyside_path = str(Path(tik_path, "tik_manager4\\dcc\\blender\\site-packages"))
+pyside_path = str(Path(tik_path, "tik_manager4\\external\\site-packages"))
 
 if pyside_path not in sys.path:
     sys.path.insert(0, pyside_path)

@@ -65,6 +65,9 @@ class Commons:
         self.metadata = Settings(
             file_path=str(Path(self._folder_path, "metadata.json"))
         )
+        self.management_settings = Settings(
+            file_path=str(Path(self._folder_path, "management_settings.json"))
+        )
         return True
 
     def check_user_permission_level(self, user_name):
@@ -77,6 +80,17 @@ class Commons:
             int: The permission level of the user.
         """
         return self.users.get_property(user_name).get("permissionLevel", 0)
+
+    def get_user_email(self, user_name):
+        """Return the email of the user.
+
+        Args:
+            user_name (str): The name of the user.
+
+        Returns:
+            str: The email of the user.
+        """
+        return self.users.get_property(user_name).get("email", "")
 
     def get_users(self):
         """Return the list of all active users."""

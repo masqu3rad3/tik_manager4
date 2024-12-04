@@ -4,18 +4,12 @@
 
 import socket
 import shutil
-import platform
-import subprocess
 from pathlib import Path
-from tik_manager4.core import utils
 from tik_manager4.dcc.standalone.main import Dcc as StandaloneDcc
 from tik_manager4.core.settings import Settings
 from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.publish import Publish
-
-# from tik_manager4.objects.publish import PublishVersion
-# from tik_manager4 import dcc
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -74,8 +68,10 @@ class Work(Settings, Entity):
         self._relative_path = self.get_property("path", self._relative_path)
         self._software_version = self.get_property("softwareVersion")
         self._state = self.get_property("state", self._state)
-        if self._state == "working" and self.publish.versions:
-            self._state = "published"
+        # keeping the 'working' state for backward compatibility.
+        if self._state == "active" or self._state == "working":
+            if self.publish.versions:
+                self._state = "published"
 
     @property
     def state(self):
@@ -91,6 +87,11 @@ class Work(Settings, Entity):
     def dcc_version(self):
         """Version of the dcc that the work is originated from."""
         return self._dcc_version
+
+    @property
+    def dcc_handler(self):
+        """DCC handler object."""
+        return self._dcc_handler
 
     @property
     def id(self):
@@ -149,7 +150,7 @@ class Work(Settings, Entity):
 
     def revive(self):
         """Revive the work."""
-        self._state = "working"
+        self._state = "active"
         self.edit_property("state", self._state)
         self.apply_settings()
 
@@ -294,175 +295,6 @@ class Work(Settings, Entity):
 
         self._dcc_handler.post_save()
         return version
-
-    def make_preview(
-        self, version_number, camera, resolution, frame_range, label=None, settings=None
-    ):
-        """Initiate a playblast for the given version.
-
-        Args:
-            version_number (int): Version number.
-            camera (str): Camera name.
-            resolution (list): Resolution of the playblast. [width, height]
-            frame_range (list): Range of the playblast.
-                [start_frame, end_frame]
-            label (str): Label of the playblast. Optional.
-            settings (dict): Settings for the playblast.
-                If not given, default settings will be used.
-
-        Returns:
-            bool: True if successful, False otherwise.
-        """
-
-        preview_settings = settings or {}
-        preview_folder = self.get_abs_project_path("previews")
-        Path(preview_folder).mkdir(parents=True, exist_ok=True)
-
-        nice_name, full_name = self.resolve_preview_names(
-            version_number, camera, label=label
-        )
-
-        # camera code can be a node, path, uuid or name depending on the dcc
-        camera_code = self._dcc_handler.get_scene_cameras()[camera]
-        preview_file_abs_path = self._dcc_handler.generate_preview(
-            full_name,
-            preview_folder,
-            camera_code=camera_code,
-            resolution=resolution,
-            range=frame_range,
-            settings=preview_settings,
-        )
-        if preview_file_abs_path:
-            suffix = Path(preview_file_abs_path).suffix
-            if settings.get("PostConversion", False) and suffix != ".mp4":
-                ffmpeg = self._check_ffmpeg()
-                if ffmpeg:
-                    preview_file_abs_path = self._convert_preview(
-                        preview_file_abs_path, ffmpeg, overwrite=True
-                    )
-                else:
-                    LOG.warning("FFMPEG not found. Skipping conversion.")
-
-            relative_path = Path("previews") / Path(preview_file_abs_path).name
-            version = self.get_version(version_number)
-            new_preview_data = {nice_name: str(relative_path)}
-
-            if "previews" in version.keys():
-                version["previews"].update(new_preview_data)
-            else:
-                version["previews"] = new_preview_data
-
-            self.apply_settings(force=True)
-            utils.execute(preview_file_abs_path)
-            return True
-        else:
-            return False
-
-    def _convert_preview(self, preview_file_abs_path, ffmpeg, overwrite=False):
-        """Convert the preview file to a compatible format.
-
-        Args:
-            preview_file_abs_path (str): Absolute path of the preview file.
-            ffmpeg (str): Path to the ffmpeg executable.
-            overwrite (bool): If True, overwrite the existing file.
-
-        Returns:
-            str: Absolute path of the converted file.
-        """
-
-        compatible_videos = [".avi", ".mov", ".mp4", ".flv", ".webm", ".mkv"]
-        compatible_images = [".tga", ".jpg", ".exr", ".png", ".pic"]
-
-        # get the conversion lut
-        presetLUT = {
-            "videoCodec": "-c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p",
-            "compression": "-crf 23",
-            "foolproof": "-vf scale=ceil(iw/2)*2:ceil(ih/2)*2",
-            "speed": "-preset ultrafast",
-            "resolution": "",
-            "audioCodec": "-c:a aac",
-        }
-
-        # set output file
-        _file_path = Path(preview_file_abs_path)
-        is_image_seq = _file_path.suffix in compatible_images
-        # change the extension to mp4
-        output_file = _file_path.with_suffix(".mp4")
-        output_file_str = str(output_file)
-
-        # deal with the existing output
-        if output_file.exists():
-            if overwrite:
-                output_file.unlink()
-            else:
-                return
-        # if the suffix is in compatible videos, use the video conversion settings
-        if not is_image_seq:
-            flag_start = [ffmpeg, "-i", str(_file_path)]
-        else:
-            # get the frame rate from dcc
-            fps = self._dcc_handler.get_scene_fps()
-            # the incoming _file_path needs to have %04d in it in order to be recognized as a sequence
-            flag_start = [ffmpeg, "-r", str(fps), "-i", str(_file_path)]
-            # remove the digits section from the file name e.g. test_v001.0001.jpg -> test_v001.jpg
-            output_file_str = str(output_file).replace(output_file.suffixes[0], "")
-        full_flag_list = (
-            flag_start
-            + presetLUT["videoCodec"].split()
-            + presetLUT["compression"].split()
-            + presetLUT["audioCodec"].split()
-            + presetLUT["resolution"].split()
-            + presetLUT["foolproof"].split()
-            + [output_file_str]
-        )
-        if platform.system() == "Windows":
-            subprocess.check_call(full_flag_list, shell=False)
-        else:
-            subprocess.check_call(full_flag_list)
-        if _file_path.suffix in compatible_videos:
-            _file_path.unlink()
-        # TODO: Delete the file sequences too
-        return output_file_str
-
-    def _check_ffmpeg(self):
-        """Check if the FFMPEG is installed or accessible."""
-        if platform.system() == "Windows":
-            # get the ffmpeg.exe from the parallel folder 'external'
-            parent_folder = Path(__file__).parent.parent
-            ffmpeg_folder = parent_folder / "external" / "ffmpeg"
-            ffmpeg = ffmpeg_folder / "ffmpeg.exe"
-            if not ffmpeg.exists():
-                return False
-            else:
-                return str(ffmpeg)
-        else:
-            try:
-                v = subprocess.call(
-                    ["ffmpeg", "-version"],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
-                return "ffmpeg"
-            except OSError:
-                return False
-
-    def resolve_preview_names(self, version, camera, label=None):
-        """Resolve the preview name.
-
-        Args:
-            version (int): Version number.
-            camera (str): Camera name.
-            label (str, optional): Label for the preview.
-        """
-        # get rid of the namespace
-        camera = camera.split(":")[-1]
-        if not label:
-            nice_name = [camera]
-        else:
-            nice_name = [camera, label]
-
-        full_name = nice_name + [self._name, f"v{version:03d}"]
-        return "_".join(nice_name), "_".join(full_name)
 
     def construct_names(
         self, file_format, version_number=None, thumbnail_extension=".jpg"

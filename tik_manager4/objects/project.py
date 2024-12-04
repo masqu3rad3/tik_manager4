@@ -4,6 +4,7 @@ Inherits from Subproject and adds project specific methods and properties.
 """
 
 from pathlib import Path
+
 from tik_manager4.objects.publisher import Publisher, SnapshotPublisher
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
@@ -36,8 +37,6 @@ class Project(Subproject):
         self._path = path
         self._database_path = None
         self._name = name
-        # self._resolution = resolution
-        # self._fps = fps
         self.__mode = ""
 
         # This makes sure the project folder is tik_manager4 ready
@@ -145,11 +144,10 @@ class Project(Subproject):
         if self._remove_sub_project(uid, path) == -1:
             return -1
         self._delete_folders(str(Path(self._database_path, _remove_path)))
-        # self._delete_folders(os.path.join(self._database_path, _remove_path))
         self.save_structure()
         return 1
 
-    def create_sub_project(self, name, parent_uid=None, parent_path=None, **properties):
+    def create_sub_project(self, name, parent_uid=None, parent_path=None, uid=None, **properties):
         """Create a sub-project under a specified parent sub and write data to
         persistent database.
 
@@ -161,6 +159,7 @@ class Project(Subproject):
                                 Either this or parent_path needs to be defined
             parent_path (str): Parent Sub-Project Relative path. If uid defined this
                                 will be skipped
+            uid (int): Unique ID of the subproject. If not provided, a new one will be generated.
             **properties: Additional properties to be added to the subproject
 
         Returns:
@@ -171,7 +170,7 @@ class Project(Subproject):
             return -1
 
         new_sub = parent_sub.add_sub_project(
-            name, parent_sub=parent_sub, uid=None, **properties
+            name, parent_sub=parent_sub, uid=uid, **properties
         )
         if new_sub == -1:
             return -1
@@ -228,6 +227,7 @@ class Project(Subproject):
             categories (list): List of categories.
             parent_uid (int): Parent subproject unique id.
             parent_path (str): Parent subproject relative path.
+            metadata_overrides (dict): Metadata overrides for the task.
 
         Returns:
             int: 1 if successful, -1 otherwise.

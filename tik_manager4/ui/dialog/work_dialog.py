@@ -1,4 +1,5 @@
 """Dialogs for creating work files and versions of them."""
+
 from pathlib import Path
 import dataclasses
 
@@ -10,9 +11,11 @@ from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4.ui.layouts.settings_layout
 from tik_manager4.ui.widgets.common import TikButtonBox
 
+
 @dataclasses.dataclass
 class WidgetsData:
     """Data for the widgets"""
+
     header_lbl: QtWidgets.QLabel = None
     resolved_path_lbl: ResolvedText = None
     resolved_name_lbl: ResolvedText = None
@@ -25,8 +28,10 @@ class WidgetsData:
     create_btn: QtWidgets.QPushButton = None
     cancel_btn: QtWidgets.QPushButton = None
 
+
 class NewWorkDialog(QtWidgets.QDialog):
     """Dialog for creating new work files."""
+
     def __init__(
         self,
         main_object,
@@ -126,6 +131,8 @@ class NewWorkDialog(QtWidgets.QDialog):
         self.widgets.tasks_combo = self.primary_content.find("task")
         self.widgets.categories_combo = self.primary_content.find("category")
         file_format_combo = self.primary_content.find("file_format")
+        # allow empty for the name widget.
+        self.widgets.name_le.allow_empty = True
 
         # create a notes widget for the right side
         self.widgets.notes_lbl = QtWidgets.QLabel(text="Notes:")
@@ -139,8 +146,9 @@ class NewWorkDialog(QtWidgets.QDialog):
         self.widgets.create_btn = button_box.addButton(
             "Create Work", QtWidgets.QDialogButtonBox.AcceptRole
         )
-        self.widgets.cancel_btn = button_box.addButton("Cancel",
-                                                       QtWidgets.QDialogButtonBox.RejectRole)
+        self.widgets.cancel_btn = button_box.addButton(
+            "Cancel", QtWidgets.QDialogButtonBox.RejectRole
+        )
         self.layouts.buttons_layout.addWidget(button_box)
 
         self.widgets.subproject_widget.sub.connect(self.refresh_subproject)
@@ -157,22 +165,21 @@ class NewWorkDialog(QtWidgets.QDialog):
     def update_labels(self, validation_status):
         """Update the path and name labels."""
         _name = self.primary_content.settings_data.get_property("name")
-        if not _name:
-            self.widgets.resolved_name_lbl.setText("No Name Entered")
-        elif not validation_status:
+        _file_format = self.primary_content.settings_data.get_property("file_format")
+        if not self.category:
+            self.widgets.resolved_path_lbl.setText("Path cannot be resolved")
+            self.widgets.resolved_name_lbl.setText("Name cannot be resolved")
+            return
+
+        _name = self.primary_content.settings_data.get_property("name")
+        if not validation_status:
             self.widgets.resolved_name_lbl.setText("Invalid name")
         else:
-            _file_format = self.primary_content.settings_data.get_property(
-                "file_format"
-            )
             constructed_name = f"{self.category.construct_name(_name)}{_file_format}"
             self.widgets.resolved_name_lbl.setText(constructed_name)
 
-        if not self.category:
-            self.widgets.resolved_path_lbl.setText("Path cannot be resolved")
-        else:
-            constructed_path = self.category.get_relative_work_path()
-            self.widgets.resolved_path_lbl.setText(constructed_path)
+        constructed_path = self.category.get_relative_work_path()
+        self.widgets.resolved_path_lbl.setText(constructed_path)
 
     def resolve_objects(self, subproject_id=None, task_id=None, category_index=None):
         """Try to resolve the objects from the given data or last state."""
@@ -226,10 +233,11 @@ class NewWorkDialog(QtWidgets.QDialog):
                 "tooltip": "Category of the work file",
             },
             "name": {
-                "display_name": "Name",
+                "display_name": "Label",
                 "type": "validatedString",
                 "value": "",
-                "tooltip": "Name of the work file",
+                "tooltip": "Name of the work file that will be added as a label tag.",
+                "placeholder": "(Optional)",
             },
             "file_format": {
                 "display_name": "File Format",
@@ -429,8 +437,10 @@ class NewVersionDialog(QtWidgets.QDialog):
         ) = self.work_object.construct_names(file_format)
         self.name_label.setText(version_name)
 
+
 class WorkFromTemplateDialog(NewWorkDialog):
     """Dialog to create a work file from a template file."""
+
     def __init__(self, main_object, template_names=None, *args, **kwargs):
         self.template_names = template_names
         super().__init__(main_object, *args, **kwargs)
@@ -467,13 +477,18 @@ class WorkFromTemplateDialog(NewWorkDialog):
         notes = self.widgets.notes_te.toPlainText()
         #
         # resolve the template file.
-        dcc_name, template_path = self.main_object.get_template_path_by_name(template_name)
-        self.category.create_work_from_template(name, template_path, dcc=dcc_name, ignore_checks=True, notes=notes)
+        dcc_name, template_path = self.main_object.get_template_path_by_name(
+            template_name
+        )
+        self.category.create_work_from_template(
+            name, template_path, dcc=dcc_name, ignore_checks=True, notes=notes
+        )
         self.accept()
 
 
 class SaveAnyFileDialog(NewWorkDialog):
     """Dialog to save any file or folder to the tik manager 4 project."""
+
     def __init__(self, main_object, file_or_folder_path=None, *args, **kwargs):
         self._file_or_folder_path = file_or_folder_path
         super().__init__(main_object, *args, **kwargs)
@@ -485,7 +500,6 @@ class SaveAnyFileDialog(NewWorkDialog):
         self.widgets.header_lbl.setText("Save Any File or Folder")
         self.widgets.header_lbl.set_color("magenta")
 
-
         self.file_or_folder_path_lbl = ResolvedText(f"Saving: {file_or_folder_path}")
         self.file_or_folder_path_lbl.set_color("magenta")
         self.layouts.header_layout.insertWidget(1, self.file_or_folder_path_lbl)
@@ -495,16 +509,17 @@ class SaveAnyFileDialog(NewWorkDialog):
         self.file_format_widget.hide()
         self.file_format_widget.label.hide()
 
-        self.resize(500,300)
+        self.resize(500, 300)
         self.layouts.splitter.setSizes([200, 150])
-
 
     def on_create_work(self):
         """Create the work file."""
         name = self.primary_data.get_property("name")
         notes = self.widgets.notes_te.toPlainText()
         #
-        self.category.create_work_from_path(name, self._file_or_folder_path, ignore_checks=True, notes=notes)
+        self.category.create_work_from_path(
+            name, self._file_or_folder_path, ignore_checks=True, notes=notes
+        )
         self.accept()
 
     def define_primary_ui(self):
@@ -522,11 +537,11 @@ class SaveAnyFileDialog(NewWorkDialog):
                 "tooltip": "Name of the work file",
             },
             "file_format": {
-            "display_name": "File Format",
-            "type": "combo",
-            "items": [_path_obj.suffix],
-            "value": _path_obj.suffix,
-            }
+                "display_name": "File Format",
+                "type": "combo",
+                "items": [_path_obj.suffix],
+                "value": _path_obj.suffix,
+            },
         }
         _primary_ui.update(update_dict)
         return _primary_ui

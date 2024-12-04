@@ -8,17 +8,18 @@ from tik_manager4.ui.widgets.common import TikButtonBox
 
 import tik_manager4.ui.layouts.settings_layout
 from tik_manager4.ui.layouts.collapsible_layout import CollapsibleLayout
-from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
+import tik_manager4.ui.mcv.subproject_mcv
 
 
 class EditSubprojectDialog(QtWidgets.QDialog):
-    def __init__(self, project_object, parent_sub=None, parent=None, *args, **kwargs):
+    def __init__(self, project_object, parent_sub=None, parent=None, management_lock=False, *args, **kwargs):
         super(EditSubprojectDialog, self).__init__(parent=parent, *args, **kwargs)
         self.feedback = Feedback(parent=self)
         self.tik_project = project_object
         self._parent_sub = parent_sub or project_object
 
         self.parent = parent
+        self.management_lock = management_lock
 
         self.setWindowTitle("Edit Subproject")
         self.setModal(True)
@@ -75,6 +76,7 @@ class EditSubprojectDialog(QtWidgets.QDialog):
         self.primary_layout = CollapsibleLayout("Main Properties", expanded=True)
         scroll_layout.addLayout(self.primary_layout)
         self.secondary_layout = CollapsibleLayout("Inherited Properties", expanded=True)
+        # self.secondary_layout.contents_widget.setEnabled(not self.management_lock)
         scroll_layout.addLayout(self.secondary_layout)
         self.tertiary_layout = CollapsibleLayout("New Properties", expanded=False)
         scroll_layout.addLayout(self.tertiary_layout)
@@ -337,7 +339,7 @@ class SelectSubprojectDialog(QtWidgets.QDialog):
         self.master_layout = QtWidgets.QVBoxLayout(self)
         self.setLayout(self.master_layout)
 
-        self.subproject_layout = TikSubProjectLayout(self.tik_project)
+        self.subproject_layout = tik_manager4.ui.mcv.subproject_mcv.TikSubProjectLayout(self.tik_project)
         self.master_layout.addLayout(self.subproject_layout)
         self.button_box = TikButtonBox(
             QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel

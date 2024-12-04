@@ -90,6 +90,12 @@ class Settings:
         else:
             self._current_value.update(data)
 
+    def add_missing_keys(self, data):
+        """Add only the non-existing keys, but do not update the existing ones."""
+        for key in data:
+            if key not in self._current_value:
+                self._current_value[key] = data[key]
+
     def is_settings_changed(self):
         """Check if the settings changed since initialization."""
         return not self._current_value == self._original_value

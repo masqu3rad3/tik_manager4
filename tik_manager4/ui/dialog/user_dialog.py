@@ -16,6 +16,7 @@ class WidgetsData:
     """Data for the widgets"""
     user_name_le: ValidatedString = None
     initials_le: ValidatedString = None
+    email_le: ValidatedString = None
     permission_level_combo: QtWidgets.QComboBox = None
     user_password_le: ValidatedString = None
     user_password2_le: ValidatedString = None
@@ -60,39 +61,32 @@ class NewUserDialog(QtWidgets.QDialog):
         header.set_color("orange")
         self.layouts.header_layout.addWidget(header)
 
-        user_name_lbl = QtWidgets.QLabel()
-        user_name_lbl.setText("User Name:")
         self.widgets.user_name_le = ValidatedString(name="user_name", allow_spaces=True)
-        form_layout.addRow(user_name_lbl, self.widgets.user_name_le)
+        form_layout.addRow("User Name:", self.widgets.user_name_le)
 
-        initials_lbl = QtWidgets.QLabel()
-        initials_lbl.setText("Initials :")
         self.widgets.initials_le = ValidatedString(name="initials")
-        form_layout.addRow(initials_lbl, self.widgets.initials_le)
+        form_layout.addRow("Initials :", self.widgets.initials_le)
 
-        permission_level_lbl = QtWidgets.QLabel()
-        permission_level_lbl.setText("Permission Level :")
+        self.widgets.email_le = ValidatedString(name="email", allow_spaces=False, allow_special_characters=True)
+        form_layout.addRow("Email :", self.widgets.email_le)
+
         self.widgets.permission_level_combo = QtWidgets.QComboBox()
         self.widgets.permission_level_combo.addItems(
             ["Observer", "Generic", "Experienced", "Admin"])
         self.widgets.permission_level_combo.setCurrentText("2")
-        form_layout.addRow(permission_level_lbl, self.widgets.permission_level_combo)
+        form_layout.addRow("Permission Level :", self.widgets.permission_level_combo)
 
-        user_password_lbl = QtWidgets.QLabel()
-        user_password_lbl.setText("Password :")
         self.widgets.user_password_le = ValidatedString(
             name="user_password", allow_special_characters=True
         )
         self.widgets.user_password_le.setEchoMode(QtWidgets.QLineEdit.Password)
-        form_layout.addRow(user_password_lbl, self.widgets.user_password_le)
+        form_layout.addRow("Password :", self.widgets.user_password_le)
 
-        user_password2_lbl = QtWidgets.QLabel()
-        user_password2_lbl.setText("Password Again :")
         self.widgets.user_password2_le = ValidatedString(
             name="user_password", allow_special_characters=True
         )
         self.widgets.user_password2_le.setEchoMode(QtWidgets.QLineEdit.Password)
-        form_layout.addRow(user_password2_lbl, self.widgets.user_password2_le)
+        form_layout.addRow("Password Again :", self.widgets.user_password2_le)
 
         # button box
         button_box = TikButtonBox()
@@ -125,11 +119,12 @@ class NewUserDialog(QtWidgets.QDialog):
         _name = self.widgets.user_name_le.text()
         _initials = self.widgets.initials_le.text()
         _password = self.widgets.user_password_le.text()
+        _email = self.widgets.email_le.text()
         # get the permission level. It is the index of the combo
         _permission_level = self.widgets.permission_level_combo.currentIndex()
 
         state, msg = self.user_object.create_new_user(
-            _name, _initials, _password, _permission_level
+            _name, _initials, _password, _permission_level, email=_email
         )
         if state != 1:
             self.feedback.pop_info(title="User Creation Error", text=msg, critical=True)

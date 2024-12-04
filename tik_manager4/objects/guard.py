@@ -20,6 +20,7 @@ class Guard:
     preview_settings = None
     commons = None
     _dcc_handler = None
+    _management_handler = None
 
     @classmethod
     def set_commons(cls, commons):
@@ -76,9 +77,23 @@ class Guard:
         """
         cls._dcc_handler = handler
 
+    @property
+    def management_handler(self):
+        """Return the management handler object."""
+        return self._management_handler
+
+    @classmethod
+    def set_management_handler(cls, handler):
+        """Set the management handler object.
+
+        Args:
+            handler (object): The management handler object.
+        """
+        cls._management_handler = handler
+
     @classmethod
     def set_user(cls, user):
-        """Set the user object.
+        """Set the user name.
 
         Args:
             user (User): The user object.
@@ -87,8 +102,13 @@ class Guard:
 
     @property
     def user(self):
-        """Return the user object."""
+        """Return the user name."""
         return self._user
+
+    @property
+    def email(self):
+        """Return the email of the user."""
+        return self.commons.get_user_email(self._user)
 
     @classmethod
     def set_permission_level(cls, level):

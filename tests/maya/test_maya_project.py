@@ -85,7 +85,7 @@ class TestMayaProject():
         assert work_obj.task_name == "test_task"
         assert work_obj.task_id == test_task.id
         assert work_obj.path == f"test_subproject/test_task/{category}/maya"
-        assert work_obj.state == "working"
+        assert work_obj.state == "active"
 
         # iterate a version with .ma format
         work_obj = test_task.categories[category].create_work("test_cube", file_format=".ma", notes="Same cube. Only ma format.")

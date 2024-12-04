@@ -169,8 +169,7 @@ class Dcc(MainCore):
         else:
             return "persp", ""
 
-    @staticmethod
-    def generate_preview(name, folder, camera_code, resolution, range, settings=None):
+    def generate_preview(self, name, folder, camera_code, resolution, range, settings=None):
         """
         Create a preview from the current scene
         Args:
@@ -214,6 +213,12 @@ class Dcc(MainCore):
         }
 
         extension = "avi"
+
+        # get current range
+        original_range = self.get_ranges()
+
+        # temporarily set the range
+        self.set_ranges(range)
 
         # get the current values
         original_values = {
@@ -259,7 +264,12 @@ class Dcc(MainCore):
             dspFrameNums=display_frame_nums,
             rndLevel=render_level,
             autoPlay=not settings["PostConversion"],
+            start=range[0],
+            end=range[-1]
         )
+
+        # restore the original range
+        self.set_ranges(original_range)
 
         # restore the original values
         rt.renderWidth = original_values["width"]

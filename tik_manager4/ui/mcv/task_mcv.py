@@ -2,7 +2,7 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.core import filelog
 from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4.ui.dialog.task_dialog
-from tik_manager4.ui.widgets.common import VerticalSeparator
+from tik_manager4.ui.widgets.common import HorizontalSeparator, TikIconButton
 
 from tik_manager4.ui import pick
 
@@ -10,6 +10,7 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
 class TikTaskItem(QtGui.QStandardItem):
+    """Item class for the task view"""
     color_dict = {
         "asset": (0, 187, 184),
         "shot": (0, 115, 255),
@@ -26,20 +27,41 @@ class TikTaskItem(QtGui.QStandardItem):
         super(TikTaskItem, self).__init__()
 
         # # test
-        _icon = pick.icon("{}.png".format(task_obj.type))
+        _icon = pick.icon(f"{task_obj.type}.png")
         self.setIcon(_icon)
 
         self.task = task_obj
         #
-        fnt = QtGui.QFont("Open Sans", 12)
-        fnt.setBold(True)
+        self.fnt = QtGui.QFont("Open Sans", 12)
+        self.fnt.setBold(True)
         self.setEditable(False)
 
-        _color = self.color_dict.get(task_obj.type, (255, 255, 255))
+        self._state = None
+
+        # _color = self.color_dict.get(task_obj.type, (255, 255, 255))
+        # self.setForeground(QtGui.QColor(*_color))
+
+        # self.setFont(fnt)
+        self.setText(task_obj.name)
+
+        self.refresh()
+
+    def refresh(self):
+        """Refresh the item"""
+        self.set_state(self.task.state)
+
+    def set_state(self, state):
+        """Set the state of the item.
+
+        Args:
+            state (str): State of the task
+        """
+        self._state = state
+        _color = self.color_dict.get(self.task.type, (255, 255, 255))
+        self.fnt.setStrikeOut(state == "omitted")
+        self.setFont(self.fnt)
         self.setForeground(QtGui.QColor(*_color))
 
-        self.setFont(fnt)
-        self.setText(task_obj.name)
 
 class TikTaskColumnItem(QtGui.QStandardItem):
     def __init__(self, text):
@@ -63,20 +85,20 @@ class TikTaskModel(QtGui.QStandardItemModel):
         """Clear the model"""
         self.setRowCount(0)
 
-    def append_task(self, sub_data):
+    def append_task(self, task_obj):
         """Append a task to the model"""
-        _sub_item = TikTaskItem(sub_data)
-        pid = TikTaskColumnItem(str(sub_data.id))
-        path = TikTaskColumnItem(sub_data.path)
+        _task_item = TikTaskItem(task_obj)
+        pid = TikTaskColumnItem(str(task_obj.id))
+        path = TikTaskColumnItem(task_obj.path)
 
         self.appendRow(
             [
-                _sub_item,
+                _task_item,
                 pid,
                 path,
             ]
         )
-        return _sub_item
+        return _task_item
 
     def find_item_by_id_column(self, unique_id):
         """Search entire tree and find the matching item."""
@@ -92,6 +114,7 @@ class TikTaskModel(QtGui.QStandardItemModel):
 
 class TikTaskView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
+    refresh_requested = QtCore.Signal()
 
     def __init__(self):
         """Initialize the view"""
@@ -112,6 +135,8 @@ class TikTaskView(QtWidgets.QTreeView):
         self.sortByColumn(0, QtCore.Qt.AscendingOrder)
 
         self.setModel(self.proxy_model)
+
+        self.is_management_locked = False
 
         # SIGNALS
 
@@ -282,9 +307,21 @@ class TikTaskView(QtWidgets.QTreeView):
             level = 0
 
         act_edit_task = right_click_menu.addAction(self.tr("Edit Task"))
+        right_click_menu.addSeparator()
+
         act_edit_task.triggered.connect(lambda _=None, x=item: self.edit_task(item))
+
+        revive_item_act = right_click_menu.addAction(self.tr("Revive Task"))
+        revive_item_act.setEnabled(not self.is_management_locked)
+        revive_item_act.triggered.connect(lambda _=None, x=item: self.revive_task(item))
+        omit_item_act = right_click_menu.addAction(self.tr("Omit Task"))
+        omit_item_act.setEnabled(not self.is_management_locked)
+        omit_item_act.triggered.connect(lambda _=None, x=item: self.omit_task(item))
+
         act_delete_task = right_click_menu.addAction(self.tr("Delete Task"))
+        act_delete_task.setEnabled(not self.is_management_locked)
         act_delete_task.triggered.connect(lambda _=None, x=item: self.delete_task(item))
+
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
     def edit_task(self, item):
@@ -293,7 +330,8 @@ class TikTaskView(QtWidgets.QTreeView):
             self._feedback.pop_info(title.capitalize(), message)
             return
         _dialog = tik_manager4.ui.dialog.task_dialog.EditTask(
-            item.task, parent_sub=item.task.parent_sub, parent=self
+            item.task, parent_sub=item.task.parent_sub, parent=self,
+            management_locked=self.is_management_locked
         )
         state = _dialog.exec_()
         if state:
@@ -301,6 +339,22 @@ class TikTaskView(QtWidgets.QTreeView):
             self.item_selected.emit(_dialog.task_object)
         else:
             pass
+
+    def revive_task(self, item):
+        if item.task.check_permissions(level=2) == -1:
+            message, title = LOG.get_last_message()
+            self._feedback.pop_info(title.capitalize(), message)
+            return
+        item.task.revive()
+        item.refresh()
+
+    def omit_task(self, item):
+        if item.task.check_permissions(level=2) == -1:
+            message, title = LOG.get_last_message()
+            self._feedback.pop_info(title.capitalize(), message)
+            return
+        item.task.omit()
+        item.refresh()
 
     def delete_task(self, item):
         # first check for the user permission:
@@ -342,18 +396,29 @@ class TikTaskView(QtWidgets.QTreeView):
             return
 
     def refresh(self):
-        """Re-populates the model keeping the expanded state"""
-        pass
+        """Re-populate the model."""
+        self.refresh_requested.emit()
+        # self.model.clear()
+        # self.set_tasks(self.model._tasks)
+
 
 
 class TikTaskLayout(QtWidgets.QVBoxLayout):
     def __init__(self):
         """Initialize the layout"""
         super(TikTaskLayout, self).__init__()
+        header_lay = QtWidgets.QHBoxLayout()
+        header_lay.setContentsMargins(0, 0, 0, 0)
+        self.addLayout(header_lay)
         self.label = QtWidgets.QLabel("Tasks")
         self.label.setStyleSheet("font-size: 14px; font-weight: bold;")
-        self.addWidget(self.label)
-        self.addWidget(VerticalSeparator(color=(0, 255, 255)))
+        header_lay.addWidget(self.label)
+        header_lay.addStretch()
+        # add a refresh button
+        self.refresh_btn = TikIconButton(icon_name="refresh", circle=True, size=18, icon_size=14)
+        header_lay.addWidget(self.refresh_btn)
+        # self.addWidget(self.label)
+        self.addWidget(HorizontalSeparator(color=(0, 255, 255)))
 
         self.task_view = TikTaskView()
         self.addWidget(self.task_view)
@@ -368,6 +433,8 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
         # Hide all columns except the first one
         for idx in range(1, self.task_view.header().count()):
             self.task_view.hideColumn(idx)
+
+        self.refresh_btn.clicked.connect(self.refresh)
 
     def refresh(self):
         self.task_view.refresh()

@@ -250,7 +250,7 @@ class Subproject(Entity):
                 self._tasks[_task_name] = _task
             else:
                 if existing_task.is_modified():
-                    existing_task.reload()
+                    existing_task.refresh()
 
         # if the lengths are not matching that means some tasks are deleted
         if len(_task_paths) != len(self._tasks):
@@ -268,7 +268,7 @@ class Subproject(Entity):
 
         return self._tasks
 
-    def add_task(self, name, categories, task_type=None, metadata_overrides=None):
+    def add_task(self, name, categories, task_type=None, metadata_overrides=None, uid=None):
         """
         Add a task to the subproject.
 
@@ -277,6 +277,8 @@ class Subproject(Entity):
             categories (list): List of categories.
             task_type (str, optional): Type of the task. If not given,
                 it is inherited from the parent subproject (mode).
+            metadata_overrides (dict, optional): Metadata overrides for the task.
+            uid (int, optional): Unique id of the task.
 
         Returns:
             Task or int: The created task object if successful, -1 otherwise.
@@ -295,26 +297,26 @@ class Subproject(Entity):
                 "There is a task under this sub-project with the same name => %s" % name
             )
             return -1
-        _task_id = self.generate_id()
+        _task_id = uid or self.generate_id()
         _task = Task(
             str(abs_path),
             name=name,
             categories=categories,
             path=self.path,
             file_name=file_name,
-            task_type=task_type,
             parent_sub=self,
             task_id=_task_id,
+            metadata_overrides=metadata_overrides,
         )
         _task.add_property("name", name)
         _task.add_property("creator", self.guard.user)
-        _task.add_property("type", task_type)
         _task.add_property("task_id", _task_id)
         _task.add_property("subproject_id", self.id)
         _task.add_property("categories", categories)
         _task.add_property("path", self.path)
         _task.add_property("file_name", file_name)
         _task.add_property("metadata_overrides", metadata_overrides)
+        _task.add_property("state", "active")
         _task.apply_settings()
         self._tasks[name] = _task
         return _task
