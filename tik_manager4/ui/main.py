@@ -252,6 +252,11 @@ class MainUI(QtWidgets.QMainWindow):
             self.tik.user.column_sizes.get("categories", {})
         )
 
+        # set the main window state back
+        window_state = self.tik.user.main_window_state
+        if window_state:
+            self.setGeometry(QtCore.QRect(*self.tik.user.main_window_state))
+
     def initialize_mcv(self):
         """Initialize the model-control-views."""
         self.project_mcv = TikProjectLayout(self.tik, parent=self)
@@ -364,6 +369,13 @@ class MainUI(QtWidgets.QMainWindow):
             "categories": self.categories_mcv.work_tree_view.get_column_sizes(),
         }
         self.tik.user.column_sizes = column_sizes
+
+        self.tik.user.main_window_state = (
+            self.geometry().x(),
+            self.geometry().y(),
+            self.geometry().width(),
+            self.geometry().height(),
+        )
 
     # override the closeEvent to save the window state
     def closeEvent(self, event):  # pylint: disable=invalid-name

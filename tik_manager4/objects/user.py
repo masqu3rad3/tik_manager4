@@ -217,6 +217,25 @@ class User:
         """
         self.resume.edit_property("column_sizes", value)
 
+    @property
+    def main_window_state(self):
+        """Retrieve the geometric position and scale of the main window."""
+        # calculate the default size and position for the center of the screen
+        # if the property does not exist, the window should be on the center of the screen
+
+
+        return self.resume.get_property("main_window_state", None)
+
+
+    @main_window_state.setter
+    def main_window_state(self, value):
+        """Store the geometric position and scale of the main window.
+
+        Args:
+            value (dict): Dictionary of window state.
+        """
+        self.resume.edit_property("main_window_state", value)
+
     @classmethod
     def __set_authentication_status(cls, state):
         """Sets the authentication status of the user.
