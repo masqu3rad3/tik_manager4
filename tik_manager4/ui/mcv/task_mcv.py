@@ -3,6 +3,7 @@ from tik_manager4.core import filelog
 from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4.ui.dialog.task_dialog
 from tik_manager4.ui.widgets.common import HorizontalSeparator, TikIconButton
+from tik_manager4.ui.mcv.filter import FilterModel, FilterWidget
 
 from tik_manager4.ui import pick
 
@@ -127,7 +128,7 @@ class TikTaskView(QtWidgets.QTreeView):
         self.setRootIsDecorated(False)
 
         self.model = TikTaskModel()
-        self.proxy_model = QtCore.QSortFilterProxyModel()
+        self.proxy_model = FilterModel(parent=self)
         self.proxy_model.setSourceModel(self.model)
         self.proxy_model.setRecursiveFilteringEnabled(True)
         self.setSortingEnabled(True)
@@ -265,12 +266,6 @@ class TikTaskView(QtWidgets.QTreeView):
         """Add a task to the model"""
         _ = [self.model.append_task(x) for x in tasks]
         self.expandAll()
-
-    def filter(self, text):
-        """Filter the model"""
-        self.proxy_model.setFilterRegExp(
-            QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp)
-        )
 
     def header_right_click_menu(self, position):
         menu = QtWidgets.QMenu(self)
@@ -422,13 +417,9 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
 
         self.task_view = TikTaskView()
         self.addWidget(self.task_view)
-        self.filter_le = QtWidgets.QLineEdit()
-        self.addWidget(self.filter_le)
-        self.filter_le.textChanged.connect(self.task_view.filter)
-        self.filter_le.setPlaceholderText("Filter")
-        self.filter_le.setClearButtonEnabled(True)
-        self.filter_le.setFocus()
-        self.filter_le.returnPressed.connect(self.task_view.setFocus)
+
+        self.filter_widget = FilterWidget(self.task_view.proxy_model)
+        self.addWidget(self.filter_widget)
 
         # Hide all columns except the first one
         for idx in range(1, self.task_view.header().count()):

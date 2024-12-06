@@ -461,7 +461,6 @@ class MainUI(QtWidgets.QMainWindow):
         """Build the menu bar."""
         # pylint: disable=too-many-locals
         # pylint: disable=too-many-statements
-        # menu_bar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 680, 18))
         self.setMenuBar(self.menu_bar)
         file_menu = self.menu_bar.addMenu("File")
         tools_menu = self.menu_bar.addMenu("Tools")
@@ -470,10 +469,6 @@ class MainUI(QtWidgets.QMainWindow):
         # File Menu
         create_project = QtWidgets.QAction("&Create New Project", self)
         file_menu.addAction(create_project)
-        # create_project_from_shotgrid = QtWidgets.QAction(
-        #     "&Create Project from Shotgrid    ", self
-        # )
-        # file_menu.addAction(create_project_from_shotgrid)
         set_project = QtWidgets.QAction("&Set Project", self)
         file_menu.addAction(set_project)
         file_menu.addSeparator()
@@ -936,9 +931,6 @@ class MainUI(QtWidgets.QMainWindow):
             handler = self.management_connect(management_platform)
             if not handler:
                 return
-            # # create the UI extensions
-            # ui_extensions = management.ui_extensions[management_platform](handler, self)
-            # ui_extensions.add_main_menu()
             wait_popup = WaitDialog(message="Syncing Project...", parent=self)
             wait_popup.display()
             synced = handler.sync_project()

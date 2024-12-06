@@ -2,6 +2,7 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 import tik_manager4.ui.dialog.subproject_dialog
 import tik_manager4.ui.dialog.task_dialog
 from tik_manager4.ui.widgets.common import HorizontalSeparator, TikIconButton
+from tik_manager4.ui.mcv.filter import FilterModel, FilterWidget
 from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4
 from tik_manager4.ui import pick
@@ -458,11 +459,11 @@ class TikSubView(QtWidgets.QTreeView):
         self.setModel(self.proxy_model)
         self.model.populate()
 
-    def filter(self, text):
-        # pass
-        self.proxy_model.setFilterRegExp(
-            QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp)
-        )
+    # def filter(self, text):
+    #     # pass
+    #     self.proxy_model.setFilterRegExp(
+    #         QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp)
+    #     )
 
     def header_right_click_menu(self, position):
         """Creates a right click menu for the header"""
@@ -658,11 +659,9 @@ class TikSubView(QtWidgets.QTreeView):
         else:
             return
 
-
-class ProxyModel(QtCore.QSortFilterProxyModel):
+class ProxyModel(FilterModel):
     def __init__(self, parent=None):
-        super(ProxyModel, self).__init__(parent)
-        pass
+        super(ProxyModel, self).__init__(parent=parent)
 
     def filterAcceptsRow(self, source_row, source_parent):
         model = self.sourceModel()
@@ -703,19 +702,15 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
 
         self.sub_view = TikSubView(project_obj, right_click_enabled=right_click_enabled)
         self.addWidget(self.sub_view)
-        self.filter_le = QtWidgets.QLineEdit()
-        self.addWidget(self.filter_le)
-        self.filter_le.textChanged.connect(self.sub_view.filter)
-        self.filter_le.setPlaceholderText("Filter")
-        self.filter_le.setClearButtonEnabled(True)
-        self.filter_le.setFocus()
+
+        self.filter_widget = FilterWidget(self.sub_view.proxy_model)
+        self.addWidget(self.filter_widget)
 
         if recursive_enabled:
             self.sub_view.set_recursive_task_scan(self.recursive_search_cb.isChecked())
             self.recursive_search_cb.stateChanged.connect(
                 self.sub_view.set_recursive_task_scan
             )
-        self.filter_le.returnPressed.connect(self.sub_view.setFocus)
 
         # Hide all columns except the first one
         for idx in range(1, self.sub_view.header().count()):
