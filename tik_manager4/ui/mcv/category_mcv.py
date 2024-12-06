@@ -7,6 +7,7 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.work_dialog import NewVersionDialog
 from tik_manager4.ui.widgets.common import HorizontalSeparator, TikIconButton
+from tik_manager4.ui.mcv.filter import FilterModel, FilterWidget
 
 from tik_manager4.ui import pick
 
@@ -273,7 +274,7 @@ class TikCategoryView(QtWidgets.QTreeView):
         self.setExpandsOnDoubleClick(True)
 
         self.model = TikCategoryModel()
-        self.proxy_model = QtCore.QSortFilterProxyModel()
+        self.proxy_model = FilterModel()
         self.proxy_model.setSourceModel(self.model)
         self.proxy_model.setRecursiveFilteringEnabled(True)
         self.setSortingEnabled(True)
@@ -445,15 +446,6 @@ class TikCategoryView(QtWidgets.QTreeView):
         """
         for column, size in column_sizes.items():
             self.setColumnWidth(int(column), size)
-
-    def filter(self, text):
-        """Filter the model.
-        Args:
-            text (str): The text to be used for filtering.
-        """
-        self.proxy_model.setFilterRegExp(
-            QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp)
-        )
 
     def header_right_click_menu(self, position):
         """Create a right click menu for the header.
@@ -807,13 +799,8 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.work_tree_view = TikCategoryView()
         self.addWidget(self.work_tree_view)
 
-        self.filter_le = QtWidgets.QLineEdit()
-        self.addWidget(self.filter_le)
-        self.filter_le.textChanged.connect(self.work_tree_view.filter)
-        self.filter_le.setPlaceholderText("Filter")
-        self.filter_le.setClearButtonEnabled(True)
-        self.filter_le.setFocus()
-        self.filter_le.returnPressed.connect(self.work_tree_view.setFocus)
+        self.filter_widget = FilterWidget(self.work_tree_view.proxy_model)
+        self.addWidget(self.filter_widget)
 
         self.task = None
 
