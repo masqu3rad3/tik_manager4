@@ -297,35 +297,6 @@ class NewSubprojectDialog(EditSubprojectDialog):
     def get_created_subproject(self):
         return self._new_subproject
 
-
-# class FilteredData(dict):
-#     def __init__(self, **kwargs):
-#         super(FilteredData, self).__init__()
-#         self.update(kwargs)
-#
-#     def update_overridden_data(self, settings_data):
-#         for key, value in settings_data.get_data().items():
-#             # if it starts __override, skip
-#             if key.startswith("__override"):
-#                 continue
-#             # if the key has a __override key, check if it is True
-#             _override_key = "__override_{}".format(key)
-#             if _override_key not in list(settings_data.get_data().keys()):
-#                 self[key] = value
-#             else:
-#                 if settings_data.get_property(_override_key):
-#                     self[key] = value
-#
-#     def update_new_data(self, settings_data):
-#         for key, value in settings_data.get_data().items():
-#             if key.startswith("__new"):
-#                 continue
-#             # if the new checked box is checked, add the key to the filtered_data
-#             _new_key = "__new_{}".format(key)
-#             if settings_data.get_property(_new_key):
-#                 self[key] = value
-
-
 class SelectSubprojectDialog(QtWidgets.QDialog):
     """Convenience dialog for selecting a subproject."""
     def __init__(self, tik_project):

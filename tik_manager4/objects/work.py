@@ -44,7 +44,9 @@ class Work(Settings, Entity):
         self._relative_path = path
         self._software_version = None
         # there are 3 states: working, published, omitted
-        self._parent_task = parent_task
+        self._parent_task = None
+        if parent_task:
+            self.set_parent_task(parent_task)
         self._state = "working"
 
         self.modified_time = None  # to compare and update if necessary
@@ -132,6 +134,12 @@ class Work(Settings, Entity):
     def version_count(self):
         """Total number of versions belonging to the work."""
         return len(self._versions)
+
+    def set_parent_task(self, task_obj):
+        """Set the parent task of the work."""
+        self._parent_task = task_obj
+        self._task_id = task_obj.id
+        self._task_name = task_obj.name
 
     def reload(self):
         """Reload the work from file."""

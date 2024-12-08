@@ -7,7 +7,8 @@ from tik_manager4.ui.widgets import path_browser
 from tik_manager4.ui.widgets.common import TikButton, TikButtonBox
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.value_widgets import DropList
-from tik_manager4.ui.dialog.subproject_dialog import EditSubprojectDialog, FilteredData
+from tik_manager4.ui.dialog.subproject_dialog import EditSubprojectDialog
+from tik_manager4.objects.metadata import FilteredData
 
 
 class SetProjectDialog(QtWidgets.QDialog):
@@ -206,7 +207,7 @@ class NewProjectDialog(EditSubprojectDialog):
         )
         super().__init__(main_object.project, *args, **kwargs)
         self.structure_data = None
-        self.set_after_create_cb = None
+        # self.set_after_create_cb = None
 
         self.setWindowTitle("Create New Project")
         self.setMinimumSize(300, 200)
