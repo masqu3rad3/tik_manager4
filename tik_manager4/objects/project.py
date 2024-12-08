@@ -287,11 +287,15 @@ class Project(Subproject):
         database_path = Path(self.get_abs_database_path(str(relative_path)))
         work_files = database_path.glob("*.twork")
         for work_file in work_files:
-            _work = Work(work_file)
-            for nmb, version in enumerate(_work.versions):
+            work_obj = Work(work_file)
+            for nmb, version in enumerate(work_obj.versions):
                 resolved_path = Path(work_path.stem, base_name).as_posix()
                 if version.get("scene_path") == resolved_path:
-                    return _work, version.get("version_number", nmb)
+                    # if this the the version and work that we are looking for
+                    # find its parent and define it within the work object
+                    parent_task = self.find_task_by_id(work_obj.task_id)
+                    work_obj.set_parent_task(parent_task)
+                    return work_obj, version.get("version_number", nmb)
         return None, None
 
     def get_current_work(self):

@@ -819,7 +819,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.status_bar.showMessage("New work created successfully.", 5000)
             self.resume_last_state()
 
-    def _new_version_pre_checks(self, work_obj, metadata):
+    def _new_version_pre_checks(self, work_obj):
         """Collection of pre-checks for the new version method."""
         dcc_version_mismatch = work_obj.check_dcc_version_mismatch()
         if dcc_version_mismatch:
@@ -832,7 +832,7 @@ class MainUI(QtWidgets.QMainWindow):
             yield msg
 
         for msg in self.categories_mcv.work_tree_view.metadata_pre_checks(
-            self.tik.dcc, work_obj.get_metadata()
+                self.tik.dcc, work_obj.get_metadata(work_obj.parent_task)
         ):
             yield msg
 
@@ -869,10 +869,7 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
         # get the metadata for the checks.
-        task_id = work.task_id
-        parent_task = self.tik.project.find_task_by_id(task_id)
-        metadata = parent_task.parent_sub.metadata
-        pre_checks = self._new_version_pre_checks(work, metadata)
+        pre_checks = self._new_version_pre_checks(work)
         for check_msg in pre_checks:
             question = self.feedback.pop_question(
                 title="Metadata Mismatch",
@@ -888,7 +885,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.set_last_state()
             self.refresh_versions()
             self.status_bar.showMessage("New version created successfully.", 5000)
-            # self.resume_last_state()
 
     def on_check_for_updates(self):
         """Check for updates."""
