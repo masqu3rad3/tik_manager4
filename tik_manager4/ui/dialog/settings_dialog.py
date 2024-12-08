@@ -192,6 +192,51 @@ class SettingsDialog(QtWidgets.QDialog):
         user_widget_item.addChild(user_password_item)
         user_password_item.content = self.__create_user_password_layout()
 
+        # Localization settings
+        user_localization_item = SwitchTreeItem(["Localization"], permission_level=0)
+        user_widget_item.addChild(user_localization_item)
+
+        localization_ui_definition = {
+            "enabled": {
+                "display_name": "Enabled",
+                "type": "boolean",
+                "value": self.main_object.user.localization.get_property("enabled", False),
+                "disables": [],
+            },
+            "local_cache_folder": {
+                "display_name": "Local Cache Folder",
+                "tooltip": "Local folder to store cache files.",
+                "type": "pathBrowser",
+                "value": self.main_object.user.localization.get_property("local_cache_folder"),
+            },
+            "cache_works": {
+                "display_name": "Cache Work Files",
+                "type": "boolean",
+                "tooltip": "If enabled, work files will be stored in the cache folder and won't be accessible for other users until its synced.",
+                "value": self.main_object.user.localization.get_property("cache_works", True),
+            },
+            "cache_previews": {
+                "display_name": "Cache Previews",
+                "type": "boolean",
+                "tooltip": "If enabled, preview videos or sequences will be stored in the cache folder and won't be accessible for other users until its synced.",
+                "value": self.main_object.user.localization.get_property(
+                    "cache_works", True),
+            },
+            "cache_publishes": {
+                "display_name": "Cache Publish Files",
+                "type": "boolean",
+                "tooltip": "If enabled, publish files will be stored in the cache folder and won't be accessible for other users until its synced.",
+                "value": self.main_object.user.localization.get_property("cache_publishes", False),
+            }
+        }
+
+        # fill the content
+        user_localization_item.content = self.__create_generic_settings_layout(
+            settings_data=self.main_object.user.localization,
+            title="Localization",
+            ui_definition=localization_ui_definition,
+        )
+
     def __create_user_password_layout(self):
         """Create the widget for changing the user password."""
         content_widget = QtWidgets.QWidget()

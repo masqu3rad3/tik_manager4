@@ -9,7 +9,7 @@ from pathlib import Path
 
 from tik_manager4.core import filelog
 
-from tik_manager4.objects.preview import PreviewContext, Preview
+from tik_manager4.objects.preview import Preview
 from tik_manager4.dcc.standalone import main as standalone
 from tik_manager4.objects.publish import PublishVersion
 from tik_manager4.objects.guard import Guard

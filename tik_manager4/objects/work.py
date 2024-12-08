@@ -9,6 +9,7 @@ from tik_manager4.dcc.standalone.main import Dcc as StandaloneDcc
 from tik_manager4.core.settings import Settings
 from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
+from tik_manager4.objects.localize import Localize
 from tik_manager4.objects.publish import Publish
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
@@ -32,6 +33,7 @@ class Work(Settings, Entity):
         super(Work, self).__init__()
         self.settings_file = Path(absolute_path)
         self._dcc_handler = self.guard.dcc_handler
+        self.localize = Localize(self.guard)
         self._name = name
         self._creator = self.guard.user
         self._category = None
@@ -265,18 +267,26 @@ class Work(Settings, Entity):
         # get filepath of current version
         version_number, version_name, thumbnail_name = self.construct_names(file_format)
 
-        abs_version_path = self.get_abs_project_path(self.name, version_name)
+        origin_path = self.get_abs_project_path(self.name, version_name)
         thumbnail_path = self.get_abs_database_path("thumbnails", thumbnail_name)
-        Path(abs_version_path).parent.mkdir(parents=True, exist_ok=True)
+        Path(origin_path).parent.mkdir(parents=True, exist_ok=True)
 
+        # set the origin path to localizer.
+        self.localize.origin_path = origin_path
+
+        # run pre-save operations defined in the dcc handler
         self._dcc_handler.pre_save()
-        # save the file
-        output_path = self._dcc_handler.save_as(abs_version_path)
+
+        # save the file to either project or cache path.
+        output_path = self.localize.output_path
+        if not output_path:
+            return -1
+        returned_output_path = self._dcc_handler.save_as(output_path)
 
         # on some occasions the save as method may return a different path.
         # for example, if the file cannot be saved with specified file format,
         # extractor logic may decide to force something else.
-        if output_path != abs_version_path:
+        if returned_output_path != output_path:
             version_name = Path(output_path).name  # e.g. "test_v001.ma"
             file_format = Path(output_path).suffix  # e.g. ".ma"
 
@@ -296,6 +306,8 @@ class Work(Settings, Entity):
             "previews": {},
             "file_format": file_format,
             "dcc_version": self._dcc_handler.get_dcc_version(),
+            "localized": self.localize.is_enabled,
+            "localized_path": self.localize.output_path if self.localize.is_enabled else "",
         }
         self._versions.append(version)
         self.edit_property("versions", self._versions)

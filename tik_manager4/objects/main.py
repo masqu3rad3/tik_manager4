@@ -32,6 +32,7 @@ class Main:
         self.project.guard.set_dcc(dcc.NAME)
         self.project.guard.set_dcc_handler(self.dcc)
         self.project.guard.set_commons(self.user.commons)
+        self.project.guard.set_localize_settings(self.user.localization)
 
 
         default_project = Path(utils.get_home_dir(), "TM4_default")

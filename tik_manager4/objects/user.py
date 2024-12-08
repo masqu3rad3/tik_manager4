@@ -22,9 +22,10 @@ class User:
     def __init__(self, common_directory=None):
         """Initializes the User class."""
         super().__init__()
-        self.settings = Settings()
         self.bookmarks = Settings()
         self.resume = Settings()
+        self.localization = Settings()
+        self.settings = Settings()
         self.user_directory = None
         self.common_directory = (
             common_directory  # this is only for programmatically set the commons
@@ -285,6 +286,7 @@ class User:
         )
         self.bookmarks.settings_file = str(Path(self.user_directory, "bookmarks.json"))
         self.resume.settings_file = str(Path(self.user_directory, "resume.json"))
+        self.localization.settings_file = str(Path(self.user_directory, "localization.json"))
         # Check if the common folder defined in the user settings
         self.common_directory = self.common_directory or self.settings.get_property(
             "commonFolder"
