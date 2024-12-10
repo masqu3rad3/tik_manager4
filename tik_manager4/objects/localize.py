@@ -13,19 +13,7 @@ class Localize:
     def __init__(self, guard_obj):
         """Initialize Localize class."""
         self.guard = guard_obj
-        # self._project_root = None
         self._origin_path = None
-        # self._cache_folder = None
-
-    # @property
-    # def project_root(self):
-    #     """Return project root."""
-    #     return self._project_root
-    #
-    # @project_root.setter
-    # def project_root(self, value: str):
-    #     """Set project root."""
-    #     self._project_root = Path(value)
 
     @property
     def origin_path(self):
@@ -37,19 +25,6 @@ class Localize:
         """Set original path."""
         self._origin_path = Path(value)
 
-    # @property
-    # def cache_folder(self):
-    #     """Return cache folder."""
-    #     return self._cache_folder
-    #
-    # @cache_folder.setter
-    # def cache_folder(self, value: str):
-    #     """Set cache folder."""
-    #     # validate the existence of the folder
-    #     path_obj = Path(value)
-    #     if not path_obj:
-    #         raise ValueError(f"Cache folder does not exist: {value}")
-    #     self._cache_folder = path_obj
     @property
     def is_enabled(self):
         """Check if localizing is enabled."""
@@ -73,6 +48,7 @@ class Localize:
     @property
     def can_write_to_save_path(self):
         """Check if there is write permissions to the save path."""
+        pass
 
     @property
     def output_path(self):
@@ -82,13 +58,12 @@ class Localize:
         """
         if self.is_enabled:
             _path = self.get_local_path()
-            print("local path:", _path)
             _path.parent.mkdir(parents=True, exist_ok=True)
             return self.get_local_path().as_posix()
         return self._origin_path
 
     def get_local_path(self):
-        """Geth the local path for the file or folder"""
+        """Get the local path for the file or folder"""
         if not self.is_enabled:
             return None
         if not self.guard.localize_settings.get("local_cache_folder"):
@@ -108,6 +83,7 @@ class Localize:
         cache_path = local_cache_folder / project_root.name / relative_path
         # return the cache path
         return cache_path
+
 
 if __name__ == "__main__":
     import tik_manager4

@@ -11,6 +11,7 @@ from tik_manager4.core import filelog
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.localize import Localize
 from tik_manager4.objects.publish import Publish
+from tik_manager4.objects.version import WorkVersion
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -65,7 +66,8 @@ class Work(Settings, Entity):
         self._category = self.get_property("category", self._category)
         self._dcc = self.get_property("dcc", self.guard.dcc)
         self._dcc_version = self.get_property("dcc_version", self._dcc_version)
-        self._versions = self.get_property("versions", [])
+        # self._versions = self.get_property("versions", [])
+        self._versions = [WorkVersion(version) for version in self.get_property("versions", [])]
         self._work_id = self.get_property("work_id", self._id)
         self._task_name = self.get_property("task_name", self._task_name)
         self._task_id = self.get_property("task_id")
@@ -168,7 +170,7 @@ class Work(Settings, Entity):
         """Return the last version of the work."""
         # First try to get the last version from the versions list. If not found, return 0.
         if self._versions:
-            return self._versions[-1].get("version_number", self.version_count)
+            return self._versions[-1].version
         else:
             return 0
 
@@ -179,7 +181,7 @@ class Work(Settings, Entity):
             version_number (int): Version number.
         """
         for version in self._versions:
-            if version.get("version_number") == version_number:
+            if version.version == version_number:
                 return version
 
     def new_version_from_path(self, file_path, notes=""):
@@ -218,7 +220,7 @@ class Work(Settings, Entity):
         # add it to the versions
         extension = Path(output_path).suffix or "Folder"
         self._standalone_handler.text_to_image(extension, thumbnail_path, 220, 124)
-        version = {
+        version_dict = {
             "version_number": version_number,
             "workstation": socket.gethostname(),
             "notes": notes,
@@ -229,10 +231,18 @@ class Work(Settings, Entity):
             "file_format": file_format,
             "dcc_version": "NA",
         }
-        self._versions.append(version)
-        self.edit_property("versions", self._versions)
+        version_obj = WorkVersion(version_dict)
+        self._versions.append(version_obj)
+        # self.edit_property("versions", self._versions)
+        # self.apply_settings(force=True)
+        self._apply_versions()
+        return version_obj
+
+    def _apply_versions(self):
+        """Serialize the version objects and apply it to the settings."""
+        self.edit_property("versions",
+                           [version.to_dict() for version in self._versions])
         self.apply_settings(force=True)
-        return version
 
     def new_version(self, file_format=None, notes="", ignore_checks=True):
         """Create a new version of the work.
@@ -287,8 +297,8 @@ class Work(Settings, Entity):
         # for example, if the file cannot be saved with specified file format,
         # extractor logic may decide to force something else.
         if returned_output_path != output_path:
-            version_name = Path(output_path).name  # e.g. "test_v001.ma"
-            file_format = Path(output_path).suffix  # e.g. ".ma"
+            version_name = Path(returned_output_path).name  # e.g. "test_v001.ma"
+            file_format = Path(returned_output_path).suffix  # e.g. ".ma"
 
         # generate thumbnail
         # create the thumbnail folder if it doesn't exist
@@ -296,7 +306,7 @@ class Work(Settings, Entity):
         self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
 
         # add it to the versions
-        version = {
+        version_dict = {
             "version_number": version_number,
             "workstation": socket.gethostname(),
             "notes": notes,
@@ -309,12 +319,13 @@ class Work(Settings, Entity):
             "localized": self.localize.is_enabled,
             "localized_path": self.localize.output_path if self.localize.is_enabled else "",
         }
-        self._versions.append(version)
-        self.edit_property("versions", self._versions)
-        self.apply_settings(force=True)
-
+        version_obj = WorkVersion(version_dict)
+        self._versions.append(version_obj)
+        # self.edit_property("versions", self._versions)
+        # self.apply_settings(force=True)
+        self._apply_versions()
         self._dcc_handler.post_save()
-        return version
+        return version_obj
 
     def construct_names(
         self, file_format, version_number=None, thumbnail_extension=".jpg"
@@ -348,7 +359,8 @@ class Work(Settings, Entity):
         """
         version_obj = self.get_version(version_number)
         if version_obj:
-            relative_path = version_obj.get("scene_path")
+            # relative_path = version_obj.get("scene_path")
+            relative_path = version_obj.scene_path
             abs_path = self.get_abs_project_path(relative_path)
             self._dcc_handler.open(abs_path, force=force)
 
@@ -365,7 +377,8 @@ class Work(Settings, Entity):
         ingestor = ingestor or "source"
         version_obj = self.get_version(version_number)
         if version_obj:
-            relative_path = version_obj.get("scene_path")
+            # relative_path = version_obj.get("scene_path")
+            relative_path = version_obj.scene_path
             abs_path = self.get_abs_project_path(relative_path)
             _ingest_obj = self._dcc_handler.ingests[ingestor]()
             # feed the metadata from the parent subproject
@@ -388,7 +401,8 @@ class Work(Settings, Entity):
         ingestor = ingestor or "source"
         version_obj = self.get_version(version_number)
         if version_obj:
-            relative_path = version_obj.get("scene_path")
+            # relative_path = version_obj.get("scene_path")
+            relative_path = version_obj.scene_path
             abs_path = self.get_abs_project_path(relative_path)
             _ingest_obj = self._dcc_handler.ingests[ingestor]()
             _ingest_obj.metadata = self.get_metadata(self.parent_task)
@@ -422,7 +436,8 @@ class Work(Settings, Entity):
             else:
                 # check creators for all versions
                 for version in self._versions:
-                    if version.get("user") != self.guard.user:
+                    # if version.get("user") != self.guard.user:
+                    if version.user != self.guard.user:
                         msg = (
                             "You do not have the permission to delete this work.\n"
                             "There are other versions created by other user(s).\n"
@@ -496,7 +511,8 @@ class Work(Settings, Entity):
             LOG.warning(f"Version {version_number} does not exist.")
             return False, "Version does not exist."
         if self.check_permissions(level=3) == -1:
-            if self.guard.user != version_obj.get("user"):
+            # if self.guard.user != version_obj.get("user"):
+            if self.guard.user != version_obj.user:
                 msg = (
                     "You do not have the permissions for this action.\n"
                     "Only admins and version owners are allowed."
@@ -521,7 +537,8 @@ class Work(Settings, Entity):
             return -1, msg
         version_obj = self.get_version(version_number)
         if version_obj:
-            relative_path = version_obj.get("scene_path")
+            # relative_path = version_obj.get("scene_path")
+            relative_path = version_obj.scene_path
             abs_path = self.get_abs_project_path(relative_path)
             dest_path = self.get_purgatory_project_path(relative_path)
             # shutil.move(abs_path, dest_path, copy_function=shutil.copytree)
@@ -530,7 +547,8 @@ class Work(Settings, Entity):
                 shutil.move(abs_path, dest_path)
 
             # move the thumbnail
-            thumbnail_relative_path = version_obj.get("thumbnail", None)
+            # thumbnail_relative_path = version_obj.get("thumbnail", None)
+            thumbnail_relative_path = version_obj.thumbnail
             if thumbnail_relative_path:
                 thumbnail_abs_path = self.get_abs_database_path(thumbnail_relative_path)
                 thumbnail_dest_path = self.get_purgatory_database_path(
@@ -550,8 +568,9 @@ class Work(Settings, Entity):
 
             # remove the version from the versions list
             self._versions.remove(version_obj)
-            self.edit_property("versions", self._versions)
-            self.apply_settings(force=True)
+            # self.edit_property("versions", self._versions)
+            # self.apply_settings(force=True)
+            self._apply_versions()
         return 1, msg
 
     def __generate_thumbnail_paths(self, version_obj, override_extension=None):

@@ -384,9 +384,10 @@ class NewVersionDialog(QtWidgets.QDialog):
         self.format_combo.setItemDelegate(QtWidgets.QStyledItemDelegate())
         # try to get the format from the last version and set it as current
         if self.work_object.versions:
-            _format = self.work_object.versions[-1].get(
-                "file_format", self.work_object._dcc_handler.formats[0]
-            )
+            _format = self.work_object.versions[-1].file_format or self.work_object._dcc_handler.formats[0]
+            # _format = self.work_object.versions[-1].get(
+            #     "file_format", self.work_object._dcc_handler.formats[0]
+            # )
         else:
             _format = self.work_object._dcc_handler.formats[0]
         self.format_combo.setCurrentText(_format)

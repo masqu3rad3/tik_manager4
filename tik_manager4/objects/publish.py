@@ -4,7 +4,8 @@
 import shutil
 
 from pathlib import Path
-from tik_manager4.core.settings import Settings
+# from tik_manager4.core.settings import Settings
+from tik_manager4.objects.version import PublishVersion
 from tik_manager4.objects.entity import Entity
 from tik_manager4.core import filelog
 
@@ -429,225 +430,225 @@ class Publish(Entity):
         return 1, "success"
 
 
-class PublishVersion(Settings, Entity):
-    """PublishVersion object class.
-
-    This class handles the publish version objects.
-    Unlike work versions, publish versions are directly represented by files.
-    name and path properties are required during first creation.
-    When read from the file, these properties are initialized from the file.
-    """
-    object_type = "publish_version"
-
-    def __init__(self, absolute_path, name=None, path=None):
-        """Initialize the publish version object.
-
-        Args:
-            absolute_path (str): The absolute path of the publish version file.
-            name (str, optional): The name of the publish version.
-                Defaults to None.
-            path (str, optional): The relative path of the publish version.
-                Defaults to None.
-        """
-        super(PublishVersion, self).__init__()
-        self._dcc_handler = self.guard.dcc_handler
-        self.settings_file = absolute_path
-
-        self._name = name
-        self._creator = self.guard.user
-        self._category = None
-        self._dcc = self.guard.dcc
-        self._publish_id = self._id
-        self._version = 1
-        self._work_version = None
-        self._task_name = None
-        self._task_id = None
-        self._relative_path = path
-        self._dcc_version = None
-        self._elements = []
-
-        self.modified_time = None  # to compare and update if necessary
-
-        self.init_properties()
-
-        # get the current folder path
-        _folder = Path(self.settings_file).parent
-        promoted_file = _folder / "promoted.json"
-        self._promoted_object = Settings(promoted_file)
-
-    def init_properties(self):
-        """Initialize the properties of the publish."""
-        self._name = self.get_property("name", self._name)
-        self._creator = self.get_property("creator", self._creator)
-        self._category = self.get_property("category", self._category)
-        self._dcc = self.get_property("dcc", self._dcc)
-        self._publish_id = self.get_property("publish_id", self._publish_id)
-        self._version = self.get_property("version_number", self._version)
-        self._work_version = self.get_property("work_version", self._work_version)
-        self._task_name = self.get_property("task_name", self._task_name)
-        self._task_id = self.get_property("task_id", self._task_id)
-        self._relative_path = self.get_property("path", self._relative_path)
-        self._dcc_version = self.get_property("dcc_version", self._dcc_version)
-        self._elements = self.get_property("elements", self._elements)
-
-    @property
-    def creator(self):
-        """The creator of the publish version."""
-        return self._creator
-
-    @property
-    def category(self):
-        """The category of the publish version."""
-        return self._category
-
-    @property
-    def dcc(self):
-        """The dcc of the publish version."""
-        return self._dcc
-
-    @property
-    def dcc_version(self):
-        """Dcc version used while publishing the version."""
-        return self._dcc_version
-
-    @property
-    def dcc_handler(self):
-        """DCC handler object."""
-        return self._dcc_handler
-
-    @property
-    def publish_id(self):
-        """Unique id of the publish version."""
-        return self._publish_id
-
-    @property
-    def version(self):
-        """Number of the publish version."""
-        return self._version
-
-    @property
-    def task_name(self):
-        """Task name of the publish version."""
-        return self._task_name
-
-    @property
-    def task_id(self):
-        """Task id of the publish version."""
-        return self._task_id
-
-    @property
-    def relative_path(self):
-        """Relative path of the publish version."""
-        return self._relative_path
-
-    @property
-    def software_version(self):
-        """Dcc version used while publishing the version.
-
-        Identical to dcc_version property.
-        """
-        return self._dcc_version
-
-    @property
-    def elements(self):
-        """The elements of the publish version."""
-        return self._elements
-
-    @property
-    def element_types(self):
-        """The element types of the publish version."""
-        return [element["type"] for element in self.elements]
-
-    @property
-    def element_mapping(self):
-        """The element mapping of the publish version.
-
-        Element mapping is a dictionary where each key is the element name and
-        the value is the element type.
-        """
-        return {
-            element.get("name", element["type"]): element["type"]
-            for element in self.elements
-        }
-
-    def is_promoted(self):
-        """Return if the publish is promoted or not.
-
-        This method checks the 'promoted' file in the publish folder.
-        If the content is matching with the publish id, return True
-        """
-        _id = self._promoted_object.get_property("publish_id", default=None)
-        return _id == self._publish_id
-
-    def promote(self):
-        """Promote the publish editing the promoted.json"""
-        _data = {
-            "publish_id": self._publish_id,
-            "name": self._name,
-            "path": self._relative_path,
-        }
-        self._promoted_object.set_data(_data)
-        self._promoted_object.apply_settings()
-
-    def get_element_by_type(self, element_type):
-        """Return the element by the given type.
-
-        Args:
-            element_type (str): The type of the element.
-
-        Returns:
-            dict: The element or None if not found.
-        """
-        for element in self.elements:
-            if element["type"] == element_type:
-                return element
-        return None
-
-    def get_element_path(self, element_type, relative=True):
-        """Return the element path of the given element type.
-
-        Args:
-            element_type (str): The type of the element.
-            relative (bool, optional): If True, returns the relative path.
-                If False, returns the absolute path. Default is True.
-
-        Returns:
-            str: The path of the element or None if not found.
-        """
-        for element in self.elements:
-            if element["type"] == element_type:
-                path = (
-                    element["path"]
-                    if relative
-                    else (self.get_abs_project_path(element["path"]))
-                )
-                return path
-        return None
-
-    def get_element_suffix(self, element_type):
-        """Return the element suffix of the given element type.
-
-        Args:
-            element_type (str): The type of the element.
-
-        Returns:
-            str: The suffix of the element or None if not found.
-        """
-        for element in self.elements:
-            if element["type"] == element_type:
-                return element["suffix"]
-        return None
-
-    def is_element_bundled(self, element_type):
-        """Return if the element is bundled or not.
-
-        Args:
-            element_type (str): The type of the element.
-
-        Returns:
-            bool: True if the element is bundled, False otherwise.
-        """
-        for element in self.elements:
-            if element["type"] == element_type:
-                return element.get("bundled", False)
-        return None
+# class PublishVersion(Settings, Entity):
+#     """PublishVersion object class.
+#
+#     This class handles the publish version objects.
+#     Unlike work versions, publish versions are directly represented by files.
+#     name and path properties are required during first creation.
+#     When read from the file, these properties are initialized from the file.
+#     """
+#     object_type = "publish_version"
+#
+#     def __init__(self, absolute_path, name=None, path=None):
+#         """Initialize the publish version object.
+#
+#         Args:
+#             absolute_path (str): The absolute path of the publish version file.
+#             name (str, optional): The name of the publish version.
+#                 Defaults to None.
+#             path (str, optional): The relative path of the publish version.
+#                 Defaults to None.
+#         """
+#         super(PublishVersion, self).__init__()
+#         self._dcc_handler = self.guard.dcc_handler
+#         self.settings_file = absolute_path
+#
+#         self._name = name
+#         self._creator = self.guard.user
+#         self._category = None
+#         self._dcc = self.guard.dcc
+#         self._publish_id = self._id
+#         self._version = 1
+#         self._work_version = None
+#         self._task_name = None
+#         self._task_id = None
+#         self._relative_path = path
+#         self._dcc_version = None
+#         self._elements = []
+#
+#         self.modified_time = None  # to compare and update if necessary
+#
+#         self.init_properties()
+#
+#         # get the current folder path
+#         _folder = Path(self.settings_file).parent
+#         promoted_file = _folder / "promoted.json"
+#         self._promoted_object = Settings(promoted_file)
+#
+#     def init_properties(self):
+#         """Initialize the properties of the publish."""
+#         self._name = self.get_property("name", self._name)
+#         self._creator = self.get_property("creator", self._creator)
+#         self._category = self.get_property("category", self._category)
+#         self._dcc = self.get_property("dcc", self._dcc)
+#         self._publish_id = self.get_property("publish_id", self._publish_id)
+#         self._version = self.get_property("version_number", self._version)
+#         self._work_version = self.get_property("work_version", self._work_version)
+#         self._task_name = self.get_property("task_name", self._task_name)
+#         self._task_id = self.get_property("task_id", self._task_id)
+#         self._relative_path = self.get_property("path", self._relative_path)
+#         self._dcc_version = self.get_property("dcc_version", self._dcc_version)
+#         self._elements = self.get_property("elements", self._elements)
+#
+#     @property
+#     def creator(self):
+#         """The creator of the publish version."""
+#         return self._creator
+#
+#     @property
+#     def category(self):
+#         """The category of the publish version."""
+#         return self._category
+#
+#     @property
+#     def dcc(self):
+#         """The dcc of the publish version."""
+#         return self._dcc
+#
+#     @property
+#     def dcc_version(self):
+#         """Dcc version used while publishing the version."""
+#         return self._dcc_version
+#
+#     @property
+#     def dcc_handler(self):
+#         """DCC handler object."""
+#         return self._dcc_handler
+#
+#     @property
+#     def publish_id(self):
+#         """Unique id of the publish version."""
+#         return self._publish_id
+#
+#     @property
+#     def version(self):
+#         """Number of the publish version."""
+#         return self._version
+#
+#     @property
+#     def task_name(self):
+#         """Task name of the publish version."""
+#         return self._task_name
+#
+#     @property
+#     def task_id(self):
+#         """Task id of the publish version."""
+#         return self._task_id
+#
+#     @property
+#     def relative_path(self):
+#         """Relative path of the publish version."""
+#         return self._relative_path
+#
+#     @property
+#     def software_version(self):
+#         """Dcc version used while publishing the version.
+#
+#         Identical to dcc_version property.
+#         """
+#         return self._dcc_version
+#
+#     @property
+#     def elements(self):
+#         """The elements of the publish version."""
+#         return self._elements
+#
+#     @property
+#     def element_types(self):
+#         """The element types of the publish version."""
+#         return [element["type"] for element in self.elements]
+#
+#     @property
+#     def element_mapping(self):
+#         """The element mapping of the publish version.
+#
+#         Element mapping is a dictionary where each key is the element name and
+#         the value is the element type.
+#         """
+#         return {
+#             element.get("name", element["type"]): element["type"]
+#             for element in self.elements
+#         }
+#
+#     def is_promoted(self):
+#         """Return if the publish is promoted or not.
+#
+#         This method checks the 'promoted' file in the publish folder.
+#         If the content is matching with the publish id, return True
+#         """
+#         _id = self._promoted_object.get_property("publish_id", default=None)
+#         return _id == self._publish_id
+#
+#     def promote(self):
+#         """Promote the publish editing the promoted.json"""
+#         _data = {
+#             "publish_id": self._publish_id,
+#             "name": self._name,
+#             "path": self._relative_path,
+#         }
+#         self._promoted_object.set_data(_data)
+#         self._promoted_object.apply_settings()
+#
+#     def get_element_by_type(self, element_type):
+#         """Return the element by the given type.
+#
+#         Args:
+#             element_type (str): The type of the element.
+#
+#         Returns:
+#             dict: The element or None if not found.
+#         """
+#         for element in self.elements:
+#             if element["type"] == element_type:
+#                 return element
+#         return None
+#
+#     def get_element_path(self, element_type, relative=True):
+#         """Return the element path of the given element type.
+#
+#         Args:
+#             element_type (str): The type of the element.
+#             relative (bool, optional): If True, returns the relative path.
+#                 If False, returns the absolute path. Default is True.
+#
+#         Returns:
+#             str: The path of the element or None if not found.
+#         """
+#         for element in self.elements:
+#             if element["type"] == element_type:
+#                 path = (
+#                     element["path"]
+#                     if relative
+#                     else (self.get_abs_project_path(element["path"]))
+#                 )
+#                 return path
+#         return None
+#
+#     def get_element_suffix(self, element_type):
+#         """Return the element suffix of the given element type.
+#
+#         Args:
+#             element_type (str): The type of the element.
+#
+#         Returns:
+#             str: The suffix of the element or None if not found.
+#         """
+#         for element in self.elements:
+#             if element["type"] == element_type:
+#                 return element["suffix"]
+#         return None
+#
+#     def is_element_bundled(self, element_type):
+#         """Return if the element is bundled or not.
+#
+#         Args:
+#             element_type (str): The type of the element.
+#
+#         Returns:
+#             bool: True if the element is bundled, False otherwise.
+#         """
+#         for element in self.elements:
+#             if element["type"] == element_type:
+#                 return element.get("bundled", False)
+#         return None

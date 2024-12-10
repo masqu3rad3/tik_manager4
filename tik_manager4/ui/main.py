@@ -1022,7 +1022,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         executable = self.tik.user.settings.get("video_player", None)
 
-        preview_dict = _version.get("previews")
+        preview_dict = _version.previews
         if len(preview_dict.values()) == 1:
             abs_path = _work_item.tik_obj.get_abs_project_path(
                 list(preview_dict.values())[0]

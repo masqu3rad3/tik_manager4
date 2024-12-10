@@ -875,7 +875,7 @@ class TestProject:
             work._dcc_handler, "save_as", lambda x: Path(x).with_suffix(".burhan")
         )
         test_version = work.new_version(ignore_checks=True)
-        assert test_version.get("file_format") == ".burhan"
+        assert test_version.file_format == ".burhan"
 
         # try to create a new version without permissions
         tik.user.set("Observer", password="1234")
@@ -1000,7 +1000,7 @@ class TestProject:
             project_manual_path, tik
         )
         version = work.versions[0]
-        version_path = work.get_abs_project_path(version["scene_path"])
+        version_path = work.get_abs_project_path(version.scene_path)
         found_work, version_number = tik.project.find_work_by_absolute_path(
             version_path
         )
@@ -1030,7 +1030,7 @@ class TestProject:
 
         # mock the dcc_handler.get_scene_file() to return a valid value
         version = work.versions[0]
-        version_path = work.get_abs_project_path(version["scene_path"])
+        version_path = work.get_abs_project_path(version.scene_path)
         monkeypatch.setattr(
             tik.project.guard._dcc_handler,
             "get_scene_file",

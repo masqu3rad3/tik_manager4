@@ -47,7 +47,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         version_lbl.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignRight)
         version_layout.addWidget(version_lbl)
 
-        self.version_combo = QtWidgets.QComboBox()
+        # self.version_combo = QtWidgets.QComboBox()
+        self.version_combo = VersionComboBox()
         self.version_combo.setMinimumSize(QtCore.QSize(60, 30))
         version_layout.addWidget(self.version_combo)
 
@@ -395,12 +396,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         """Populate the version dropdown with the versions from the base object."""
         self.version_combo.blockSignals(True)
         self.version_combo.clear()
-        for version in versions:
-            # add the version number to the dropdown.
-            # Version number is integer, convert it to string
-            self.version_combo.addItem(str(version.get("version_number")))
-        # alyways select the last version
+        self.version_combo.set_items(versions)
         self.version_combo.setCurrentIndex(self.version_combo.count() - 1)
+        # for version in versions:
+        #     # add the version number to the dropdown.
+        #     # Version number is integer, convert it to string
+        #     self.version_combo.addItem(str(version.get("version_number")))
+        # # alyways select the last version
+        # self.version_combo.setCurrentIndex(self.version_combo.count() - 1)
 
         # get the current selected version name from the version_dropdown
         self.version_changed()
@@ -422,10 +425,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         """When the version dropdown is changed, update the notes and thumbnail."""
         self.element_combo.blockSignals(True)
         self.ingest_with_combo.blockSignals(True)
-        version_text = self.version_combo.currentText()
-        if not version_text:
-            return
-        version_number = int(version_text)
+        _version = self.version_combo.get_current_item()
+        # version_number = current_version_obj.version
+        # version_number = current_version_dict["version_number"]
+        # version_text = self.version_combo.currentText()
+        # if not version_text:
+        #     return
+        # version_number = int(version_text)
         _index = self.version_combo.currentIndex()
         # check if the _index is the latest in combo box
         if _index == self.version_combo.count() - 1:
@@ -434,12 +440,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.version_combo.setProperty("preVersion", True)
         self.version_combo.setStyleSheet("")
 
-        _version = self.base.get_version(version_number)
+        # _version = self.base.get_version(version_number)
         self.element_combo.clear()
         self.element_mapping.clear()
         if self.base.object_type == "publish":
             # self.show_preview_btn.setEnabled(False)
-            self.show_preview_btn.setEnabled(bool(_version.get("previews")))
+            # self.show_preview_btn.setEnabled(bool(_version.get("previews")))
+            self.show_preview_btn.setEnabled(bool(_version.previews))
             self.element_combo.setEnabled(True)
             self.element_view_btn.setEnabled(True)
             self.ingest_with_combo.setEnabled(True)
@@ -454,13 +461,17 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.element_view_btn.setEnabled(False)
             self.ingest_with_combo.setEnabled(False)
             # enable the show preview button if there are previews
-            self.show_preview_btn.setEnabled(bool(_version.get("previews")))
-            owner = _version.get("user", "")
+            # self.show_preview_btn.setEnabled(bool(_version.get("previews")))
+            self.show_preview_btn.setEnabled(bool(_version.previews))
+            # owner = _version.get("user", "")
+            owner = _version.user
         self.version_owner_lbl.setText(f"Owner: {owner}")
         self.notes_editor.clear()
         self.thumbnail.clear()
-        self.notes_editor.setPlainText(_version.get("notes"))
-        _thumbnail_path = self.base.get_abs_database_path(_version.get("thumbnail", ""))
+        # self.notes_editor.setPlainText(_version.get("notes"))
+        self.notes_editor.setPlainText(_version.notes)
+        # _thumbnail_path = self.base.get_abs_database_path(_version.get("thumbnail", ""))
+        _thumbnail_path = self.base.get_abs_database_path(_version.thumbnail)
         self.thumbnail.set_media(_thumbnail_path)
         self.element_combo.blockSignals(False)
         self.ingest_with_combo.blockSignals(False)
@@ -740,3 +751,44 @@ class ImageWidget(QtWidgets.QLabel):
         height = self.width()
         self.setMinimumHeight(int(height / self.aspectRatio))
         self.setMaximumHeight(int(height / self.aspectRatio))
+
+
+class VersionComboBoxModel(QtCore.QAbstractListModel):
+    def __init__(self, items, parent=None):
+        super().__init__(parent)
+        self.items = items
+
+    def rowCount(self, parent=None):
+        return len(self.items)
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        if not index.isValid() or not (0 <= index.row() < len(self.items)):
+            return None
+        if role == QtCore.Qt.DisplayRole:
+            # Display only the 'content' key's value
+            return str(self.items[index.row()].version)
+        return None
+
+    def get_item(self, index):
+        """Method to get the full dictionary item."""
+        if 0 <= index < len(self.items):
+            return self.items[index]
+        return None
+
+
+class VersionComboBox(QtWidgets.QComboBox):
+    def __init__(self, items=None, parent=None):
+        super().__init__(parent)
+        self.model = None
+        if items:
+            self.set_items(items)
+
+    def set_items(self, items):
+        self.model = VersionComboBoxModel(items)
+        self.setModel(self.model)
+
+    def get_item(self, index):
+        return self.model.get_item(index)
+
+    def get_current_item(self):
+        return self.model.get_item(self.currentIndex())
