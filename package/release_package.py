@@ -5,7 +5,7 @@ import getopt
 import os
 
 # set the TIK_DCC environment variable
-os.environ["TIK_DCC"] = "standalone"
+os.environ["TIK_DCC"] = "null"
 
 import subprocess
 

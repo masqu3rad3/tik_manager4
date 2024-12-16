@@ -33,6 +33,8 @@ elif NAME == "maya":
     from tik_manager4.dcc.maya.main import Dcc
 elif NAME == "nuke":
     from tik_manager4.dcc.nuke.main import Dcc
+elif NAME == "null":
+    pass # Null DCC is used for testing purposes.
 elif NAME == "photoshop":
     from tik_manager4.dcc.photoshop.main import Dcc
 elif NAME == "standalone":
