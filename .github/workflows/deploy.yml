@@ -31,7 +31,8 @@ jobs:
       id: extract_version
       run: |
         python -c "import sys; sys.path.insert(0, './tik_manager4'); from tik_manager4 import _version; print(_version.__version__)" > version.txt
-        for /f %%i in (version.txt) do echo VERSION=%%i >> $GITHUB_ENV
+        for /f %%i in (version.txt) do set VERSION=%%i
+        echo "VERSION=${VERSION}" >> $GITHUB_ENV
       shell: cmd
 
     - name: Build and package
