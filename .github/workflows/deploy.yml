@@ -25,7 +25,7 @@ jobs:
     - name: Install Inno Setup
       run: |
         curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
-        start /wait innosetup.exe /VERYSILENT /NORESTART
+        cmd /c "innosetup.exe /VERYSILENT /NORESTART"
 
     - name: Build and package
       run: |
