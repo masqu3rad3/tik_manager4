@@ -30,18 +30,18 @@ jobs:
     - name: Extract Version
       id: extract_version
       run: |
-        python -c "import sys; sys.path.insert(0, './tik_manager4'); from tik_manager4 import _version; print(_version.__version__)" > version.txt
-        for /f %%i in (version.txt) do set VERSION=%%i
+        python -c "from tik_manager4 import _version; print(_version.__version__)" > version.txt
+        set /p VERSION=<version.txt
         echo "VERSION=${VERSION}" >> $GITHUB_ENV
       shell: cmd
 
-    - name: Build and package
+    - name: Debug Version Value
+      run: echo "VERSION=${{ env.VERSION }}"
+
+    - name: Build and Package
       run: |
         cd package
         ./make release
-
-    - name: Debug Version Value
-      run: echo "VERSION=${{ env.VERSION }}"
 
     - name: List Build Directory
       run: dir package\build
