@@ -61,6 +61,13 @@ jobs:
         if not exist "package\build\TikManager4_v${{ env.VERSION }}.exe" exit 1
       shell: cmd
 
+    - name: Extract Release Notes
+      id: extract_notes
+      run: |
+        awk "/^## v${{ env.VERSION }}/,/^##/" RELEASE_NOTES.md | sed '1d;$d' > notes.txt
+        echo "NOTES=$(cat notes.txt)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+      shell: bash
+
     - name: Upload Release Assets
       uses: actions/upload-artifact@v3
       with:
@@ -74,5 +81,5 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: v${{ env.VERSION }}
         name: v${{ env.VERSION }}
-        body: |
-          Release version v${{ env.VERSION }}.
+        body: ${{ env.NOTES }}.
+
