@@ -39,9 +39,16 @@ jobs:
         cd package
         ./make release
 
-    - name: Verify the built file
+    - name: Debug Version Value
+      run: echo "VERSION=${{ env.VERSION }}"
+
+    - name: List Build Directory
+      run: dir package\build
+      shell: cmd
+
+    - name: Verify the Built File
       run: |
-        if not exist "package/build/TikManager4_v%VERSION%.exe" exit 1
+        if not exist "package\build\TikManager4_v${{ env.VERSION }}.exe" exit 1
       shell: cmd
 
     - name: Upload Release Assets
