@@ -30,10 +30,10 @@ jobs:
     - name: Read VERSION file
       id: read_version
       run: |
-        FOR /F "delims=" %%A IN (VERSION) DO @SET VERSION=%%A
-        echo VERSION=$VERSION >> $GITHUB_ENV
+        cmd /C "FOR /F \"delims=\" %A IN (VERSION) DO @SET VERSION=%A && echo VERSION=%VERSION%" >> $env:GITHUB_ENV
 
     - name: Display the version
+      shell: pwsh
       run: echo The version is $env:VERSION
 
 #    - name: Build and Package
