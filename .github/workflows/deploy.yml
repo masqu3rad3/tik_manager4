@@ -37,35 +37,35 @@ jobs:
       shell: pwsh
       run: echo The version is $env:VERSION
 
-#    - name: Build and Package
-#      run: |
-#        cd package
-#        ./make release
-#
-#    - name: Debug Version Value
-#      run: echo "VERSION=${{ env.TIK_VERSION }}"
-#
-#    - name: List Build Directory
-#      run: dir package\build
-#      shell: cmd
-#
-#    - name: Verify the Built File
-#      run: |
-#        if not exist "package\build\TikManager4_v${{ env.TIK_VERSION }}.exe" exit 1
-#      shell: cmd
-#
-#    - name: Upload Release Assets
-#      uses: actions/upload-artifact@v3
-#      with:
-#        name: TikManager4
-#        path: package/build/TikManager4_v${{ env.TIK_VERSION }}.exe
-#
-#    - name: Create GitHub Release
-#      uses: ncipollo/release-action@v1
-#      with:
-#        artifacts: package/build/TikManager4_v${{ env.TIK_VERSION }}.exe
-#        token: ${{ secrets.GITHUB_TOKEN }}
-#        tag: ${{ github.ref_name }}
-#        name: Release ${{ github.ref_name }}
-#        body: |
-#          Automated release for version ${{ github.ref_name }}.
+    - name: Build and Package
+      run: |
+        cd package
+        ./make release
+
+    - name: Debug Version Value
+      run: echo "VERSION=${{ env.VERSION }}"
+
+    - name: List Build Directory
+      run: dir package\build
+      shell: cmd
+
+    - name: Verify the Built File
+      run: |
+        if not exist "package\build\TikManager4_v${{ env.VERSION }}.exe" exit 1
+      shell: cmd
+
+    - name: Upload Release Assets
+      uses: actions/upload-artifact@v3
+      with:
+        name: TikManager4
+        path: package/build/TikManager4_v${{ env.VERSION }}.exe
+
+    - name: Create GitHub Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: package/build/TikManager4_v${{ env.VERSION }}.exe
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        body: |
+          Automated release for version ${{ github.ref_name }}.
