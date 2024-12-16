@@ -4,6 +4,7 @@
 
 from pathlib import Path
 import shutil
+from tik_manager4.core.constants import ObjectType
 from tik_manager4.objects.metadata import Metadata
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.category import Category
@@ -21,6 +22,8 @@ class Task(Settings, Entity):
     During the initial instantiation, the optional arguments are used
     to create the settings file if it does not exist.
     """
+    object_type = ObjectType.TASK
+
     def __init__(
         self,
         absolute_path,
@@ -57,8 +60,6 @@ class Task(Settings, Entity):
         self._task_id = self.get_property("task_id") or task_id
         self._relative_path = self.get_property("path") or path
         self._file_name = self.get_property("file_name") or file_name
-        # self._type = self.get_property("type") or task_type
-        # get the type from metadata
         self._type = self.metadata.get_value("mode", "")
 
         self._state = self.get_property("state") or "active"
@@ -179,7 +180,6 @@ class Task(Settings, Entity):
         self.apply_settings()
         return self._categories[category]
 
-    # def edit(self, name=None, task_type=None, categories=None, metadata_overrides=None):
     def edit(self, name=None, categories=None, metadata_overrides=None):
         """Edit the task.
 
@@ -209,9 +209,6 @@ class Task(Settings, Entity):
                 return -1
             self._name = name
             self.edit_property("name", name)
-        # if task_type and task_type != self.type:
-        #     self._type = task_type
-        #     self.edit_property("type", task_type)
         if categories and categories != list(self.categories.keys()):
             # check if the categories are list or tuple
             if not isinstance(categories, (list, tuple)):

@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import platform
 
+from tik_manager4.core.constants import ObjectType
 from tik_manager4.external import pyperclip
 from tik_manager4.objects.guard import Guard
 from tik_manager4.core import filelog
@@ -15,6 +16,7 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class Entity:
     """Base class for all Tik Manager entities."""
+    object_type = ObjectType.ENTITY
     guard = Guard()
 
     def __init__(self, name="", uid=None):
@@ -101,7 +103,7 @@ class Entity:
             args (str): The path arguments.
                 Any values passed here will be appended to the path.
         """
-        return str(Path(self.guard.database_root, self.path, *args))
+        return Path(self.guard.database_root, self.path, *args).as_posix()
 
     def get_abs_project_path(self, *args):
         """Return the absolute project path for the entity.
@@ -110,7 +112,7 @@ class Entity:
             args (str): The path arguments.
                 Any values passed here will be appended to the path.
         """
-        return str(Path(self.guard.project_root, self.path, *args))
+        return Path(self.guard.project_root, self.path, *args).as_posix()
 
     def get_purgatory_project_path(self, *args):
         """Return the purgatory project path for the entity.
@@ -119,7 +121,7 @@ class Entity:
             args (str): The path arguments.
                 Any values passed here will be appended to the path.
         """
-        return str(Path(self.guard.project_root, ".purgatory", self.path, *args))
+        return Path(self.guard.project_root, ".purgatory", self.path, *args).as_posix()
 
     def get_purgatory_database_path(self, *args):
         """Return the purgatory database path for the entity.
@@ -128,7 +130,7 @@ class Entity:
             args (str): The path arguments.
                 Any values passed here will be appended to the path.
         """
-        return str(Path(self.guard.project_root, ".purgatory", "tikDatabase",  self.path, *args))
+        return Path(self.guard.project_root, ".purgatory", "tikDatabase",  self.path, *args).as_posix()
 
     @staticmethod
     def _open_folder(target):
@@ -157,7 +159,11 @@ class Entity:
 
     def show_database_folder(self):
         """Open the database path in Windows Explorer(Windows) or Nautilus(Linux)."""
-        self._open_folder(self.get_abs_database_path())
+        file_path = Path(self.get_abs_database_path())
+        if file_path.suffix: # the file may not exist always..
+            self._open_folder(file_path.parent.as_posix())
+        else:
+            self._open_folder(file_path.as_posix())
 
     def get_metadata(self, parent_task, key=None):
         """Convenience method to get the metadata for work and category objects."""
@@ -167,10 +173,3 @@ class Entity:
         if key:
             return parent_task.metadata.get_value(key, None)
         return parent_task.metadata
-
-        # parent_sub = parent_task.parent_sub
-        # if not parent_sub:
-        #     return None
-        # if key:
-        #     return parent_sub.metadata.get_value(key, None)
-        # return parent_sub.metadata

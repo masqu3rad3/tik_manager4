@@ -3,6 +3,7 @@
 
 from datetime import datetime
 
+from tik_manager4.core.constants import ObjectType
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.work_dialog import NewVersionDialog
@@ -101,7 +102,6 @@ class TikPublishItem(QtGui.QStandardItem):
         self.setFont(self.fnt)
         self.setText(str(publish_obj.name))
         self.state = None
-        # self.setForeground(QtGui.QColor(*self.state_color_dict["publish"]))
         self.setIcon(pick.icon("published"))
         self.refresh()
 
@@ -502,7 +502,7 @@ class TikCategoryView(QtWidgets.QTreeView):
             level = 0
 
         # if the item is a work, add the ingest action
-        if item.tik_obj.object_type == "work":
+        if item.tik_obj.object_type == ObjectType.WORK:
             ingest_act = right_click_menu.addAction(self.tr("Ingest Here"))
             ingest_act.triggered.connect(lambda _=None, x=item: self.ingest_here(item))
             right_click_menu.addSeparator()
@@ -701,7 +701,7 @@ class TikCategoryView(QtWidgets.QTreeView):
             self.feedback.pop_info(title="Permission error", text=msg, critical=True)
             return
 
-        if item.tik_obj.object_type == "work":
+        if item.tik_obj.object_type == ObjectType.WORK:
             are_you_sure = self.feedback.pop_question(
                 title="Are you sure?",
                 text=f"You are about to delete '{item.tik_obj.name}' completely.\n\n"
@@ -724,7 +724,7 @@ class TikCategoryView(QtWidgets.QTreeView):
                 )
                 if are_you_sure == "cancel":
                     return
-        elif item.tik_obj.object_type == "publish":
+        elif item.tik_obj.object_type == ObjectType.PUBLISH:
             are_you_sure = self.feedback.pop_question(
                 title="Are you sure?",
                 text=f"You are about to delete '{item.tik_obj.name}' completely.\n\n"

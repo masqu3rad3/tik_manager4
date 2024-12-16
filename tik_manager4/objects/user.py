@@ -2,6 +2,7 @@
 
 import hashlib
 from pathlib import Path
+from tik_manager4.core.constants import ObjectType
 from tik_manager4.core import filelog
 from tik_manager4.core import utils
 from tik_manager4.core.settings import Settings
@@ -16,7 +17,7 @@ FEED = feedback.Feedback()
 
 class User:
     """User class to handle user data and permissions."""
-
+    object_type = ObjectType.USER
     _guard = Guard()
 
     def __init__(self, common_directory=None):

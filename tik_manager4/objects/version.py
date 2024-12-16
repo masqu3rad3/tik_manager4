@@ -1,10 +1,14 @@
 """Work and Publish objects."""
+
 from pathlib import Path
+
+from tik_manager4.core import utils
+from tik_manager4.core.constants import ObjectType
 from tik_manager4.core.settings import Settings
-from tik_manager4.objects.entity import Entity
+from tik_manager4.mixins.localize import LocalizeMixin
 
 
-class PublishVersion(Settings, Entity):
+class PublishVersion(Settings, LocalizeMixin):
     """PublishVersion object class.
 
     This class handles the publish version objects.
@@ -12,7 +16,7 @@ class PublishVersion(Settings, Entity):
     name and path properties are required during first creation.
     When read from the file, these properties are initialized from the file.
     """
-    object_type = "publish_version"
+    object_type = ObjectType.PUBLISH_VERSION
 
     def __init__(self, absolute_path, name=None, path=None):
         """Initialize the publish version object.
@@ -43,6 +47,8 @@ class PublishVersion(Settings, Entity):
         self._relative_path = path
         self._dcc_version = None
         self._elements = []
+        self._localized: bool = False
+        self._localized_path: str = ""
 
         self.modified_time = None  # to compare and update if necessary
 
@@ -70,6 +76,8 @@ class PublishVersion(Settings, Entity):
         self._thumbnail = self.get_property("thumbnail", self._thumbnail)
         self._version = self.get_property("version_number", self._version)
         self._work_version = self.get_property("work_version", self._work_version)
+        self._localized = self.get_property("localized", self._localized)
+        self._localized_path = self.get_property("localized_path", self._localized_path)
 
     @property
     def creator(self):
@@ -220,7 +228,8 @@ class PublishVersion(Settings, Entity):
                 path = (
                     element["path"]
                     if relative
-                    else (self.get_abs_project_path(element["path"]))
+                    # else (self.get_abs_project_path(element["path"]))
+                    else (self.get_resolved_path(element["path"]))
                 )
                 return path
         return None
@@ -253,19 +262,45 @@ class PublishVersion(Settings, Entity):
                 return element.get("bundled", False)
         return None
 
+    def move_to_purgatory(self):
+        """Move the publish version to the purgatory folder."""
+        for element in self.elements:
+            relative_path = element["path"]
+            source_abs_path = self.get_resolved_path(relative_path)
+            target_abs_path = self.get_resolved_purgatory_path(relative_path)
+            utils.move(source_abs_path, target_abs_path)
 
-class WorkVersion(Entity):
+        # move the thumbnail to purgatory
+        thumbnail_relative_path = self.get("thumbnail", None)
+        if thumbnail_relative_path:
+            thumbnail_abs_path = self.get_abs_database_path(
+                thumbnail_relative_path
+            )
+            thumbnail_dest_abs_path = self.get_purgatory_database_path(
+                thumbnail_relative_path
+            )
+            utils.move(thumbnail_abs_path, thumbnail_dest_abs_path)
+
+        # move the database file to purgatory
+        _file_name = Path(self.settings_file).name
+        dest_abs_file_path = self.get_purgatory_database_path(
+            self.name, _file_name
+        )
+        utils.move(self.settings_file, dest_abs_file_path)
+
+
+class WorkVersion(LocalizeMixin):
     """WorkVersion object class.
 
     Work versions are not directly represented by files. They are stored in the
     main work database.
     """
-    def __init__(self, data_dictionary=None):
+    object_type = ObjectType.WORK_VERSION
+
+    def __init__(self, parent_path, data_dictionary=None):
         super().__init__()
         self._dcc_version: str = "NA"
         self._file_format: str = ""
-        self._localized: bool = False
-        self._localized_path: str = ""
         self._notes: str = ""
         self._previews: dict = {}
         self._scene_path: str = ""
@@ -273,6 +308,7 @@ class WorkVersion(Entity):
         self._user: str = ""
         self._version_number: int = 0
         self._workstation: str = ""
+        self._relative_path = parent_path
         if data_dictionary:
             self.from_dict(data_dictionary)
 
@@ -287,16 +323,6 @@ class WorkVersion(Entity):
         return self._file_format
 
     @property
-    def localized(self):
-        """The localization status of the work version."""
-        return self._localized
-
-    @property
-    def localized_path(self):
-        """The localized path of the work version."""
-        return self._localized_path
-
-    @property
     def notes(self):
         """The notes of the work version."""
         return self._notes
@@ -307,13 +333,18 @@ class WorkVersion(Entity):
         return self._previews
 
     @property
+    def path(self):
+        """The relative path of the work version."""
+        return Path(self._relative_path, self._scene_path).as_posix()
+
+    @property
     def scene_path(self):
         """The scene path of the work version."""
         return self._scene_path
 
     @property
     def thumbnail(self):
-        """The thumbnail of the work version."""
+        """The thumbnail path of the work version."""
         return self._thumbnail
 
     @property
@@ -354,6 +385,22 @@ class WorkVersion(Entity):
             "workstation": self._workstation,
         }
 
+    def move_to_purgatory(self):
+        """Move the work version to the purgatory folder."""
+        source_abs_path = self.get_resolved_path()
+        target_abs_path = self.get_resolved_purgatory_path()
+        utils.move(source_abs_path, target_abs_path)
 
+        # move the thumbnail
+        thumbnail_abs_path = self.get_abs_database_path(self.thumbnail)
+        thumbnail_dest_path = self.get_purgatory_database_path(
+            self.thumbnail
+        )
+        utils.move(thumbnail_abs_path, thumbnail_dest_path)
 
-
+    def __str__(self):
+        """Return the type of the class and the current data."""
+        return f"{type(self).__name__}({self.to_dict()})"
+    def __repr__(self):
+        """Return the type of the class and the current data."""
+        return str(self.to_dict())

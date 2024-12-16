@@ -40,7 +40,7 @@ class Main:
         if not (default_project / "tikDatabase" / "project_structure.json").exists():
             self._create_default_project()
 
-        _project = default_project
+        _project = default_project.as_posix()
         if self.user.get_recent_projects():
             recent_projects = self.user.get_recent_projects()
             # try to find the last project that exists
@@ -87,7 +87,7 @@ class Main:
         structure.apply_settings()
 
         project_obj = project.Project()  # this will be temporary
-        project_obj._set(_project_path)
+        project_obj._set(_project_path.as_posix())
 
         # create an initial main task under the root
         categories = list(project_obj.guard.category_definitions.properties.keys())
@@ -116,19 +116,21 @@ class Main:
         Returns:
             int: 1 if successful, -1 if not.
         """
+        path_obj = Path(path)
         if self.user.permission_level < 3:
             self.log.warning("This user does not have rights to perform this action")
             return -1
         if not self.user.is_authenticated:
             self.log.warning("User is not authenticated")
             return -1
-        database_path = Path(path, "tikDatabase")
+        # database_path = Path(path, "tikDatabase")
+        database_path = path_obj / "tikDatabase"
         database_path.mkdir(parents=True, exist_ok=True)
         structure_file = database_path / "project_structure.json"
         if structure_file.exists():
             self.log.warning("Project already exists. Aborting")
             return -1
-        project_name = Path(path).name
+        project_name = path_obj.name
 
         structure_data = structure_data or self.user.commons.structures.get_property(
             structure_template
@@ -151,10 +153,9 @@ class Main:
         structure = settings.Settings(file_path=structure_file)
         structure.set_data(structure_data)
         structure.apply_settings()
-        # define a project object to validate data and create folders
 
         project_obj = project.Project()  # this will be temporary
-        project_obj._set(path)
+        project_obj._set(path_obj.as_posix())
         project_obj.create_folders(project_obj.absolute_path)
         project_obj.create_folders(project_obj.database_path)
         project_obj.save_structure()  # This makes sure IDs are getting saved
@@ -165,7 +166,7 @@ class Main:
         self._globalize_management_platform()
 
         if set_after_creation:
-            self.set_project(path)
+            self.set_project(path_obj.as_posix())
         return 1
 
     def set_project(self, absolute_path):
@@ -283,7 +284,6 @@ class Main:
             conn.close()
 
     def get_management_handler(self, platform_name=None):
-    # def get_management_handler(self):
         """Resolve the management handler.
 
         Args:

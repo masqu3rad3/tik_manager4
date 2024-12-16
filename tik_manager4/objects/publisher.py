@@ -27,7 +27,7 @@ class Publisher:
         self._dcc_handler = self.guard.dcc_handler
         self._project_object = project_object
         self._work_object = None
-        self._work_version = None
+        self._work_version: int = 0
         self._metadata = None
 
         # resolved variables
@@ -153,6 +153,11 @@ class Publisher:
             "dcc_version", self._dcc_handler.get_dcc_version()
         )
         self._published_object.add_property("elements", [])
+        self._published_object.init_properties()  # make sure the properties are initialized
+        is_localized = self._published_object.can_localize()
+        if is_localized:
+            self._published_object.add_property("localized", True)
+            self._published_object.add_property("localized_path", self._published_object.get_output_path())
 
         self._published_object.apply_settings()  # make sure the file is created
         self._published_object.init_properties()  # make sure the properties are initialized
@@ -188,11 +193,9 @@ class Publisher:
         Args:
             extract_object (Extract): The extract object to extract.
         """
-        publish_path = Path(
-            self._work_object.get_abs_project_path("publish", self._work_object.name)
-        )
+        publish_path = Path(self._published_object.get_output_path(self._work_object.name))
         extract_object.category = self._work_object.category  # define the category
-        extract_object.extract_folder = str(publish_path)  # define the extract folder
+        extract_object.extract_folder = publish_path.as_posix()  # define the extract folder
         extract_object.extract_name = f"{self._work_object.name}_v{self._publish_version:03d}"  # define the extract name
         extract_object.extract()
         self.write_protect(extract_object.resolve_output())
@@ -204,9 +207,6 @@ class Publisher:
         """
         # first save the scene
         self._dcc_handler.save_scene()
-        publish_path = Path(
-            self._work_object.get_abs_project_path("publish", self._work_object.name)
-        )
         for _extract_type_name, extract_object in self._resolved_extractors.items():
             self.extract_single(extract_object)
 
@@ -252,7 +252,7 @@ class Publisher:
                 "type": extract_object.name,
                 "suffix": extract_object.extension,
                 "path": Path(extract_object.resolve_output())
-                .relative_to(self._published_object.get_abs_project_path())
+                .relative_to(self._published_object.get_output_path())
                 .as_posix(),
                 "bundled": extract_object.bundled,
                 "bundle_info": extract_object.bundle_info,
@@ -278,10 +278,6 @@ class Publisher:
                 message_callback("Preview generation failed.")
                 self.warnings.append("Preview generation failed. See the log for details.")
                 LOG.error(f"Preview generation failed: {e}")
-            # validate the type
-            # if not isinstance(preview_context, PreviewContext):
-
-
 
         if management_task_id:
             management_platform = self._project_object.settings.get(
@@ -455,7 +451,6 @@ class Publisher:
         return list_of_tasks
 
 
-
 class SnapshotPublisher(Publisher):
     """Separate publisher to handle arbitrary file and folder publishing.
 
@@ -505,8 +500,8 @@ class SnapshotPublisher(Publisher):
             str: The resolved publish file name.
         """
 
-        version_dictionary = self._work_object.get_version(self._work_version)
-        relative_path = version_dictionary.get("scene_path")
+        version_object = self._work_object.get_version(self._work_version)
+        relative_path = version_object.scene_path
         abs_path = self._work_object.get_abs_project_path(relative_path)
 
         # get either the snapshot or snapshot_bundle depending if its a folder or file

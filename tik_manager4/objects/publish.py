@@ -1,19 +1,17 @@
 # pylint: disable=super-with-arguments
 """Publish object module."""
 
-import shutil
 
 from pathlib import Path
-# from tik_manager4.core.settings import Settings
+from tik_manager4.core.constants import ObjectType
 from tik_manager4.objects.version import PublishVersion
-from tik_manager4.objects.entity import Entity
+from tik_manager4.mixins.localize import LocalizeMixin
 from tik_manager4.core import filelog
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 
-class Publish(Entity):
-    object_type = "publish"
+class Publish(LocalizeMixin):
     """Class to represent a publish.
 
     Publish objects are created from the work objects. Publishes are the
@@ -22,6 +20,7 @@ class Publish(Entity):
     is opposite of Work-WorkVersion relationship.
     PublishVersions have database files, publishes don't.
     """
+    object_type = ObjectType.PUBLISH
 
     def __init__(self, work_object):
         """Initialize the publish object."""
@@ -65,7 +64,6 @@ class Publish(Entity):
     @property
     def version_count(self):
         """Number of publish versions."""
-        # return len(list(self.versions.keys()))
         return len(self.versions)
 
     @property
@@ -169,7 +167,7 @@ class Publish(Entity):
         if version_obj:
             if element_type in version_obj.element_types:
                 relative_path = version_obj.get_element_path(element_type)
-                abs_path = self.get_abs_project_path(relative_path)
+                abs_path = version_obj.get_resolved_path(relative_path)
                 suffix = Path(abs_path).suffix
                 self._dcc_handler.open(abs_path, force=force)
                 if not read_only:
@@ -203,7 +201,7 @@ class Publish(Entity):
         version_obj = self.get_version(version_number)
         if version_obj:
             relative_path = version_obj.get_element_path(element_type)
-            abs_path = self.get_abs_project_path(relative_path)
+            abs_path = version_obj.get_resolved_path(relative_path)
             _func = self._dcc_handler.ingests.get(ingestor, None)
             if not _func:
                 raise ValueError(f"Element type not supported: {element_type}")
@@ -240,7 +238,7 @@ class Publish(Entity):
         version_obj = self.get_version(version_number)
         if version_obj:
             relative_path = version_obj.get_element_path(element_type)
-            abs_path = self.get_abs_project_path(relative_path)
+            abs_path = version_obj.get_resolved_path(relative_path)
             _func = self._dcc_handler.ingests.get(ingestor, None)
             if not _func:
                 raise ValueError(f"Element type not supported: {element_type}")
@@ -285,7 +283,7 @@ class Publish(Entity):
         bundle_piece = element["bundle_info"].get(bundle_piece)
         if not bundle_piece:
             raise ValueError(f"Bundle piece not found: {bundle_piece}")
-        abs_path = self.get_abs_project_path(element["path"], bundle_piece["path"])
+        abs_path = version_obj.get_resolved_path(element["path"], bundle_piece["path"])
         _func = self._dcc_handler.ingests.get(ingestor_name, None)
         if not _func:
             raise ValueError(f"{ingestor_name} is not a valid ingestor.")
@@ -325,32 +323,9 @@ class Publish(Entity):
             return -1, msg
 
         # move the whole publish folder to purgatory
-        _purgatory_path = Path(self.work_object.get_purgatory_project_path(), "publish")
-        _purgatory_path.mkdir(parents=True, exist_ok=True)
-        _work_folder = _purgatory_path / self.work_object.name
-        if _work_folder.exists():
-            try:
-                shutil.rmtree(str(_work_folder))
-            except PermissionError:
-                msg = f"There is another folder in the purgatory with the same name. Please delete it manually or purge the purgatory.\n\n{str(_work_folder)}"
-                LOG.error(msg)
-                return -1, msg
-        shutil.move(
-            self.get_publish_project_folder(),
-            (_purgatory_path / self.work_object.name).as_posix(),
-            copy_function=shutil.copytree,
-        )
 
-        # move the database files to purgatory
-        _purgatory_db_path = Path(
-            self.work_object.get_purgatory_database_path(), "publish"
-        )
-        _purgatory_db_path.mkdir(parents=True, exist_ok=True)
-        shutil.move(
-            self.get_publish_data_folder(),
-            str(_purgatory_db_path / self.work_object.name),
-            copy_function=shutil.copytree,
-        )
+        for publish_obj in self.versions:
+            publish_obj.move_to_purgatory()
 
         # clear the publish versions
         self._publish_versions = {}
@@ -392,263 +367,9 @@ class Publish(Entity):
             msg = f"Version {version_number} not found."
             LOG.warning(msg)
             return -1, msg
-        for element in version_obj.elements:
-            relative_path = element["path"]
-            source_abs_path = version_obj.get_abs_project_path(relative_path)
-            dest_abs_path = version_obj.get_purgatory_project_path(relative_path)
-            Path(dest_abs_path).parent.mkdir(parents=True, exist_ok=True)
-            shutil.move(source_abs_path, dest_abs_path, copy_function=shutil.copytree)
 
-        # move the thumbnail to purgatory
-        thumbnail_relative_path = version_obj.get("thumbnail", None)
-        if thumbnail_relative_path:
-            thumbnail_abs_path = version_obj.get_abs_database_path(
-                thumbnail_relative_path
-            )
-            thumbnail_dest_abs_path = version_obj.get_purgatory_database_path(
-                thumbnail_relative_path
-            )
-            Path(thumbnail_dest_abs_path).parent.mkdir(parents=True, exist_ok=True)
-            shutil.move(
-                thumbnail_abs_path,
-                thumbnail_dest_abs_path,
-                copy_function=shutil.copytree,
-            )
-
-        # move the database file to purgatory
-        _file_name = Path(version_obj.settings_file).name
-        dest_abs_file_path = version_obj.get_purgatory_database_path(
-            version_obj.name, _file_name
-        )
-        Path(dest_abs_file_path).parent.mkdir(parents=True, exist_ok=True)
-        shutil.move(
-            version_obj.settings_file, dest_abs_file_path, copy_function=shutil.copytree
-        )
+        version_obj.move_to_purgatory()
 
         # remove the publish version from the publish versions
         self._publish_versions.pop(version_obj.settings_file)
         return 1, "success"
-
-
-# class PublishVersion(Settings, Entity):
-#     """PublishVersion object class.
-#
-#     This class handles the publish version objects.
-#     Unlike work versions, publish versions are directly represented by files.
-#     name and path properties are required during first creation.
-#     When read from the file, these properties are initialized from the file.
-#     """
-#     object_type = "publish_version"
-#
-#     def __init__(self, absolute_path, name=None, path=None):
-#         """Initialize the publish version object.
-#
-#         Args:
-#             absolute_path (str): The absolute path of the publish version file.
-#             name (str, optional): The name of the publish version.
-#                 Defaults to None.
-#             path (str, optional): The relative path of the publish version.
-#                 Defaults to None.
-#         """
-#         super(PublishVersion, self).__init__()
-#         self._dcc_handler = self.guard.dcc_handler
-#         self.settings_file = absolute_path
-#
-#         self._name = name
-#         self._creator = self.guard.user
-#         self._category = None
-#         self._dcc = self.guard.dcc
-#         self._publish_id = self._id
-#         self._version = 1
-#         self._work_version = None
-#         self._task_name = None
-#         self._task_id = None
-#         self._relative_path = path
-#         self._dcc_version = None
-#         self._elements = []
-#
-#         self.modified_time = None  # to compare and update if necessary
-#
-#         self.init_properties()
-#
-#         # get the current folder path
-#         _folder = Path(self.settings_file).parent
-#         promoted_file = _folder / "promoted.json"
-#         self._promoted_object = Settings(promoted_file)
-#
-#     def init_properties(self):
-#         """Initialize the properties of the publish."""
-#         self._name = self.get_property("name", self._name)
-#         self._creator = self.get_property("creator", self._creator)
-#         self._category = self.get_property("category", self._category)
-#         self._dcc = self.get_property("dcc", self._dcc)
-#         self._publish_id = self.get_property("publish_id", self._publish_id)
-#         self._version = self.get_property("version_number", self._version)
-#         self._work_version = self.get_property("work_version", self._work_version)
-#         self._task_name = self.get_property("task_name", self._task_name)
-#         self._task_id = self.get_property("task_id", self._task_id)
-#         self._relative_path = self.get_property("path", self._relative_path)
-#         self._dcc_version = self.get_property("dcc_version", self._dcc_version)
-#         self._elements = self.get_property("elements", self._elements)
-#
-#     @property
-#     def creator(self):
-#         """The creator of the publish version."""
-#         return self._creator
-#
-#     @property
-#     def category(self):
-#         """The category of the publish version."""
-#         return self._category
-#
-#     @property
-#     def dcc(self):
-#         """The dcc of the publish version."""
-#         return self._dcc
-#
-#     @property
-#     def dcc_version(self):
-#         """Dcc version used while publishing the version."""
-#         return self._dcc_version
-#
-#     @property
-#     def dcc_handler(self):
-#         """DCC handler object."""
-#         return self._dcc_handler
-#
-#     @property
-#     def publish_id(self):
-#         """Unique id of the publish version."""
-#         return self._publish_id
-#
-#     @property
-#     def version(self):
-#         """Number of the publish version."""
-#         return self._version
-#
-#     @property
-#     def task_name(self):
-#         """Task name of the publish version."""
-#         return self._task_name
-#
-#     @property
-#     def task_id(self):
-#         """Task id of the publish version."""
-#         return self._task_id
-#
-#     @property
-#     def relative_path(self):
-#         """Relative path of the publish version."""
-#         return self._relative_path
-#
-#     @property
-#     def software_version(self):
-#         """Dcc version used while publishing the version.
-#
-#         Identical to dcc_version property.
-#         """
-#         return self._dcc_version
-#
-#     @property
-#     def elements(self):
-#         """The elements of the publish version."""
-#         return self._elements
-#
-#     @property
-#     def element_types(self):
-#         """The element types of the publish version."""
-#         return [element["type"] for element in self.elements]
-#
-#     @property
-#     def element_mapping(self):
-#         """The element mapping of the publish version.
-#
-#         Element mapping is a dictionary where each key is the element name and
-#         the value is the element type.
-#         """
-#         return {
-#             element.get("name", element["type"]): element["type"]
-#             for element in self.elements
-#         }
-#
-#     def is_promoted(self):
-#         """Return if the publish is promoted or not.
-#
-#         This method checks the 'promoted' file in the publish folder.
-#         If the content is matching with the publish id, return True
-#         """
-#         _id = self._promoted_object.get_property("publish_id", default=None)
-#         return _id == self._publish_id
-#
-#     def promote(self):
-#         """Promote the publish editing the promoted.json"""
-#         _data = {
-#             "publish_id": self._publish_id,
-#             "name": self._name,
-#             "path": self._relative_path,
-#         }
-#         self._promoted_object.set_data(_data)
-#         self._promoted_object.apply_settings()
-#
-#     def get_element_by_type(self, element_type):
-#         """Return the element by the given type.
-#
-#         Args:
-#             element_type (str): The type of the element.
-#
-#         Returns:
-#             dict: The element or None if not found.
-#         """
-#         for element in self.elements:
-#             if element["type"] == element_type:
-#                 return element
-#         return None
-#
-#     def get_element_path(self, element_type, relative=True):
-#         """Return the element path of the given element type.
-#
-#         Args:
-#             element_type (str): The type of the element.
-#             relative (bool, optional): If True, returns the relative path.
-#                 If False, returns the absolute path. Default is True.
-#
-#         Returns:
-#             str: The path of the element or None if not found.
-#         """
-#         for element in self.elements:
-#             if element["type"] == element_type:
-#                 path = (
-#                     element["path"]
-#                     if relative
-#                     else (self.get_abs_project_path(element["path"]))
-#                 )
-#                 return path
-#         return None
-#
-#     def get_element_suffix(self, element_type):
-#         """Return the element suffix of the given element type.
-#
-#         Args:
-#             element_type (str): The type of the element.
-#
-#         Returns:
-#             str: The suffix of the element or None if not found.
-#         """
-#         for element in self.elements:
-#             if element["type"] == element_type:
-#                 return element["suffix"]
-#         return None
-#
-#     def is_element_bundled(self, element_type):
-#         """Return if the element is bundled or not.
-#
-#         Args:
-#             element_type (str): The type of the element.
-#
-#         Returns:
-#             bool: True if the element is bundled, False otherwise.
-#         """
-#         for element in self.elements:
-#             if element["type"] == element_type:
-#                 return element.get("bundled", False)
-#         return None

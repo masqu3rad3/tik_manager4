@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional, List
 import sys
 
 from tik_manager4.ui.Qt import QtWidgets
@@ -9,57 +10,71 @@ if __name__ == "__main__":
 
 
 class Feedback:
-    def __init__(self, parent=None, *args, **kwargs):
+    def __init__(self, parent=None):
         self.parent = parent
         self.result = None
 
+    def style_button(self, button, height: int = 30, width: int = 100, label: Optional[str] = None):
+        """Applies consistent styling to a button."""
+        button.setFixedHeight(height)
+        button.setFixedWidth(width)
+        if label:
+            button.setText(label)
+
     def pop_info(
         self,
-        title="Info",
-        text="",
-        details="",
-        critical=False,
-        button_label=None,
-        modal=True,
-    ):
+        title: str = "Info",
+        text: str = "",
+        details: str = "",
+        critical: bool = False,
+        button_label: Optional[str] = None,
+        modal: bool = True,
+        on_close: Optional[callable] = None,
+    ) -> int:
+        """Shows an informational dialog box."""
         msg = TikMessageBox(parent=self.parent)
-        if critical:
-            msg.setIcon(QtWidgets.QMessageBox.Critical)
-        else:
-            msg.setIcon(QtWidgets.QMessageBox.Information)
-
+        msg.setIcon(QtWidgets.QMessageBox.Critical if critical else QtWidgets.QMessageBox.Information)
         msg.setWindowTitle(title)
         msg.setModal(modal)
         msg.setText(text)
         msg.setInformativeText(details)
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        msg.button(QtWidgets.QMessageBox.Ok).setFixedHeight(30)
-        msg.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
-        if button_label:
-            msg.button(QtWidgets.QMessageBox.Ok).setText(button_label)
 
-        return msg.exec_()
+        ok_button = msg.button(QtWidgets.QMessageBox.Ok)
+        self.style_button(ok_button, label=button_label)
+
+        result = msg.exec_()
+        if on_close:
+            on_close(result)
+        return result
 
     def pop_question(
-        self, title="Question", text="", details="", buttons=None, modal=True
-    ):
+            self,
+            title: str = "Question",
+            text: str = "",
+            details: str = "",
+            buttons: Optional[List[str]] = None,
+            modal: bool = True,
+    ) -> Optional[str]:
+        """Shows a question dialog box with configurable buttons."""
         if buttons is None:
             buttons = ["save", "no", "cancel"]
+
         button_dict = {
-            "yes": "QtWidgets.QMessageBox.Yes",
-            "save": "QtWidgets.QMessageBox.Save",
-            "ok": "QtWidgets.QMessageBox.Ok",
-            "continue": "QtWidgets.QMessageBox.Yes",
-            "no": "QtWidgets.QMessageBox.No",
-            "cancel": "QtWidgets.QMessageBox.Cancel",
+            "yes": QtWidgets.QMessageBox.Yes,
+            "save": QtWidgets.QMessageBox.Save,
+            "ok": QtWidgets.QMessageBox.Ok,
+            "continue": QtWidgets.QMessageBox.Yes,
+            "no": QtWidgets.QMessageBox.No,
+            "cancel": QtWidgets.QMessageBox.Cancel,
         }
+
         widgets = []
         for button in buttons:
             widget = button_dict.get(button)
             if not widget:
                 raise RuntimeError(
-                    "Non-valid button defined. Valid buttons are: %s"
-                    % button_dict.keys()
+                    f"Invalid button: {button}. Valid buttons are: {list(button_dict.keys())}"
                 )
             widgets.append(widget)
 
@@ -69,15 +84,22 @@ class Feedback:
         q.setModal(modal)
         q.setText(text)
         q.setInformativeText(details)
-        eval("q.setStandardButtons(%s)" % (" | ".join(widgets)))
+
+        # Combine buttons using bitwise OR operator
+        combined_buttons = widgets[0]
+        for widget in widgets[1:]:
+            combined_buttons |= widget
+
+        q.setStandardButtons(combined_buttons)
+
         ret = q.exec_()
         for key, value in button_dict.items():
-            if ret == eval(value):
+            if ret == value:
                 self.result = key
                 return key
 
-    def browse_directory(self, modal=True):
-        # FIXME: This is method shouldnt be in this class
+    def browse_directory(self, modal: bool = True) -> Optional[str]:
+        """Browse for a directory. Deprecated: Consider moving to a utility function."""
         dlg = QtWidgets.QFileDialog(parent=self.parent)
         dlg.setModal(modal)
         dlg.setFileMode(QtWidgets.QFileDialog.Directory)

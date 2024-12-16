@@ -5,6 +5,7 @@ Inherits from Subproject and adds project specific methods and properties.
 
 from pathlib import Path
 
+from tik_manager4.core.constants import ObjectType
 from tik_manager4.objects.publisher import Publisher, SnapshotPublisher
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
@@ -14,9 +15,8 @@ from tik_manager4.objects.work import Work
 
 class Project(Subproject):
     """Project class to handle project specific data and methods."""
+    object_type = ObjectType.PROJECT
     log = filelog.Filelog(logname=__name__, filename="tik_manager4")
-
-    # def __init__(self, path=None, name=None, resolution=None, fps=None):
     def __init__(self, path=None, name=None):
         """Initializes the Project class.
 
@@ -38,11 +38,9 @@ class Project(Subproject):
         self._database_path = None
         self._name = name
         self.__mode = ""
-
         # This makes sure the project folder is tik_manager4 ready
         if path:
             self._set(path)
-
         # Absolute path do not go into the project_structure.json
         self._absolute_path = ""
 
@@ -54,7 +52,7 @@ class Project(Subproject):
     @property
     def folder(self):
         """Return the root of the project, where all projects lives happily"""
-        return str(Path(self._absolute_path).parent)
+        return Path(self._absolute_path).parent.as_posix()
 
     @property
     def path(self):
@@ -303,22 +301,15 @@ class Project(Subproject):
 
         # get the relative path BOTH from localized caches or the original project
         relative_path = self.__get_relative_path(category_path)
-        print("relative_path", relative_path)
         if not relative_path:
             self.log.error("File path is not under the project root")
             return None, None
-        # try:
-        #     relative_path = category_path.relative_to(self.absolute_path)
-        # except ValueError:
-        #     self.log.error("File path is not under the project root")
-        #     return None, None
         database_path = Path(self.get_abs_database_path(str(relative_path)))
         work_files = database_path.glob("*.twork")
         for work_file in work_files:
             work_obj = Work(work_file)
             for nmb, version in enumerate(work_obj.versions):
                 resolved_path = Path(work_path.stem, base_name).as_posix()
-                # if version.get("scene_path") == resolved_path:
                 if version.scene_path == resolved_path:
                     # if this the the version and work that we are looking for
                     # find its parent and define it within the work object

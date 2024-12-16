@@ -53,7 +53,6 @@ class SettingsDialog(QtWidgets.QDialog):
         self.error_count: int = 0
         # Execution
         self.build_ui()
-
         # expand everything
         self.menu_tree_widget.expandAll()
 
@@ -104,7 +103,6 @@ class SettingsDialog(QtWidgets.QDialog):
         ok_button = tik_button_box.addButton(
             "Ok", QtWidgets.QDialogButtonBox.AcceptRole
         )
-
         # SIGNALS
         self.apply_button.clicked.connect(self.apply_settings)
         cancel_button.clicked.connect(self.close)
@@ -214,13 +212,6 @@ class SettingsDialog(QtWidgets.QDialog):
                 "type": "boolean",
                 "tooltip": "If enabled, work files will be stored in the cache folder and won't be accessible for other users until its synced.",
                 "value": self.main_object.user.localization.get_property("cache_works", True),
-            },
-            "cache_previews": {
-                "display_name": "Cache Previews",
-                "type": "boolean",
-                "tooltip": "If enabled, preview videos or sequences will be stored in the cache folder and won't be accessible for other users until its synced.",
-                "value": self.main_object.user.localization.get_property(
-                    "cache_works", True),
             },
             "cache_publishes": {
                 "display_name": "Cache Publish Files",
@@ -365,9 +356,6 @@ class SettingsDialog(QtWidgets.QDialog):
         metadata = SwitchTreeItem(["Metadata"], permission_level=3)
         project_widget_item.addChild(metadata)
         metadata.content = self._metadata_content()
-
-        # project_settings = SwitchTreeItem(["Project Settings"], permission_level=3)
-        # project_widget_item.addChild(project_settings)
 
     def common_title(self):
         """Create the common settings."""
