@@ -27,20 +27,13 @@ jobs:
         curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
         cmd /c "innosetup.exe /VERYSILENT /NORESTART"
 
-    - name: Read Version from VERSION file
-      id: extract_version
-      run: |
-        VER=$(cat VERSION)
-        echo "VERSION=$VER" >> $GITHUB_ENV
-      shell: cmd
-
-    - name: Debug Version Value
-      run: echo "VERSION=${{ env.VERSION }}"
-
     - name: Build and Package
       run: |
         cd package
         ./make release
+
+    - name: Debug Version Value
+      run: echo "VERSION=${{ env.TIK_VERSION }}"
 
     - name: List Build Directory
       run: dir package\build
@@ -48,19 +41,19 @@ jobs:
 
     - name: Verify the Built File
       run: |
-        if not exist "package\build\TikManager4_v${{ env.VERSION }}.exe" exit 1
+        if not exist "package\build\TikManager4_v${{ env.TIK_VERSION }}.exe" exit 1
       shell: cmd
 
     - name: Upload Release Assets
       uses: actions/upload-artifact@v3
       with:
         name: TikManager4
-        path: package/build/TikManager4_v${{ env.VERSION }}.exe
+        path: package/build/TikManager4_v${{ env.TIK_VERSION }}.exe
 
     - name: Create GitHub Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: package/build/TikManager4_v${{ env.VERSION }}.exe
+        artifacts: package/build/TikManager4_v${{ env.TIK_VERSION }}.exe
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ github.ref_name }}
         name: Release ${{ github.ref_name }}
