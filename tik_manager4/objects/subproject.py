@@ -1,4 +1,3 @@
-# pylint: disable=consider-using-f-string
 # pylint: disable=super-with-arguments
 """Module for Subproject object."""
 
@@ -7,6 +6,7 @@ import shutil
 
 from fnmatch import fnmatch
 
+from tik_manager4.core.constants import ObjectType
 import tik_manager4.objects.task
 from tik_manager4.core import filelog
 from tik_manager4.objects.metadata import Metadata
@@ -22,6 +22,7 @@ class Subproject(Entity):
     Subproject objects doesn't have any settings file. They are
     populated by the project object using the project_structure.json.
     """
+    object_type = ObjectType.SUBPROJECT
 
     def __init__(self, parent_sub=None, metadata=None, **kwargs):
         """Initialize Subproject object.
@@ -268,7 +269,13 @@ class Subproject(Entity):
 
         return self._tasks
 
-    def add_task(self, name, categories, task_type=None, metadata_overrides=None, uid=None):
+    def add_task(self,
+                 name,
+                 categories,
+                 task_type=None,
+                 metadata_overrides=None,
+                 uid=None
+                 ):
         """
         Add a task to the subproject.
 
@@ -284,17 +291,18 @@ class Subproject(Entity):
             Task or int: The created task object if successful, -1 otherwise.
 
         """
+        # pylint: disable=too-many-arguments
 
         metadata_overrides = metadata_overrides or {}
 
         # inherit the task type from the parent subproject 'mode' if not specified
         task_type = task_type or self.metadata.get_value("mode", None)
-        file_name = "{0}.ttask".format(name)
+        file_name = f"{name}.ttask"
         relative_path = Path(self.path, file_name)
         abs_path = Path(self.guard.database_root, relative_path)
         if abs_path.exists():
             LOG.warning(
-                "There is a task under this sub-project with the same name => %s" % name
+                f"There is a task under this sub-project with the same name => {name}"
             )
             return -1
         _task_id = uid or self.generate_id()
@@ -344,7 +352,7 @@ class Subproject(Entity):
                 successful, -1 otherwise. A message is returned as well.
         """
         # first get the task
-        task: tik_manager4.objects.task.Task = self._tasks.get(task_name, None)
+        task: tik_manager4.objects.task.Task = self._tasks.get(task_name)
         if not task:
             msg = f"There is no task with the name: {task_name}"
             LOG.warning(msg)
@@ -381,7 +389,8 @@ class Subproject(Entity):
                         shutil.rmtree(purgatory_folder)
                     except PermissionError:
                         msg = (
-                            f"{purgatory_folder.as_posix()} folder already exists in purgatory and its read only."
+                            f"{purgatory_folder.as_posix()} folder already "
+                            f"exists in purgatory and its read only."
                             f"Please delete it manually or purge the purgatory."
                         )
                         LOG.error(msg)
@@ -393,7 +402,8 @@ class Subproject(Entity):
                     target_purgatory_task_path.unlink()
                 except PermissionError:
                     msg = (
-                        f"{target_purgatory_task_path.as_posix()} folder already exists in purgatory and its read only."
+                        f"{target_purgatory_task_path.as_posix()} "
+                        f"folder already exists in purgatory and its read only."
                         f"Please delete it manually or purge the purgatory."
                     )
                     LOG.error(msg)
@@ -480,8 +490,7 @@ class Subproject(Entity):
             current = queue.pop(0)
             if current.id == uid:
                 return current
-            else:
-                queue.extend(list(current.subs.values()))
+            queue.extend(list(current.subs.values()))
         LOG.warning("Requested uid does not exist")
         return -1
 
@@ -495,15 +504,14 @@ class Subproject(Entity):
             Subproject or int: The subproject object if successful,
                 -1 otherwise.
         """
-        if path == "" or path == ".":  # this is root
+        if path in ("", "."):  # this is root
             return self
         queue = list(self.subs.values())
         while queue:
             current = queue.pop(0)
             if current.path == path:
                 return current
-            else:
-                queue.extend(list(current.subs.values()))
+            queue.extend(list(current.subs.values()))
         LOG.warning("Requested path does not exist")
         return -1
 

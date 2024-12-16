@@ -168,6 +168,10 @@ class MainUI(QtWidgets.QMainWindow):
         # buttons
         self.ingest_version_btn = None
 
+        # STATUS BAR
+        self.status_bar = QtWidgets.QStatusBar(self)
+        self.setStatusBar(self.status_bar)
+
         self.initialize_mcv()
         self.menu_bar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 680, 18))
         self.build_bars()
@@ -289,6 +293,7 @@ class MainUI(QtWidgets.QMainWindow):
             )
 
         self.versions_mcv = TikVersionLayout(self.tik.project, parent=self)
+        self.versions_mcv.status_updated.connect(self.status_bar.showMessage)
         self.version_layout.addLayout(self.versions_mcv)
 
         self.project_mcv.project_set.connect(self.on_set_project)
@@ -315,7 +320,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.versions_mcv.on_import
         )
         self.categories_mcv.work_tree_view.file_dropped.connect(self.on_save_any_file)
-        self.versions_mcv.show_preview_btn.clicked.connect(self.on_show_preview)
+        self.versions_mcv.version.preview_btn.clicked.connect(self.on_show_preview)
         # self.versions_mcv.element_view_btn.clicked.connect(self.on_element_view)
         self.versions_mcv.element_view_event.connect(self.on_element_view)
 
@@ -349,7 +354,7 @@ class MainUI(QtWidgets.QMainWindow):
                 _work_item = self.categories_mcv.work_tree_view.get_selected_item()
                 if _work_item:
                     self.tik.user.last_work = _work_item.tik_obj.id
-                    _version_nmb = self.versions_mcv.get_selected_version()
+                    _version_nmb = self.versions_mcv.get_selected_version_number()
                     # we can always safely write the version number
                     self.tik.user.last_version = _version_nmb
 
@@ -517,10 +522,6 @@ class MainUI(QtWidgets.QMainWindow):
         help_menu.addSeparator()
         check_for_updates = QtWidgets.QAction("&Check for Updates", self)
         help_menu.addAction(check_for_updates)
-
-        # STATUS BAR
-        self.status_bar = QtWidgets.QStatusBar(self)
-        self.setStatusBar(self.status_bar)
 
         # SIGNALS
         create_project.triggered.connect(self.on_create_new_project)
@@ -1017,12 +1018,12 @@ class MainUI(QtWidgets.QMainWindow):
 
         # get the selected work object and the version
         _work_item = self.categories_mcv.work_tree_view.get_selected_item()
-        _version_index = self.versions_mcv.get_selected_version()
+        _version_index = self.versions_mcv.get_selected_version_number()
         _version = _work_item.tik_obj.get_version(_version_index)
 
         executable = self.tik.user.settings.get("video_player", None)
 
-        preview_dict = _version.get("previews")
+        preview_dict = _version.previews
         if len(preview_dict.values()) == 1:
             abs_path = _work_item.tik_obj.get_abs_project_path(
                 list(preview_dict.values())[0]

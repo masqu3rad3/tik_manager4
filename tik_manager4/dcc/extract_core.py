@@ -218,7 +218,7 @@ class ExtractCore:
                 Path(self.extract_folder)
                 / f"{self.name.upper()}_{self._extract_name}{self.extension}"
             )
-        return str(output_path)
+        return output_path.as_posix()
 
     def _collect_bundle_info(self):
         """Collect bundle information and build the bundle info dictionary.

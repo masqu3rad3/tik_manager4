@@ -5,6 +5,7 @@ import subprocess
 from pathlib import Path
 from typing import List, Tuple
 
+from tik_manager4.core.constants import ObjectType
 from tik_manager4.core import filelog
 from tik_manager4.core import utils
 
@@ -217,7 +218,7 @@ class Preview:
 
     def register_data(self, preview_data):
         """Register the preview data to the database object."""
-        if self.database_obj.object_type == "work":
+        if self.database_obj.object_type == ObjectType.WORK:
             # if this is a work object, we need to update the specific version dictionary.
             version = self.database_obj.get_version(self.context.version_number)
             if "previews" in version.keys():
@@ -225,7 +226,7 @@ class Preview:
             else:
                 version["previews"] = preview_data
             self.database_obj.apply_settings(force=True)
-        elif self.database_obj.object_type == "publish_version":
+        elif self.database_obj.object_type == ObjectType.PUBLISH_VERSION:
             # PublishVersion object has no version number, so we update the previews directly
             # Unlike the work objects version, this is a Tik Settings class.
             self.database_obj.add_property("previews", preview_data)
@@ -239,11 +240,11 @@ class Preview:
             return False
 
         # work object requires version number
-        if self.database_obj.object_type == "work":
+        if self.database_obj.object_type == ObjectType.WORK:
             if not self.context.version_number:
                 LOG.error("Version number not set. Work object requires version number.")
                 return False
-        elif self.database_obj.object_type == "publish_version":
+        elif self.database_obj.object_type == ObjectType.PUBLISH_VERSION:
             self.context.set_version_number(self.database_obj.version)
         return True
 
