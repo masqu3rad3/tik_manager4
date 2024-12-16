@@ -65,7 +65,8 @@ jobs:
       id: extract_notes
       run: |
         awk "/^## v${{ env.VERSION }}/,/^##/" RELEASE_NOTES.md | sed '1d;$d' > notes.txt
-        echo "NOTES=$(cat notes.txt)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+        NOTES=$(cat notes.txt)
+        echo "NOTES=$NOTES" >> $GITHUB_ENV
       shell: bash
 
     - name: Upload Release Assets
@@ -73,6 +74,9 @@ jobs:
       with:
         name: TikManager4
         path: package/build/TikManager4_v${{ env.VERSION }}.exe
+
+    - name: Create Git Tag
+      run: git tag v${{ env.VERSION }}
 
     - name: Create GitHub Release
       uses: ncipollo/release-action@v1
