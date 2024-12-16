@@ -31,7 +31,8 @@ jobs:
       id: extract_version
       run: |
         python -c "from tik_manager4 import _version; print(_version.__version__)" > version.txt
-        FOR /F "tokens=*" %%i IN (version.txt) DO echo "VERSION=%%i" >> $GITHUB_ENV
+        FOR /F "tokens=*" %%i IN (version.txt) DO echo VERSION=%%i >> $GITHUB_ENV
+      shell: cmd
 
     - name: Build and package
       run: |
