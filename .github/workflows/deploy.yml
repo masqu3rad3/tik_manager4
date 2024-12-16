@@ -27,23 +27,20 @@ jobs:
         curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
         cmd /c "innosetup.exe /VERYSILENT /NORESTART"
 
-    - name: Read VERSION file
-      shell: pwsh
+    - name: Extract Version from _version.py
+      id: extract_version
       run: |
-        $VERSION = Get-Content VERSION
+        $VERSION = python -c "from tik_manager4 import _version; print(_version.__version__)"
         echo "VERSION=$VERSION" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
-
-    - name: Display the version
       shell: pwsh
-      run: echo The version is $env:VERSION
+
+    - name: Debug Version
+      run: echo "Extracted version is ${{ env.VERSION }}"
 
     - name: Build and Package
       run: |
         cd package
         ./make release
-
-    - name: Debug Version Value
-      run: echo "VERSION=${{ env.VERSION }}"
 
     - name: List Build Directory
       run: dir package\build
