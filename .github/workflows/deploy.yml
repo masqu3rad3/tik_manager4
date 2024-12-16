@@ -1,0 +1,48 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'Release *'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'  # Adjust to your version
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Install Inno Setup
+      run: |
+        curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
+        start /wait innosetup.exe /VERYSILENT /NORESTART
+
+    - name: Build and package
+      run: |
+        cd package
+        ./make release
+
+    - name: Upload Release Assets
+      uses: actions/upload-artifact@v3
+      with:
+        name: release
+        path: path-to-your-built-exe-or-installer
+
+    - name: Create GitHub Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: path-to-your-built-exe-or-installer
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        body: |
+          Automated release for version ${{ github.ref_name }}.
