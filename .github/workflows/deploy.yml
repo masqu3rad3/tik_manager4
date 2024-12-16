@@ -62,28 +62,33 @@ jobs:
       shell: cmd
 
     - name: Extract Release Notes
-      id: extract_notes
+      shell: pwsh
       run: |
-        awk "/^## v${{ env.VERSION }}/,/^##/" RELEASE_NOTES.md | sed '1d;$d' > notes.txt
-        NOTES=$(cat notes.txt)
-        echo "NOTES=$NOTES" >> $GITHUB_ENV
-      shell: bash
+        $NOTES = ""
+        $lines = Get-Content RELEASE_NOTES.md
+        $capture = $false
+        foreach ($line in $lines) {
+          if ($line -match "^## v${{ env.VERSION }}") { $capture = $true; continue }
+          if ($capture -and $line -match "^## ") { break }
+          if ($capture) { $NOTES += "$line`n" }
+        }
+        $NOTES = $NOTES.Trim()
+        echo "NOTES=$NOTES" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
-    - name: Upload Release Assets
-      uses: actions/upload-artifact@v3
-      with:
-        name: TikManager4
-        path: package/build/TikManager4_v${{ env.VERSION }}.exe
+    - name: Debug Release Notes
+      run: echo "Extracted release notes ${{ env.NOTES }}"
 
-    - name: Create Git Tag
-      run: git tag v${{ env.VERSION }}
-
-    - name: Create GitHub Release
-      uses: ncipollo/release-action@v1
-      with:
-        artifacts: package/build/TikManager4_v${{ env.VERSION }}.exe
-        token: ${{ secrets.GITHUB_TOKEN }}
-        tag: v${{ env.VERSION }}
-        name: v${{ env.VERSION }}
-        body: ${{ env.NOTES }}.
-
+#    - name: Upload Release Assets
+#      uses: actions/upload-artifact@v3
+#      with:
+#        name: TikManager4
+#        path: package/build/TikManager4_v${{ env.VERSION }}.exe
+#
+#    - name: Create GitHub Release
+#      uses: ncipollo/release-action@v1
+#      with:
+#        artifacts: package/build/TikManager4_v${{ env.VERSION }}.exe
+#        token: ${{ secrets.GITHUB_TOKEN }}
+#        tag: v${{ env.VERSION }}
+#        name: v${{ env.VERSION }}
+#        body: ${{ env.NOTES }}
