@@ -27,16 +27,28 @@ jobs:
         curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
         cmd /c "innosetup.exe /VERYSILENT /NORESTART"
 
+    - name: Extract Version
+      id: extract_version
+      run: |
+        python -c "from tik_manager4 import _version; print(_version.__version__)" > version.txt
+        set /p VERSION=<version.txt
+
     - name: Build and package
       run: |
         cd package
         ./make release
 
+    - name: Verify the built file
+      run: |
+        set FILE=TikManager4_v%VERSION%.exe
+        if not exist "package/build/%FILE%" exit 1
+      shell: cmd
+
     - name: Upload Release Assets
       uses: actions/upload-artifact@v3
       with:
-        name: release
-        path: path-to-your-built-exe-or-installer
+        name: TikManager4
+        path: package/build/TikManager4_v${{ steps.extract_version.outputs.VERSION }}.exe
 
     - name: Create GitHub Release
       uses: ncipollo/release-action@v1
