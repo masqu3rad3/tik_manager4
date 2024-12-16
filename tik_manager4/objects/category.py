@@ -8,6 +8,7 @@ Category object is responsible for handling the works and publishes under a task
 from pathlib import Path
 from fnmatch import fnmatch
 
+from tik_manager4.core.constants import ObjectType
 from tik_manager4.objects.entity import Entity
 from tik_manager4.objects.work import Work
 from tik_manager4.core import filelog
@@ -17,6 +18,7 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class Category(Entity):
     """Category object to handle works and publishes under a task."""
+    object_type = ObjectType.CATEGORY
     def __init__(self, parent_task, definition=None, **kwargs):
         """Initializes the Category object."""
         super().__init__(**kwargs)
@@ -84,6 +86,21 @@ class Category(Entity):
         """
         return not bool(self.works)
 
+    def __add_work_properties(self, work, name, dcc, dcc_version, relative_path):
+        """Create the properties for the work."""
+        work.add_property("name", name)
+        work.add_property("creator", self.guard.user)
+        work.add_property("category", self.name)
+        work.add_property("dcc", dcc)
+        work.add_property("dcc_version", dcc_version)
+        work.add_property("versions", [])
+        work.add_property("work_id", work.generate_id())
+        work.add_property("task_name", self.parent_task.name)
+        work.add_property("task_id", self.parent_task.id)
+        work.add_property("path", relative_path)
+        work.add_property("state", "active")
+        work.init_properties()
+
     def create_work_from_path(self, name, file_path, notes="", ignore_checks=True):
         """Register a given path (file or folder) as a work.
 
@@ -110,18 +127,7 @@ class Category(Entity):
         relative_path = self.get_relative_work_path(override_dcc="standalone")
         work = Work(abs_path, name=constructed_name, path=relative_path, parent_task=self.parent_task)
 
-        work.add_property("name", constructed_name)
-        work.add_property("creator", self.guard.user)
-        work.add_property("category", self.name)
-        work.add_property("dcc", "standalone")
-        work.add_property("dcc_version", "NA")
-        work.add_property("versions", [])
-        work.add_property("work_id", work.generate_id())
-        work.add_property("task_name", self.parent_task.name)
-        work.add_property("task_id", self.parent_task.id)
-        work.add_property("path", relative_path)
-        work.add_property("state", "active")
-        work.init_properties()
+        self.__add_work_properties(work, constructed_name, "standalone", "NA", relative_path)
         work.new_version_from_path(file_path=file_path, notes=notes)
         return work
 
@@ -151,18 +157,7 @@ class Category(Entity):
         relative_path = self.get_relative_work_path(override_dcc=dcc)
         work = Work(abs_path, name=constructed_name, path=relative_path, parent_task=self.parent_task)
 
-        work.add_property("name", constructed_name)
-        work.add_property("creator", self.guard.user)
-        work.add_property("category", self.name)
-        work.add_property("dcc", dcc)
-        work.add_property("dcc_version", "NA")
-        work.add_property("versions", [])
-        work.add_property("work_id", work.generate_id())
-        work.add_property("task_name", self.parent_task.name)
-        work.add_property("task_id", self.parent_task.id)
-        work.add_property("path", relative_path)
-        work.add_property("state", "active")
-        work.init_properties()
+        self.__add_work_properties(work, constructed_name, dcc, "NA", relative_path)
         work.new_version_from_path(file_path=template_file, notes=notes)
         return work
 
@@ -187,7 +182,6 @@ class Category(Entity):
 
         constructed_name = self.construct_name(name)
         abs_path = self.get_abs_database_path(self.guard.dcc, f"{constructed_name}.twork")
-        # abs_path = self.get_abs_database_path(f"{constructed_name}.twork")
         if Path(abs_path).exists():
             # in that case instantiate the work and iterate the version.
             work = Work(absolute_path=abs_path, parent_task=self.parent_task)
@@ -205,18 +199,7 @@ class Category(Entity):
                 )
                 return -1
 
-        work.add_property("name", constructed_name)
-        work.add_property("creator", self.guard.user)
-        work.add_property("category", self.name)
-        work.add_property("dcc", self.guard.dcc)
-        work.add_property("dcc_version", work._dcc_handler.get_dcc_version())
-        work.add_property("versions", [])
-        work.add_property("work_id", work.generate_id())
-        work.add_property("task_name", self.parent_task.name)
-        work.add_property("task_id", self.parent_task.id)
-        work.add_property("path", relative_path)
-        work.add_property("state", "active")
-        work.init_properties()
+        self.__add_work_properties(work, constructed_name, self.guard.dcc, work._dcc_handler.get_dcc_version(), relative_path)
         work.new_version(file_format=file_format, notes=notes, ignore_checks=ignore_checks)
         return work
 

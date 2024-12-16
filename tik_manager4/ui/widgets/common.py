@@ -130,8 +130,7 @@ class StyleFrame(ClickableFrame, StyleEditor):
 class TikButton(QtWidgets.QPushButton, StyleEditor):
     """Unified button class for the whole app."""
 
-    def __init__(
-        self,
+    def __init__(self,
         text="",
         font_size=10,
         text_color="#b1b1b1",
@@ -370,7 +369,6 @@ class ResolvedText(TikLabel):
 
     def set_font_size(self, font_size, bold=True):
         super(ResolvedText, self).set_font_size(font_size, bold)
-        # self.setFont(QtGui.QFont(FONT, font_size, QtGui.QFont.Bold))
 
 
 class VerticalSeparator(QtWidgets.QLabel):

@@ -1,0 +1,93 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: pip install -r ./package/requirements.txt
+
+    - name: Install Inno Setup
+      run: |
+        curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
+        cmd /c "innosetup.exe /VERYSILENT /NORESTART"
+
+    - name: Extract Version from _version.py
+      id: extract_version
+      run: |
+        $VERSION = python -c "from tik_manager4 import _version; print(_version.__version__)"
+        echo "VERSION=$VERSION" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+      shell: pwsh
+
+    - name: Debug Version
+      run: echo "Extracted version is ${{ env.VERSION }}"
+
+    - name: Check if Release Tag Exists
+      id: check_tag
+      run: |
+        git fetch --tags
+        if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
+          echo "Error: Tag v${{ env.VERSION }} already exists."
+          exit 1
+        fi
+      shell: bash
+
+    - name: Build and Package
+      run: |
+        cd package
+        ./make release
+
+    - name: List Build Directory
+      run: dir package\build
+      shell: cmd
+
+    - name: Verify the Built File
+      run: |
+        if not exist "package\build\TikManager4_v${{ env.VERSION }}.exe" exit 1
+      shell: cmd
+
+    - name: Extract Release Notes
+      shell: pwsh
+      run: |
+        $NOTES = ""
+        $lines = Get-Content RELEASE_NOTES.md
+        $capture = $false
+        foreach ($line in $lines) {
+          if ($line -match "^## v${{ env.VERSION }}") { $capture = $true; continue }
+          if ($capture -and $line -match "^## ") { break }
+          if ($capture) { $NOTES += "$line`n" }
+        }
+        $NOTES = $NOTES.Trim()
+        echo "NOTES=$NOTES" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+
+    - name: Debug Release Notes
+      run: echo "Extracted release notes ${{ env.NOTES }}"
+
+    - name: Upload Release Assets
+      uses: actions/upload-artifact@v3
+      with:
+        name: TikManager4
+        path: package/build/TikManager4_v${{ env.VERSION }}.exe
+
+    - name: Create GitHub Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: package/build/TikManager4_v${{ env.VERSION }}.exe
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: v${{ env.VERSION }}
+        name: v${{ env.VERSION }}
+        body: ${{ env.NOTES }}

@@ -18,6 +18,7 @@ class Guard:
     _null_categories = []
     project_settings = None
     preview_settings = None
+    localize_settings = None
     commons = None
     _dcc_handler = None
     _management_handler = None
@@ -48,6 +49,15 @@ class Guard:
             preview_settings (Settings): The preview settings object.
         """
         cls.preview_settings = preview_settings
+
+    @classmethod
+    def set_localize_settings(cls, localize_settings):
+        """Set the localize settings object.
+
+        Args:
+            localize_settings (Settings): The localize settings object.
+        """
+        cls.localize_settings = localize_settings
 
     @classmethod
     def set_dcc(cls, dcc_name):

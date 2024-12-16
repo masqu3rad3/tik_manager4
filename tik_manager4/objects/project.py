@@ -5,6 +5,7 @@ Inherits from Subproject and adds project specific methods and properties.
 
 from pathlib import Path
 
+from tik_manager4.core.constants import ObjectType
 from tik_manager4.objects.publisher import Publisher, SnapshotPublisher
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
@@ -14,9 +15,8 @@ from tik_manager4.objects.work import Work
 
 class Project(Subproject):
     """Project class to handle project specific data and methods."""
+    object_type = ObjectType.PROJECT
     log = filelog.Filelog(logname=__name__, filename="tik_manager4")
-
-    # def __init__(self, path=None, name=None, resolution=None, fps=None):
     def __init__(self, path=None, name=None):
         """Initializes the Project class.
 
@@ -38,11 +38,9 @@ class Project(Subproject):
         self._database_path = None
         self._name = name
         self.__mode = ""
-
         # This makes sure the project folder is tik_manager4 ready
         if path:
             self._set(path)
-
         # Absolute path do not go into the project_structure.json
         self._absolute_path = ""
 
@@ -54,7 +52,7 @@ class Project(Subproject):
     @property
     def folder(self):
         """Return the root of the project, where all projects lives happily"""
-        return str(Path(self._absolute_path).parent)
+        return Path(self._absolute_path).parent.as_posix()
 
     @property
     def path(self):
@@ -265,6 +263,27 @@ class Project(Subproject):
             self.log.error("Parent subproject does not exist")
         return parent
 
+    def __get_relative_path(self, path_obj):
+        """Get a relative path to the project root.
+
+        This supports local paths as well resolving paths to the project root.
+        """
+
+        project_path_obj = Path(self.absolute_path)
+
+        # Search for the project folder name in the file path
+        project_name = project_path_obj.name
+        parts = path_obj.parts
+
+        try:
+            # Find where the project folder name starts in the file path
+            start_index = parts.index(project_name)
+            # Return the relative path from that point onwards
+            return Path(*parts[start_index + 1:])
+        except ValueError:
+            # If the project name is not found, return None or handle as needed
+            return None
+
     def find_work_by_absolute_path(self, file_path):
         """Using the absolute path of the scene file return work object and version number.
 
@@ -279,9 +298,10 @@ class Project(Subproject):
         # get the base name with extension
         category_path = work_path.parent
         base_name = _file_path_obj.name
-        try:
-            relative_path = category_path.relative_to(self.absolute_path)
-        except ValueError:
+
+        # get the relative path BOTH from localized caches or the original project
+        relative_path = self.__get_relative_path(category_path)
+        if not relative_path:
             self.log.error("File path is not under the project root")
             return None, None
         database_path = Path(self.get_abs_database_path(str(relative_path)))
@@ -290,12 +310,12 @@ class Project(Subproject):
             work_obj = Work(work_file)
             for nmb, version in enumerate(work_obj.versions):
                 resolved_path = Path(work_path.stem, base_name).as_posix()
-                if version.get("scene_path") == resolved_path:
+                if version.scene_path == resolved_path:
                     # if this the the version and work that we are looking for
                     # find its parent and define it within the work object
                     parent_task = self.find_task_by_id(work_obj.task_id)
                     work_obj.set_parent_task(parent_task)
-                    return work_obj, version.get("version_number", nmb)
+                    return work_obj, version.version or nmb
         return None, None
 
     def get_current_work(self):

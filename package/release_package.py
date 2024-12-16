@@ -5,13 +5,15 @@ import getopt
 import os
 
 # set the TIK_DCC environment variable
-os.environ["TIK_DCC"] = "standalone"
+os.environ["TIK_DCC"] = "null"
 
 import subprocess
 
 from pathlib import Path
 from tik_manager4 import _version
 from tik_manager4.dcc.dcc_install import Injector
+
+os.environ["TIK_VERSION"] = _version.__version__
 
 INNO_SETUP_EXE = Path("C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe")
 PACKAGE_ROOT = Path(__file__).parent
