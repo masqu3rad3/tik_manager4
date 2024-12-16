@@ -28,9 +28,10 @@ jobs:
         cmd /c "innosetup.exe /VERYSILENT /NORESTART"
 
     - name: Read VERSION file
-      id: read_version
+      shell: pwsh
       run: |
-        cmd /C "FOR /F \"delims=\" %A IN (VERSION) DO @SET VERSION=%A && echo VERSION=%VERSION%" >> $env:GITHUB_ENV
+        $VERSION = Get-Content VERSION
+        echo "VERSION=$VERSION" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
     - name: Display the version
       shell: pwsh
