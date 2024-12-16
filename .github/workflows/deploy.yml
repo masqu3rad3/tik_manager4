@@ -37,6 +37,16 @@ jobs:
     - name: Debug Version
       run: echo "Extracted version is ${{ env.VERSION }}"
 
+    - name: Check if Release Tag Exists
+      id: check_tag
+      run: |
+        git fetch --tags
+        if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
+          echo "Error: Tag v${{ env.VERSION }} already exists."
+          exit 1
+        fi
+      shell: bash
+
     - name: Build and Package
       run: |
         cd package
@@ -62,7 +72,7 @@ jobs:
       with:
         artifacts: package/build/TikManager4_v${{ env.VERSION }}.exe
         token: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ github.ref_name }}
-        name: Release ${{ github.ref_name }}
+        tag: v${{ env.VERSION }}
+        name: v${{ env.VERSION }}
         body: |
-          Automated release for version ${{ github.ref_name }}.
+          Release version v${{ env.VERSION }}.
