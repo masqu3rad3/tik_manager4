@@ -30,8 +30,8 @@ jobs:
     - name: Read Version from VERSION file
       id: extract_version
       run: |
-        set /p VERSION=<VERSION
-        echo "VERSION=${VERSION}" >> $GITHUB_ENV
+        VER=$(cat VERSION)
+        echo "VERSION=$VER" >> $GITHUB_ENV
       shell: cmd
 
     - name: Debug Version Value
