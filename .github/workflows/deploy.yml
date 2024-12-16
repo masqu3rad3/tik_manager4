@@ -17,7 +17,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'  # Adjust to your version
+        python-version: '3.9'
 
     - name: Install dependencies
       run: pip install -r ./package/requirements.txt
@@ -31,7 +31,7 @@ jobs:
       id: extract_version
       run: |
         python -c "from tik_manager4 import _version; print(_version.__version__)" > version.txt
-        set /p VERSION=<version.txt
+        FOR /F "tokens=*" %%i IN (version.txt) DO echo "VERSION=%%i" >> $GITHUB_ENV
 
     - name: Build and package
       run: |
@@ -40,20 +40,19 @@ jobs:
 
     - name: Verify the built file
       run: |
-        set FILE=TikManager4_v%VERSION%.exe
-        if not exist "package/build/%FILE%" exit 1
+        if not exist "package/build/TikManager4_v%VERSION%.exe" exit 1
       shell: cmd
 
     - name: Upload Release Assets
       uses: actions/upload-artifact@v3
       with:
         name: TikManager4
-        path: package/build/TikManager4_v${{ steps.extract_version.outputs.VERSION }}.exe
+        path: package/build/TikManager4_v${{ env.VERSION }}.exe
 
     - name: Create GitHub Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: path-to-your-built-exe-or-installer
+        artifacts: package/build/TikManager4_v${{ env.VERSION }}.exe
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ github.ref_name }}
         name: Release ${{ github.ref_name }}
