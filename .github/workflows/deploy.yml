@@ -2,9 +2,8 @@ name: Build and Release
 
 on:
   push:
-    branches: [ "main", "dev" ]
-  pull_request:
-    branches: [ "main", "dev" ]
+    branches:
+      - "main"
 
 jobs:
   build:
@@ -78,17 +77,17 @@ jobs:
     - name: Debug Release Notes
       run: echo "Extracted release notes ${{ env.NOTES }}"
 
-#    - name: Upload Release Assets
-#      uses: actions/upload-artifact@v3
-#      with:
-#        name: TikManager4
-#        path: package/build/TikManager4_v${{ env.VERSION }}.exe
-#
-#    - name: Create GitHub Release
-#      uses: ncipollo/release-action@v1
-#      with:
-#        artifacts: package/build/TikManager4_v${{ env.VERSION }}.exe
-#        token: ${{ secrets.GITHUB_TOKEN }}
-#        tag: v${{ env.VERSION }}
-#        name: v${{ env.VERSION }}
-#        body: ${{ env.NOTES }}
+    - name: Upload Release Assets
+      uses: actions/upload-artifact@v3
+      with:
+        name: TikManager4
+        path: package/build/TikManager4_v${{ env.VERSION }}.exe
+
+    - name: Create GitHub Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: package/build/TikManager4_v${{ env.VERSION }}.exe
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: v${{ env.VERSION }}
+        name: v${{ env.VERSION }}
+        body: ${{ env.NOTES }}
