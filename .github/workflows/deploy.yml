@@ -53,7 +53,8 @@ jobs:
         echo "NOTES=$Base64Notes" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
     - name: Debug Release Notes (Base64 Encoded)
-      run: echo "Base64 release notes: ${{ env.NOTES }}"
+      run: |
+        echo "Base64 release notes: ${{ env.NOTES }}"
 
     - name: Decode Release Notes
       shell: pwsh
@@ -64,7 +65,8 @@ jobs:
         echo "DECODED_NOTES=$DecodedNotes" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
     - name: Debug Decoded Release Notes
-      run: echo "Decoded release notes: ${{ env.DECODED_NOTES }}"
+      run: |
+        echo "Decoded release notes: ${{ env.DECODED_NOTES }}"
 
     - name: Set up Python
       uses: actions/setup-python@v4
