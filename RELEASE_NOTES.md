@@ -5,6 +5,7 @@
 - [TIK-144] Improved filtering methodology for views.
 - [TIK-142] Persistent UI size and position for the main window.
 - [TIK-140] Shotgrid integration.
+- [151] Added the ability to edit notes on works. Can be accessed with right-click context menu.
 - Metadata improvements. Tasks can directly inherit and override metadata from upstream.
 
 ## v4.2.1

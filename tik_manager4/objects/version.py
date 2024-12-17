@@ -327,6 +327,10 @@ class WorkVersion(LocalizeMixin):
         """The notes of the work version."""
         return self._notes
 
+    @notes.setter
+    def notes(self, value):
+        self._notes = value
+
     @property
     def previews(self):
         """The previews of the work version."""

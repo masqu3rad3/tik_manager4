@@ -6,7 +6,7 @@ from tik_manager4.core.constants import ObjectType
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator, TikIconButton
-from tik_manager4.ui.widgets.image import ImageWidget
+from tik_manager4.ui.widgets.info import ImageWidget, NotesEditor
 from tik_manager4.ui.dialog.bunde_ingest_dialog import BundleIngestDialog
 from tik_manager4.core import filelog
 
@@ -97,7 +97,7 @@ class ElementWidgets:
 @dataclass
 class InfoWidgets:
     notes_lbl: QtWidgets.QLabel
-    notes_editor: QtWidgets.QPlainTextEdit
+    notes_editor: NotesEditor
     thumbnail: ImageWidget
 
 
@@ -150,7 +150,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         self.info = InfoWidgets(
             notes_lbl=QtWidgets.QLabel("Notes: "),
-            notes_editor=QtWidgets.QPlainTextEdit(),
+            # notes_editor=QtWidgets.QPlainTextEdit(),
+            notes_editor=NotesEditor(),
             thumbnail=ImageWidget()
         )
 
@@ -163,6 +164,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         self.build_ui()
         self.connect_signals()
+
+        self.set_base(self.base)
 
     def build_ui(self):
         """Setup the UI."""
@@ -218,7 +221,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         notes_layout = QtWidgets.QVBoxLayout()
         self.addLayout(notes_layout)
         self.info.notes_lbl.setFont(QtGui.QFont("Arial", 10))
-        self.info.notes_editor.setReadOnly(True)
+        # self.info.notes_editor.setReadOnly(True)
         notes_layout.addWidget(self.info.notes_lbl)
         notes_layout.addWidget(self.info.notes_editor)
 
@@ -255,6 +258,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.element.element_view_btn.clicked.connect(self.on_element_view_event)
         self.header.refresh_btn.clicked.connect(self.refresh)
         self.version.sync_btn.clicked.connect(self.on_sync_to_origin)
+        self.info.notes_editor.notes_updated.connect(self.__apply_to_base)
 
     def on_sync_to_origin(self):
         """Sync the version to the origin."""
@@ -288,8 +292,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             return
         # if this is a work version, the work object should be updated as well
         if _version.object_type == ObjectType.WORK_VERSION:
-            self.base._apply_versions()
-            self.base.apply_settings(force=True)
+            self.__apply_to_base()
 
         self.toggle_sync_state(False)
         self.status_updated.emit("Synced to origin.", 5000)
@@ -532,10 +535,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.version.combo.setEnabled(False)
             self.element.element_combo.clear()
             self.info.notes_editor.clear()
+            self.info.notes_editor.setEnabled(False)
             self.info.thumbnail.clear()
+            self.info.thumbnail.setEnabled(False)
             self.toggle_sync_state(False)
             return
         self.version.combo.setEnabled(True)
+        self.info.notes_editor.setEnabled(True)
+        self.info.thumbnail.setEnabled(True)
         self.base = base
         self.populate_versions(base.versions)
         self.version.combo.blockSignals(False)
@@ -622,9 +629,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.version.preview_btn.setEnabled(bool(_version.previews))
             owner = _version.user
         self.version.owner_lbl.setText(f"Owner: {owner}")
-        self.info.notes_editor.clear()
+        # self.info.notes_editor.clear()
         self.info.thumbnail.clear()
-        self.info.notes_editor.setPlainText(_version.notes)
+        self.info.notes_editor.set_version(_version)
+        # self.info.notes_editor.setPlainText(_version.notes)
         _thumbnail_path = self.base.get_abs_database_path(_version.thumbnail)
         self.info.thumbnail.set_media(_thumbnail_path)
         self.element.element_combo.blockSignals(False)
@@ -864,4 +872,11 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 text=f"Snapshot published.\nName: {published_object.name}\nPath: {published_object.path}",
                 critical=False,
             )
+
+    def __apply_to_base(self):
+        """Apply the changes to the base object and persistent database."""
+        self.base._apply_versions()
+        self.base.apply_settings(force=True)
+
+
 
