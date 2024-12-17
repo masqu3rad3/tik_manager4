@@ -21,23 +21,23 @@ jobs:
     - name: Install dependencies
       run: pip install -r ./package/requirements.txt
 
-    - name: Generate Release Notes from PRs
-      uses: actions/github-script@v6
-      id: generate_pr_notes
-      with:
-        script: |
-          const { data: pulls } = await github.rest.pulls.list({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            state: "closed",
-            base: context.ref
-          });
-          const notes = pulls
-            .filter(pr => pr.merged_at)
-            .map(pr => `- ${pr.title} (#${pr.number})`)
-            .join("\n");
-          return notes;
-        result-encoding: string
+#    - name: Generate Release Notes from PRs
+#      uses: actions/github-script@v6
+#      id: generate_pr_notes
+#      with:
+#        script: |
+#          const { data: pulls } = await github.rest.pulls.list({
+#            owner: context.repo.owner,
+#            repo: context.repo.repo,
+#            state: "closed",
+#            base: context.ref
+#          });
+#          const notes = pulls
+#            .filter(pr => pr.merged_at)
+#            .map(pr => `- ${pr.title} (#${pr.number})`)
+#            .join("\n");
+#          return notes;
+#        result-encoding: string
 
     - name: Install Inno Setup
       run: |
@@ -108,5 +108,5 @@ jobs:
         tag: v${{ env.VERSION }}
         name: v${{ env.VERSION }}
         body: |
-          Release Notes:
-          ${{ steps.generate_pr_notes.outputs.result }}
+          ## What's Changed
+          ${{ env.release_notes }}

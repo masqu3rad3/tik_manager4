@@ -82,9 +82,6 @@ class ReleaseUtility:
 
         (PACKAGE_ROOT / "build").mkdir(exist_ok=True)
 
-        # add the ## What's Changed at the beginning of the sanitized notes
-        sanitized_notes = f"## What's Changed\n\n{sanitized_notes}"
-
         output_file = PACKAGE_ROOT / "build" / f"ReleaseNotes_v{self.release_version}.md"
         output_file.write_text(sanitized_notes)
 
