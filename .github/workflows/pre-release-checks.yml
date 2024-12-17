@@ -1,0 +1,34 @@
+name: Check Tag Conflict Before Merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - "main"
+
+jobs:
+  check-tag-conflict:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set Version Environment Variable
+        id: version
+        run: |
+          VERSION=$(python -c "from tik_manager4 import _version; print(_version.__version__)")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Debug Version Variable
+        run: |
+          echo "The extracted version is: ${{ env.VERSION }}"
+
+      - name: Fetch tags
+        run: git fetch --tags
+
+      - name: Check if tag exists
+        run: |
+          if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
+            echo "Error: Tag v${{ env.VERSION }} already exists."
+            exit 1
+          fi
