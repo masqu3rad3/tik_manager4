@@ -21,39 +21,38 @@ jobs:
     - name: Install dependencies
       run: pip install -r ./package/requirements.txt
 
+    - name: Generate Release Notes from PRs
+      uses: actions/github-script@v6
+      id: generate_pr_notes
+      with:
+        script: |
+          const { data: pulls } = await github.rest.pulls.list({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: "closed",
+            base: context.ref
+          });
+          const notes = pulls
+            .filter(pr => pr.merged_at)
+            .map(pr => `- ${pr.title} (#${pr.number})`)
+            .join("\n");
+          return notes;
+        result-encoding: string
+
+    - name: Install Inno Setup
+      run: |
+        curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
+        cmd /c "innosetup.exe /VERYSILENT /NORESTART"
+
     - name: Extract Version from _version.py
       id: extract_version
       run: |
         $VERSION = python -c "from tik_manager4 import _version; print(_version.__version__)"
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "VERSION=$VERSION" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
       shell: pwsh
 
     - name: Debug Version
       run: echo "Extracted version is ${{ env.VERSION }}"
-
-    - name: Extract Release Notes
-      id: extract_notes
-      shell: bash
-      run: |
-        NOTES=""
-        CAPTURE=0
-        while IFS= read -r line; do
-          if [[ $line =~ ^##\ v${{ env.VERSION }} ]]; then
-            CAPTURE=1
-            continue
-          fi
-          if [[ $CAPTURE -eq 1 && $line =~ ^## ]]; then
-            break
-          fi
-          if [[ $CAPTURE -eq 1 ]]; then
-            NOTES+="$line\n"
-          fi
-        done < RELEASE_NOTES.md
-        echo "NOTES=${NOTES}" >> $GITHUB_ENV
-        echo "::set-output name=notes::${NOTES}"
-
-    - name: Debug Release Notes
-      run: echo -e "${{ env.NOTES }}"
 
     - name: Check if Release Tag Exists
       id: check_tag
@@ -64,11 +63,6 @@ jobs:
           exit 1
         fi
       shell: bash
-
-    - name: Install Inno Setup
-      run: |
-        curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
-        cmd /c "innosetup.exe /VERYSILENT /NORESTART"
 
     - name: Build and Package
       run: |
@@ -97,4 +91,6 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: v${{ env.VERSION }}
         name: v${{ env.VERSION }}
-        body: ${{ env.NOTES }}
+        body: |
+          Release Notes:
+          ${{ steps.generate_pr_notes.outputs.result }}
