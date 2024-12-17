@@ -1,7 +1,11 @@
 # Release Notes
 
 ## v4.3.0
-- TESTING: Testing the release notes.
+- [TIK-143] Localization and cache management feature added.
+- [TIK-144] Improved filtering methodology for views.
+- [TIK-142] Persistent UI size and position for the main window.
+- [TIK-140] Shotgrid integration.
+- Metadata improvements. Tasks can directly inherit and override metadata from upstream.
 
 ## v4.2.1
 - individual photoshop image extracts merged into one extractor
