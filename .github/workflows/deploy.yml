@@ -67,11 +67,22 @@ jobs:
         $lines = Get-Content RELEASE_NOTES.md
         $capture = $false
         foreach ($line in $lines) {
-          if ($line -match "^## v${{ env.VERSION }}") { $capture = $true; continue }
-          if ($capture -and $line -match "^## ") { break }
-          if ($capture) { $NOTES += "$line`n" }
+          # Check for the version header and start capturing notes
+          if ($line -match "^## v${{ env.VERSION }}") { 
+            $capture = $true
+            continue
+          }
+          # Stop capturing if another version header is found
+          if ($capture -and $line -match "^## ") { 
+            break 
+          }
+          # Append the line to the release notes if within the right section
+          if ($capture) { 
+            $NOTES += "$line`r`n"  # Using `r`n for Windows-style line endings
+          }
         }
-        $NOTES = $NOTES.Trim()
+        $NOTES = $NOTES.Trim()  # Trim any leading or trailing whitespace
+        Write-Host "Release Notes: $NOTES"
         echo "NOTES=$NOTES" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
     - name: Debug Release Notes
