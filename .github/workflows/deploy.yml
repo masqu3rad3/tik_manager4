@@ -13,6 +13,59 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - name: Extract Version from _version.py
+      id: extract_version
+      run: |
+        $VERSION = python -c "from tik_manager4 import _version; print(_version.__version__)"
+        echo "VERSION=$VERSION" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+      shell: pwsh
+
+    - name: Debug Version
+      run: echo "Extracted version is ${{ env.VERSION }}"
+
+    - name: Extract Release Notes
+      shell: pwsh
+      run: |
+        $NOTES = ""
+        $lines = Get-Content RELEASE_NOTES.md
+        $capture = $false
+        foreach ($line in $lines) {
+          # Check for the version header and start capturing notes
+          if ($line -match "^## v${{ env.VERSION }}") { 
+            $capture = $true
+            continue
+          }
+          # Stop capturing if another version header is found
+          if ($capture -and $line -match "^## ") { 
+            break 
+          }
+          # Append the line to the release notes if within the right section
+          if ($capture) { 
+            $NOTES += "$line`n"  # Use Linux-style `\n` for easier processing
+          }
+        }
+        $NOTES = $NOTES.Trim()  # Trim leading/trailing whitespace
+        Write-Host "Raw Release Notes: $NOTES"
+
+        # Encode release notes in Base64
+        $Base64Notes = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($NOTES))
+        Write-Host "Base64 Release Notes: $Base64Notes"
+        echo "NOTES=$Base64Notes" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+
+    - name: Debug Release Notes (Base64 Encoded)
+      run: echo "Base64 release notes: ${{ env.NOTES }}"
+
+    - name: Decode Release Notes
+      shell: pwsh
+      run: |
+        $Base64Notes = "${{ env.NOTES }}"
+        $DecodedNotes = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($Base64Notes))
+        Write-Host "Decoded Release Notes: $DecodedNotes"
+        echo "DECODED_NOTES=$DecodedNotes" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+
+    - name: Debug Decoded Release Notes
+      run: echo "Decoded release notes: ${{ env.DECODED_NOTES }}"
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -25,16 +78,6 @@ jobs:
       run: |
         curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
         cmd /c "innosetup.exe /VERYSILENT /NORESTART"
-
-    - name: Extract Version from _version.py
-      id: extract_version
-      run: |
-        $VERSION = python -c "from tik_manager4 import _version; print(_version.__version__)"
-        echo "VERSION=$VERSION" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
-      shell: pwsh
-
-    - name: Debug Version
-      run: echo "Extracted version is ${{ env.VERSION }}"
 
     - name: Check if Release Tag Exists
       id: check_tag
@@ -60,34 +103,6 @@ jobs:
         if not exist "package\build\TikManager4_v${{ env.VERSION }}.exe" exit 1
       shell: cmd
 
-    - name: Extract Release Notes
-      shell: pwsh
-      run: |
-        $NOTES = ""
-        $lines = Get-Content RELEASE_NOTES.md
-        $capture = $false
-        foreach ($line in $lines) {
-          # Check for the version header and start capturing notes
-          if ($line -match "^## v${{ env.VERSION }}") { 
-            $capture = $true
-            continue
-          }
-          # Stop capturing if another version header is found
-          if ($capture -and $line -match "^## ") { 
-            break 
-          }
-          # Append the line to the release notes if within the right section
-          if ($capture) { 
-            $NOTES += "$line`r`n"  # Using `r`n for Windows-style line endings
-          }
-        }
-        $NOTES = $NOTES.Trim()  # Trim any leading or trailing whitespace
-        Write-Host "Release Notes: $NOTES"
-        echo "NOTES=$NOTES" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
-
-    - name: Debug Release Notes
-      run: echo "Extracted release notes ${{ env.NOTES }}"
-
     - name: Upload Release Assets
       uses: actions/upload-artifact@v3
       with:
@@ -101,4 +116,4 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: v${{ env.VERSION }}
         name: v${{ env.VERSION }}
-        body: ${{ env.NOTES }}
+        body: ${{ env.DECODED_NOTES }}
