@@ -18,6 +18,9 @@ jobs:
       with:
         python-version: '3.9'
 
+    - name: Install dependencies
+      run: pip install -r ./package/requirements.txt
+
     - name: Extract Version from _version.py
       id: extract_version
       run: |
@@ -61,9 +64,6 @@ jobs:
           exit 1
         fi
       shell: bash
-
-    - name: Install dependencies
-      run: pip install -r ./package/requirements.txt
 
     - name: Install Inno Setup
       run: |
