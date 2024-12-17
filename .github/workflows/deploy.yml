@@ -78,6 +78,22 @@ jobs:
         if not exist "package\build\TikManager4_v${{ env.VERSION }}.exe" exit 1
       shell: cmd
 
+    - name: Read Sanitized Release Notes
+      id: read_release_notes
+      run: |
+        sanitized_notes_file="package/build/ReleaseNotes_v${{ env.VERSION }}.md"
+
+        if [ ! -f "$sanitized_notes_file" ]; then
+          echo "Error: Sanitized release notes not found: $sanitized_notes_file"
+          exit 1
+        fi
+
+        release_notes=$(cat "$sanitized_notes_file")
+        echo "release_notes<<EOF" >> $GITHUB_ENV
+        echo "$release_notes" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+      shell: bash
+
     - name: Upload Release Assets
       uses: actions/upload-artifact@v3
       with:
