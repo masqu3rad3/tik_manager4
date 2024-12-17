@@ -18,61 +18,39 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Install dependencies
-      run: pip install -r ./package/requirements.txt
-
-    - name: Install Inno Setup
-      run: |
-        curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
-        cmd /c "innosetup.exe /VERYSILENT /NORESTART"
-
     - name: Extract Version from _version.py
       id: extract_version
       run: |
         $VERSION = python -c "from tik_manager4 import _version; print(_version.__version__)"
-        echo "VERSION=$VERSION" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
       shell: pwsh
 
     - name: Debug Version
       run: echo "Extracted version is ${{ env.VERSION }}"
 
     - name: Extract Release Notes
-      shell: pwsh
+      id: extract_notes
+      shell: bash
       run: |
-        $NOTES = ""
-        $lines = Get-Content RELEASE_NOTES.md
-        $capture = $false
-        foreach ($line in $lines) {
-          if ($line -match "^## v${{ env.VERSION }}") { 
-            $capture = $true
+        NOTES=""
+        CAPTURE=0
+        while IFS= read -r line; do
+          if [[ $line =~ ^##\ v${{ env.VERSION }} ]]; then
+            CAPTURE=1
             continue
-          }
-          if ($capture -and $line -match "^## ") { 
-            break 
-          }
-          if ($capture) { 
-            $NOTES += "$line`n"
-          }
-        }
-        $NOTES = $NOTES.Trim()
-        Write-Host "Raw Release Notes: $NOTES"
+          fi
+          if [[ $CAPTURE -eq 1 && $line =~ ^## ]]; then
+            break
+          fi
+          if [[ $CAPTURE -eq 1 ]]; then
+            NOTES+="$line\n"
+          fi
+        done < RELEASE_NOTES.md
+        echo "NOTES=${NOTES}" >> $GITHUB_ENV
+        echo "::set-output name=notes::${NOTES}"
 
-        # Encode release notes in Base64
-        $Base64Notes = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($NOTES))
-        echo "BASE64_NOTES=$Base64Notes" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
-
-    - name: Decode and Normalize Release Notes
-      shell: pwsh
-      run: |
-        $Base64Notes = "${{ env.BASE64_NOTES }}"
-        $DecodedNotes = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($Base64Notes))
-        Write-Host "Decoded Release Notes: $DecodedNotes"
-
-        # Preserve line breaks for GitHub markdown by avoiding escape sequences
-        echo "NOTES=$DecodedNotes" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
-
-    - name: Debug Decoded Release Notes
-      run: echo "Release notes for GitHub:\n${{ env.NOTES }}"
+    - name: Debug Release Notes
+      run: echo -e "${{ env.NOTES }}"
 
     - name: Check if Release Tag Exists
       id: check_tag
@@ -83,6 +61,14 @@ jobs:
           exit 1
         fi
       shell: bash
+
+    - name: Install dependencies
+      run: pip install -r ./package/requirements.txt
+
+    - name: Install Inno Setup
+      run: |
+        curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
+        cmd /c "innosetup.exe /VERYSILENT /NORESTART"
 
     - name: Build and Package
       run: |
