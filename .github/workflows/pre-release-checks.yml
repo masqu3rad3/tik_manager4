@@ -1,10 +1,10 @@
 name: Check Tag Conflict Before Merge
 
 on:
-  push:
-    branches: [ "main", "dev" ]
   pull_request:
-    branches: [ "main", "dev" ]
+    types: [opened, synchronize, reopened]
+    branches:
+      - "main"
 
 jobs:
   check-tag-conflict:
