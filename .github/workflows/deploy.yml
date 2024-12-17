@@ -13,6 +13,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
     - name: Extract Version from _version.py
       id: extract_version
       run: |
@@ -30,56 +35,38 @@ jobs:
         $lines = Get-Content RELEASE_NOTES.md
         $capture = $false
         foreach ($line in $lines) {
-          # Check for the version header and start capturing notes
           if ($line -match "^## v${{ env.VERSION }}") { 
             $capture = $true
             continue
           }
-          # Stop capturing if another version header is found
           if ($capture -and $line -match "^## ") { 
             break 
           }
-          # Append the line to the release notes if within the right section
           if ($capture) { 
-            $NOTES += "$line`n"  # Use Linux-style `\n` for easier processing
+            $NOTES += "$line`n"
           }
         }
-        $NOTES = $NOTES.Trim()  # Trim leading/trailing whitespace
+        $NOTES = $NOTES.Trim()
         Write-Host "Raw Release Notes: $NOTES"
 
-        # Encode release notes in Base64
+        # Encode release notes in Base64 to avoid multiline issues
         $Base64Notes = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($NOTES))
-        Write-Host "Base64 Release Notes: $Base64Notes"
-        echo "NOTES=$Base64Notes" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
-
-    - name: Debug Release Notes (Base64 Encoded)
-      run: |
-        echo "Base64 release notes: ${{ env.NOTES }}"
+        echo "BASE64_NOTES=$Base64Notes" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
     - name: Decode Release Notes
       shell: pwsh
       run: |
-        $Base64Notes = "${{ env.NOTES }}"
+        $Base64Notes = "${{ env.BASE64_NOTES }}"
         $DecodedNotes = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($Base64Notes))
         Write-Host "Decoded Release Notes: $DecodedNotes"
-        echo "DECODED_NOTES=$DecodedNotes" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+
+        # Re-encode the decoded notes to make them safe for GitHub Actions
+        $SafeNotes = $DecodedNotes -replace "`n", "\\n" -replace "`r", ""
+        echo "SAFE_NOTES=$SafeNotes" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
     - name: Debug Decoded Release Notes
       run: |
-        echo "Decoded release notes: ${{ env.DECODED_NOTES }}"
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-
-    - name: Install dependencies
-      run: pip install -r ./package/requirements.txt
-
-    - name: Install Inno Setup
-      run: |
-        curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
-        cmd /c "innosetup.exe /VERYSILENT /NORESTART"
+        echo "Safe release notes: ${{ env.SAFE_NOTES }}"
 
     - name: Check if Release Tag Exists
       id: check_tag
@@ -90,6 +77,14 @@ jobs:
           exit 1
         fi
       shell: bash
+
+    - name: Install dependencies
+      run: pip install -r ./package/requirements.txt
+
+    - name: Install Inno Setup
+      run: |
+        curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
+        cmd /c "innosetup.exe /VERYSILENT /NORESTART"
 
     - name: Build and Package
       run: |
@@ -118,4 +113,4 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: v${{ env.VERSION }}
         name: v${{ env.VERSION }}
-        body: ${{ env.DECODED_NOTES }}
+        body: ${{ env.SAFE_NOTES }}
