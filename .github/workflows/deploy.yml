@@ -18,6 +18,14 @@ jobs:
       with:
         python-version: '3.9'
 
+    - name: Install dependencies
+      run: pip install -r ./package/requirements.txt
+
+    - name: Install Inno Setup
+      run: |
+        curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
+        cmd /c "innosetup.exe /VERYSILENT /NORESTART"
+
     - name: Extract Version from _version.py
       id: extract_version
       run: |
@@ -49,24 +57,22 @@ jobs:
         $NOTES = $NOTES.Trim()
         Write-Host "Raw Release Notes: $NOTES"
 
-        # Encode release notes in Base64 to avoid multiline issues
+        # Encode release notes in Base64
         $Base64Notes = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($NOTES))
         echo "BASE64_NOTES=$Base64Notes" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
-    - name: Decode Release Notes
+    - name: Decode and Normalize Release Notes
       shell: pwsh
       run: |
         $Base64Notes = "${{ env.BASE64_NOTES }}"
         $DecodedNotes = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($Base64Notes))
         Write-Host "Decoded Release Notes: $DecodedNotes"
 
-        # Re-encode the decoded notes to make them safe for GitHub Actions
-        $SafeNotes = $DecodedNotes -replace "`n", "\\n" -replace "`r", ""
-        echo "SAFE_NOTES=$SafeNotes" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+        # Preserve line breaks for GitHub markdown by avoiding escape sequences
+        echo "NOTES=$DecodedNotes" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
     - name: Debug Decoded Release Notes
-      run: |
-        echo "Safe release notes: ${{ env.SAFE_NOTES }}"
+      run: echo "Release notes for GitHub:\n${{ env.NOTES }}"
 
     - name: Check if Release Tag Exists
       id: check_tag
@@ -77,14 +83,6 @@ jobs:
           exit 1
         fi
       shell: bash
-
-    - name: Install dependencies
-      run: pip install -r ./package/requirements.txt
-
-    - name: Install Inno Setup
-      run: |
-        curl -L -o innosetup.exe "https://jrsoftware.org/download.php/is.exe"
-        cmd /c "innosetup.exe /VERYSILENT /NORESTART"
 
     - name: Build and Package
       run: |
@@ -113,4 +111,4 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: v${{ env.VERSION }}
         name: v${{ env.VERSION }}
-        body: ${{ env.SAFE_NOTES }}
+        body: ${{ env.NOTES }}
