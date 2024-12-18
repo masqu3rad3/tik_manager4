@@ -516,12 +516,19 @@ class SaveAnyFileDialog(NewWorkDialog):
     def on_create_work(self):
         """Create the work file."""
         name = self.primary_data.get_property("name")
+        override_dcc = self.primary_data.get_property("override_dcc")
         notes = self.widgets.notes_te.toPlainText()
         #
         self.category.create_work_from_path(
-            name, self._file_or_folder_path, ignore_checks=True, notes=notes
+            name, self._file_or_folder_path, override_dcc=override_dcc, ignore_checks=True, notes=notes
         )
         self.accept()
+
+    def __get_matching_dccs(self, suffix):
+        """Get the matching DCCs for the given suffix."""
+        for dcc_name, extensions in self.main_object.all_dcc_extensions.items():
+            if suffix in extensions:
+                yield dcc_name
 
     def define_primary_ui(self):
         _primary_ui = super().define_primary_ui()
@@ -530,7 +537,18 @@ class SaveAnyFileDialog(NewWorkDialog):
         stem = _path_obj.stem
         # replace all non-alphanumeric characters with underscores
         _name = "".join([x if x.isalnum() else "_" for x in stem])
+        # get the matching extensions
+        matching_dccs = list(self.__get_matching_dccs(_path_obj.suffix))
+        matching_dccs.append("standalone")
+
         update_dict = {
+            "override_dcc": {
+                "display_name": "DCC override",
+                "type": "combo",
+                "items": matching_dccs,
+                "value": matching_dccs[0],
+                "tooltip": "DCC to use for the work file",
+            },
             "name": {
                 "display_name": "Name",
                 "type": "validatedString",

@@ -101,7 +101,7 @@ class Category(Entity):
         work.add_property("state", "active")
         work.init_properties()
 
-    def create_work_from_path(self, name, file_path, notes="", ignore_checks=True):
+    def create_work_from_path(self, name, file_path, override_dcc="standalone", notes="", ignore_checks=True):
         """Register a given path (file or folder) as a work.
 
         Args:
@@ -114,20 +114,22 @@ class Category(Entity):
         Returns:
             tik_manager4.objects.work: Work object.
         """
+        # import dcc
+        # print(dcc.EXTENSION_DICT)
         _ignore_checks = ignore_checks
         constructed_name = self.construct_name(name)
         # creating work from an arbitrary path is always considered as a 'standalone' process
-        abs_path = self.get_abs_database_path("standalone", f"{constructed_name}.twork")
+        abs_path = self.get_abs_database_path(override_dcc, f"{constructed_name}.twork")
         if Path(abs_path).exists():
             # in that case instantiate the work and iterate the version.
             work = Work(absolute_path=abs_path, parent_task=self.parent_task)
             work.new_version_from_path(file_path=file_path, notes=notes)
             return work
 
-        relative_path = self.get_relative_work_path(override_dcc="standalone")
+        relative_path = self.get_relative_work_path(override_dcc=override_dcc)
         work = Work(abs_path, name=constructed_name, path=relative_path, parent_task=self.parent_task)
 
-        self.__add_work_properties(work, constructed_name, "standalone", "NA", relative_path)
+        self.__add_work_properties(work, constructed_name, override_dcc, "NA", relative_path)
         work.new_version_from_path(file_path=file_path, notes=notes)
         return work
 
