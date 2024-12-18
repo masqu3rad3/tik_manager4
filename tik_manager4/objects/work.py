@@ -317,8 +317,6 @@ class Work(Settings, LocalizeMixin):
             "previews": {},
             "file_format": file_format,
             "dcc_version": self._dcc_handler.get_dcc_version(),
-            # "localized": is_localized,
-            # "localized_path": output_path if is_localized else "",
         }
         if is_localized:
             version_dict["localized"] = is_localized
@@ -463,43 +461,9 @@ class Work(Settings, LocalizeMixin):
 
         for version in self.versions:
             version.move_to_purgatory()
-        #
-        # purgatory_database_dir = Path(self.get_purgatory_database_path())
-        # purgatory_database_dir.mkdir(parents=True, exist_ok=True)
-        # purgatory_scene_dir = Path(self.get_purgatory_project_path())
-        # purgatory_scene_dir.mkdir(parents=True, exist_ok=True)
-        #
-        # purgatory_path = self.get_purgatory_project_path(self.name)
-        # # if the purgatory path exists, delete it first
-        # if Path(purgatory_path).exists():
-        #     shutil.rmtree(purgatory_path)
-        #
-        # for version in self.versions:
-        #     shutil.move(
-        #         version.get_resolved_path(),
-        #         purgatory_path,
-        #         copy_function=shutil.copytree,
-        #     )
-        # # shutil.move(
-        # #     # self.get_abs_project_path(self.name),
-        # #     self.get_resolved_path(self.name),
-        # #     purgatory_path,
-        # #     copy_function=shutil.copytree,
-        # # )
-        #
-        # thumbnails_dir = Path(self.get_abs_database_path("thumbnails"))
-        # # collect all thumbnails starting with the work name
-        # thumbnails = thumbnails_dir.glob(f"{self.name}_*")
-        # for thumbnail in thumbnails:
-        #     thumb_destination_dir = purgatory_database_dir / "thumbnails"
-        #     thumb_destination_dir.mkdir(parents=True, exist_ok=True)
-        #     thumb_destination_file = thumb_destination_dir / thumbnail.name
-        #     shutil.move(str(thumbnail), str(thumb_destination_file))
 
         # finally move the database file
-        # db_destination = purgatory_database_dir / Path(self.settings_file).name
         db_destination = Path(self.get_resolved_purgatory_path(), self.settings_file.name)
-        # shutil.move(str(self.settings_file), str(db_destination))
         utils.move(self.settings_file.as_posix(), db_destination.as_posix())
         return 1, "success"
 
@@ -548,32 +512,6 @@ class Work(Settings, LocalizeMixin):
         version_obj = self.get_version(version_number)
         if version_obj:
             version_obj.move_to_purgatory()
-        # if version_obj:
-        #     relative_path = version_obj.scene_path
-        #     abs_path = version_obj.get_resolved_path()
-        #     dest_path = self.get_purgatory_project_path(relative_path)
-        #     Path(dest_path).parent.mkdir(parents=True, exist_ok=True)
-        #     if Path(abs_path).exists():
-        #         shutil.move(abs_path, dest_path)
-        #
-        #     # move the thumbnail
-        #     thumbnail_relative_path = version_obj.thumbnail
-        #     if thumbnail_relative_path:
-        #         thumbnail_abs_path = self.get_abs_database_path(thumbnail_relative_path)
-        #         thumbnail_dest_path = self.get_purgatory_database_path(
-        #             thumbnail_relative_path
-        #         )
-        #         _thumbnail_dest_path = Path(thumbnail_dest_path)
-        #         _thumbnail_dest_path.parent.mkdir(parents=True, exist_ok=True)
-        #         if Path(thumbnail_abs_path).exists():
-        #             # first try to delete the thumbnail_dest_path if exists
-        #             if _thumbnail_dest_path.exists():
-        #                 _thumbnail_dest_path.unlink()
-        #             shutil.move(
-        #                 thumbnail_abs_path,
-        #                 thumbnail_dest_path,
-        #                 copy_function=shutil.copytree,
-        #             )
 
             # remove the version from the versions list
             self._versions.remove(version_obj)

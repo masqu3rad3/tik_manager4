@@ -33,6 +33,7 @@ class Main:
         self.project.guard.set_dcc_handler(self.dcc)
         self.project.guard.set_commons(self.user.commons)
         self.project.guard.set_localize_settings(self.user.localization)
+        self.all_dcc_extensions = dcc.EXTENSION_DICT
 
 
         default_project = Path(utils.get_home_dir(), "TM4_default")
@@ -200,7 +201,7 @@ class Main:
         # if the dcc is standalone, collect all applicable extensions from the extension dictionary
         # otherwise, collect the extensions from the dcc object
         if self.dcc.name.lower() == "standalone":
-            extensions = [ext for ext_list in dcc.EXTENSION_DICT.values() for ext in ext_list]
+            extensions = [ext for ext_list in self.all_dcc_extensions.values() for ext in ext_list]
         else:
             extensions = self.dcc.formats
         user_templates = [p for p in Path(self.user.settings.get("user_templates_directory")).rglob("*.*") if
@@ -245,7 +246,7 @@ class Main:
         Returns:
             str: The DCC name.
         """
-        for key, value in dcc.EXTENSION_DICT.items():
+        for key, value in self.all_dcc_extensions.items():
             if extension in value:
                 return key
         # for anything else, return standalone
