@@ -1,5 +1,9 @@
 # Release Notes
 
+## v4.x.x
+- [TIK-145] Added native DCC support for snapshots saves. Now the snapshotted works can be directly opened from related DCCs.
+- [TIK-146] Making the validations and extracts orderable. The order can be arranged from the settings (per-project or common).
+
 ## v4.3.0
 - [TIK-143] Localization and cache management feature added.
 - [TIK-144] Improved filtering methodology for views.

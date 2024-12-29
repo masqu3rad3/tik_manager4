@@ -16,6 +16,7 @@ class Preview(ExtractCore):
     nice_name = "Multi Preview"
     color = (0, 255, 255)
     bundled = True
+    order = -1
 
     def __init__(self):
         _ranges = utils.get_ranges()
