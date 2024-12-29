@@ -62,4 +62,5 @@ Contents
    installation
    getting_started
    user_guide
+   faq
    developers_guide

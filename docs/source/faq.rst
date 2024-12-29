@@ -1,4 +1,4 @@
-Frequently asked questions
+F.A.Q
 ==========================
 
 .. contents::
@@ -15,7 +15,6 @@ Overall workflow and troubleshooting
 
 
 .. Old reference
-.. _My project isn't building correctly:
 
 I just installed Tik Manager. It asks me a password. What is it?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -57,3 +56,49 @@ sub-projects under that sub-project.
 If the scene you are about to save has a different fps value than the task's fps value, it will warn you about it.
 You can either change the scene's fps value or the edit the task's fps value by simply 'right-click edit' to match the scene's fps value.
 
+I can see the Tik Manager Icons and/or menu but the UI doesn't get launched. What should I do?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+First thing you should check the script editor/console/logs for any errors.
+
+- Maya -> Windows -> General Editors -> Script Editor
+- Houdini -> (Launch Houdini from a terminal)
+- Nuke -> (Launch Nuke from a terminal)
+- Blender -> Window -> Toggle System Console
+- Katana - (System window opens as a separate window when you launch Katana)
+- Mari -> Python -> Show Console
+- Gaffer -> (Launch Gaffer from a terminal)
+- Substance Painter -> Window -> Log
+
+if you see an error like "No module named tik_manager" or "No module named tik_manager4" it means that the module is not installed properly.
+Windows only:
+- reinstalling Tik Manager from packaged installer may work.
+- Alternatively, you can locate the `install_dccs.exe` under the tik_manager4/dist/tik4 folder and run it. It will launch a CLI installer to install selected or all DCCs.
+
+Windows, Linux and MacOS:
+Dccs can be installed manually by following the instructions in the documentation.
+
+.. seealso::
+
+   :doc:`installation`
+
+.. warning:: 
+   The most common mistake is specifying the path incorrectly. The Path MUST be the parent of the 
+   tik_manager4 folder. If you extracted the contents directly from the zip file it will be something 
+   like tik_manager4-4.3.0.
+
+   As an example, where we have a hierarchy like this:
+
+   .. code-block:: bash
+
+      home
+      └── user
+         └── tik_manager4-4.3.0
+            └── tik_manager4
+                  ├── core
+                  ├── dcc
+                  └── ..
+
+   The correct path should be:
+   `/home/user/tik_manager4-4.3.0/tik_manager4``
+      
