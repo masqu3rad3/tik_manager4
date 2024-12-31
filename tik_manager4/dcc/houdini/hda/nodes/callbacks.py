@@ -359,7 +359,7 @@ class Callbacks:
                 object.
         """
         if version_obj:
-            valid_elements = ["alembic", "usd"]
+            valid_elements = ["alembic", "usd", "usd_lop"]
             elements = [x for x in version_obj.element_types if x in valid_elements]
             element_names = ";".join(elements)
             pass_value = elements[0] if elements else None
