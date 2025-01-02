@@ -875,7 +875,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
     def __apply_to_base(self):
         """Apply the changes to the base object and persistent database."""
-        self.base._apply_versions()
+        # self.base._apply_versions()
         self.base.apply_settings(force=True)
 
 

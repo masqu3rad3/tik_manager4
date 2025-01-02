@@ -351,6 +351,10 @@ class WorkVersion(LocalizeMixin):
         """The thumbnail path of the work version."""
         return self._thumbnail
 
+    @thumbnail.setter
+    def thumbnail(self, value):
+        self._thumbnail = value
+
     @property
     def user(self):
         """The user of the work version."""
