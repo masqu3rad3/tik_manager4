@@ -29,10 +29,6 @@ class Publisher:
         self._work_object = None
         self._work_version: int = 0
         self._metadata = None
-        self.settings.thumbnailResolution = str(
-            Path(self.user_directory, "preview_settings.json")
-        )
-        self._thumbnailResolution = self.settings.get_property("thumbnailResolution")
 
         # resolved variables
         self._resolved_extractors = {}
@@ -336,7 +332,7 @@ class Publisher:
             "thumbnails", thumbnail_name
         )
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
-        self._dcc_handler.generate_thumbnail(thumbnail_path, self._thumbnailResolution[0], self._thumbnailResolution[1]) #default thumb resolution: 220 124
+        self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
         self._published_object.add_property(
             "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
         )
@@ -555,7 +551,7 @@ class SnapshotPublisher(Publisher):
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
         extension = self._resolved_extractors["snapshot"].extension or "Bundle"
         self.__dcc_handler.text_to_image(
-            extension, thumbnail_path, self._thumbnailResolution[0], self._thumbnailResolution[1], color="cyan" #default thumb resolution: 220 124
+            extension, thumbnail_path, 220, 124, color="cyan"
         )
         self._published_object.add_property(
             "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
