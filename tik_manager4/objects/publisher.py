@@ -328,7 +328,7 @@ class Publisher:
     def _generate_thumbnail(self):
         """Generate the thumbnail."""
         thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.jpg"
-        thumbnail_resolution = self._work_object.preview_settings.properties.get("ThumbnailResolution", [220, 124])
+        thumbnail_resolution = self._work_object.guard.preview_settings.properties.get("ThumbnailResolution", [220, 124])
         thumbnail_path = self._published_object.get_abs_database_path(
             "thumbnails", thumbnail_name
         )
