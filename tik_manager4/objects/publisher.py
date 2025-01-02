@@ -333,7 +333,7 @@ class Publisher:
             "thumbnails", thumbnail_name
         )
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
-        self._dcc_handler.generate_thumbnail(thumbnail_path, thumbnail_resolution[0], thumbnail_resolution[1]) #default thumb resolution: 220 124
+        self._dcc_handler.generate_thumbnail(thumbnail_path, *(thumbnail_resolution))
         self._published_object.add_property(
             "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
         )
@@ -546,14 +546,14 @@ class SnapshotPublisher(Publisher):
     def _generate_thumbnail(self):
         """Generate the thumbnail."""
         thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.png"
-        thumbnail_resolution = self._work_object.preview_settings.properties.get("ThumbnailResolution", [220, 124])
+        thumbnail_resolution = self._published_object.preview_settings.properties.get("ThumbnailResolution", [220, 124])
         thumbnail_path = self._published_object.get_abs_database_path(
             "thumbnails", thumbnail_name
         )
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
         extension = self._resolved_extractors["snapshot"].extension or "Bundle"
         self.__dcc_handler.text_to_image(
-            extension, thumbnail_path, thumbnail_resolution[0], thumbnail_resolution[1], color="cyan" #default thumb resolution: 220 124
+            extension, thumbnail_path, *(thumbnail_resolution), color="cyan"
         )
         self._published_object.add_property(
             "thumbnail", Path("thumbnails", thumbnail_name).as_posix()

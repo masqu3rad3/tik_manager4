@@ -222,7 +222,7 @@ class Work(Settings, LocalizeMixin):
 
         # add it to the versions
         extension = Path(output_path).suffix or "Folder"
-        self._standalone_handler.text_to_image(extension, thumbnail_path, self._thumbnail_resolution[0], self._thumbnail_resolution[1])
+        self._standalone_handler.text_to_image(extension, thumbnail_path, *(self._thumbnail_resolution))
         version_dict = {
             "version_number": version_number,
             "workstation": socket.gethostname(),
@@ -305,7 +305,7 @@ class Work(Settings, LocalizeMixin):
         # generate thumbnail
         # create the thumbnail folder if it doesn't exist
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
-        self._dcc_handler.generate_thumbnail(thumbnail_path, self._thumbnail_resolution[0], self._thumbnail_resolution[1]) #default thumb resolution: 220 124
+        self._dcc_handler.generate_thumbnail(thumbnail_path, *(self._thumbnail_resolution))
 
         # add it to the versions
         is_localized = self.can_localize()
@@ -566,7 +566,7 @@ class Work(Settings, LocalizeMixin):
         )
 
         if not new_thumbnail_path:
-            self._dcc_handler.generate_thumbnail(target_absolute_path, self._thumbnail_resolution[0], self._thumbnail_resolution[1]) #default thumb resolution: 220 124
+            self._dcc_handler.generate_thumbnail(target_absolute_path, *(self._thumbnail_resolution))
             version_obj["thumbnail"] = target_relative_path
         else:
             shutil.copy(new_thumbnail_path, target_absolute_path)
