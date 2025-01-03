@@ -45,8 +45,17 @@ class OverlappingUvs(ValidateCore):
         # do something to select the non-valid objects
         cmds.select(self.overlaps)
 
-    def get_overlapping_uvs(self, shape):
-        """Checks the mesh for overlapping faces and returns the count. Returns None if 0"""
-        overlaps = cmds.polyUVOverlap(f"{shape}.f[*]", overlappingComponents=True)
-        return overlaps
+    @staticmethod
+    def get_overlapping_uvs(shape, batch_size=1000):
+        faces = cmds.polyEvaluate(shape, face=True)
+        overlapping_faces = []
+
+        for i in range(0, faces, batch_size):
+            end = min(i + batch_size + 100, faces - 1)  # Buffer overlap
+            face_range = f"{shape}.f[{i}:{end}]"
+            overlaps = cmds.polyUVOverlap(face_range, overlappingComponents=True)
+            if overlaps:
+                overlapping_faces.extend(overlaps)
+
+        return overlapping_faces if overlapping_faces else None
 
