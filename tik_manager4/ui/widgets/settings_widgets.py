@@ -632,8 +632,15 @@ class CategoryDefinitions(QtWidgets.QWidget):
         add_item_dialog.setWindowTitle("Add Item")
         dialog_layout = QtWidgets.QVBoxLayout(add_item_dialog)
         list_widget = QtWidgets.QListWidget()
+        print("----------------")
+        print("model", model)
+        print("list_data", list_data)
+        print("list_type", list_type)
+        print("self.availability_dict", self.availability_dict)
+        print("----------------")
+        checklist = self.availability_dict[f"all_{list_type}"]
         available_items = [
-            x for x in self.availability_dict[list_type] if x not in list_data
+            x for x in checklist if x not in list_data
         ]
         list_widget.addItems(available_items)
         # make it multi selection

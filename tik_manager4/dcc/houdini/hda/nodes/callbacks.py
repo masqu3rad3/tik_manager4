@@ -362,10 +362,6 @@ class Callbacks:
                 object.
         """
         if version_obj:
-            print("valid_elements")
-            print("----------------")
-            print(self.valid_elements)
-            print("----------------")
             elements = [x for x in version_obj.element_types if x in self.valid_elements]
             element_names = ";".join(elements)
             pass_value = elements[0] if elements else None

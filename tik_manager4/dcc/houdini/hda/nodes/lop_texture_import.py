@@ -1,5 +1,8 @@
 import hou
 from tik_manager4.dcc.houdini.hda.nodes import callbacks
+import logging
+
+LOG = logging.getLogger(__name__)
 
 class LopTextureImportCallbacks(callbacks.Callbacks):
     def __init__(self):
@@ -22,12 +25,14 @@ class LopTextureImportCallbacks(callbacks.Callbacks):
         #
         # parm = hda_node.parm("resolvedPathDisplay")
         # parm.lock(False)
-        # if not all([version_obj, element_type]):
+        if not all([version_obj, element_type]):
         #     hda_node.parm("resolvedPathDisplay").set("")
         #     parm.lock(True)
-        #     return
+            return
         #
-        # abs_path = version_obj.get_element_path(element_type, relative=False)
+        abs_path = version_obj.get_element_path(element_type, relative=False)
+        print(abs_path)
+        LOG.info(abs_path)
         #
         # reference_node.parm("filepath1").set(abs_path)
         # sublayer_node.parm("filepath1").set(abs_path)
