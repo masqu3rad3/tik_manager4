@@ -1,10 +1,8 @@
 """Validation for overlapping UVs."""
 
 from maya import cmds
-from maya import mel
 
 from tik_manager4.dcc.validate_core import ValidateCore
-from tik_manager4.dcc.maya import utils
 
 class OverlappingUvs(ValidateCore):
     """Validation for overlapping UVs."""
