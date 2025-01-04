@@ -1,4 +1,4 @@
-"""Example of a validation class for Maya."""
+"""Validation for overlapping UVs."""
 
 from maya import cmds
 from maya import mel
@@ -7,12 +7,12 @@ from tik_manager4.dcc.validate_core import ValidateCore
 from tik_manager4.dcc.maya import utils
 
 class OverlappingUvs(ValidateCore):
-    """Example validation for Maya"""
+    """Validation for overlapping UVs."""
 
     nice_name = "Overlapping UVs"
 
     def __init__(self):
-        super(OverlappingUvs, self).__init__()
+        super().__init__()
         self.autofixable = False
         self.ignorable = True
         self.selectable = True
