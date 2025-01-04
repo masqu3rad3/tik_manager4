@@ -24,6 +24,8 @@ class SnapshotBundle(ExtractCore):
 
     def _extract_default(self):
         """Extract method for any non-specified category"""
-        _file_path = self.resolve_output()
-        shutil.copytree(self._source_path, _file_path)
-        return _file_path
+        _folder_path = self.resolve_output()
+        # first delete the folder if it exists
+        shutil.rmtree(_folder_path, ignore_errors=True)
+        shutil.copytree(self._source_path, _folder_path)
+        return _folder_path
