@@ -214,6 +214,8 @@ _common_members = {
         "qsrand"
     ],
     "QtGui": [
+        "QGuiApplication",
+        "QScreen",
         "QAbstractTextDocumentLayout",
         "QActionEvent",
         "QBitmap",

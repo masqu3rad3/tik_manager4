@@ -62,6 +62,8 @@ from tik_manager4.ui import pick
 from tik_manager4.ui.widgets.value_widgets import Vector2Int
 from tik_manager4.ui.widgets.pop import WaitDialog
 
+from tik_manager4.ui.widgets.pop import Toaster
+
 LOG = logging.getLogger(__name__)
 
 
@@ -82,6 +84,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         # instanciate the publisher class
         self.feedback = Feedback(parent=self)
+        self.toaster = Toaster(parent=self)
         self.project = project_object
         self.project.publisher.resolve()
 
@@ -744,6 +747,7 @@ class ValidateRow(QtWidgets.QHBoxLayout):
             pass
         self.update_state()
         end = time()
+        self.toaster.make_toast("Fix Successful", f"Fixing {self.button.text()} took {end-start} seconds", mode="success")
         LOG.info("took %s seconds", end - start)
 
     def select(self):
