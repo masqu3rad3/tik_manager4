@@ -143,7 +143,6 @@ class FilterWidget(QtWidgets.QWidget):
         self.adv_widget = QtWidgets.QWidget()
         # no margins
         self.adv_widget.setContentsMargins(0, 0, 0, 0)
-        # self.master_layout.addWidget(self.adv_widget)
         self.adv_widget.setVisible(False)
 
         self.adv_lay = QtWidgets.QHBoxLayout()
@@ -157,7 +156,6 @@ class FilterWidget(QtWidgets.QWidget):
 
         self.ratio_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.ratio_slider.setRange(1, 100)
-        self.ratio_slider.setSingleStep(0.1)
         self.ratio_slider.setValue(60)
         self.ratio_slider.setToolTip("Ratio")
         self.adv_lay.addWidget(self.ratio_slider)
