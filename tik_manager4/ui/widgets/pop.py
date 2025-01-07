@@ -1,6 +1,8 @@
 """Popup dialogs."""
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore
+from tik_manager4.external.pyqttoast.toast import Toast, ToastPreset
+
 
 class WaitDialog(QtWidgets.QDialog):
     def __init__(self, message="Please wait...", frameless=True, message_size=20, parent=None):
@@ -42,6 +44,29 @@ class WaitDialog(QtWidgets.QDialog):
     def kill(self):
         self.close()
 
+
+class Toaster(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+        self.parent = parent or self
+
+
+    """Toast wrapper for showing messages."""
+    mode_pairs = {
+        "info": ToastPreset.INFORMATION_DARK,
+        "warning": ToastPreset.WARNING_DARK,
+        "error": ToastPreset.ERROR_DARK,
+        "success": ToastPreset.SUCCESS_DARK,
+    }
+
+    def make_toast(self, title, text, duration=5000, mode="info"):
+        """Make a toast."""
+        toast = Toast(self.parent)
+        toast.setDuration(duration)
+        toast.setTitle(title)
+        toast.setText(text)
+        toast.applyPreset(self.mode_pairs[mode])  # Apply style preset
+        toast.show()
 
 # test the wait dialog
 if __name__ == "__main__":

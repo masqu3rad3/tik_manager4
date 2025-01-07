@@ -53,9 +53,9 @@ from tik_manager4.ui.dialog.update_dialog import UpdateDialog
 from tik_manager4.ui.widgets.pop import WaitDialog
 from tik_manager4 import management
 
+
 LOG = logging.getLogger(__name__)
 WINDOW_NAME = f"Tik Manager {version.__version__}"
-
 
 
 def launch(dcc="Standalone", dont_show=False):
