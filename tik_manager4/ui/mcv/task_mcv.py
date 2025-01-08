@@ -43,7 +43,7 @@ class TikTaskItem(QtGui.QStandardItem):
         # self.setForeground(QtGui.QColor(*_color))
 
         # self.setFont(fnt)
-        self.setText(task_obj.name)
+        self.setText(task_obj.nice_name or task_obj.name)
 
         self.refresh()
 
@@ -331,6 +331,7 @@ class TikTaskView(QtWidgets.QTreeView):
         state = _dialog.exec_()
         if state:
             # emit clicked signal
+            self.refresh()
             self.item_selected.emit(_dialog.task_object)
         else:
             pass
@@ -369,7 +370,8 @@ class TikTaskView(QtWidgets.QTreeView):
                     "Non Empty Task",
                     "The task is not empty.\n\n"
                     "ALL CATEGORIES WORKS AND PUBLISHES UNDER {} WILL BE REMOVED\n"
-                    "ARE YOU SURE?".format(item.task.name),
+                    # "ARE YOU SURE?".format(item.task.name),
+                    "ARE YOU SURE?".format(item.task.nice_name),
                     buttons=["ok", "cancel"],
                 )
                 if really_sure != "ok":
