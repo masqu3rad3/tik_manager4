@@ -53,6 +53,7 @@ class Task(Settings, Entity):
         self._parent_sub = parent_sub
 
         self._name = self.get_property("name") or name
+        self._nice_name = self.get_property("nice_name") or name
         self._creator = self.get_property("creator") or self.guard.user
         self._works = {}
         self._publishes = {}
@@ -82,6 +83,11 @@ class Task(Settings, Entity):
     def name(self):
         """Name of the task."""
         return self._name
+
+    @property
+    def nice_name(self):
+        """Nice name of the task."""
+        return self._nice_name
 
     @property
     def id(self):
@@ -180,7 +186,7 @@ class Task(Settings, Entity):
         self.apply_settings()
         return self._categories[category]
 
-    def edit(self, name=None, categories=None, metadata_overrides=None):
+    def edit(self, nice_name=None, categories=None, metadata_overrides=None):
         """Edit the task.
 
         Edits the given arguments of the task and applies the settings.
@@ -188,7 +194,7 @@ class Task(Settings, Entity):
         This method requires level 2 permissions.
 
         Args:
-            name (str): New name for the task
+            nice_name (str): New name for the task
             task_type (str): New type for the task
             categories (list): New categories for the task
 
@@ -197,18 +203,17 @@ class Task(Settings, Entity):
         """
         state = self.check_permissions(level=2)
         if state != 1:
-            return -1
-        if name and name != self.name:
+            msg = "User has no permission to edit task."
+            return -1, msg
+        if nice_name and nice_name != self.nice_name:
             # check the sibling tasks to see if the name is already taken
-            if name in self.parent_sub.tasks:
-                LOG.error(
-                    "Task name '{0}' already exists in sub '{1}'.".format(
-                        name, self.parent_sub.name
-                    )
-                )
-                return -1
-            self._name = name
-            self.edit_property("name", name)
+            sibling_task_names = [task.nice_name for task in self.parent_sub.tasks.values()]
+            if nice_name in sibling_task_names:
+                msg = f"Task name '{nice_name}' already exists in sub '{self.parent_sub.name}'."
+                LOG.error(msg)
+                return -1, msg
+            self._nice_name = nice_name
+            self.edit_property("nice_name", nice_name)
         if categories and categories != list(self.categories.keys()):
             # check if the categories are list or tuple
             if not isinstance(categories, (list, tuple)):
@@ -216,19 +221,16 @@ class Task(Settings, Entity):
             # check if the categories are in the category definitions
             for category in categories:
                 if category not in self.guard.category_definitions.properties.keys():
-                    LOG.error(
-                        "Category '{0}' is not defined in category definitions.".format(
-                            category
-                        ),
-                        proceed=False,
-                    )
+                    msg = f"Category '{category}' is not defined in category definitions."
+                    LOG.error(msg)
+                    return -1, msg
             self._categories = self.build_categories(categories)
             self.edit_property("categories", list(categories))
         if metadata_overrides is not None: # explicitly check for None
             self._metadata_overrides = metadata_overrides
             self.edit_property("metadata_overrides", metadata_overrides)
         self.apply_settings()
-        return 1
+        return 1, "Success"
 
     def delete_category(self, category):
         """Delete a category from the task.

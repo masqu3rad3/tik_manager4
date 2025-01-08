@@ -451,10 +451,10 @@ class TestProject:
         tik.user.set("Generic", password="1234")
         assert (
             task.edit(
-                name="Aquaman",
+                nice_name="Aquaman",
                 categories=["Model", "Rig", "LookDev", "Animation"],
                 metadata_overrides={"mode": "shot"},
-            )
+            )[0]
             == -1
         )
         assert tik.log.get_last_message() == (
@@ -471,10 +471,10 @@ class TestProject:
         )
         assert (
             task.edit(
-                name="Wonderboy",
+                nice_name="Wonderboy",
                 categories=["Model", "Rig", "LookDev", "Animation"],
                 metadata_overrides={"mode": "shot"},
-            )
+            )[0]
             == -1
         )
         assert tik.log.get_last_message() == (
@@ -484,24 +484,27 @@ class TestProject:
 
         # wrong category type
         with pytest.raises(Exception):
-            task.edit(name="Aquaman", categories="ThisIsWrong", metadata_overrides={"mode": "shot"})
+            task.edit(nice_name="Aquaman", categories="ThisIsWrong", metadata_overrides={"mode": "shot"})
         # category not defined
-        with pytest.raises(Exception):
+        assert (
             task.edit(
-                name="Aquaman",
+                nice_name="Aquaman",
                 categories=["Model", "Rig", "LookDev", "Animation", "ThisIsWrong"],
                 metadata_overrides={"mode": "shot"},
-            )
+            )[0]
+            == -1
+        )
 
         # edit the task
         task.edit(
-            name="Aquaman",
+            nice_name="Aquaman",
             categories=["Model", "Rig", "LookDev", "Animation"],
             metadata_overrides={"mode": "shot"},
         )
 
         assert list(task.categories.keys()) == ["Model", "Rig", "LookDev", "Animation"]
-        assert task.name == "Aquaman"
+        assert task.nice_name == "Aquaman"
+        assert task.name == "Poseidon"
 
     def test_adding_categories(self, project_manual_path, tik):
         self.test_creating_and_adding_new_tasks(project_manual_path, tik)

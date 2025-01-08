@@ -371,9 +371,16 @@ class EditTask(TaskDialog):
         filtered_data.update_overridden_data(self.secondary_data)
         filtered_data.update_new_data(self.tertiary_data)
         _name = self.primary_data.get_property("name")
-        self.task_object.edit(
-            name=_name,
+        ret, msg = self.task_object.edit(
+            nice_name=_name,
             categories=self.primary_data.get_property("categories"),
             metadata_overrides=filtered_data,
         )
+        if ret == -1:
+            self.feedback.pop_info(
+                title="Failed to edit task.",
+                text=msg,
+                critical=True,
+            )
+            return
         self.accept()
