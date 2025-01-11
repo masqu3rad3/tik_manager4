@@ -23,6 +23,8 @@ IF "%1"=="" (
 REM Execute commands based on the argument
 IF "%ARG%"=="release" (
     python release_package.py
+) ELSE IF "%ARG%"=="testrelease" (
+    python release_package.py --testrelease
 ) ELSE IF "%ARG%"=="debug" (
     python release_package.py --debug
 ) ELSE IF "%ARG%"=="clean" (

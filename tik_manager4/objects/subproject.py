@@ -317,6 +317,7 @@ class Subproject(Entity):
             metadata_overrides=metadata_overrides,
         )
         _task.add_property("name", name)
+        _task.add_property("nice_name", name)
         _task.add_property("creator", self.guard.user)
         _task.add_property("task_id", _task_id)
         _task.add_property("subproject_id", self.id)

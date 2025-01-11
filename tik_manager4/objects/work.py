@@ -36,7 +36,6 @@ class Work(Settings, LocalizeMixin):
         super(Work, self).__init__()
         self.settings_file = Path(absolute_path)
         self._dcc_handler = self.guard.dcc_handler
-        # self.localize = Localize(self.guard)
         self._name = name
         self._creator = self.guard.user
         self._category = None
@@ -48,6 +47,7 @@ class Work(Settings, LocalizeMixin):
         self._task_id = None
         self._relative_path = path
         self._software_version = None
+
         # there are 3 states: working, published, omitted
         self._parent_task = None
         if parent_task:
@@ -220,7 +220,8 @@ class Work(Settings, LocalizeMixin):
 
         # add it to the versions
         extension = Path(output_path).suffix or "Folder"
-        self._standalone_handler.text_to_image(extension, thumbnail_path, 220, 124)
+        thumbnail_resolution = self.guard.preview_settings.get("ThumbnailResolution", (220, 124))
+        self._standalone_handler.text_to_image(extension, thumbnail_path, *(thumbnail_resolution))
         version_dict = {
             "version_number": version_number,
             "workstation": socket.gethostname(),
@@ -234,14 +235,14 @@ class Work(Settings, LocalizeMixin):
         }
         version_obj = WorkVersion(self.path, version_dict)
         self._versions.append(version_obj)
-        self._apply_versions()
+        self.apply_settings()
         return version_obj
 
-    def _apply_versions(self):
-        """Serialize the version objects and apply it to the settings."""
+    def apply_settings(self, force=False):
+        """Override the apply settings to add version serialization before."""
         self.edit_property("versions",
                            [version.to_dict() for version in self._versions])
-        self.apply_settings(force=True)
+        super(Work, self).apply_settings(force=force)
 
     def new_version(self, file_format=None, notes="", ignore_checks=True):
         """Create a new version of the work.
@@ -280,14 +281,10 @@ class Work(Settings, LocalizeMixin):
         thumbnail_path = self.get_abs_database_path("thumbnails", thumbnail_name)
         Path(origin_path).parent.mkdir(parents=True, exist_ok=True)
 
-        # set the origin path to localizer.
-        # self.localize.origin_path = origin_path
-
         # run pre-save operations defined in the dcc handler
         self._dcc_handler.pre_save()
 
         # save the file to either project or cache path.
-        # output_path = self.localize.output_path
         output_path = self.get_output_path(self.name, version_name)
         if not output_path:
             return -1
@@ -303,7 +300,8 @@ class Work(Settings, LocalizeMixin):
         # generate thumbnail
         # create the thumbnail folder if it doesn't exist
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
-        self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
+        thumbnail_resolution = self.guard.preview_settings.get("ThumbnailResolution", (220, 124))
+        self._dcc_handler.generate_thumbnail(thumbnail_path, *(thumbnail_resolution))
 
         # add it to the versions
         is_localized = self.can_localize()
@@ -317,15 +315,13 @@ class Work(Settings, LocalizeMixin):
             "previews": {},
             "file_format": file_format,
             "dcc_version": self._dcc_handler.get_dcc_version(),
-            # "localized": is_localized,
-            # "localized_path": output_path if is_localized else "",
         }
         if is_localized:
             version_dict["localized"] = is_localized
             version_dict["localized_path"] = output_path
         version_obj = WorkVersion(self.path, version_dict)
         self._versions.append(version_obj)
-        self._apply_versions()
+        self.apply_settings()
         self._dcc_handler.post_save()
         return version_obj
 
@@ -400,8 +396,6 @@ class Work(Settings, LocalizeMixin):
         ingestor = ingestor or "source"
         version_obj = self.get_version(version_number)
         if version_obj:
-            # relative_path = version_obj.scene_path
-            # abs_path = self.get_abs_project_path(relative_path)
             abs_path = version_obj.get_resolved_path()
             _ingest_obj = self._dcc_handler.ingests[ingestor]()
             _ingest_obj.metadata = self.get_metadata(self.parent_task)
@@ -463,43 +457,9 @@ class Work(Settings, LocalizeMixin):
 
         for version in self.versions:
             version.move_to_purgatory()
-        #
-        # purgatory_database_dir = Path(self.get_purgatory_database_path())
-        # purgatory_database_dir.mkdir(parents=True, exist_ok=True)
-        # purgatory_scene_dir = Path(self.get_purgatory_project_path())
-        # purgatory_scene_dir.mkdir(parents=True, exist_ok=True)
-        #
-        # purgatory_path = self.get_purgatory_project_path(self.name)
-        # # if the purgatory path exists, delete it first
-        # if Path(purgatory_path).exists():
-        #     shutil.rmtree(purgatory_path)
-        #
-        # for version in self.versions:
-        #     shutil.move(
-        #         version.get_resolved_path(),
-        #         purgatory_path,
-        #         copy_function=shutil.copytree,
-        #     )
-        # # shutil.move(
-        # #     # self.get_abs_project_path(self.name),
-        # #     self.get_resolved_path(self.name),
-        # #     purgatory_path,
-        # #     copy_function=shutil.copytree,
-        # # )
-        #
-        # thumbnails_dir = Path(self.get_abs_database_path("thumbnails"))
-        # # collect all thumbnails starting with the work name
-        # thumbnails = thumbnails_dir.glob(f"{self.name}_*")
-        # for thumbnail in thumbnails:
-        #     thumb_destination_dir = purgatory_database_dir / "thumbnails"
-        #     thumb_destination_dir.mkdir(parents=True, exist_ok=True)
-        #     thumb_destination_file = thumb_destination_dir / thumbnail.name
-        #     shutil.move(str(thumbnail), str(thumb_destination_file))
 
         # finally move the database file
-        # db_destination = purgatory_database_dir / Path(self.settings_file).name
         db_destination = Path(self.get_resolved_purgatory_path(), self.settings_file.name)
-        # shutil.move(str(self.settings_file), str(db_destination))
         utils.move(self.settings_file.as_posix(), db_destination.as_posix())
         return 1, "success"
 
@@ -548,54 +508,28 @@ class Work(Settings, LocalizeMixin):
         version_obj = self.get_version(version_number)
         if version_obj:
             version_obj.move_to_purgatory()
-        # if version_obj:
-        #     relative_path = version_obj.scene_path
-        #     abs_path = version_obj.get_resolved_path()
-        #     dest_path = self.get_purgatory_project_path(relative_path)
-        #     Path(dest_path).parent.mkdir(parents=True, exist_ok=True)
-        #     if Path(abs_path).exists():
-        #         shutil.move(abs_path, dest_path)
-        #
-        #     # move the thumbnail
-        #     thumbnail_relative_path = version_obj.thumbnail
-        #     if thumbnail_relative_path:
-        #         thumbnail_abs_path = self.get_abs_database_path(thumbnail_relative_path)
-        #         thumbnail_dest_path = self.get_purgatory_database_path(
-        #             thumbnail_relative_path
-        #         )
-        #         _thumbnail_dest_path = Path(thumbnail_dest_path)
-        #         _thumbnail_dest_path.parent.mkdir(parents=True, exist_ok=True)
-        #         if Path(thumbnail_abs_path).exists():
-        #             # first try to delete the thumbnail_dest_path if exists
-        #             if _thumbnail_dest_path.exists():
-        #                 _thumbnail_dest_path.unlink()
-        #             shutil.move(
-        #                 thumbnail_abs_path,
-        #                 thumbnail_dest_path,
-        #                 copy_function=shutil.copytree,
-        #             )
 
             # remove the version from the versions list
             self._versions.remove(version_obj)
-            self._apply_versions()
+            self.apply_settings()
         return 1, msg
 
     def __generate_thumbnail_paths(self, version_obj, override_extension=None):
         """Return the thumbnail paths of the given version.
 
         Args:
-            version_obj (dict): Version dictionary.
+            version_obj (WorkVersion): Version dictionary.
             override_extension (str, optional): Override the extension of the
                 thumbnail.
         """
         # if there is no previous thumbnail, generate a new one
         extension = (
             override_extension
-            or Path(version_obj.get("thumbnail", "noThumb.jpg")).suffix
+            or Path(version_obj.thumbnail).suffix
         )
         _number, _name, thumbnail_name = self.construct_names(
-            version_obj.get("file_format", ""),
-            version_obj.get("version_number"),
+            version_obj.file_format,
+            version_obj.version,
             thumbnail_extension=extension,
         )
         relative_path = Path("thumbnails", thumbnail_name).as_posix()
@@ -626,11 +560,11 @@ class Work(Settings, LocalizeMixin):
         )
 
         if not new_thumbnail_path:
-            self._dcc_handler.generate_thumbnail(target_absolute_path, 220, 124)
-            version_obj["thumbnail"] = target_relative_path
+            self._dcc_handler.generate_thumbnail(target_absolute_path, *(self._thumbnail_resolution))
+            version_obj.thumbnail = target_relative_path
         else:
             shutil.copy(new_thumbnail_path, target_absolute_path)
-            version_obj["thumbnail"] = target_relative_path
+            version_obj.thumbnail = target_relative_path
 
         self.apply_settings()
         return 1

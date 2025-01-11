@@ -82,23 +82,29 @@ class Publisher:
 
         self._metadata = self.task_object.metadata
 
-        _category_definitons = self._work_object.guard.category_definitions
-        extracts = _category_definitons.properties.get(
-            self._work_object.category, {}
-        ).get("extracts", [])
-        validations = _category_definitons.properties.get(
+        category_definitions = self._work_object.guard.category_definitions
+        category_props = category_definitions.properties.get(
+            self._work_object.category, {})
+
+        extracts = [x.lower() for x in category_props.get("extracts", [])]
+        validations = category_definitions.properties.get(
             self._work_object.category, {}
         ).get("validations", [])
-        # collect the matching extracts and validations from the dcc_handler.
-        category_extracts = [x.lower() for x in extracts]
-        for extract in list(self._dcc_handler.extracts.keys()):
-            if extract.lower() in category_extracts:
-                self._resolved_extractors[extract] = self._dcc_handler.extracts[
-                    extract
-                ]()
-                # define the category
-                self._resolved_extractors[extract].category = self._work_object.category
-                self._resolved_extractors[extract].metadata = self._metadata
+
+        dcc_extracts = self._dcc_handler.extracts
+
+        for extract, handler in dcc_extracts.items():
+            if extract.lower() in extracts:
+                resolved = handler()
+                resolved.category = self._work_object.category
+                resolved.metadata = self._metadata
+                self._resolved_extractors[extract] = resolved
+
+        # Sort the extractors to match the order in category definitions
+        self._resolved_extractors = dict(
+            sorted(self._resolved_extractors.items(),
+                   key=lambda x: extracts.index(x[0].lower()))
+        )
 
         for validation in validations:
             if validation in list(self._dcc_handler.validations.keys()):
@@ -106,6 +112,11 @@ class Publisher:
                     validation
                 ]()
                 self._resolved_validators[validation].metadata = self._metadata
+
+        self._resolved_validators = dict(
+            sorted(self._resolved_validators.items(),
+                   key=lambda x: validations.index(x[0].lower()))
+        )
 
         latest_publish_version = self._work_object.publish.get_last_version()
 
@@ -317,11 +328,12 @@ class Publisher:
     def _generate_thumbnail(self):
         """Generate the thumbnail."""
         thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.jpg"
+        thumbnail_resolution = self._work_object.guard.preview_settings.properties.get("ThumbnailResolution", [220, 124])
         thumbnail_path = self._published_object.get_abs_database_path(
             "thumbnails", thumbnail_name
         )
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
-        self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
+        self._dcc_handler.generate_thumbnail(thumbnail_path, *(thumbnail_resolution))
         self._published_object.add_property(
             "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
         )
@@ -534,13 +546,14 @@ class SnapshotPublisher(Publisher):
     def _generate_thumbnail(self):
         """Generate the thumbnail."""
         thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.png"
+        thumbnail_resolution = self._published_object.guard.preview_settings.properties.get("ThumbnailResolution", [220, 124])
         thumbnail_path = self._published_object.get_abs_database_path(
             "thumbnails", thumbnail_name
         )
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
         extension = self._resolved_extractors["snapshot"].extension or "Bundle"
         self.__dcc_handler.text_to_image(
-            extension, thumbnail_path, 220, 124, color="cyan"
+            extension, thumbnail_path, *(thumbnail_resolution), color="cyan"
         )
         self._published_object.add_property(
             "thumbnail", Path("thumbnails", thumbnail_name).as_posix()

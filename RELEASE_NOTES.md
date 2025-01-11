@@ -1,5 +1,18 @@
 # Release Notes
 
+## v4.3.1
+- [TIK-145] Added native DCC support for snapshots saves. Now the snapshotted works can be directly opened from related DCCs.
+- [TIK-146] Making the validations and extracts orderable. The order can be arranged from the settings (per-project or common).
+- FBX extractor and Ingestor for Blender. Thanks Hasan Civili for the contribution.
+- Commercial Houdini SOP and LOP import HDAs.
+- Additional validators for Maya:
+    - `Empty Groups` to check if there are leftover empty groups in the scene.
+    - `Non-centered Pivots` to validate all transform pivots are centered.
+    - `UDIM-Crossing UVs` to check if the UV borders are passing their UDIM spaces.
+    - `Overlapping UVs` Optimized algorithm to check the overlapping UVs which is up-to 5x faster than the previous version.
+- Customizable Thumbnail Resolution. Now the thumbnail resolution can be defined in the preview_settings with `ThumbnailResolution` key.
+- Various Bug Fixes and UI optimizations.
+
 ## v4.3.0
 - [TIK-143] Localization and cache management feature added.
 - [TIK-144] Improved filtering methodology for views.
