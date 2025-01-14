@@ -3,7 +3,7 @@
 
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog.feedback import Feedback
-# from tik_manager4.management.shotgrid.ui.dialog import CreateFromShotgridDialog
+from tik_manager4.management.shotgrid.ui.dialog import CreateFromShotgridDialog
 from tik_manager4.ui.widgets.pop import WaitDialog
 
 from tik_manager4.management.extension_core import ExtensionCore
@@ -36,9 +36,9 @@ class UiExtensions(ExtensionCore):
 
         # SIGNALS
         login_action.triggered.connect(self.on_login)
-        # create_project_from_kitsu.triggered.connect(
-        #     self.on_create_project_from_kitsu
-        # )
+        create_project_from_kitsu.triggered.connect(
+            self.on_create_project_from_kitsu
+        )
         # force_sync.triggered.connect(self.on_force_sync)
         # for some reason, lambda is needed...
         logout_action.triggered.connect(lambda: self.on_logout())
@@ -79,20 +79,20 @@ class UiExtensions(ExtensionCore):
     #     handler.logout()
     #     self.feedback.pop_info(title="Logged out", text="Logged out of Shotgrid.\nPlease restart the application to see changes.")
 
-    # def on_create_project_from_shotgrid(self):
-    #     """Create a project from shotgrid."""
-    #     if not self.parent._pre_check(level=3):
-    #         return
-    #
-    #     handler = self.parent.management_connect("shotgrid")
-    #     if not handler:
-    #         return
-    #
-    #     dialog = CreateFromShotgridDialog(handler, parent=self.parent)
-    #     state = dialog.exec()
-    #     if state:
-    #         # hard refresh the project
-    #         self.parent.subprojects_mcv.manual_refresh()
-    #         self.parent.status_bar.showMessage("Project created successfully")
-    #     return
+    def on_create_project_from_kitsu(self):
+        """Create a project from shotgrid."""
+        if not self.parent._pre_check(level=3):
+            return
+
+        handler = self.parent.management_connect("kitsu")
+        if not handler:
+            return
+
+        dialog = CreateFromShotgridDialog(handler, parent=self.parent)
+        state = dialog.exec()
+        if state:
+            # hard refresh the project
+            self.parent.subprojects_mcv.manual_refresh()
+            self.parent.status_bar.showMessage("Project created successfully")
+        return
 

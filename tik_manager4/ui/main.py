@@ -32,7 +32,6 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog
-# from tik_manager4.ui.dialog.project_dialog import CreateFromShotgridDialog
 from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
 from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog

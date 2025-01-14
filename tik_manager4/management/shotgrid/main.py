@@ -524,6 +524,7 @@ class ProductionPlatform(ManagementCore):
 
         Creates if it doesn't exist.
         """
+        # TODO: should go to the base class
         assets_sub = self.tik_main.project.subs.get("Assets") or self.tik_main.project.create_sub_project(
             "Assets", parent_path="", mode="asset"
         )
@@ -534,6 +535,7 @@ class ProductionPlatform(ManagementCore):
 
         Creates if it doesn't exist.
         """
+        # TODO: should go to the base class
         shots_sub = self.tik_main.project.subs.get("Shots") or self.tik_main.project.create_sub_project(
             "Shots", parent_path="", mode="shot"
         )
