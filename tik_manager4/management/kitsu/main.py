@@ -8,6 +8,7 @@ from copy import deepcopy
 
 from tik_manager4.core import utils
 from tik_manager4.management.management_core import ManagementCore
+from tik_manager4.management.exceptions import AuthenticationError, SyncError
 
 
 external_folder = Path(__file__).parents[2] / "external"
@@ -155,7 +156,8 @@ class ProductionPlatform(ManagementCore):
         """
         asset_id = asset_data["id"]
         asset_name = asset_data["name"]
-        asset_type = self.gazu.entity.get_entity_type(asset_data["entity_type_id"])
+        asset_type_dict = self.gazu.entity.get_entity_type(asset_data["entity_type_id"])
+        asset_type = asset_type_dict.get("name", None)
         if asset_type:
             if assets_sub.subs.get(asset_type) is None:
                 sub = self.tik_main.project.create_sub_project(
@@ -180,11 +182,11 @@ class ProductionPlatform(ManagementCore):
         """
         shot_id = shot_data["id"]
         shot_name = shot_data["name"]
-        sequence = self.gazu.get_entity(shot_data["parent_id"])
-        is_episodic = sequence.get("parent_id")
+        sequence = self.gazu.entity.get_entity(shot_data["parent_id"])
+        is_episodic = sequence.get("parent_id", None)
         query_sub = shots_sub
         if is_episodic:
-            episode_data = self.gazu.get_entity(sequence["parent_id"])
+            episode_data = self.gazu.entity.get_entity(sequence["parent_id"])
             episode = episode_data["name"]
             if query_sub.subs.get(episode) is None:
                 query_sub = self.tik_main.project.create_sub_project(
@@ -208,13 +210,30 @@ class ProductionPlatform(ManagementCore):
         shot_name = utils.sanitize_text(shot_name)
 
         metadata_overrides = {}
-        # FIXME: Continue from here
+        shot_metadata = shot_data.get("data")
+        if shot_metadata:
+            for meta_key, data in shot_metadata.items():
+                if meta_key in self.metadata_pairing:
+                    metadata_overrides[self.metadata_pairing[meta_key]] = data
+        # TODO: maybe we should be able to apply any arbitrary metadata?
+
+        task = query_sub.add_task(
+            shot_name,
+            categories=shot_categories,
+            uid=shot_id,
+            metadata_overrides=metadata_overrides,
+        )
+        return task
 
 
 
     def create_from_project(self, project_root, kitsu_project_id, set_project=True):
         """Create a tik manager project from a kitsu project."""
-        current_project_path = self.tik.main.project.absolute_path
+
+        # do the sync stamp earliest as possible not to miss any changes
+        sync_stamp = self.date_stamp()
+
+        current_project_path = self.tik_main.project.absolute_path
         project = self.gazu.project.get_project(kitsu_project_id)
 
         project_name = utils.sanitize_text(project["name"])
@@ -264,6 +283,43 @@ class ProductionPlatform(ManagementCore):
         self.tik_main.project.category_definitions.set_data(new_dict)
         self.tik_main.project.category_definitions.apply_settings(force=True)
         # TODO: move to the base class [END]
+
+        for asset in all_assets:
+            self._sync_new_asset(asset, assets_sub, asset_categories)
+
+        for shot in all_shots:
+            self._sync_new_shot(shot, shots_sub, shot_categories)
+
+        # tag the project as management driven
+        self.tik_main.project.settings.edit_property("management_driven", True)
+        self.tik_main.project.settings.edit_property("management_platform", "kitsu")
+        self.tik_main.project.settings.edit_property("host_project_name", project["name"])
+        self.tik_main.project.settings.edit_property("host_project_id", kitsu_project_id)
+        self.tik_main.project.settings.edit_property("last_sync", sync_stamp)
+
+        self.tik_main.project.settings.apply_settings(force=True)
+
+        if not set_project: # switch back to the original project
+            self.tik_main.set_project(current_project_path)
+
+        return project_path
+
+    def sync_project(self):
+        """Sync the project with the Kitsu project."""
+        changes = self._get_changes_from_log()
+        raise SyncError("Syncing is not implemented yet.")
+        # if not changes:
+        #     return None
+
+    def _get_changes_from_log(self):
+        """Get the changes from the log."""
+        project_id = self.tik_main.project.settings.get("host_project_id")
+        if not project_id:
+            raise SyncError("Project is not linked to a Kitsu project.")
+
+        # Get the last sync date
+        last_sync = self.tik_main.project.settings.get("last_sync")
+        print("last_sync", last_sync)
 
     @staticmethod
     def get_settings_ui():

@@ -3,12 +3,13 @@
 import os
 import json
 import logging
-from datetime import datetime, timezone
+# from datetime import datetime, timezone
 import sys
 from pathlib import Path
 from copy import deepcopy
 from tik_manager4.core import utils
 from tik_manager4.management.management_core import ManagementCore
+from tik_manager4.management.exceptions import SyncError
 
 
 external_folder = Path(__file__).parents[2] / "external"
@@ -179,12 +180,12 @@ class ProductionPlatform(ManagementCore):
         assets = self.sg.find("Asset", filters, fields)
         return assets
 
-    @staticmethod
-    def date_stamp():
-        """Return the current date stamp in ISO 8601 format."""
-        # Get the current time in UTC and format it as ISO 8601
-        return datetime.now(timezone.utc).strftime(
-            '%Y-%m-%dT%H:%M:%SZ')
+    # @staticmethod
+    # def date_stamp():
+    #     """Return the current date stamp in ISO 8601 format."""
+    #     # Get the current time in UTC and format it as ISO 8601
+    #     return datetime.now(timezone.utc).strftime(
+    #         '%Y-%m-%dT%H:%M:%SZ')
 
     def force_sync(self):
         """Force sync the project with Shotgrid."""
@@ -209,6 +210,10 @@ class ProductionPlatform(ManagementCore):
 
     def create_from_project(self, project_root, shotgrid_project_id, set_project=True):
         """Create a tik_manager4 project from the existing Shotgrid project."""
+
+        # do the sync stamp earliest as possible not to miss any changes
+        sync_stamp = self.date_stamp()
+
         current_project_path = self.tik_main.project.absolute_path
         project = self.sg.find_one(
             "Project", [["id", "is", shotgrid_project_id]], ["name"]
@@ -273,7 +278,7 @@ class ProductionPlatform(ManagementCore):
         self.tik_main.project.settings.edit_property("management_platform", "shotgrid")
         self.tik_main.project.settings.edit_property("host_project_name", project["name"])
         self.tik_main.project.settings.edit_property("host_project_id", shotgrid_project_id)
-        self.tik_main.project.settings.edit_property("last_sync", self.date_stamp())
+        self.tik_main.project.settings.edit_property("last_sync", sync_stamp)
 
         self.tik_main.project.settings.apply_settings(force=True)
 
@@ -311,7 +316,7 @@ class ProductionPlatform(ManagementCore):
         """
         project_id = self.tik_main.project.settings.get("host_project_id")
         if not project_id:
-            raise Exception("Project is not linked to a Shotgrid project.")
+            raise SyncError("Project is not linked to a Shotgrid project.")
 
         # Get the last sync date
         last_sync = self.tik_main.project.settings.get("last_sync")

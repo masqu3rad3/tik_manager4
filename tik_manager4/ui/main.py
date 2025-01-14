@@ -51,6 +51,7 @@ from tik_manager4.ui.widgets.common import TikButton, VerticalSeparator
 from tik_manager4.ui.dialog.update_dialog import UpdateDialog
 from tik_manager4.ui.widgets.pop import WaitDialog
 from tik_manager4 import management
+from tik_manager4.management.exceptions import SyncError
 
 LOG = logging.getLogger(__name__)
 WINDOW_NAME = f"Tik Manager {version.__version__}"
@@ -929,7 +930,17 @@ class MainUI(QtWidgets.QMainWindow):
                 return
             wait_popup = WaitDialog(message="Syncing Project...", parent=self)
             wait_popup.display()
-            synced = handler.sync_project()
+            try:
+                synced = handler.sync_project()
+            except SyncError:
+                wait_popup.kill()
+                ret = self.feedback.pop_question(title="Sync Error", text="An error occurred while syncing the project.\n\nDo you want to proceed without syncing?", buttons=["yes", "no"])
+                if ret == "no":
+                    self.tik.fallback_to_default_project()
+                    self.refresh_project()
+                    return
+                else:
+                    synced = False
             wait_popup.kill()
             if synced:
                 self.set_last_state()

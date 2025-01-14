@@ -36,12 +36,12 @@ class Main:
         self.all_dcc_extensions = dcc.EXTENSION_DICT
 
 
-        default_project = Path(utils.get_home_dir(), "TM4_default")
+        self.default_project = Path(utils.get_home_dir(), "TM4_default")
 
-        if not (default_project / "tikDatabase" / "project_structure.json").exists():
+        if not (self.default_project / "tikDatabase" / "project_structure.json").exists():
             self._create_default_project()
 
-        _project = default_project.as_posix()
+        _project = self.default_project.as_posix()
         if self.user.get_recent_projects():
             recent_projects = self.user.get_recent_projects()
             # try to find the last project that exists
@@ -52,6 +52,14 @@ class Main:
         self.set_project(str(_project))
 
         self._globalize_management_platform()
+
+    def fallback_to_default_project(self):
+        """Fallback to the default project."""
+        if self.default_project.exists():
+            self.set_project(self.default_project.as_posix())
+        else:
+            self._create_default_project()
+            self.set_project(self.default_project.as_posix())
 
     def _globalize_management_platform(self):
         """Globalize the management platform."""
