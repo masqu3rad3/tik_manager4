@@ -917,6 +917,17 @@ class MainUI(QtWidgets.QMainWindow):
         self.status_bar.showMessage(message, 3000)
         self.refresh_subprojects()
 
+    def _can_proceed_without_management(self, platform):
+        """"Pops up the question dialog to proceed without management."""
+        ret = self.feedback.pop_question(title=f"Connection Error - {platform}",
+                                         text=f"An error occurred while connecting/syncing to the {platform} project.\n\nDo you want to proceed without {platform}?",
+                                         buttons=["yes", "no"])
+        if ret == "no":
+            self.tik.fallback_to_default_project()
+            self.refresh_project()
+            return False
+        return True
+
     def management_lock(self):
         """Lock certain UI elements if the project is getting driven by a
         management platform."""
@@ -927,20 +938,19 @@ class MainUI(QtWidgets.QMainWindow):
             management_platform = self.tik.project.settings.get("management_platform")
             handler = self.management_connect(management_platform)
             if not handler:
+                self._can_proceed_without_management(management_platform)
                 return
             wait_popup = WaitDialog(message="Syncing Project...", parent=self)
             wait_popup.display()
+            synced = False
             try:
                 synced = handler.sync_project()
-            except SyncError:
+            except SyncError as exc:
+                LOG.warning(f"Sync Error %s", exc)
                 wait_popup.kill()
-                ret = self.feedback.pop_question(title="Sync Error", text="An error occurred while syncing the project.\n\nDo you want to proceed without syncing?", buttons=["yes", "no"])
-                if ret == "no":
-                    self.tik.fallback_to_default_project()
-                    self.refresh_project()
+                can_proceed = self._can_proceed_without_management(management_platform)
+                if not can_proceed:
                     return
-                else:
-                    synced = False
             wait_popup.kill()
             if synced:
                 self.set_last_state()
