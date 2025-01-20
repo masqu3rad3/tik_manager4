@@ -116,6 +116,41 @@ class ProductionPlatform(ManagementCore):
         """Get all the shots from a project."""
         return self.gazu.shot.all_shots_for_project(project_id)
 
+    def force_sync(self):
+        """Force the sync of the project."""
+        sync_stamp = self.date_stamp()
+
+        project_id = self.tik_main.project.settings.get("host_project_id")
+        if not project_id:
+            raise Exception("Project is not linked to a Shotgrid project.")
+
+        all_assets = self.get_all_assets(project_id)
+        all_shots = self.get_all_shots(project_id)
+
+        assets_sub = self._get_assets_sub()
+        shots_sub = self._get_shots_sub()
+
+        asset_categories, shot_categories = self._get_categories(project_id)
+
+        for asset in all_assets:
+            sync_block = SyncBlock(self.gazu, self.tik_main, project_id)
+            sync_block.event_type = EventType.NEW_ASSET
+            sync_block.kitsu_data = asset
+            sync_block.subproject = assets_sub
+            sync_block.categories = asset_categories
+            sync_block.execute()
+
+        for shot in all_shots:
+            sync_block = SyncBlock(self.gazu, self.tik_main, project_id)
+            sync_block.event_type = EventType.NEW_SHOT
+            sync_block.kitsu_data = shot
+            sync_block.subproject = shots_sub
+            sync_block.categories = shot_categories
+            sync_block.execute()
+
+        self.tik_main.project.settings.edit_property("last_sync", sync_stamp)
+        self.tik_main.project.settings.apply_settings(force=True)
+
     def _get_assets_sub(self):
         """Get the 'Assets' sub from the tik project.
 
@@ -426,7 +461,11 @@ class SyncBlock:
             sub = self.subproject
 
         asset_name = utils.sanitize_text(asset_name)
-        task = sub.add_task(asset_name, categories=self.categories, uid=asset_id)
+        task = sub.find_task_by_id(asset_id)
+        if task:
+            self._update_asset()
+        else:
+            task = sub.add_task(asset_name, categories=self.categories, uid=asset_id)
         if self.kitsu_data["canceled"]:
             task.omit()
 
@@ -467,12 +506,16 @@ class SyncBlock:
 
         metadata_overrides = self._retrieve_metadata_overrides(self.kitsu_data.get("data"))
 
-        task = query_sub.add_task(
-            shot_name,
-            categories=self.categories,
-            uid=shot_id,
-            metadata_overrides=metadata_overrides,
-        )
+        task = query_sub.find_task_by_id(shot_id)
+        if task:
+            self._update_shot()
+        else:
+            task = query_sub.add_task(
+                shot_name,
+                categories=self.categories,
+                uid=shot_id,
+                metadata_overrides=metadata_overrides,
+            )
         if self.kitsu_data["canceled"]:
             task.omit()
 

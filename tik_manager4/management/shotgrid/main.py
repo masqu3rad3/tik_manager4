@@ -189,6 +189,8 @@ class ProductionPlatform(ManagementCore):
 
     def force_sync(self):
         """Force sync the project with Shotgrid."""
+        sync_stamp = self.date_stamp()
+
         project_id = self.tik_main.project.settings.get("host_project_id")
         if not project_id:
             raise Exception("Project is not linked to a Shotgrid project.")
@@ -207,6 +209,9 @@ class ProductionPlatform(ManagementCore):
 
         for shot in all_shots:
             self._sync_new_shot(shot, shots_sub, shot_categories)
+
+        self.tik_main.project.settings.edit_property("last_sync", sync_stamp)
+        self.tik_main.project.settings.apply_settings(force=True)
 
     def create_from_project(self, project_root, shotgrid_project_id, set_project=True):
         """Create a tik_manager4 project from the existing Shotgrid project."""

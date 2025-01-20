@@ -39,7 +39,7 @@ class UiExtensions(ExtensionCore):
         create_project_from_kitsu.triggered.connect(
             self.on_create_project_from_kitsu
         )
-        # force_sync.triggered.connect(self.on_force_sync)
+        force_sync.triggered.connect(self.on_force_sync)
         # for some reason, lambda is needed...
         logout_action.triggered.connect(lambda: self.on_logout())
 
@@ -49,35 +49,25 @@ class UiExtensions(ExtensionCore):
         handler.authenticate()
         self.feedback.pop_info(title="Logged in", text="Logged in to Kitsu.")
 
+    def on_force_sync(self):
+        """Force synchronize the project."""
+        is_management_driven = self.parent.tik.project.settings.get("management_driven", False)
+        if not is_management_driven:
+            self.feedback.pop_info(title="Warning", text="The project is not management driven.\n\nOnly projects created through Kitsu can be synced.\nUse 'Create Project from Kitsu' menu item to create a project.\n\nNo action will be taken.")
+            return
+        ret = self.feedback.pop_question(title="Force Sync", text="This action will forcefully sync the project to the Kitsu project.\n\nThis action can take a long time depending on the number of assets and shots in the project.\n\nDo you want to continue?", buttons=["yes", "cancel"])
+        if ret == "yes":
+            wait_pop = WaitDialog("Force Synchronization In Progress. Please wait...", parent=self.parent)
+            handler = self.parent.management_connect("kitsu")
+            wait_pop.display()
+            handler.force_sync()
+            wait_pop.kill()
+
     def on_logout(self):
         """Logout from Kitsu."""
         handler = self.parent.management_connect("kitsu")
         handler.logout()
         self.feedback.pop_info(title="Logged out", text="Logged out of Kitsu.\nPlease restart the application to see changes.")
-
-    # def on_force_sync(self):
-    #     """Force synchronize the project."""
-    #     is_management_driven = self.parent.tik.project.settings.get("management_driven", False)
-    #     if not is_management_driven:
-    #         self.feedback.pop_info(title="Warning", text="The project is not management driven.\n\nOnly projects created through Shotgrid can be synced.\nUse 'Create Project from Shotgrid' menu item to create a project.\n\nNo action will be taken.")
-    #         return
-    #     ret = self.feedback.pop_question(title="Force Sync", text="This action will forcefully sync the project to the shotgrid project.\n\nThis action can take a long time depending on the number of assets and shots in the project.\n\nDo you want to continue?", buttons=["yes", "cancel"])
-    #     if ret == "yes":
-    #         wait_pop = WaitDialog("Force Synchronization In Progress. Please wait...", parent=self.parent)
-    #         handler = self.parent.management_connect("shotgrid")
-    #         wait_pop.display()
-    #         handler.force_sync()
-    #         wait_pop.kill()
-
-    # def on_logout(self):
-    #     """Logout from Shotgrid."""
-    #     method = self.parent.tik.user.commons.management_settings.get("sg_authentication_method")
-    #     if method != "User":
-    #         self.feedback.pop_info(title="Warning", text="The Shotgrid authentication method is not set to User.\nNo action will be taken.\n\nThe Authenticaion method can be changed from settings -> Common -> Platform Settings.")
-    #         return
-    #     handler = self.parent.management_connect("shotgrid")
-    #     handler.logout()
-    #     self.feedback.pop_info(title="Logged out", text="Logged out of Shotgrid.\nPlease restart the application to see changes.")
 
     def on_create_project_from_kitsu(self):
         """Create a project from shotgrid."""
