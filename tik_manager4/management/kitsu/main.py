@@ -23,7 +23,6 @@ if kitsu_folder not in sys.path:
     sys.path.append(kitsu_folder)
 
 from requests.exceptions import ConnectionError
-from gazu.exception import NotAuthenticatedException
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
@@ -66,7 +65,6 @@ class ProductionPlatform(ManagementCore):
         self.gazu = importlib.import_module("gazu")
         self.gazu.set_host(self.host_api)
         os.environ["CGWIRE_HOST"] = self.host_api
-        # FIXME: This is a temporary solution. The user should be able to login
         try:
             login_widget = login.Login(self.gazu)
             ret = login_widget.exec_()

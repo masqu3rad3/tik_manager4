@@ -81,6 +81,9 @@ class Login(QtWidgets.QDialog):
 
         self.setWindowTitle("Connect to Kitsu")
 
+        style_file = pick.style_file()
+        self.setStyleSheet(str(style_file.readAll(), "utf-8"))
+
         # Kitsu logo
         logo_label = QtWidgets.QLabel()
         pixmap = pick.pixmap("logo_kitsu.png")
