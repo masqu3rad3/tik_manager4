@@ -45,3 +45,11 @@ class ManagementCore:
     def get_entity_url(self, entity_type, entity_id):
         """This method is called when the URL of an entity is retrieved."""
         raise NotImplementedError("The method 'get_entity_url' must be implemented.")
+
+    def request_tasks(self, entity_id, entity_type, step=None, project_id=None):
+        """This method is called when tasks are requested."""
+        raise NotImplementedError("The method 'request_tasks' must be implemented.")
+
+    def get_available_status_lists(self, force=False):
+        """This method is called when the available status lists are retrieved."""
+        raise NotImplementedError("The method 'get_available_status_lists' must be implemented.")

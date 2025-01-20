@@ -935,7 +935,7 @@ class ManagementTasksComboBoxModel(QtCore.QAbstractListModel):
             return None
         if role == QtCore.Qt.DisplayRole:
             # Display only the 'content' key's value
-            return self.items[index.row()].get('content', '')
+            return self.items[index.row()].get('content', '') or self.items[index.row()].get('task_type_name', '')
         return None
 
     def get_item(self, index):

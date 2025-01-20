@@ -345,6 +345,21 @@ class ProductionPlatform(ManagementCore):
 
         return sync_blocks
 
+    def request_tasks(self, entity_id, entity_type, step=None, project_id=None):
+        """Request the tasks from the Kitsu server."""
+        if entity_type.lower() == "asset":
+            return self.gazu.task.all_tasks_for_asset(entity_id)
+        elif entity_type.lower() == "shot":
+            return self.gazu.task.all_tasks_for_shot(entity_id)
+
+    def get_available_status_lists(self, force=False):
+        """Return the available status lists."""
+        raw_dict_list = self.gazu.task.all_task_statuses()
+        status_values = []
+        for status_dict in raw_dict_list:
+            if status_dict["is_artist_allowed"]:
+                status_values.append(status_dict["name"])
+        return status_values
 
     @staticmethod
     def get_settings_ui():
