@@ -70,6 +70,7 @@ class ProductionPlatform(ManagementCore):
             ret = login_widget.exec_()
             if not ret:
                 return None, "Canceled by user."
+            is_remember = login_widget.inputs["remember"].isChecked()
             # self.gazu.log_in("admin@example.com", "mysecretpassword")
         except ConnectionError as e:
             return None, f"Connection Error: {e}"

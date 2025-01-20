@@ -120,14 +120,19 @@ class Login(QtWidgets.QDialog):
         buttons = QtWidgets.QHBoxLayout()
         buttons.addWidget(login)
 
+        # Remember me
+        remember_me_cb = QtWidgets.QCheckBox("Remember me")
+
         form.addRow(host_label, host_input)
         form.addRow(user_label, user_input)
         form.addRow(password_label, password_input)
+        form.addRow(remember_me_cb)
 
         self.inputs = dict()
         self.inputs["host"] = host_input
         self.inputs["user"] = user_input
         self.inputs["password"] = password_input
+        self.inputs["remember"] = remember_me_cb
         self.error = error
 
         layout = QtWidgets.QVBoxLayout(self)
