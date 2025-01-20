@@ -7,6 +7,7 @@ from pathlib import Path
 from copy import deepcopy
 from datetime import datetime
 
+from tik_manager4.core.cryptor import Cryptor
 from tik_manager4.core import utils
 from tik_manager4.management.management_core import ManagementCore
 from tik_manager4.management.enums import EventType
@@ -26,6 +27,7 @@ from requests.exceptions import ConnectionError
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
+CRYPTOR = Cryptor()
 
 class ProductionPlatform(ManagementCore):
     """Main class for Kitsu integration."""
@@ -65,20 +67,40 @@ class ProductionPlatform(ManagementCore):
         self.gazu = importlib.import_module("gazu")
         self.gazu.set_host(self.host_api)
         os.environ["CGWIRE_HOST"] = self.host_api
-        try:
-            login_widget = login.Login(self.gazu)
-            ret = login_widget.exec_()
-            if not ret:
-                return None, "Canceled by user."
-            is_remember = login_widget.inputs["remember"].isChecked()
-            # self.gazu.log_in("admin@example.com", "mysecretpassword")
-        except ConnectionError as e:
-            return None, f"Connection Error: {e}"
+        # first check if there is a token stored in resume settings.
+        token = self.tik_main.user.resume.get("kitsu_token")
+        kitsu_user = self.tik_main.user.resume.get("kitsu_user") # this may not be the same with the tik user.
+        if token and kitsu_user:
+            try:
+                self.gazu.log_in(kitsu_user, CRYPTOR.decrypt(token))
+            except ConnectionError as exc:
+                return None, f"Connection Error: {exc}"
+        else:
+            try:
+                login_widget = login.Login(self.gazu)
+                ret = login_widget.exec_()
+                if not ret:
+                    return None, "Canceled by user."
+                is_remember = login_widget.inputs["remember"].isChecked()
+                if is_remember:
+                    crypted_token = CRYPTOR.encrypt(login_widget.inputs["password"].text())
+                    self.tik_main.user.resume.edit_property("kitsu_token", crypted_token)
+                    self.tik_main.user.resume.edit_property("kitsu_user", login_widget.inputs["user"].text())
+                # self.gazu.log_in("admin@example.com", "mysecretpassword")
+            except ConnectionError as exc:
+                return None, f"Connection Error: {exc}"
 
         # TODO: Test if the gazu is authenticated
         self.is_authenticated = True
 
         return self.gazu, "Success"
+
+    def logout(self):
+        """Logout the user."""
+        self.gazu.log_out()
+        self.tik_main.user.resume.edit_property("kitsu_token", None)
+        self.tik_main.user.resume.edit_property("kitsu_user", None)
+        self.is_authenticated = False
 
     def get_projects(self, archived: bool = False, is_template: bool = False,
                      is_demo: bool = False) -> list:
