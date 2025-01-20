@@ -180,13 +180,6 @@ class ProductionPlatform(ManagementCore):
         assets = self.sg.find("Asset", filters, fields)
         return assets
 
-    # @staticmethod
-    # def date_stamp():
-    #     """Return the current date stamp in ISO 8601 format."""
-    #     # Get the current time in UTC and format it as ISO 8601
-    #     return datetime.now(timezone.utc).strftime(
-    #         '%Y-%m-%dT%H:%M:%SZ')
-
     def force_sync(self):
         """Force sync the project with Shotgrid."""
         sync_stamp = self.date_stamp()
@@ -291,6 +284,43 @@ class ProductionPlatform(ManagementCore):
             self.tik_main.set_project(current_project_path)
 
         return project_path
+
+    def get_entity_url(self, entity_type, entity_id):
+        """
+        Constructs the URL for a specific entity in ShotGrid.
+
+        Args:
+            entity_type (str): The type of the entity. Asset or Shot.
+            entity_id (int): The ID of the entity.
+
+        Returns:
+            str: The URL of the entity.
+        """
+        sanity_pairs = {
+            "asset": "Asset",
+            "Asset": "Asset",
+            "assets": "Asset",
+            "Assets": "Asset",
+            "shot": "Shot",
+            "Shot": "Shot",
+            "shots": "Shot",
+            "Shots": "Shot",
+            "episode": "shot",
+            "Episode": "shot",
+            "episodes": "shot",
+            "Episodes": "shot",
+        }
+        # first check if the id is valid
+        project_id = self.tik_main.project.settings.get("host_project_id")
+        filters = [
+            ["project", "is", {"type": "Project", "id": project_id}],
+            ["id", "is", entity_id]
+        ]
+        fields = ["id"]
+        entity = self.sg.find_one(sanity_pairs[entity_type], filters, fields)
+        if not entity:
+            return None
+        return f"{self.sg.base_url}/detail/{entity_type}/{entity_id}"
 
     def _get_changes_from_log(self):
         """Get what's changed in the project since last sync using the event logs.

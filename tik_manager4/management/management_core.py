@@ -41,3 +41,7 @@ class ManagementCore:
     def get_all_shots(self):
         """This method is called when all shots are retrieved."""
         raise NotImplementedError("The method 'get_all_shots' must be implemented.")
+
+    def get_entity_url(self, entity_type, entity_id):
+        """This method is called when the URL of an entity is retrieved."""
+        raise NotImplementedError("The method 'get_entity_url' must be implemented.")

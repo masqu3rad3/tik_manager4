@@ -24,6 +24,7 @@ if kitsu_folder not in sys.path:
     sys.path.append(kitsu_folder)
 
 from requests.exceptions import ConnectionError
+from gazu.exception import ServerErrorException
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
@@ -361,6 +362,18 @@ class ProductionPlatform(ManagementCore):
                 "value": "",
             },
         }
+
+    def get_entity_url(self, entity_type, entity_id):
+        """Return the URL of the entity."""
+        url = None
+        try:
+            if entity_type.lower() == "asset":
+                url = self.gazu.asset.get_asset_url(entity_id)
+            else: # anything other than asset will be considered as shot
+                url = self.gazu.shot.get_shot_url(entity_id)
+        except ServerErrorException:
+            LOG.warning("Server Error while getting the URL.")
+        return url
 
 class SyncBlock:
     """Class to store and execute sync blocks."""

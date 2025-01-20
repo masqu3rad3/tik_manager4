@@ -1,9 +1,12 @@
+
+import webbrowser
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.core import filelog
 from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4.ui.dialog.task_dialog
 from tik_manager4.ui.widgets.common import HorizontalSeparator, TikIconButton
 from tik_manager4.ui.mcv.filter import FilterModel, FilterWidget
+from tik_manager4.objects.guard import Guard
 
 from tik_manager4.ui import pick
 
@@ -116,14 +119,15 @@ class TikTaskModel(QtGui.QStandardItemModel):
 class TikTaskView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
     refresh_requested = QtCore.Signal()
+    # open_url_requested = QtCore.Signal(object)
 
     def __init__(self):
         """Initialize the view"""
         super(TikTaskView, self).__init__()
+        self.guard = Guard()
         self._feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-
         # do not show branches
         self.setRootIsDecorated(False)
 
@@ -317,7 +321,22 @@ class TikTaskView(QtWidgets.QTreeView):
         act_delete_task.setEnabled(not self.is_management_locked)
         act_delete_task.triggered.connect(lambda _=None, x=item: self.delete_task(item))
 
+        right_click_menu.addSeparator()
+
+        open_url_act = right_click_menu.addAction(self.tr("Open URL"))
+        open_url_act.setVisible(self.is_management_locked)
+        # open_url_act.triggered.connect(lambda _=None, x=item: self.open_url_requested.emit(item))
+        open_url_act.triggered.connect(lambda _=None, x=item: self.test(item))
+
+        # emit signal to open the url
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
+
+    def test(self, item):
+        if not self.guard.management_handler:
+            return
+        url = self.guard.management_handler.get_entity_url(item.task.type, item.task.id)
+        if url:
+            webbrowser.open(url)
 
     def edit_task(self, item):
         if item.task.check_permissions(level=2) == -1:
@@ -395,9 +414,6 @@ class TikTaskView(QtWidgets.QTreeView):
     def refresh(self):
         """Re-populate the model."""
         self.refresh_requested.emit()
-        # self.model.clear()
-        # self.set_tasks(self.model._tasks)
-
 
 
 class TikTaskLayout(QtWidgets.QVBoxLayout):
