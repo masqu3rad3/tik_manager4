@@ -53,3 +53,7 @@ class ManagementCore:
     def get_available_status_lists(self, force=False):
         """This method is called when the available status lists are retrieved."""
         raise NotImplementedError("The method 'get_available_status_lists' must be implemented.")
+
+    def publish_version(self, *args, **kwargs):
+        """This method is called when a version is published."""
+        raise NotImplementedError("The method 'publish_version' must be implemented.")

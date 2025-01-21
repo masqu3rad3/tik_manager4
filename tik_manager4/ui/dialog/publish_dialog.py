@@ -335,10 +335,24 @@ class PublishSceneDialog(QtWidgets.QDialog):
             wait_dialog.set_message("Fetching Status Lists...")
             self.management_status_combo.addItems(
                 m_handler.get_available_status_lists())
+            self._status_combo_update()
+            self.management_tasks_combo.currentIndexChanged.connect(
+                self._status_combo_update)
             management_tasks_lay.addWidget(management_status_label)
             management_tasks_lay.addWidget(self.management_status_combo)
             management_tasks_lay.addStretch()
             wait_dialog.kill()
+
+    def _status_combo_update(self):
+        """Try to update the status combo according to the selected task."""
+        if not self.is_management_driven:
+            return
+        status = self.management_tasks_combo.get_current_status()
+        if status:
+            # try to select the status from the status combo if it is available
+            index = self.management_status_combo.findText(status)
+            if index != -1:
+                self.management_status_combo.setCurrentIndex(index)
 
     def _preview_widgets(self):
         """Build the preview widgets if the preview is available."""
@@ -929,15 +943,6 @@ class ManagementTasksComboBoxModel(QtCore.QAbstractListModel):
         super().__init__(parent)
         self.items = items
 
-        # if there is a default item defined, try to set it ONLY if exists in the items
-
-    # def set_item(self, item_name):
-    #     """Set the item by name."""
-    #     for idx, item in enumerate(self.items):
-    #         if self._get_display_name(item) == item_name:
-    #             self.default_item = idx
-    #             return
-
     def rowCount(self, parent=None):
         return len(self.items)
 
@@ -948,19 +953,28 @@ class ManagementTasksComboBoxModel(QtCore.QAbstractListModel):
         # this method should be updated
         return item.get('content', '') or item.get('task_type_name', '')
 
+    def get_status_name(self, item):
+        """Get the status name of the item."""
+        return item.get('sg_status_list', '') or item.get('task_status_name', '')
+
     def data(self, index, role=QtCore.Qt.DisplayRole):
         if not index.isValid() or not (0 <= index.row() < len(self.items)):
             return None
         if role == QtCore.Qt.DisplayRole:
             # Display only the 'content' key's value
             return self.get_display_name(self.items[index.row()])
-            # return self.items[index.row()].get('content', '') or self.items[index.row()].get('task_type_name', '')
         return None
 
     def get_item(self, index):
         """Method to get the full dictionary item."""
         if 0 <= index < len(self.items):
             return self.items[index]
+        return None
+
+    def get_status(self, index):
+        """Method to get the status of the item."""
+        if 0 <= index < len(self.items):
+            return self.get_status_name(self.items[index])
         return None
 
 class ManagementTasksCombo(QtWidgets.QComboBox):
@@ -986,6 +1000,12 @@ class ManagementTasksCombo(QtWidgets.QComboBox):
         """Get the current selected item."""
         index = self.currentIndex()
         return self.model.get_item(index)
+
+    def get_current_status(self):
+        """Get the current selected status."""
+        index = self.currentIndex()
+        return self.model.get_status(index)
+
 
 
 # test this dialog

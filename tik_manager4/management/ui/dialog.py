@@ -6,10 +6,10 @@ from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.pop import WaitDialog
 from tik_manager4.ui.widgets.common import TikButtonBox
 from tik_manager4.ui.widgets import path_browser
-from tik_manager4.management.shotgrid.ui.mcv import SgProjectPickWidget
+from tik_manager4.management.ui.mcv import ProjectPickWidget
 
 
-class CreateFromShotgridDialog(QtWidgets.QDialog):
+class CreateFromManagementDialog(QtWidgets.QDialog):
     """Create a new project from the management system."""
 
     def __init__(self, management_handler, parent=None):
@@ -17,7 +17,7 @@ class CreateFromShotgridDialog(QtWidgets.QDialog):
         all_widgets = QtWidgets.QApplication.allWidgets()
         for entry in all_widgets:
             try:
-                if entry.objectName() == "CreateFromShotgridDialog":
+                if entry.objectName() == "CreateFromManagementDialog":
                     entry.close()
                     entry.deleteLater()
             except (AttributeError, TypeError):
@@ -26,8 +26,8 @@ class CreateFromShotgridDialog(QtWidgets.QDialog):
         self.tik = management_handler.tik_main
         self.feedback = Feedback(parent=self)
         self.handler = management_handler
-        self.setWindowTitle("Create New Project from Shotgrid")
-        self.setObjectName("CreateFromShotgridDialog")
+        self.setWindowTitle(f"Create New Project from {self.handler.nice_name}")
+        self.setObjectName("CreateFromManagementDialog")
         self.setModal(True)
         self.setMinimumSize(300, 200)
         self.resize(600, 650)
@@ -50,7 +50,7 @@ class CreateFromShotgridDialog(QtWidgets.QDialog):
         self.project_root_pathb = path_browser.PathBrowser("project_root", value=_value)
         path_browser_layout.addWidget(self.project_root_pathb)
 
-        self.sg_project_pick_widget = SgProjectPickWidget(self.handler, parent=self)
+        self.sg_project_pick_widget = ProjectPickWidget(self.handler, parent=self)
         self.master_layout.addWidget(self.sg_project_pick_widget)
 
         # create a button box as "create" and "cancel"
@@ -78,7 +78,7 @@ class CreateFromShotgridDialog(QtWidgets.QDialog):
         project_id = self.sg_project_pick_widget.get_selected_project_id()
         if project_id:
             self.wait_dialog = WaitDialog(
-                message="Creating project from Shotgrid...",
+                message=f"Creating project from {self.handler.nice_name}...",
                 parent=self,
             )
             self.wait_dialog.display()

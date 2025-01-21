@@ -1,17 +1,20 @@
 """Model View Controller for Platform management."""
 
-import functools
+# import functools
+
+import os
+import tempfile
+import requests
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 # we need to import the QtNetwork module from Qt like this to make sure it's
 # available with pyinstaller
-from tik_manager4.ui import Qt
+# from tik_manager4.ui import Qt
 from tik_manager4.ui.widgets.pop import WaitDialog
 from tik_manager4.ui.widgets.common import TikIconButton
 from tik_manager4.ui import pick
 
-
-class SgProjectItem(QtGui.QStandardItem):
+class ProjectItem(QtGui.QStandardItem):
     """Item for the project model."""
 
     def __init__(self, definition_dict):
@@ -23,28 +26,29 @@ class SgProjectItem(QtGui.QStandardItem):
         # show the thumbnail from url
         self._empty_thumbnail = pick.icon("empty_thumbnail")
         url = definition_dict.get("image", None)
-        self._load_icon_from_url(url)
+        headers = definition_dict.get("image_authorization_headers", {})
+        self._load_icon_from_url(url, authorization_headers=headers)
 
-    def _load_icon_from_url(self, url):
+    def _load_icon_from_url(self, url, authorization_headers=None):
         """Load the icon from the url."""
-        self.network_manager = Qt.QtNetwork.QNetworkAccessManager()
-        self.network_manager.finished.connect(
-            functools.partial(self._set_icon_from_reply)
-        )
-        self.network_manager.get(Qt.QtNetwork.QNetworkRequest(QtCore.QUrl(url)))
-
-    def _set_icon_from_reply(self, reply):
-        """Set the icon from the reply."""
-        if reply.error() == Qt.QtNetwork.QNetworkReply.NoError:
-            pixmap = QtGui.QPixmap()
-            pixmap.loadFromData(reply.readAll())
-            self.setIcon(QtGui.QIcon(pixmap))
-        else:
+        authorization_headers = authorization_headers or {}
+        if not url:
             self.setIcon(self._empty_thumbnail)
-        reply.deleteLater()
+            return
+        try:
+            response = requests.get(url, headers=authorization_headers)
+            response.raise_for_status()
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
+                temp_file.write(response.content)
+                temp_file_path = temp_file.name
 
+            pixmap = QtGui.QPixmap(temp_file_path)
+            self.setIcon(QtGui.QIcon(pixmap))
+            os.remove(temp_file_path)
+        except requests.RequestException:
+            self.setIcon(self._empty_thumbnail)
 
-class SgProjectColumnItem(QtGui.QStandardItem):
+class ProjectColumnItem(QtGui.QStandardItem):
     """Item for the columns of the project model."""
 
     # pylint: disable=too-few-public-methods
@@ -54,7 +58,7 @@ class SgProjectColumnItem(QtGui.QStandardItem):
         self.setEditable(False)
 
 
-class SgProjectModel(QtGui.QStandardItemModel):
+class ProjectModel(QtGui.QStandardItemModel):
     """Model for the Shotgrid projects."""
 
     columns = ["Name", "Id", "Status", "Start Date", "End Date"]
@@ -88,18 +92,18 @@ class SgProjectModel(QtGui.QStandardItemModel):
 
     def _append_project(self, project):
         """Append a project to the model."""
-        item = SgProjectItem(project)
-        _id = SgProjectColumnItem(str(project.get("id", "")))
-        _status = SgProjectColumnItem(project.get("sg_status", ""))
-        _start_date = SgProjectColumnItem(project.get("start_date", ""))
-        _end_date = SgProjectColumnItem(project.get("end_date", ""))
+        item = ProjectItem(project)
+        _id = ProjectColumnItem(str(project.get("id", "")))
+        _status = ProjectColumnItem(project.get("sg_status", "") or project.get("status", ""))
+        _start_date = ProjectColumnItem(project.get("start_date", ""))
+        _end_date = ProjectColumnItem(project.get("end_date", ""))
 
         self.appendRow([item, _id, _status, _start_date, _end_date])
         return item
 
 
-class SgProjectIconView(QtWidgets.QListView):
-    """Custom QListView for the Shotgrid platform."""
+class ProjectIconView(QtWidgets.QListView):
+    """Custom QListView for the Management platform."""
 
     # pylint: disable=too-few-public-methods
     def __init__(self):
@@ -117,8 +121,8 @@ class SgProjectIconView(QtWidgets.QListView):
         self.setGridSize(QtCore.QSize(int(_size * 1.1), int(_size * 1.4)))
 
 
-class SgProjectTreeView(QtWidgets.QTreeView):
-    """Custom QTreeView for the Shotgrid platform."""
+class ProjectTreeView(QtWidgets.QTreeView):
+    """Custom QTreeView for the Management platform."""
 
     def __init__(self):
         """Initialize the view."""
@@ -154,8 +158,8 @@ class SgProjectTreeView(QtWidgets.QTreeView):
         self.setIconSize(QtCore.QSize(size, size))
 
 
-class SgLayoutsDataContainer:
-    """Layouts data container for the Shotgrid platform."""
+class LayoutsDataContainer:
+    """Layouts data container for the Management platform."""
 
     def __init__(self):
         self.master_layout: (QtWidgets.QVBoxLayout, QtWidgets.QHBoxLayout) = (
@@ -170,11 +174,11 @@ class SgLayoutsDataContainer:
         self.master_layout.addLayout(self.widget_layout)
 
 
-class SgWidgetDataContainer:
-    """Widget data container for the Shotgrid platform."""
+class WidgetDataContainer:
+    """Widget data container for the Management platform."""
     def __init__(self):
-        self.list_view: QtWidgets.QListView = SgProjectTreeView()
-        self.icon_view: QtWidgets.QListView = SgProjectIconView()
+        self.list_view: QtWidgets.QListView = ProjectTreeView()
+        self.icon_view: QtWidgets.QListView = ProjectIconView()
         self.icon_size_slider: QtWidgets.QSlider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.list_view_button: QtWidgets.QPushButton = TikIconButton(icon_name="view-list", circle=False)
         self.icon_view_button: QtWidgets.QPushButton = TikIconButton(icon_name="view-icon", circle=False)
@@ -189,22 +193,22 @@ class SgWidgetDataContainer:
         self.icon_size_slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
 
 
-class SgProjectPickWidget(QtWidgets.QWidget):
-    """Widget to pick a project from Shotgrid."""
+class ProjectPickWidget(QtWidgets.QWidget):
+    """Widget to pick a project from Management Platform."""
 
     def __init__(self, management_handler, parent=None):
         super().__init__()
         # self.tik_main = management_handler.tik_main
 
-        self.model = SgProjectModel()
+        self.model = ProjectModel()
 
-        self.layouts = SgLayoutsDataContainer()
+        self.layouts = LayoutsDataContainer()
         self.setLayout(self.layouts.master_layout)
 
-        self.widgets = SgWidgetDataContainer()
+        self.widgets = WidgetDataContainer()
 
         self.wait_dialog = WaitDialog(
-            message="Please wait while collecting projects from Shotgrid...",
+            message=f"Please wait while collecting projects from {management_handler.nice_name}...",
             parent=parent,
         )
         self.wait_dialog.show()
@@ -279,19 +283,3 @@ class SgProjectPickWidget(QtWidgets.QWidget):
             return item.get("id")
         return None
 
-
-if __name__ == "__main__":
-    import sys
-    import tik_manager4
-    import tik_manager4.ui.pick
-    from tik_manager4 import management
-
-    _style_file = tik_manager4.ui.pick.style_file()
-    tik = tik_manager4.initialize("standalone")
-    handler = management.platforms["shotgrid"](tik)
-
-    app = QtWidgets.QApplication(sys.argv)
-    dialog = SgProjectPickWidget(handler)
-    dialog.setStyleSheet(str(_style_file.readAll(), "utf-8"))
-    dialog.show()
-    sys.exit(app.exec_())

@@ -1,6 +1,7 @@
 """Main module for the Kitsu integration."""
 import importlib
 import logging
+import json
 import sys
 import os
 from pathlib import Path
@@ -105,9 +106,36 @@ class ProductionPlatform(ManagementCore):
 
     def get_projects(self, archived: bool = False, is_template: bool = False,
                      is_demo: bool = False) -> list:
-        """Get all the projects from Shotgrid."""
+        """Get all the projects from Kitsu."""
         projects = self.gazu.project.all_projects()
+        # get the thumbnails and add the data to the dictionary
+        status_mapping = self._get_status_mapping()
+        for project_data in projects:
+            project_data["image_authorization_headers"] = self.gazu.client.make_auth_header()
+            project_data["image"] = f"{self.gazu.get_host()}/pictures/thumbnails/projects/{project_data['id']}.png"
+            project_data["status"] = status_mapping.get(project_data["project_status_id"], "")
+
         return projects
+
+    def _get_status_mapping(self, force=False):
+        """Get the status mapping."""
+        status_mapping = os.environ.get("TIK_KITSU_STATUS_MAPPING")
+        # get it from the environment variable if its set.
+        if status_mapping and not force:
+            # replace all single quotes with double quotes
+            status_mapping = status_mapping.replace("'", '"')
+            return json.loads(status_mapping)
+        all_status_list = self.gazu.project.all_project_status()
+        status_mapping = {}
+        for status_data in all_status_list:
+            status_mapping[status_data["id"]] = status_data["name"]
+        os.environ["TIK_KITSU_STATUS_MAPPING"] = json.dumps(status_mapping)
+
+        return status_mapping
+
+
+
+
 
     def get_all_assets(self, project_id):
         """Get all the assets from a project."""
@@ -389,6 +417,26 @@ class ProductionPlatform(ManagementCore):
         except ServerErrorException:
             LOG.warning("Server Error while getting the URL.")
         return url
+
+    def publish_version(self, entity_type, entity_id, task_id, name, path,
+                        project_id, status=None, description="", thumbnail=None,
+                        preview=None, email=None):
+        """Publish the version to the Kitsu server.
+
+        Args:
+            entity_type (str): The type of the entity. Asset or Shot.
+            entity_id (int): The ID of the entity.
+            task_id (int): The ID of the task.
+            name (str): The name of the version.
+            path (str): Project relative path to the file.
+            project_id (int): The ID of the project.
+            description (str, optional): The description of the version. Defaults to "".
+            thumbnail (str, optional): The path to the thumbnail file. Defaults to None.
+            preview (str, optional): The path to the preview file. Defaults to None.
+
+        Returns:
+            dict: The published version data.
+        """
 
 class SyncBlock:
     """Class to store and execute sync blocks."""
