@@ -318,9 +318,11 @@ class PublishSceneDialog(QtWidgets.QDialog):
             # self.management_tasks_combo = QtWidgets.QComboBox()
             wait_dialog.set_message("Fetching Tasks...")
             tasks_data_list = self.project.publisher.get_management_tasks()
-            self.management_tasks_combo = ManagementTasksCombo(tasks_data_list)
-            # task_model = ManagementTasksComboBoxModel(tasks_data_list)
-            # self.management_tasks_combo.setModel(task_model)
+            # get the current category. This will be attempted to be selected in the combo
+            current_category = self.project.publisher.work_object.category
+            self.management_tasks_combo = ManagementTasksCombo(
+                tasks_data_list,
+                default_item_name=current_category)
             management_tasks_lay.addWidget(management_tasks_label)
             management_tasks_lay.addWidget(self.management_tasks_combo)
 
@@ -927,15 +929,32 @@ class ManagementTasksComboBoxModel(QtCore.QAbstractListModel):
         super().__init__(parent)
         self.items = items
 
+        # if there is a default item defined, try to set it ONLY if exists in the items
+
+    # def set_item(self, item_name):
+    #     """Set the item by name."""
+    #     for idx, item in enumerate(self.items):
+    #         if self._get_display_name(item) == item_name:
+    #             self.default_item = idx
+    #             return
+
     def rowCount(self, parent=None):
         return len(self.items)
+
+    def get_display_name(self, item):
+        """Get the display name of the item."""
+        # This makes sure the display name becomes compatible for both
+        # Shotgrid and Kitsu. If there are more management platforms
+        # this method should be updated
+        return item.get('content', '') or item.get('task_type_name', '')
 
     def data(self, index, role=QtCore.Qt.DisplayRole):
         if not index.isValid() or not (0 <= index.row() < len(self.items)):
             return None
         if role == QtCore.Qt.DisplayRole:
             # Display only the 'content' key's value
-            return self.items[index.row()].get('content', '') or self.items[index.row()].get('task_type_name', '')
+            return self.get_display_name(self.items[index.row()])
+            # return self.items[index.row()].get('content', '') or self.items[index.row()].get('task_type_name', '')
         return None
 
     def get_item(self, index):
@@ -946,11 +965,22 @@ class ManagementTasksComboBoxModel(QtCore.QAbstractListModel):
 
 class ManagementTasksCombo(QtWidgets.QComboBox):
     """Custom ComboBox for Management Tasks."""
-    def __init__(self, items, parent=None):
+    def __init__(self, items, parent=None, default_item_name: str=None):
         super().__init__(parent)
         self.items = items
         self.model = ManagementTasksComboBoxModel(items)
         self.setModel(self.model)
+
+        # if there is a default item defined, try to set it ONLY if exists in the items
+        if default_item_name:
+            self.set_item(default_item_name)
+
+    def set_item(self, item_name):
+        """Set the item by name."""
+        for idx, item in enumerate(self.items):
+            if self.model.get_display_name(item) == item_name:
+                self.setCurrentIndex(idx)
+                return
 
     def get_current_item(self):
         """Get the current selected item."""
