@@ -92,8 +92,9 @@ class ProductionPlatform(ManagementCore):
             except ConnectionError as exc:
                 return None, f"Connection Error: {exc}"
 
-        # TODO: Test if the gazu is authenticated
-        self.is_authenticated = True
+        self.is_authenticated = self.gazu.user.is_authenticated()
+        if not self.is_authenticated:
+            return None, "Authentication Failed."
 
         return self.gazu, "Success"
 
@@ -132,10 +133,6 @@ class ProductionPlatform(ManagementCore):
         os.environ["TIK_KITSU_STATUS_MAPPING"] = json.dumps(status_mapping)
 
         return status_mapping
-
-
-
-
 
     def get_all_assets(self, project_id):
         """Get all the assets from a project."""
@@ -418,25 +415,66 @@ class ProductionPlatform(ManagementCore):
             LOG.warning("Server Error while getting the URL.")
         return url
 
-    def publish_version(self, entity_type, entity_id, task_id, name, path,
-                        project_id, status=None, description="", thumbnail=None,
-                        preview=None, email=None):
-        """Publish the version to the Kitsu server.
+    def _get_status_id_from_name(self, status_name):
+        """Get the status ID from the status name."""
+        status_dict_list = self.gazu.task.all_task_statuses()
+        for status_dict in status_dict_list:
+            if status_dict["name"] == status_name:
+                return status_dict["id"]
+        return None
+
+    def publish_version(self,
+                        task_id,
+                        status=None,
+                        description="",
+                        thumbnail=None,
+                        preview: str =None,
+                        publish_version: int = None,
+                        **kwargs
+                        ):
+        """Publish a version to Kitsu using gazu.
 
         Args:
-            entity_type (str): The type of the entity. Asset or Shot.
-            entity_id (int): The ID of the entity.
-            task_id (int): The ID of the task.
-            name (str): The name of the version.
-            path (str): Project relative path to the file.
-            project_id (int): The ID of the project.
+            task_id (str): The ID of the task.
+            status (str, optional): The status that the task will be turned to.
+                If not specified, current status stays.
             description (str, optional): The description of the version. Defaults to "".
             thumbnail (str, optional): The path to the thumbnail file. Defaults to None.
             preview (str, optional): The path to the preview file. Defaults to None.
+            publish_version (int, optional): The version number to publish.
+                Defaults to None.
 
         Returns:
             dict: The published version data.
         """
+        # pylint: disable=too-many-arguments
+
+        # we only need the task_id for the publish
+        # get the status_id
+
+        task_dict = self.gazu.task.get_task(task_id)
+        status_id = self._get_status_id_from_name(status)
+
+        if not status_id:
+            status_id = task_dict["task_status_id"] # we are not changing the status
+
+        new_comment = self.gazu.task.add_comment(
+            task_dict,
+            status_id,
+            comment=description,
+            person=self.gazu.client.get_current_user()
+        )
+
+        if thumbnail or preview:
+            _preview_file = self.gazu.task.add_preview(
+                task_dict,
+                new_comment,
+                preview_file_path = preview or thumbnail,
+                normalize_movie = True,
+                revision = publish_version
+            )
+
+        return {"id": new_comment["object_id"]}
 
 class SyncBlock:
     """Class to store and execute sync blocks."""

@@ -714,9 +714,20 @@ class ProductionPlatform(ManagementCore):
         )
         return user["id"] if user else None
 
-    def publish_version(self, entity_type, entity_id, task_id, name, path,
-                        project_id, status=None, description="", thumbnail=None,
-                        preview=None, email=None):
+    def publish_version(self,
+                        entity_type=None,
+                        entity_id=None,
+                        task_id=None,
+                        name=None,
+                        path=None,
+                        project_id=None,
+                        status=None,
+                        description="",
+                        thumbnail=None,
+                        preview=None,
+                        email=None,
+                        **kwargs
+                        ):
         """Publish a version to Shotgrid.
 
         Args:
@@ -726,13 +737,21 @@ class ProductionPlatform(ManagementCore):
             name (str): The name of the version.
             path (str): Project relative path to the file.
             project_id (int): The ID of the project.
+            status (str, optional): The status of the task that will be turned into.
+                    Defaults to None.
             description (str, optional): The description of the version. Defaults to "".
             thumbnail (str, optional): The path to the thumbnail file. Defaults to None.
             preview (str, optional): The path to the preview file. Defaults to None.
+            email (str, optional): The email of the user. Defaults to None.
 
         Returns:
             dict: The published version data.
         """
+        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-locals
+        # entity_type, entity_id, task_id, name and path are mandatory
+        if not all([entity_type, entity_id, task_id, name, path, project_id]):
+            raise ValueError("entity_type, entity_id, task_id, name, path and project_id are mandatory.")
         # Build the publish data
         data = {
             "project": {"type": "Project", "id": project_id},
