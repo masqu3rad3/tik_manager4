@@ -27,7 +27,6 @@ import webbrowser
 import tik_manager4
 import tik_manager4._version as version
 from tik_manager4.core import utils
-from tik_manager4.objects.entity import Entity
 from tik_manager4.ui import pick
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
@@ -86,7 +85,6 @@ class MainUI(QtWidgets.QMainWindow):
         # pylint: disable=too-many-statements
         super(MainUI, self).__init__(**kwargs)
         self.tik = main_object
-        # self._management_handler = None
 
         self.setWindowTitle(window_name)
         self.setObjectName(window_name)

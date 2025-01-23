@@ -576,7 +576,7 @@ class SyncBlock:
 
         asset_name = utils.sanitize_text(asset_name)
         task = sub.find_task_by_id(asset_id)
-        if task:
+        if task != -1:
             self._update_asset()
         else:
             task = sub.add_task(asset_name, categories=self.categories, uid=asset_id)
@@ -621,7 +621,7 @@ class SyncBlock:
         metadata_overrides = self._retrieve_metadata_overrides(self.kitsu_data.get("data"))
 
         task = query_sub.find_task_by_id(shot_id)
-        if task:
+        if task != -1:
             self._update_shot()
         else:
             task = query_sub.add_task(

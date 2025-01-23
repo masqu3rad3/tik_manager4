@@ -74,7 +74,8 @@ class UiExtensions(ExtensionCore):
         state = dialog.exec()
         if state:
             # hard refresh the project
-            self.parent.subprojects_mcv.manual_refresh()
+            # self.parent.subprojects_mcv.manual_refresh()
+            self.parent.refresh_project()
             self.parent.status_bar.showMessage("Project created successfully")
         return
 

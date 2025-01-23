@@ -471,7 +471,6 @@ class Subproject(Entity):
             _search = current.get_task_by_id(uid)
             if _search != -1:
                 return _search
-        LOG.warning("Requested uid does not exist")
         return -1
 
     def find_sub_by_id(self, uid):
@@ -492,7 +491,6 @@ class Subproject(Entity):
             if current.id == uid:
                 return current
             queue.extend(list(current.subs.values()))
-        LOG.warning("Requested uid does not exist")
         return -1
 
     def find_sub_by_path(self, path):
@@ -513,7 +511,6 @@ class Subproject(Entity):
             if current.path == path:
                 return current
             queue.extend(list(current.subs.values()))
-        LOG.warning("Requested path does not exist")
         return -1
 
     def find_subs_by_wildcard(self, wildcard):
