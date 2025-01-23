@@ -401,6 +401,12 @@ class ProductionPlatform(ManagementCore):
                 "type": "string",
                 "value": "",
             },
+            "skip_empty_entity_names": {
+                "display_name": "Skip Blank Entities During Sync",
+                "tooltip": "If an Asset or Shot has an empty name, it will be skipped during initial project creation or sync. Otherwise, id will be used as the name.",
+                "type": "boolean",
+                "value": False,
+            }
         }
 
     def get_entity_url(self, entity_type, entity_id):
@@ -492,6 +498,7 @@ class SyncBlock:
         self._kitsu_data = None
         self._subproject = None
         self._categories = None
+        self._skip_empty_entity_names = self.tik_main.user.commons.management_settings.get("skip_empty_entity_names")
 
     @property
     def event_type(self):
@@ -561,6 +568,10 @@ class SyncBlock:
 
         asset_id = self.kitsu_data["id"]
         asset_name = self.kitsu_data["name"]
+        if not asset_name:
+            if self._skip_empty_entity_names:
+                return None
+            asset_name = asset_id
         asset_type_dict = self.gazu.entity.get_entity_type(self.kitsu_data["entity_type_id"])
         asset_type = asset_type_dict.get("name", None)
 
@@ -591,6 +602,10 @@ class SyncBlock:
         # TODO: Validate the data
         shot_id = self.kitsu_data["id"]
         shot_name = self.kitsu_data["name"]
+        if not shot_name:
+            if self._skip_empty_entity_names:
+                return None
+            shot_name = shot_id
         sequence = self.gazu.entity.get_entity(self.kitsu_data["parent_id"])
         is_episodic = sequence.get("parent_id", None)
         query_sub = self.subproject
