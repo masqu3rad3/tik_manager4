@@ -8,6 +8,7 @@ from pathlib import Path
 from copy import deepcopy
 from datetime import datetime
 
+from tik_manager4.core.cryptor import CryptorError
 from tik_manager4.core.cryptor import Cryptor
 from tik_manager4.core import utils
 from tik_manager4.management.management_core import ManagementCore
@@ -75,7 +76,7 @@ class ProductionPlatform(ManagementCore):
         if token and kitsu_user:
             try:
                 self.gazu.log_in(kitsu_user, CRYPTOR.decrypt(token))
-            except ConnectionError as exc:
+            except (ConnectionError, CryptorError) as exc:
                 return None, f"Connection Error: {exc}"
         else:
             try:

@@ -1,8 +1,9 @@
 import uuid
 import base64
-
+import binascii
 
 class Cryptor:
+    """Encryption and decryption utility."""
     def __init__(self):
         # Retrieve the MAC address as the machine identifier
         self.key = self._get_mac_address_key()
@@ -19,8 +20,7 @@ class Cryptor:
         return "".join(chr(ord(char) ^ self.key) for char in data)
 
     def encrypt(self, plain_text):
-        """
-        Encrypt the given plain text.
+        """Encrypt the given plain text.
         - Appends the machine identifier to the plain text.
         - XOR obfuscates the text with the MAC-derived key.
         - Encodes the result in Base64.
@@ -30,40 +30,30 @@ class Cryptor:
         return base64.b64encode(xor_obfuscated.encode()).decode()
 
     def decrypt(self, encrypted_text):
-        """
-        Decrypt the given encrypted text.
+        """Decrypt the given encrypted text.
         - Decodes the Base64-encoded string.
         - Applies XOR de-obfuscation with the MAC-derived key.
         - Validates the machine identifier.
         """
-        decoded_data = base64.b64decode(encrypted_text).decode()
+        try:
+            decoded_data = base64.b64decode(encrypted_text).decode()
+        except binascii.Error as exc:
+            raise CryptorError("Decryption failed: invalid Base64 encoding.") from exc
+        except UnicodeDecodeError as exc:
+            raise CryptorError("Decryption failed: invalid UTF-8 encoding.") from exc
         decrypted = self._xor_with_key(decoded_data)
         try:
             plain_text, machine_id = decrypted.rsplit(":", 1)
-        except ValueError:
-            raise ValueError(
+        except ValueError as exc:
+            raise CryptorError(
                 "Decryption failed: invalid format or missing machine identifier."
-            )
+            ) from exc
 
         # Verify the machine identifier
         if int(machine_id) != self.machine_id:
-            raise ValueError("Decryption failed: machine identifier mismatch.")
+            raise CryptorError("Decryption failed: machine identifier mismatch.")
 
         return plain_text
 
-
-# Example usage
-if __name__ == "__main__":
-    encryptor = Cryptor()
-    secret = "user_password"
-
-    # Encrypt the string
-    encrypted = encryptor.encrypt(secret)
-    print(f"Encrypted: {encrypted}")
-
-    # Decrypt the string
-    try:
-        decrypted = encryptor.decrypt(encrypted)
-        print(f"Decrypted: {decrypted}")
-    except ValueError as e:
-        print(f"Error: {e}")
+class CryptorError(Exception):
+    """Custom exception for Cryptor errors."""
