@@ -1,18 +1,24 @@
 """Custom widgets for setting / displaying projects"""
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore
-from tik_manager4.ui.widgets.common import TikButton
 from tik_manager4.ui.dialog.project_dialog import SetProjectDialog
+from tik_manager4.ui.widgets.common import TikButton
+from tik_manager4.ui import pick
 
 
 class TikProjectLayout(QtWidgets.QHBoxLayout):
     """Layout for displaying project information"""
+
     project_set = QtCore.Signal(str)
 
     def __init__(self, main_object, parent=None):
         super().__init__()
         self.parent = parent
         self.main_object = main_object
+
+        self.management_icon = QtWidgets.QLabel()
+        self.management_icon.setScaledContents(True)
+        self.addWidget(self.management_icon)
 
         _project_lbl = QtWidgets.QLabel()
         _project_lbl.setText("Project: ")
@@ -38,9 +44,25 @@ class TikProjectLayout(QtWidgets.QHBoxLayout):
         self.set_project_btn.clicked.connect(self.set_project)
         self.recent_projects_btn.clicked.connect(self.set_recent_project)
 
+        self._set_management_icon()
+
+    def _set_management_icon(self):
+        """Set the management icon which indicates if the project is managed or not."""
+        management_platform_name = self.main_object.project.settings.get(
+            "management_platform", "tik"
+        )
+        logo = f"logo-{management_platform_name}.png"
+        # set the size to 32x32
+        self.management_icon.setPixmap(pick.pixmap(logo))
+        self.management_icon.setFixedSize(40, 40)
+
+
     def refresh(self):
         """Refresh the project path"""
         self._project_path_le.setText(self.main_object.project.absolute_path)
+        self.main_object.__init__() # reinitialize the main object
+        self._set_management_icon()
+
 
     def __register_project(self, project_name):
         """Register the project to the user settings and update the UI."""
@@ -48,6 +70,7 @@ class TikProjectLayout(QtWidgets.QHBoxLayout):
         self.main_object.user.resume.apply_settings()
         self.refresh()
         self.project_set.emit(f"{project_name} set successfully.")
+
     def set_project(self):
         """Set the project"""
         dialog = SetProjectDialog(self.main_object, parent=self.parent)

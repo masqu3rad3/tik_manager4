@@ -436,7 +436,8 @@ class Publisher:
             description=description,
             thumbnail=thumbnail,
             preview=preview,
-            email=user_email
+            email=user_email,
+            publish_version=self._publish_version
         )
         self._published_object.edit_property("publish_id", management_version["id"])
 

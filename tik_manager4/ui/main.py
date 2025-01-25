@@ -32,7 +32,6 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog
-# from tik_manager4.ui.dialog.project_dialog import CreateFromShotgridDialog
 from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
 from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
@@ -52,6 +51,7 @@ from tik_manager4.ui.widgets.common import TikButton, VerticalSeparator
 from tik_manager4.ui.dialog.update_dialog import UpdateDialog
 from tik_manager4.ui.widgets.pop import WaitDialog
 from tik_manager4 import management
+from tik_manager4.management.exceptions import SyncError
 
 LOG = logging.getLogger(__name__)
 WINDOW_NAME = f"Tik Manager {version.__version__}"
@@ -85,7 +85,6 @@ class MainUI(QtWidgets.QMainWindow):
         # pylint: disable=too-many-statements
         super(MainUI, self).__init__(**kwargs)
         self.tik = main_object
-        self._management_handler = None
 
         self.setWindowTitle(window_name)
         self.setObjectName(window_name)
@@ -307,6 +306,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.tasks_mcv.task_view.refresh_requested.connect(
             self.subprojects_mcv.sub_view.get_tasks
         )
+
         self.categories_mcv.work_tree_view.item_selected.connect(
             self.versions_mcv.set_base
         )
@@ -917,6 +917,17 @@ class MainUI(QtWidgets.QMainWindow):
         self.status_bar.showMessage(message, 3000)
         self.refresh_subprojects()
 
+    def _can_proceed_without_management(self, platform):
+        """"Pops up the question dialog to proceed without management."""
+        ret = self.feedback.pop_question(title=f"Connection Error - {platform}",
+                                         text=f"An error occurred while connecting/syncing to the {platform} project.\n\nDo you want to proceed without {platform}?",
+                                         buttons=["yes", "no"])
+        if ret == "no":
+            self.tik.fallback_to_default_project()
+            self.refresh_project()
+            return False
+        return True
+
     def management_lock(self):
         """Lock certain UI elements if the project is getting driven by a
         management platform."""
@@ -927,10 +938,19 @@ class MainUI(QtWidgets.QMainWindow):
             management_platform = self.tik.project.settings.get("management_platform")
             handler = self.management_connect(management_platform)
             if not handler:
+                self._can_proceed_without_management(management_platform)
                 return
             wait_popup = WaitDialog(message="Syncing Project...", parent=self)
             wait_popup.display()
-            synced = handler.sync_project()
+            synced = False
+            try:
+                synced = handler.sync_project()
+            except SyncError as exc:
+                LOG.warning(f"Sync Error %s", exc)
+                wait_popup.kill()
+                can_proceed = self._can_proceed_without_management(management_platform)
+                if not can_proceed:
+                    return
             wait_popup.kill()
             if synced:
                 self.set_last_state()

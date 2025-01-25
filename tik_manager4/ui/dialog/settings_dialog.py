@@ -387,6 +387,7 @@ class SettingsDialog(QtWidgets.QDialog):
             settings_data = convert_to_settings_data(settings_ui)
             self.main_object.user.commons.management_settings.add_missing_keys(settings_data)
             ui_definition.update(settings_ui)
+        print(ui_definition)
 
         # ui_definition = management.platforms["shotgrid"].get_settings_ui()
         platform_settings = SwitchTreeItem(["Platform Settings"], permission_level=3)
