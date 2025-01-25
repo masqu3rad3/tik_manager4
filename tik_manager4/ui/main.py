@@ -52,7 +52,7 @@ from tik_manager4.ui.dialog.update_dialog import UpdateDialog
 from tik_manager4.ui.widgets.pop import WaitDialog
 from tik_manager4 import management
 from tik_manager4.management.exceptions import SyncError
-
+from tik_manager4.ui.widgets.pop import Toaster
 
 LOG = logging.getLogger(__name__)
 WINDOW_NAME = f"Tik Manager {version.__version__}"
@@ -90,6 +90,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.setObjectName(window_name)
 
         self.feedback = Feedback(self)
+        self.toaster = Toaster(self)
         # set window size
         self.resize(1200, 800)
         self.central_widget = QtWidgets.QWidget(self)
@@ -568,18 +569,24 @@ class MainUI(QtWidgets.QMainWindow):
 
     def management_connect(self, platform_name=None):
         """Convenience function to connect to a management platform."""
-
+        nice_name = platform_name.capitalize()
         self.wait_dialog = WaitDialog(
-                        message=f"Connecting to {platform_name}...",
+                        message=f"Connecting to {nice_name}...",
                         parent=self,
                     )
         self.wait_dialog.display()
         handler, msg = self.tik.get_management_handler(platform_name)
         if not handler or not handler.is_authenticated:
             self.wait_dialog.kill()
-            self.feedback.pop_info(title="Authentication Failed", text=f"Authentication failed while connecting to {platform_name}\n\n{msg}", critical=True)
+            # self.feedback.pop_info(title="Authentication Failed", text=f"Authentication failed while connecting to {platform_name}\n\n{msg}", critical=True)
+            self.toaster.make_toast(title="Authentication Failed",
+                                    text=f"Authentication failed while connecting to {nice_name}. Check Logs for more info.",
+                                    mode="error")
             return None
         self.wait_dialog.kill()
+        self.toaster.make_toast(title="Connection Successfull",
+                                text=f"Connected to {nice_name}",
+                                mode="success")
         return handler
 
     def _main_button_states(self):
@@ -919,6 +926,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _can_proceed_without_management(self, platform):
         """"Pops up the question dialog to proceed without management."""
+        platform = platform.capitalize()
         ret = self.feedback.pop_question(title=f"Connection Error - {platform}",
                                          text=f"An error occurred while connecting/syncing to the {platform} project.\n\nDo you want to proceed without {platform}?",
                                          buttons=["yes", "no"])
@@ -970,6 +978,7 @@ class MainUI(QtWidgets.QMainWindow):
         if state:
             self.refresh_project()
             self.status_bar.showMessage("Project created successfully")
+            self.toaster.make_toast(title="Project Created", text="Project created successfully", mode="success")
 
     def on_add_new_user(self):
         """Launch add new user dialog."""

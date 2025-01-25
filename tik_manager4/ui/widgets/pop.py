@@ -14,18 +14,34 @@ class WaitDialog(QtWidgets.QDialog):
 
         self.setModal(True)  # Make it a modal dialog
 
+        # Create a frame to hold the label
+        self.frame = QtWidgets.QWidget()
+        self.frame.setStyleSheet(
+            "background-color: rgb(20, 20, 20); color: rgb(254, 126, 0); border-radius: 20px;"
+        )
+
         # Create a label to show the message
         self.label = QtWidgets.QLabel(message)
         self.set_message_size(message_size)
         self.label.setAlignment(QtCore.Qt.AlignCenter)
 
-        # Set up the layout
+        # Set up the frame layout
+        frame_layout = QtWidgets.QVBoxLayout()
+        frame_layout.setContentsMargins(22, 22, 22, 22)
+        frame_layout.addWidget(self.label)
+        self.frame.setLayout(frame_layout)
+
+        # Set up the dialog layout
         layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(self.label)
+        layout.addWidget(self.frame)
         self.setLayout(layout)
+
+        # make the dialog transparent
+        self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 
     def set_message_size(self, size):
         font = self.font()
+        font.setFamily("Roboto")
         font.setPointSize(size)
         self.label.setFont(font)
 
