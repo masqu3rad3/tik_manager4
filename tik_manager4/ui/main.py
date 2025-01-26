@@ -52,7 +52,6 @@ from tik_manager4.ui.dialog.update_dialog import UpdateDialog
 from tik_manager4.ui.widgets.pop import WaitDialog
 from tik_manager4 import management
 from tik_manager4.management.exceptions import SyncError
-from tik_manager4.ui.widgets.pop import Toaster
 
 
 LOG = logging.getLogger(__name__)
@@ -91,7 +90,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.setObjectName(window_name)
 
         self.feedback = Feedback(self)
-        self.toaster = Toaster(self)
         # set window size
         self.resize(1200, 800)
         self.central_widget = QtWidgets.QWidget(self)
@@ -579,15 +577,11 @@ class MainUI(QtWidgets.QMainWindow):
         handler, msg = self.tik.get_management_handler(platform_name)
         if not handler or not handler.is_authenticated:
             self.wait_dialog.kill()
-            # self.feedback.pop_info(title="Authentication Failed", text=f"Authentication failed while connecting to {platform_name}\n\n{msg}", critical=True)
-            self.toaster.make_toast(title="Authentication Failed",
-                                    text=f"Authentication failed while connecting to {nice_name}. Check Logs for more info.",
-                                    mode="error")
+            self.feedback.pop_info(title="Authentication Failed", text=f"Authentication failed while connecting to {platform_name}\n\n{msg}", critical=True)
             return None
         self.wait_dialog.kill()
-        self.toaster.make_toast(title="Connection Successfull",
-                                text=f"Connected to {nice_name}",
-                                mode="success")
+        self.status_bar.showMessage(f"Connected to {nice_name} successfully.", 5000)
+
         return handler
 
     def _main_button_states(self):
@@ -979,7 +973,6 @@ class MainUI(QtWidgets.QMainWindow):
         if state:
             self.refresh_project()
             self.status_bar.showMessage("Project created successfully")
-            self.toaster.make_toast(title="Project Created", text="Project created successfully", mode="success")
 
     def on_add_new_user(self):
         """Launch add new user dialog."""

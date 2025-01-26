@@ -62,8 +62,6 @@ from tik_manager4.ui import pick
 from tik_manager4.ui.widgets.value_widgets import Vector2Int
 from tik_manager4.ui.widgets.pop import WaitDialog
 
-from tik_manager4.ui.widgets.pop import Toaster
-
 LOG = logging.getLogger(__name__)
 
 
@@ -84,7 +82,6 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         # instanciate the publisher class
         self.feedback = Feedback(parent=self)
-        self.toaster = Toaster(parent=self)
         self.project = project_object
         self.project.publisher.resolve()
 
@@ -253,7 +250,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
         # ADD VALIDATIONS HERE
         # -------------------
         for validator_name, validator in self.project.publisher.validators.items():
-            validate_row = ValidateRow(validator_object=validator, toaster=self.toaster)
+            validate_row = ValidateRow(validator_object=validator)
             self.validations_scroll_lay.addLayout(validate_row)
             self._validator_widgets.append(validate_row)
         # -------------------
@@ -656,7 +653,6 @@ class ValidateRow(QtWidgets.QHBoxLayout):
     def __init__(self, validator_object, toaster=None, *args, **kwargs):
         """Initialize the ValidateRow."""
         super(ValidateRow, self).__init__(*args, **kwargs)
-        self.toaster=toaster
         self.validator = validator_object
         self.name = self.validator.nice_name or self.validator.name
         self.build_widgets()
@@ -742,15 +738,8 @@ class ValidateRow(QtWidgets.QHBoxLayout):
         self.validator.validate()
         end = time()
         if self.validator.state != "passed":
-            if self.toaster:
-                self.toaster.make_toast("Fix Successful",
-                                        f"Fixing {self.button.text()} took {end - start} seconds",
-                                        mode="success")
-        else:
-            if self.toaster:
-                self.toaster.make_toast("Fix Failed",
-                                        f"{self.button.text()} cannot be auto-fixed.",
-                                        mode="error")
+            # TODO: pop up a dialog to inform the user that the fix failed
+            LOG.info("fix failed")
         self.update_state()
 
 
