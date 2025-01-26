@@ -51,7 +51,7 @@ class Main:
 
         self.set_project(str(_project))
 
-        self._globalize_management_platform()
+        self.globalize_management_platform()
 
     def fallback_to_default_project(self):
         """Fallback to the default project."""
@@ -61,7 +61,7 @@ class Main:
             self._create_default_project()
             self.set_project(self.default_project.as_posix())
 
-    def _globalize_management_platform(self):
+    def globalize_management_platform(self):
         """Globalize the management platform."""
         management_platform = self.project.settings.get("management_platform", None)
         if management_platform:
@@ -172,7 +172,7 @@ class Main:
         categories = list(project_obj.guard.category_definitions.properties.keys())
         _main_task = project_obj.add_task("main", categories=categories)
 
-        self._globalize_management_platform()
+        self.globalize_management_platform()
 
         if set_after_creation:
             self.set_project(path_obj.as_posix())
@@ -197,7 +197,7 @@ class Main:
         self.user.add_recent_project(absolute_path)
         self.user.last_project = absolute_path
         self.dcc.set_project(absolute_path)
-        self._globalize_management_platform()
+        self.globalize_management_platform()
         return 1
 
     def collect_template_paths(self):
