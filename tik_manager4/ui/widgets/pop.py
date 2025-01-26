@@ -1,7 +1,11 @@
 """Popup dialogs."""
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore
-from tik_manager4.external.pyqttoast.toast import Toast, ToastPreset
+try:
+    from tik_manager4.external.pyqttoast.toast import Toast, ToastPreset
+except:
+    Toast = None
+    ToastPreset = None
 
 
 class WaitDialog(QtWidgets.QDialog):
@@ -62,21 +66,25 @@ class WaitDialog(QtWidgets.QDialog):
 
 
 class Toaster(QtWidgets.QWidget):
+    """Toast wrapper for showing messages."""
     def __init__(self, parent=None):
         super().__init__()
         self.parent = parent or self
-
-
-    """Toast wrapper for showing messages."""
-    mode_pairs = {
-        "info": ToastPreset.INFORMATION_DARK,
-        "warning": ToastPreset.WARNING_DARK,
-        "error": ToastPreset.ERROR_DARK,
-        "success": ToastPreset.SUCCESS_DARK,
-    }
+        if not Toast or not ToastPreset:
+            self.mode_pairs = {}
+        else:
+            self.mode_pairs = {
+                "info": ToastPreset.INFORMATION_DARK,
+                "warning": ToastPreset.WARNING_DARK,
+                "error": ToastPreset.ERROR_DARK,
+                "success": ToastPreset.SUCCESS_DARK,
+            }
 
     def make_toast(self, title, text, duration=5000, mode="info"):
         """Make a toast."""
+        if not Toast or not ToastPreset:
+            # Some DCCs don't support toasts
+            return
         toast = Toast(self.parent)
         toast.setDuration(duration)
         toast.setTitle(title)
