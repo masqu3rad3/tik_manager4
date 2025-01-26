@@ -54,6 +54,7 @@ from tik_manager4 import management
 from tik_manager4.management.exceptions import SyncError
 from tik_manager4.ui.widgets.pop import Toaster
 
+
 LOG = logging.getLogger(__name__)
 WINDOW_NAME = f"Tik Manager {version.__version__}"
 
