@@ -4,7 +4,9 @@
 
 import os
 import tempfile
-import requests
+import urllib.request
+import urllib.error
+# import requests
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 # we need to import the QtNetwork module from Qt like this to make sure it's
@@ -23,30 +25,67 @@ class ProjectItem(QtGui.QStandardItem):
         self.project_definition = definition_dict
         self.setText(definition_dict.get("name", "No Name"))
 
-        # show the thumbnail from url
+        # Show the thumbnail from URL
         self._empty_thumbnail = pick.icon("empty_thumbnail")
         url = definition_dict.get("image", None)
         headers = definition_dict.get("image_authorization_headers", {})
         self._load_icon_from_url(url, authorization_headers=headers)
 
     def _load_icon_from_url(self, url, authorization_headers=None):
-        """Load the icon from the url."""
+        """Load the icon from the URL using urllib."""
         authorization_headers = authorization_headers or {}
         if not url:
             self.setIcon(self._empty_thumbnail)
             return
+
         try:
-            response = requests.get(url, headers=authorization_headers)
-            response.raise_for_status()
+            request = urllib.request.Request(url, headers=authorization_headers)
+            with urllib.request.urlopen(request) as response:
+                content = response.read()
+
             with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
-                temp_file.write(response.content)
+                temp_file.write(content)
                 temp_file_path = temp_file.name
 
             pixmap = QtGui.QPixmap(temp_file_path)
             self.setIcon(QtGui.QIcon(pixmap))
             os.remove(temp_file_path)
-        except requests.RequestException:
+        except (urllib.error.URLError, urllib.error.HTTPError):
             self.setIcon(self._empty_thumbnail)
+
+# class ProjectItem(QtGui.QStandardItem):
+#     """Item for the project model."""
+#
+#     def __init__(self, definition_dict):
+#         """Initialize the item."""
+#         super().__init__()
+#         self.project_definition = definition_dict
+#         self.setText(definition_dict.get("name", "No Name"))
+#
+#         # show the thumbnail from url
+#         self._empty_thumbnail = pick.icon("empty_thumbnail")
+#         url = definition_dict.get("image", None)
+#         headers = definition_dict.get("image_authorization_headers", {})
+#         self._load_icon_from_url(url, authorization_headers=headers)
+#
+#     def _load_icon_from_url(self, url, authorization_headers=None):
+#         """Load the icon from the url."""
+#         authorization_headers = authorization_headers or {}
+#         if not url:
+#             self.setIcon(self._empty_thumbnail)
+#             return
+#         try:
+#             response = requests.get(url, headers=authorization_headers)
+#             response.raise_for_status()
+#             with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
+#                 temp_file.write(response.content)
+#                 temp_file_path = temp_file.name
+#
+#             pixmap = QtGui.QPixmap(temp_file_path)
+#             self.setIcon(QtGui.QIcon(pixmap))
+#             os.remove(temp_file_path)
+#         except requests.RequestException:
+#             self.setIcon(self._empty_thumbnail)
 
 class ProjectColumnItem(QtGui.QStandardItem):
     """Item for the columns of the project model."""

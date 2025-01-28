@@ -53,9 +53,9 @@ from tik_manager4.ui.widgets.pop import WaitDialog
 from tik_manager4 import management
 from tik_manager4.management.exceptions import SyncError
 
+
 LOG = logging.getLogger(__name__)
 WINDOW_NAME = f"Tik Manager {version.__version__}"
-
 
 
 def launch(dcc="Standalone", dont_show=False):
@@ -568,9 +568,9 @@ class MainUI(QtWidgets.QMainWindow):
 
     def management_connect(self, platform_name=None):
         """Convenience function to connect to a management platform."""
-
+        nice_name = platform_name.capitalize()
         self.wait_dialog = WaitDialog(
-                        message=f"Connecting to {platform_name}...",
+                        message=f"Connecting to {nice_name}...",
                         parent=self,
                     )
         self.wait_dialog.display()
@@ -580,6 +580,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.feedback.pop_info(title="Authentication Failed", text=f"Authentication failed while connecting to {platform_name}\n\n{msg}", critical=True)
             return None
         self.wait_dialog.kill()
+        self.status_bar.showMessage(f"Connected to {nice_name} successfully.", 5000)
+
         return handler
 
     def _main_button_states(self):
@@ -919,6 +921,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _can_proceed_without_management(self, platform):
         """"Pops up the question dialog to proceed without management."""
+        platform = platform.capitalize()
         ret = self.feedback.pop_question(title=f"Connection Error - {platform}",
                                          text=f"An error occurred while connecting/syncing to the {platform} project.\n\nDo you want to proceed without {platform}?",
                                          buttons=["yes", "no"])

@@ -60,7 +60,7 @@ class TikProjectLayout(QtWidgets.QHBoxLayout):
     def refresh(self):
         """Refresh the project path"""
         self._project_path_le.setText(self.main_object.project.absolute_path)
-        self.main_object.__init__() # reinitialize the main object
+        self.main_object.globalize_management_platform() # reinitialize the main object
         self._set_management_icon()
 
 

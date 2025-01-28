@@ -396,9 +396,6 @@ class PublishSceneDialog(QtWidgets.QDialog):
         preview_layout = QtWidgets.QHBoxLayout()
         self.bottom_layout.addLayout(preview_layout)
 
-        # preview_lbl = QtWidgets.QLabel("Preview: ")
-        # preview_layout.addWidget(preview_lbl)
-
         preview_enabled_cb = QtWidgets.QCheckBox(text="Take Preview")
         preview_enabled_cb.setChecked(True)
         preview_layout.addWidget(preview_enabled_cb)
@@ -653,7 +650,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
 class ValidateRow(QtWidgets.QHBoxLayout):
     """Custom Layout for validation rows."""
 
-    def __init__(self, validator_object, *args, **kwargs):
+    def __init__(self, validator_object, toaster=None, *args, **kwargs):
         """Initialize the ValidateRow."""
         super(ValidateRow, self).__init__(*args, **kwargs)
         self.validator = validator_object
@@ -739,11 +736,13 @@ class ValidateRow(QtWidgets.QHBoxLayout):
         LOG.info("fixing %s...", self.button.text())
         self.validator.fix()
         self.validator.validate()
-        if self.validator.state != "passed":
-            # TODO: dialog or some kind of feedback
-            pass
-        self.update_state()
         end = time()
+        if self.validator.state != "passed":
+            # TODO: pop up a dialog to inform the user that the fix failed
+            LOG.info("fix failed")
+        self.update_state()
+
+
         LOG.info("took %s seconds", end - start)
 
     def select(self):
