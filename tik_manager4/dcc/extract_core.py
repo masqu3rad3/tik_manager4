@@ -26,8 +26,6 @@ class ExtractCore:
     # any ingestor with the same bundle_match_id will be able to ingest this bundle.
 
     def __init__(self, exposed_settings=None, global_exposed_settings=None):
-        # get the module name as name
-        # self._name = None
         self.global_exposed_settings_ui: dict = global_exposed_settings or {}
         self.exposed_settings_ui: dict = exposed_settings or {}
 

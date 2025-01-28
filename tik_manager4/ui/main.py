@@ -550,6 +550,7 @@ class MainUI(QtWidgets.QMainWindow):
         )
 
         # check if the tik.main.dcc has a preview method
+        # FIXME: Remove the preview from here when its implemented to the dcc extensions
         if self.tik.dcc.preview_enabled:
             create_preview = QtWidgets.QAction(
                 pick.icon("camera"), "&Create Preview", self
@@ -565,6 +566,18 @@ class MainUI(QtWidgets.QMainWindow):
         for platform_name, extension_class in management.ui_extensions.items():
             extension = extension_class(self)
             extension.build_ui()
+
+        # get the dcc extensions
+        if self.tik.dcc.extensions:
+            # create a menu item for the dcc extensions
+            dcc_menu = self.menu_bar.addMenu(f"{self.tik.dcc.name}")
+        else:
+            return
+        for key, extension_class in self.tik.dcc.extensions.items():
+            extension = extension_class(self)
+            extension.menu_item = dcc_menu
+            extension.execute()
+        # print(self.tik.dcc.extensions)
 
     def management_connect(self, platform_name=None):
         """Convenience function to connect to a management platform."""
@@ -989,6 +1002,7 @@ class MainUI(QtWidgets.QMainWindow):
         dialog.show()
 
     def on_create_preview(self):
+        # FIXME: Remove this method when the dcc extensions are implemented
         """Initiate a preview creation and launch the preview dialog."""
         # find the work by scene
         scene_file_path = self.tik.dcc.get_scene_file()

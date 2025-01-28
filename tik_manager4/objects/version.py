@@ -174,6 +174,10 @@ class PublishVersion(Settings, LocalizeMixin):
         """The previews of the publish version."""
         return self._previews
 
+    @previews.setter
+    def previews(self, value):
+        self._previews = value
+
     @property
     def user(self):
         """The user of the publish version. Alias for creator."""
@@ -335,6 +339,10 @@ class WorkVersion(LocalizeMixin):
     def previews(self):
         """The previews of the work version."""
         return self._previews
+
+    @previews.setter
+    def previews(self, value):
+        self._previews = value
 
     @property
     def path(self):

@@ -9,6 +9,7 @@ class MainCore():
     validations = {}
     extracts = {}
     ingests = {}
+    extensions = {}
 
     @staticmethod
     def pre_publish():

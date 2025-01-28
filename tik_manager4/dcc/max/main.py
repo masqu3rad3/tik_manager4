@@ -9,6 +9,8 @@ from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.dcc.max import validate
 from tik_manager4.dcc.max import extract
 from tik_manager4.dcc.max import ingest
+from tik_manager4.dcc.max import utils
+from tik_manager4.dcc.max import extension
 
 
 LOG = logging.getLogger(__name__)
@@ -21,6 +23,7 @@ class Dcc(MainCore):
     validations = validate.classes
     extracts = extract.classes
     ingests = ingest.classes
+    extensions = extension.classes
 
     @staticmethod
     def get_main_window():
@@ -70,11 +73,7 @@ class Dcc(MainCore):
     @staticmethod
     def get_ranges():
         """Get the viewport ranges."""
-        r_ast = float(rt.animationRange.start)
-        r_min = float(rt.animationRange.start)
-        r_max = float(rt.animationRange.end)
-        r_aet = float(rt.animationRange.end)
-        return [r_ast, r_min, r_max, r_aet]
+        utils.get_ranges()
 
     @staticmethod
     def set_ranges(range_list):
@@ -88,7 +87,7 @@ class Dcc(MainCore):
         Returns: None
 
         """
-        rt.animationRange = rt.interval(range_list[0], range_list[-1])
+        utils.get_ranges(range_list)
 
     @staticmethod
     def is_modified():
@@ -286,7 +285,7 @@ class Dcc(MainCore):
     @staticmethod
     def get_scene_fps():
         """Return the current FPS value set by DCC. None if not supported."""
-        return rt.framerate
+        return utils.get_scene_fps()
 
     def set_scene_fps(self, fps_value):
         """
@@ -297,6 +296,4 @@ class Dcc(MainCore):
         Returns: None
 
         """
-        range = self.get_ranges()
-        rt.framerate = fps_value
-        self.set_ranges(range)
+        utils.set_scene_fps(fps_value)

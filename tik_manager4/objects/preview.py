@@ -221,10 +221,16 @@ class Preview:
         if self.database_obj.object_type == ObjectType.WORK:
             # if this is a work object, we need to update the specific version dictionary.
             version = self.database_obj.get_version(self.context.version_number)
-            if "previews" in version.keys():
-                version["previews"].update(preview_data)
+            if version.previews:
+                version.previews.update(preview_data)
+                # version.previews.update(preview_data)
             else:
-                version["previews"] = preview_data
+                version.previews = preview_data
+                # version.previews = preview_data
+            # if "previews" in version.keys():
+            #     version["previews"].update(preview_data)
+            # else:
+            #     version["previews"] = preview_data
             self.database_obj.apply_settings(force=True)
         elif self.database_obj.object_type == ObjectType.PUBLISH_VERSION:
             # PublishVersion object has no version number, so we update the previews directly
