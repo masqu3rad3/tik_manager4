@@ -24,7 +24,7 @@ class Source(IngestCore):
         """Reference the Blender scene."""
 
         # Link/Append the objects from the specified collection
-        with bpy.data.libraries.load(self.ingest_path) as (data_from, data_to):
+        with bpy.data.libraries.load(self.ingest_path, link=True) as (data_from, data_to):
             data_to.collections = data_from.collections
 
         # Link/Append the collection to the current scene
