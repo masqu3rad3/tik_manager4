@@ -12,6 +12,7 @@ from tik_manager4.core import settings
 from tik_manager4.core import utils
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.external.filelock import FileLock, Timeout
+from tik_manager4.core.cli import FeedbackCLI
 
 
 def test_filelog(tmp_path: Path):
@@ -304,3 +305,43 @@ def test_execute(tmp_path):
         with patch("subprocess.Popen") as mock_popen:
             utils.execute(str(_file))
             mock_popen.assert_called_once_with(["open", str(_file)])
+
+def test_pop_info_displays_message_and_exits_on_critical():
+    feedback = FeedbackCLI()
+    with patch("sys.exit") as mock_exit, patch("builtins.input", return_value=""):
+        result = feedback.pop_info(
+            title="Critical Info",
+            text="This is a critical message.",
+            critical=True
+        )
+        assert result == 1
+        mock_exit.assert_called_once_with(1)
+
+def test_pop_info_displays_message_and_returns_ok():
+    feedback = FeedbackCLI()
+    with patch("builtins.input", return_value=""):
+        result = feedback.pop_info(
+            title="Info",
+            text="This is an informational message."
+        )
+        assert result == 1
+
+def test_pop_question_displays_question_and_returns_user_selection():
+    feedback = FeedbackCLI()
+    with patch("builtins.input", return_value="yes"):
+        result = feedback.pop_question(
+            title="Question",
+            text="Do you want to proceed?",
+            buttons=["yes", "no"]
+        )
+        assert result == "yes"
+
+def test_pop_question_reprompts_on_invalid_input():
+    feedback = FeedbackCLI()
+    with patch("builtins.input", side_effect=["invalid", "yes"]):
+        result = feedback.pop_question(
+            title="Question",
+            text="Do you want to proceed?",
+            buttons=["yes", "no"]
+        )
+        assert result == "yes"

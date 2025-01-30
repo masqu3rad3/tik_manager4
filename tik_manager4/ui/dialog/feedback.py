@@ -62,11 +62,23 @@ class Feedback:
 
         button_dict = {
             "yes": QtWidgets.QMessageBox.Yes,
+            "yes_to_all": QtWidgets.QMessageBox.YesToAll,
             "save": QtWidgets.QMessageBox.Save,
             "ok": QtWidgets.QMessageBox.Ok,
-            "continue": QtWidgets.QMessageBox.Yes,
+            "open": QtWidgets.QMessageBox.Open,
+            "close": QtWidgets.QMessageBox.Close,
+            "discard": QtWidgets.QMessageBox.Discard,
+            "apply": QtWidgets.QMessageBox.Apply,
+            "reset": QtWidgets.QMessageBox.Reset,
+            "restore_defaults": QtWidgets.QMessageBox.RestoreDefaults,
+            "help": QtWidgets.QMessageBox.Help,
+            "save_all": QtWidgets.QMessageBox.SaveAll,
             "no": QtWidgets.QMessageBox.No,
+            "no_to_all": QtWidgets.QMessageBox.NoToAll,
             "cancel": QtWidgets.QMessageBox.Cancel,
+            "ignore": QtWidgets.QMessageBox.Ignore,
+            "abort": QtWidgets.QMessageBox.Abort,
+            "retry": QtWidgets.QMessageBox.Retry,
         }
 
         widgets = []

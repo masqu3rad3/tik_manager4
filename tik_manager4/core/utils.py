@@ -9,6 +9,8 @@ import subprocess
 import re
 import unicodedata
 
+from tik_manager4.external import fileseq
+
 CURRENT_PLATFORM = platform.system()
 
 LOG = logging.getLogger(__name__)
@@ -50,6 +52,20 @@ def execute(file_path, executable=None):
             Flags can be passed at the eng of the string.
             e.g. "path/to/file -flag1 -flag2".
     """
+    # check if file exists
+    path_obj = Path(file_path)
+    if not path_obj.exists():
+        # may it be a sequential file?
+        if len(path_obj.suffixes) < 2:
+            raise FileNotFoundError(
+                "The file does not exist. {}".format(file_path))
+        pattern = path_obj.as_posix().replace(path_obj.suffixes[0], ".@")
+        seq = fileseq.findSequenceOnDisk(pattern)
+        if not seq:
+            raise FileNotFoundError(
+                "The file does not exist. {}".format(file_path))
+        file_path = seq.index(0)
+
     if executable:
         # validate the existence
         if not Path(executable).is_file():
