@@ -42,6 +42,7 @@ from tik_manager4.ui.dialog.work_dialog import (
 )
 from tik_manager4.ui.mcv.category_mcv import TikCategoryLayout
 from tik_manager4.ui.mcv.project_mcv import TikProjectLayout
+from tik_manager4.ui.mcv.project_mcv import TikProjectWidget
 from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
 from tik_manager4.ui.mcv.task_mcv import TikTaskLayout
 from tik_manager4.ui.mcv.user_mcv import TikUserLayout
@@ -177,7 +178,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.menu_bar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 680, 18))
         self.build_bars()
         self.build_buttons()
-        #
+
         self.build_extensions()
 
         self.resume_last_state()
@@ -264,8 +265,8 @@ class MainUI(QtWidgets.QMainWindow):
 
     def initialize_mcv(self):
         """Initialize the model-control-views."""
-        self.project_mcv = TikProjectLayout(self.tik, parent=self)
-        self.project_layout.addLayout(self.project_mcv)
+        self.project_mcv = TikProjectWidget(self.tik, parent=self)
+        self.project_layout.addWidget(self.project_mcv)
 
         self.user_mcv = TikUserLayout(self.tik.user)
         self.user_layout.addLayout(self.user_mcv)
@@ -405,24 +406,23 @@ class MainUI(QtWidgets.QMainWindow):
 
     def build_buttons(self):
         "Build the buttons"
-
         # Work buttons
         save_new_work_btn = TikButton("Save New Work")
-        save_new_work_btn.setMinimumSize(150, 40)
+        save_new_work_btn.setMinimumSize(12, 40)
         work_from_template_btn = TikButton("Work from Template")
-        work_from_template_btn.setMinimumSize(150, 40)
+        work_from_template_btn.setMinimumSize(12, 40)
         save_file_as_work_btn = TikButton("Save File as Work")
-        save_file_as_work_btn.setMinimumSize(150, 40)
+        save_file_as_work_btn.setMinimumSize(12, 40)
         save_folder_as_work_btn = TikButton("Save Folder as Work")
-        save_folder_as_work_btn.setMinimumSize(150, 40)
+        save_folder_as_work_btn.setMinimumSize(12, 40)
         increment_version_btn = TikButton("Increment Version")
-        increment_version_btn.setMinimumSize(150, 40)
+        increment_version_btn.setMinimumSize(12, 40)
         self.ingest_version_btn = TikButton("Ingest Version")
-        self.ingest_version_btn.setMinimumSize(150, 40)
+        self.ingest_version_btn.setMinimumSize(12, 40)
         publish_scene_btn = TikButton("Publish Scene")
-        publish_scene_btn.setMinimumSize(150, 40)
+        publish_scene_btn.setMinimumSize(12, 40)
         publish_snapshot_btn = TikButton("Publish Snapshot")
-        publish_snapshot_btn.setMinimumSize(150, 40)
+        publish_snapshot_btn.setMinimumSize(12, 40)
         # set the publish icon to the button
         publish_snapshot_btn.setIcon(pick.icon("published"))
         publish_snapshot_btn.setIconSize(QtCore.QSize(24, 24))
@@ -469,7 +469,7 @@ class MainUI(QtWidgets.QMainWindow):
         # pylint: disable=too-many-statements
         self.setMenuBar(self.menu_bar)
         file_menu = self.menu_bar.addMenu("File")
-        tools_menu = self.menu_bar.addMenu("Tools")
+        window_menu = self.menu_bar.addMenu("Window")
         help_menu = self.menu_bar.addMenu("Help")
 
         # File Menu
@@ -488,6 +488,8 @@ class MainUI(QtWidgets.QMainWindow):
         file_menu.addSeparator()
         save_new_work = QtWidgets.QAction(pick.icon("save"), "&Save New Work", self)
         file_menu.addAction(save_new_work)
+        new_work_from_template = QtWidgets.QAction(pick.icon("save"), "&Create Work From Template", self)
+        file_menu.addAction(new_work_from_template)
         increment_version = QtWidgets.QAction("&Increment Version", self)
         file_menu.addAction(increment_version)
         ingest_version = QtWidgets.QAction("&Ingest Version", self)
@@ -511,7 +513,13 @@ class MainUI(QtWidgets.QMainWindow):
         file_menu.addAction(exit_action)
 
         # make the menu bar items wide enough to show the icons and all text
-        # Tools Menu
+        # Window Menu
+        project_visibility = QtWidgets.QAction("&Project", self)
+        project_visibility.setCheckable(True)
+        window_menu.addAction(project_visibility)
+        buttons_visibility = QtWidgets.QAction("&Buttons", self)
+        buttons_visibility.setCheckable(True)
+        window_menu.addAction(buttons_visibility)
 
         # Help Menu
         issues_and_feature_requests = QtWidgets.QAction(
@@ -533,6 +541,7 @@ class MainUI(QtWidgets.QMainWindow):
         exit_action.triggered.connect(self.close)
 
         save_new_work.triggered.connect(self.on_new_work)
+        new_work_from_template.triggered.connect(self.on_work_from_template)
         save_file_as_work.triggered.connect(lambda: self.on_save_any_file(folder=False))
         save_folder_as_work.triggered.connect(
             lambda: self.on_save_any_file(folder=True)
@@ -549,6 +558,11 @@ class MainUI(QtWidgets.QMainWindow):
         issues_and_feature_requests.triggered.connect(
             lambda: webbrowser.open("https://github.com/masqu3rad3/tik_manager4/issues")
         )
+
+        project_visibility.toggled.connect(lambda checked: self.project_mcv.setVisible(checked))
+        # buttons_visibility.toggled.connect(lambda checked: self.work_buttons_frame.setVisible(checked))
+        # when buttons visibility is toggled, delete the buttons
+        buttons_visibility.toggled.connect(self.work_buttons_frame.setVisible)
 
         self.menu_bar.setMinimumWidth(self.menu_bar.sizeHint().width())
 

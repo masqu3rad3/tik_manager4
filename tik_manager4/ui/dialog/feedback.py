@@ -2,12 +2,56 @@ from pathlib import Path
 from typing import Optional, List
 import sys
 
+from tik_manager4.core.utils import get_nice_name
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.widgets.common import TikMessageBox
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
 
+FONT = "Roboto"
+
+BUTTON_STYLE = """
+QPushButton
+{
+    color: #b1b1b1;
+    background-color: #404040;
+    border-width: 1px;
+    border-color: #1e1e1e;
+    border-style: solid;
+    padding: 5px;
+    font-size: 12x;
+    border-radius: 4px;
+}
+
+QPushButton:hover
+{
+    background-color: #505050;
+    border: 1px solid #ff8d1c;
+}
+
+QPushButton:hover[circle=true]
+{
+    background-color: #505050;
+    border: 2px solid #ff8d1c;
+}
+
+QPushButton:disabled {
+    color: #505050;
+    background-color: #303030;
+    border: 1px solid #404040;
+    border-width: 1px;
+    border-color: #1e1e1e;
+    border-style: solid;
+    padding: 5px;
+    font-size: 12x;
+}
+
+QPushButton:pressed {
+  background-color: #ff8d1c;
+  border: 1px solid #ff8d1c;
+}
+"""
 
 class Feedback:
     def __init__(self, parent=None):
@@ -18,6 +62,7 @@ class Feedback:
         """Applies consistent styling to a button."""
         button.setFixedHeight(height)
         button.setFixedWidth(width)
+        button.setStyleSheet(BUTTON_STYLE)
         if label:
             button.setText(label)
 
@@ -67,6 +112,7 @@ class Feedback:
             "ok": QtWidgets.QMessageBox.Ok,
             "open": QtWidgets.QMessageBox.Open,
             "close": QtWidgets.QMessageBox.Close,
+            "continue": QtWidgets.QMessageBox.Yes,
             "discard": QtWidgets.QMessageBox.Discard,
             "apply": QtWidgets.QMessageBox.Apply,
             "reset": QtWidgets.QMessageBox.Reset,
@@ -103,6 +149,10 @@ class Feedback:
             combined_buttons |= widget
 
         q.setStandardButtons(combined_buttons)
+
+        # go over all buttons and style them
+        for button in q.buttons():
+            self.style_button(button)
 
         ret = q.exec_()
         for key, value in button_dict.items():

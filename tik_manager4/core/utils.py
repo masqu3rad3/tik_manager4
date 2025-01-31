@@ -100,16 +100,6 @@ def sanitize_text(text, allow_spaces=False):
 
     return sanitized_text
 
-# def move(source, target, force=True):
-#     """Move the source file or folder to the target location."""
-#     if Path(source).is_file():
-#         copy_function = shutil.copy2
-#     else:
-#         copy_function = shutil.copytree
-#
-#     Path(target).parent.mkdir(parents=True, exist_ok=True)
-#     shutil.move(source, target, copy_function=copy_function)
-
 def move(source, target, force=True, raise_error=False):
     """Move the source file or folder to the target location.
 
@@ -183,3 +173,11 @@ def write_unprotect(file_or_folder):
         except Exception as e:  # pylint: disable=broad-except
             LOG.error(f"Error removing write protection: {e}")
             return False, f"Error removing write protection: {e}"
+
+def get_nice_name(input_str):
+    """Convert camel case or snake case to nice name."""
+    # Use regular expression to split the string at camel case boundaries
+    words = re.findall(r"[A-Z][a-z]*|[a-z]+", input_str)
+    # Capitalize the first letter of each word and join them with a space
+    nice_name = " ".join(word.capitalize() for word in words)
+    return nice_name

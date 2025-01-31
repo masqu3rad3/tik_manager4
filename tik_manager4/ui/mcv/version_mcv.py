@@ -81,7 +81,7 @@ class VersionWidgets:
     sync_btn: TikButton
     lbl: QtWidgets.QLabel
     combo: VersionComboBox
-    preview_btn: TikButton
+    preview_btn: TikIconButton
     owner_lbl: QtWidgets.QLabel
 
 
@@ -89,7 +89,7 @@ class VersionWidgets:
 class ElementWidgets:
     element_lbl: QtWidgets.QLabel
     element_combo: QtWidgets.QComboBox
-    element_view_btn: TikButton
+    element_view_btn: TikIconButton
     ingest_with_lbl: QtWidgets.QLabel
     ingest_with_combo: QtWidgets.QComboBox
 
@@ -136,14 +136,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             sync_btn=TikButton(text="Sync"),
             lbl=QtWidgets.QLabel(text="Version: "),
             combo=VersionComboBox(),
-            preview_btn=TikButton(text="Show Preview"),
+            preview_btn=TikIconButton(icon_name="player.png", circle=False, size=30),
             owner_lbl=QtWidgets.QLabel("Owner: ")
         )
 
         self.element = ElementWidgets(
             element_lbl=QtWidgets.QLabel("Element: "),
             element_combo=QtWidgets.QComboBox(),
-            element_view_btn=TikButton("View"),
+            element_view_btn=TikIconButton(icon_name="view.png", circle=False, size=30),
             ingest_with_lbl=QtWidgets.QLabel("Ingest with: "),
             ingest_with_combo=QtWidgets.QComboBox()
         )
@@ -186,14 +186,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         version_layout.addWidget(self.version.sync_btn)
         version_layout.addStretch()
         self.version.lbl.setFont(QtGui.QFont("Arial", 10))
-        self.version.lbl.setMinimumSize = QtCore.QSize(60, 30)
+        self.version.lbl.setMinimumSize = QtCore.QSize(10, 30)
         self.version.lbl.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignRight)
         version_layout.addWidget(self.version.lbl)
 
-        self.version.combo.setMinimumSize(QtCore.QSize(60, 30))
+        self.version.combo.setMinimumSize(QtCore.QSize(10, 30))
         version_layout.addWidget(self.version.combo)
 
-        self.version.preview_btn.setMinimumSize(QtCore.QSize(60, 30))
+        self.version.preview_btn.setMinimumSize(QtCore.QSize(30, 30))
         self.version.preview_btn.setEnabled(False)
         version_layout.addWidget(self.version.preview_btn)
 
@@ -206,10 +206,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         element_layout = QtWidgets.QVBoxLayout()
         self.addLayout(element_layout)
-        self.element.element_lbl.setFont(QtGui.QFont("Arial", 10))
+        self.element.element_lbl.setFont(QtGui.QFont("Roboto", 10))
         element_layout.addWidget(self.element.element_lbl)
         element_hlay = QtWidgets.QHBoxLayout()
-        self.element.element_view_btn.setMaximumWidth(50)
+        self.element.element_view_btn.setMaximumWidth(30)
         element_hlay.addWidget(self.element.element_combo)
         element_hlay.addWidget(self.element.element_view_btn)
         element_layout.addLayout(element_hlay)
@@ -226,7 +226,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         notes_layout.addWidget(self.info.notes_editor)
 
         self.info.thumbnail.setToolTip("Right Click for replace options")
-        self.info.thumbnail.setMinimumSize(QtCore.QSize(221, 124))
+        # self.info.thumbnail.setMinimumSize(QtCore.QSize(221, 124))
+        self.info.thumbnail.setMinimumSize(QtCore.QSize(55, 30))
         self.info.thumbnail.setFrameShape(QtWidgets.QFrame.Box)
         self.info.thumbnail.setScaledContents(True)
         self.info.thumbnail.setAlignment(QtCore.Qt.AlignCenter)
@@ -511,8 +512,11 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.buttons.load_btn.setEnabled(False)
             self.buttons.import_btn.setEnabled(False)
             self.buttons.reference_btn.setEnabled(False)
+            self.element.element_view_btn.setEnabled(False)
             return
         _element_type = self.get_selected_element_type()
+        if _element_type:
+            self.element.element_view_btn.setEnabled(True)
         _is_bundled = self.__is_element_bundled(_element_type)
         if _is_bundled:
             self.buttons.bundle_ingest_btn.setVisible(True)
@@ -534,15 +538,19 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.version.combo.clear()
             self.version.combo.setEnabled(False)
             self.element.element_combo.clear()
+            self.element.element_view_btn.setEnabled(False)
             self.info.notes_editor.clear()
             self.info.notes_editor.setEnabled(False)
             self.info.thumbnail.clear()
             self.info.thumbnail.setEnabled(False)
+            self.version.preview_btn.setEnabled(False)
             self.toggle_sync_state(False)
             return
         self.version.combo.setEnabled(True)
+        # self.element.element_view_btn.setEnabled(True)
         self.info.notes_editor.setEnabled(True)
         self.info.thumbnail.setEnabled(True)
+        self.version.preview_btn.setEnabled(True)
         self.base = base
         self.populate_versions(base.versions)
         self.version.combo.blockSignals(False)
