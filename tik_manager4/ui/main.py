@@ -179,7 +179,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.build_bars()
         self.build_buttons()
 
-        self.build_extensions()
+        # self.build_extensions()
 
         self.resume_last_state()
         self.management_lock()
@@ -469,6 +469,8 @@ class MainUI(QtWidgets.QMainWindow):
         # pylint: disable=too-many-statements
         self.setMenuBar(self.menu_bar)
         file_menu = self.menu_bar.addMenu("File")
+        # build extensions before window and help menus
+        self.build_extensions()
         window_menu = self.menu_bar.addMenu("Window")
         help_menu = self.menu_bar.addMenu("Help")
 
