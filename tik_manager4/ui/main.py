@@ -30,7 +30,6 @@ from tik_manager4.core import utils
 from tik_manager4.ui import pick
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
-from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog
 from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
 from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
@@ -63,10 +62,13 @@ def launch(dcc="Standalone", dont_show=False):
     window_name = f"Tik Manager {version.__version__} - {dcc}"
     all_widgets = QtWidgets.QApplication.allWidgets()
     tik = tik_manager4.initialize(dcc)
+    if tik.dcc.custom_launcher and not dont_show: # This is only for main ui.
+        return tik.dcc.launch(tik, window_name=window_name)
     parent = tik.dcc.get_main_window()
     for entry in all_widgets:
         try:
             if entry.objectName() == window_name:
+            # if entry.objectName().startswith("Tik Manager"):
                 entry.close()
                 entry.deleteLater()
         except (AttributeError, TypeError):
@@ -321,7 +323,6 @@ class MainUI(QtWidgets.QMainWindow):
         )
         self.categories_mcv.work_tree_view.file_dropped.connect(self.on_save_any_file)
         self.versions_mcv.version.preview_btn.clicked.connect(self.on_show_preview)
-        # self.versions_mcv.element_view_btn.clicked.connect(self.on_element_view)
         self.versions_mcv.element_view_event.connect(self.on_element_view)
 
         if self.tik.dcc.name == "Standalone":
@@ -548,15 +549,6 @@ class MainUI(QtWidgets.QMainWindow):
         issues_and_feature_requests.triggered.connect(
             lambda: webbrowser.open("https://github.com/masqu3rad3/tik_manager4/issues")
         )
-
-        # check if the tik.main.dcc has a preview method
-        # FIXME: Remove the preview from here when its implemented to the dcc extensions
-        if self.tik.dcc.preview_enabled:
-            create_preview = QtWidgets.QAction(
-                pick.icon("camera"), "&Create Preview", self
-            )
-            tools_menu.addAction(create_preview)
-            create_preview.triggered.connect(self.on_create_preview)
 
         self.menu_bar.setMinimumWidth(self.menu_bar.sizeHint().width())
 
@@ -999,55 +991,6 @@ class MainUI(QtWidgets.QMainWindow):
     def on_login(self):
         """Launch login dialog."""
         dialog = LoginDialog(self.tik.user, parent=self)
-        dialog.show()
-
-    def on_create_preview(self):
-        # FIXME: Remove this method when the dcc extensions are implemented
-        """Initiate a preview creation and launch the preview dialog."""
-        # find the work by scene
-        scene_file_path = self.tik.dcc.get_scene_file()
-        if not scene_file_path:
-            self.feedback.pop_info(
-                title="Scene file cannot be found.",
-                text="Scene file cannot be found. "
-                "Please either save your scene by creating a new work or "
-                "ingest it into an existing one.",
-                critical=True,
-            )
-            return
-        _work, _version = self.tik.project.find_work_by_absolute_path(scene_file_path)
-        if not _work:
-            self.feedback.pop_info(
-                title="Work object cannot be found.",
-                text="Work cannot be found. Versions can only saved on work objects.\n"
-                "If there is no work associated with current scene either create a work "
-                "or use the ingest method to save it into an existing work",
-                critical=True,
-            )
-            return
-
-        # find the task from the work
-        _task = self.tik.project.find_task_by_id(_work.task_id)
-        # get the resolution from the task (if any)
-        _task_metadata = _task.metadata
-        _resolution = _task_metadata.get_value(
-            "resolution", fallback_value=None
-        )
-        _range_start = _task_metadata.get_value(
-            "start_frame", fallback_value=None
-        )
-        _range_end = _task_metadata.get_value(
-            "end_frame", fallback_value=None
-        )
-        _range = [_range_start, _range_end]
-
-        dialog = PreviewDialog(
-            work_object=_work,
-            version=_version,
-            resolution=_resolution,
-            frame_range=_range,
-            parent=self,
-        )
         dialog.show()
 
     def on_show_preview(self):

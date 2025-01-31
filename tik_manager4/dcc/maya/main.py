@@ -4,12 +4,14 @@ from pathlib import Path
 import logging
 import platform
 
+from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from maya import cmds
 from maya import mel
 import maya.OpenMaya as om
 from maya import OpenMayaUI as omui
 
 from tik_manager4.ui.Qt import QtWidgets, QtCompat
+from tik_manager4.ui.main import MainUI as tik4_main
 from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.dcc.maya import utils
 from tik_manager4.dcc.maya import panels
@@ -31,6 +33,7 @@ class Dcc(MainCore):
     extracts = extract.classes
     ingests = ingest.classes
     extensions = extension.classes
+    custom_launcher = True
 
     @staticmethod
     def get_main_window():
@@ -363,3 +366,21 @@ class Dcc(MainCore):
     def get_dcc_version():
         """Return the DCC major version."""
         return str(cmds.about(query=True, majorVersion=True))
+
+    def launch(self, tik_main_object, window_name=None):
+        """Launch Tik Main UI with DCC specific way."""
+        print("Launching Maya Main UI")
+        parent = self.get_main_window()
+
+        workspace_name = f"{window_name}WorkspaceControl"
+        if cmds.workspaceControl(workspace_name, query=True, exists=True):
+            cmds.workspaceControl(workspace_name, edit=True, close=True)
+            cmds.deleteUI(workspace_name, control=True)
+
+        main_ui = DockableMainUI(main_object=tik_main_object, window_name=window_name, parent=parent)
+        main_ui.show(dockable=True)
+
+
+class DockableMainUI(MayaQWidgetDockableMixin, tik4_main):
+    def __init__(self, main_object=None, window_name=None, parent=None, **kwargs):
+        super(DockableMainUI, self).__init__(main_object=main_object, window_name=window_name, parent=parent, **kwargs)
