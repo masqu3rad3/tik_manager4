@@ -112,7 +112,6 @@ class TikProjectLayout(QtWidgets.QHBoxLayout):
 
     def set_recent_project(self):
         """Set the recent project"""
-        print("Setting recent project")
         dialog = SetProjectDialog(self.main_object, parent=self.parent)
         if dialog.recents_pop_menu():
             self.__register_project(dialog.main_object.project.name)

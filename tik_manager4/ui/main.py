@@ -22,17 +22,21 @@ main.launch(dcc="Maya")
 """
 
 import logging
-
 import webbrowser
+
 import tik_manager4
 import tik_manager4._version as version
+from tik_manager4 import management
 from tik_manager4.core import utils
+from tik_manager4.management.exceptions import SyncError
 from tik_manager4.ui import pick
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog
 from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
 from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
+from tik_manager4.ui.dialog import support_splash
+from tik_manager4.ui.dialog.update_dialog import UpdateDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
 from tik_manager4.ui.dialog.work_dialog import (
     NewWorkDialog,
@@ -41,17 +45,13 @@ from tik_manager4.ui.dialog.work_dialog import (
     WorkFromTemplateDialog,
 )
 from tik_manager4.ui.mcv.category_mcv import TikCategoryLayout
-from tik_manager4.ui.mcv.project_mcv import TikProjectWidget, TikProjectLayout
+from tik_manager4.ui.mcv.project_mcv import TikProjectWidget
 from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
 from tik_manager4.ui.mcv.task_mcv import TikTaskLayout
-from tik_manager4.ui.mcv.user_mcv import TikUserWidget, TikUserLayout
+from tik_manager4.ui.mcv.user_mcv import TikUserWidget
 from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
 from tik_manager4.ui.widgets.common import TikButton, VerticalSeparator
-from tik_manager4.ui.dialog.update_dialog import UpdateDialog
 from tik_manager4.ui.widgets.pop import WaitDialog
-from tik_manager4 import management
-from tik_manager4.management.exceptions import SyncError
-
 
 LOG = logging.getLogger(__name__)
 WINDOW_NAME = f"Tik Manager {version.__version__}"
@@ -73,10 +73,10 @@ def launch(dcc="Standalone", dont_show=False):
                 entry.deleteLater()
         except (AttributeError, TypeError):
             pass
-    m = MainUI(tik, parent=parent, window_name=window_name)
+    main_ui_obj = MainUI(tik, parent=parent, window_name=window_name)
     if not dont_show:
-        m.show()
-    return m
+        main_ui_obj.show()
+    return main_ui_obj
 
 
 class MainUI(QtWidgets.QMainWindow):
@@ -85,8 +85,11 @@ class MainUI(QtWidgets.QMainWindow):
     def __init__(self, main_object, window_name=WINDOW_NAME, **kwargs):
         """Initialize the main UI."""
         # pylint: disable=too-many-statements
-        super(MainUI, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.tik = main_object
+
+        # show the support splash screen
+        self.support_splash()
 
         self.setWindowTitle(window_name)
         self.setObjectName(window_name)
@@ -163,7 +166,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.setStatusBar(self.status_bar)
 
         self.initialize_mcv()
-        self.menu_bar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 680, 18))
+        self.menu_bar = QtWidgets.QMenuBar(self)
         self.build_bars()
         self.build_buttons()
 
@@ -171,6 +174,35 @@ class MainUI(QtWidgets.QMainWindow):
         self.management_lock()
 
         self.status_bar.showMessage("Status | Ready")
+
+    def support_splash(self, count_limit=10):
+        """Show the support splash screen if its time and not disabled."""
+        support_data = self.tik.user.resume.get_property("support_data", default={})
+        # if there is a version mismatch or this is the initial run, reset it
+        if support_data.get("version", None) != version.__version__:
+            support_data = {
+                "version": version.__version__,
+                "count": 0,
+                "disabled": False
+            }
+            self.tik.user.resume.edit_property("support_data", support_data)
+            self.tik.user.resume.apply_settings()
+            return
+
+        if support_data.get("count", 0) < count_limit:
+            support_data["count"] += 1
+            self.tik.user.resume.edit_property("support_data", support_data)
+            self.tik.user.resume.apply_settings()
+            return
+
+        if support_data.get("count", 0) >= count_limit:
+            support_data["count"] = 0
+            if not support_data.get("disabled", False):
+                splash = support_splash.launch_interrupt(parent=self)
+                support_data["disabled"] = splash.dont_show_again_cb.isChecked()
+            self.tik.user.resume.edit_property("support_data", support_data)
+            self.tik.user.resume.apply_settings()
+        return
 
     def resume_last_state(self):
         """Resume the last selection from the user settings."""
@@ -208,7 +240,6 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             # if there are no subprojects, then select the first one
             self.subprojects_mcv.sub_view.select_first_item()
-            LOG.info("No subproject found, selecting the first one.")
 
             # if there is no task, then select the first one
             self.tasks_mcv.task_view.select_first_item()
@@ -313,8 +344,6 @@ class MainUI(QtWidgets.QMainWindow):
         """Initialize the model-control-views."""
         self.project_mcv = TikProjectWidget(self.tik, parent=self)
         self.project_user_layout.addWidget(self.project_mcv)
-        # self.project_mcv = TikProjectLayout(self.tik, parent=self)
-        # self.project_user_layout.addLayout(self.project_mcv)
 
         self.separator_line = VerticalSeparator()
         self.project_user_layout.addWidget(self.separator_line)
@@ -323,7 +352,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.project_user_layout.addWidget(self.user_mcv)
 
         # limit the height of the project and user mcv
-        # self.project_mcv.setMaximumHeight(40)
+        self.project_mcv.setMaximumHeight(40)
         self.user_mcv.setMaximumHeight(40)
 
         self.subprojects_mcv = TikSubProjectLayout(self.tik.project)
@@ -498,7 +527,8 @@ class MainUI(QtWidgets.QMainWindow):
         file_menu.addSeparator()
         save_new_work = QtWidgets.QAction(pick.icon("save"), "&Save New Work", self)
         file_menu.addAction(save_new_work)
-        new_work_from_template = QtWidgets.QAction(pick.icon("save"), "&Create Work From Template", self)
+        new_work_from_template = QtWidgets.QAction(pick.icon("save"),
+                                                   "&Create Work From Template", self)
         file_menu.addAction(new_work_from_template)
         increment_version = QtWidgets.QAction("&Increment Version", self)
         file_menu.addAction(increment_version)
@@ -539,7 +569,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # Help Menu
         issues_and_feature_requests = QtWidgets.QAction(
-            "&Issues & Feature Requests", self
+            "&Issues && Feature Requests", self
         )
         help_menu.addAction(issues_and_feature_requests)
         online_docs = QtWidgets.QAction("&Online Documentation", self)
@@ -547,6 +577,9 @@ class MainUI(QtWidgets.QMainWindow):
         help_menu.addSeparator()
         check_for_updates = QtWidgets.QAction("&Check for Updates", self)
         help_menu.addAction(check_for_updates)
+        help_menu.addSeparator()
+        support_tik_manager = QtWidgets.QAction("&Support Tik Manager", self)
+        help_menu.addAction(support_tik_manager)
 
         # SIGNALS
         create_project.triggered.connect(self.on_create_new_project)
@@ -574,9 +607,10 @@ class MainUI(QtWidgets.QMainWindow):
         issues_and_feature_requests.triggered.connect(
             lambda: webbrowser.open("https://github.com/masqu3rad3/tik_manager4/issues")
         )
+        support_tik_manager.triggered.connect(lambda: support_splash.launch_support(self))
 
-        # self.project_visibility.toggled.connect(self.project_mcv.setVisible)
-        # self.project_visibility.toggled.connect(self.separator_line.setVisible)
+        self.project_visibility.toggled.connect(self.project_mcv.setVisible)
+        self.project_visibility.toggled.connect(self.separator_line.setVisible)
         self.user_login_visibility.toggled.connect(self.user_mcv.setVisible)
         self.user_login_visibility.toggled.connect(self.separator_line.setVisible)
         # when buttons visibility is toggled, delete the buttons
@@ -587,7 +621,7 @@ class MainUI(QtWidgets.QMainWindow):
     def build_extensions(self):
         """Collect the management extensions and build the menu."""
         # get the management extensions
-        for platform_name, extension_class in management.ui_extensions.items():
+        for _platform_name, extension_class in management.ui_extensions.items():
             extension = extension_class(self)
             extension.build_ui()
 
@@ -597,26 +631,28 @@ class MainUI(QtWidgets.QMainWindow):
             dcc_menu = self.menu_bar.addMenu(f"{self.tik.dcc.name}")
         else:
             return
-        for key, extension_class in self.tik.dcc.extensions.items():
+        for _key, extension_class in self.tik.dcc.extensions.items():
             extension = extension_class(self)
             extension.menu_item = dcc_menu
             extension.execute()
-        # print(self.tik.dcc.extensions)
 
     def management_connect(self, platform_name=None):
         """Convenience function to connect to a management platform."""
         nice_name = platform_name.capitalize()
-        self.wait_dialog = WaitDialog(
+        wait_dialog = WaitDialog(
                         message=f"Connecting to {nice_name}...",
                         parent=self,
                     )
-        self.wait_dialog.display()
+        wait_dialog.display()
         handler, msg = self.tik.get_management_handler(platform_name)
         if not handler or not handler.is_authenticated:
-            self.wait_dialog.kill()
-            self.feedback.pop_info(title="Authentication Failed", text=f"Authentication failed while connecting to {platform_name}\n\n{msg}", critical=True)
+            wait_dialog.kill()
+            self.feedback.pop_info(
+                title="Authentication Failed",
+                text=f"Authentication failed while connecting to {platform_name}\n\n{msg}",
+                critical=True)
             return None
-        self.wait_dialog.kill()
+        wait_dialog.kill()
         self.status_bar.showMessage(f"Connected to {nice_name} successfully.", 5000)
 
         return handler
@@ -960,7 +996,10 @@ class MainUI(QtWidgets.QMainWindow):
         """"Pops up the question dialog to proceed without management."""
         platform = platform.capitalize()
         ret = self.feedback.pop_question(title=f"Connection Error - {platform}",
-                                         text=f"An error occurred while connecting/syncing to the {platform} project.\n\nDo you want to proceed without {platform}?",
+                                         text=f"An error occurred while "
+                                              f"connecting/syncing to the "
+                                              f"{platform} project.\n\nDo you "
+                                              f"want to proceed without {platform}?",
                                          buttons=["yes", "no"])
         if ret == "no":
             self.tik.fallback_to_default_project()
@@ -986,7 +1025,7 @@ class MainUI(QtWidgets.QMainWindow):
             try:
                 synced = handler.sync_project()
             except SyncError as exc:
-                LOG.warning(f"Sync Error %s", exc)
+                LOG.warning("Sync Error %s", exc)
                 wait_popup.kill()
                 can_proceed = self._can_proceed_without_management(management_platform)
                 if not can_proceed:
