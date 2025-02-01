@@ -313,6 +313,8 @@ class MainUI(QtWidgets.QMainWindow):
         """Initialize the model-control-views."""
         self.project_mcv = TikProjectWidget(self.tik, parent=self)
         self.project_user_layout.addWidget(self.project_mcv)
+        # self.project_mcv = TikProjectLayout(self.tik, parent=self)
+        # self.project_user_layout.addLayout(self.project_mcv)
 
         self.separator_line = VerticalSeparator()
         self.project_user_layout.addWidget(self.separator_line)
@@ -321,7 +323,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.project_user_layout.addWidget(self.user_mcv)
 
         # limit the height of the project and user mcv
-        self.project_mcv.setMaximumHeight(40)
+        # self.project_mcv.setMaximumHeight(40)
         self.user_mcv.setMaximumHeight(40)
 
         self.subprojects_mcv = TikSubProjectLayout(self.tik.project)
@@ -573,8 +575,8 @@ class MainUI(QtWidgets.QMainWindow):
             lambda: webbrowser.open("https://github.com/masqu3rad3/tik_manager4/issues")
         )
 
-        self.project_visibility.toggled.connect(self.project_mcv.setVisible)
-        self.project_visibility.toggled.connect(self.separator_line.setVisible)
+        # self.project_visibility.toggled.connect(self.project_mcv.setVisible)
+        # self.project_visibility.toggled.connect(self.separator_line.setVisible)
         self.user_login_visibility.toggled.connect(self.user_mcv.setVisible)
         self.user_login_visibility.toggled.connect(self.separator_line.setVisible)
         # when buttons visibility is toggled, delete the buttons

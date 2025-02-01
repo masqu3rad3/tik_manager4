@@ -19,8 +19,8 @@ class TikProjectWidget(QtWidgets.QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
 
-        self.layout.set_project_btn.clicked.connect(self.set_project)
-        self.layout.recent_projects_btn.clicked.connect(self.set_recent_project)
+        # transfer the project_set signal
+        self.layout.project_set.connect(self.project_set)
 
     def refresh(self):
         """Refresh the project path"""
@@ -112,6 +112,7 @@ class TikProjectLayout(QtWidgets.QHBoxLayout):
 
     def set_recent_project(self):
         """Set the recent project"""
+        print("Setting recent project")
         dialog = SetProjectDialog(self.main_object, parent=self.parent)
         if dialog.recents_pop_menu():
             self.__register_project(dialog.main_object.project.name)
