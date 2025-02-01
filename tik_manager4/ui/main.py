@@ -307,7 +307,6 @@ class MainUI(QtWidgets.QMainWindow):
             "user": self.user_login_visibility.isChecked(),
             "buttons": self.buttons_visibility.isChecked(),
         }
-        print(ui_elements)
         self.tik.user.ui_elements = ui_elements
 
     def initialize_mcv(self):
