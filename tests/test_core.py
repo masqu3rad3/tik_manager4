@@ -2,7 +2,7 @@
 import sys
 import time
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import platform
 import codecs
 from pathlib import Path
@@ -10,6 +10,7 @@ from tik_manager4.core import filelog
 from tik_manager4.core import io
 from tik_manager4.core import settings
 from tik_manager4.core import utils
+from tik_manager4.external import fileseq
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.external.filelock import FileLock, Timeout
 from tik_manager4.core.cli import FeedbackCLI
@@ -278,6 +279,8 @@ def test_execute(tmp_path):
     """Test execute function."""
     # test the situation where the file does not exist
     _file = tmp_path / "test_execute.txt"
+    # create a file
+    _file.touch()
 
     # an executable that does not exist
     with pytest.raises(ValueError):
@@ -287,12 +290,11 @@ def test_execute(tmp_path):
         with patch("subprocess.Popen") as mock_popen:
             utils.execute(str(_file), executable="existing_executable")
 
-    if platform.system() == "Windows":
-        # Test for Windows
-        with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Windows"):
-            with patch("os.startfile") as mock_startfile:
-                utils.execute(str(_file))
-                mock_startfile.assert_called_once_with(str(_file))
+    # Test for Windows
+    with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Windows"):
+        with patch("os.startfile") as mock_startfile:
+            utils.execute(str(_file))
+            mock_startfile.assert_called_once_with(str(_file))
 
     # Test for Linux
     with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Linux"):
@@ -305,6 +307,44 @@ def test_execute(tmp_path):
         with patch("subprocess.Popen") as mock_popen:
             utils.execute(str(_file))
             mock_popen.assert_called_once_with(["open", str(_file)])
+
+def test_execute_with_sequential_file(monkeypatch, tmp_path):
+    """Test execute function with a sequential file."""
+    # Create a mock sequential file
+    seq_file = tmp_path / "test_seq.0001.exr"
+    seq_file.touch()
+    seq_pattern = seq_file.as_posix().replace(".0001.exr", ".@.exr")
+
+    # Mock the fileseq.findSequenceOnDisk function to return a sequence
+    mock_seq = [seq_file]
+    monkeypatch.setattr(fileseq, "findSequenceOnDisk", lambda x: mock_seq)
+
+    # Test the execute function with the sequential file
+    with patch("os.startfile") as mock_startfile:
+        utils.execute(seq_file.as_posix())
+        mock_startfile.assert_called_once_with(seq_file.as_posix())
+
+    mock_seq = MagicMock()
+    monkeypatch.setattr(fileseq, "findSequenceOnDisk", lambda x: mock_seq)
+    # utils.execute(seq_file.as_posix())
+    with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Windows"):
+        with patch("os.startfile") as mock_startfile:
+            utils.execute(str(seq_file.as_posix()))
+            mock_startfile.assert_called_once_with(str(seq_file.as_posix()))
+
+
+def test_execute_with_nonexistent_file(tmp_path):
+    """Test execute function with a nonexistent file."""
+    non_existent_file = tmp_path / "non_existent_file.txt"
+    with pytest.raises(FileNotFoundError):
+        utils.execute(non_existent_file.as_posix())
+
+def test_execute_with_nonexistent_sequential_file(tmp_path):
+    """Test execute function with a nonexistent sequential file."""
+    non_existent_seq_file = tmp_path / "non_existent_seq.0001.exr"
+    with pytest.raises(FileNotFoundError):
+        print(non_existent_seq_file.as_posix())
+        utils.execute(non_existent_seq_file.as_posix())
 
 def test_pop_info_displays_message_and_exits_on_critical():
     feedback = FeedbackCLI()

@@ -60,11 +60,13 @@ def execute(file_path, executable=None):
             raise FileNotFoundError(
                 "The file does not exist. {}".format(file_path))
         pattern = path_obj.as_posix().replace(path_obj.suffixes[0], ".@")
-        seq = fileseq.findSequenceOnDisk(pattern)
-        if not seq:
+
+        try:
+            seq = fileseq.findSequenceOnDisk(pattern)
+            file_path = seq.index(0)
+        except fileseq.FileSeqException as exc:
             raise FileNotFoundError(
-                "The file does not exist. {}".format(file_path))
-        file_path = seq.index(0)
+                "The file does not exist. {}".format(file_path)) from exc
 
     if executable:
         # validate the existence

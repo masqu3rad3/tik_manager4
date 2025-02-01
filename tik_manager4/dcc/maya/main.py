@@ -384,3 +384,21 @@ class Dcc(MainCore):
 class DockableMainUI(MayaQWidgetDockableMixin, tik4_main):
     def __init__(self, main_object=None, window_name=None, parent=None, **kwargs):
         super(DockableMainUI, self).__init__(main_object=main_object, window_name=window_name, parent=parent, **kwargs)
+
+    def dockCloseEventTriggered(self):  # pylint: disable=invalid-name
+        """Override the stub function to save the window state."""
+        self.tik.user.last_subproject = None
+        self.tik.user.last_task = None
+        self.tik.user.last_category = None
+        self.tik.user.last_work = None
+        self.tik.user.last_version = None
+
+        self.set_last_state()
+
+        # set the expanded state of the subproject tree
+        self.tik.user.expanded_subprojects = (
+            self.subprojects_mcv.sub_view.get_expanded_state()
+        )
+
+        self.tik.user.resume.apply_settings()
+        _ = QtWidgets.QApplication.allWidgets()
