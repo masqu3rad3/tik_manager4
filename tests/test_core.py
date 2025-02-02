@@ -320,9 +320,10 @@ def test_execute_with_sequential_file(monkeypatch, tmp_path):
     monkeypatch.setattr(fileseq, "findSequenceOnDisk", lambda x: mock_seq)
 
     # Test the execute function with the sequential file
-    with patch("os.startfile") as mock_startfile:
-        utils.execute(seq_file.as_posix())
-        mock_startfile.assert_called_once_with(seq_file.as_posix())
+    with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Windows"):
+        with patch("os.startfile") as mock_startfile:
+            utils.execute(seq_file.as_posix())
+            mock_startfile.assert_called_once_with(seq_file.as_posix())
 
     mock_seq = MagicMock()
     monkeypatch.setattr(fileseq, "findSequenceOnDisk", lambda x: mock_seq)
