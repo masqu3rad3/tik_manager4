@@ -22,18 +22,21 @@ main.launch(dcc="Maya")
 """
 
 import logging
-
 import webbrowser
+
 import tik_manager4
 import tik_manager4._version as version
+from tik_manager4 import management
 from tik_manager4.core import utils
+from tik_manager4.management.exceptions import SyncError
 from tik_manager4.ui import pick
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
-from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog
 from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
 from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
+from tik_manager4.ui.dialog import support_splash
+from tik_manager4.ui.dialog.update_dialog import UpdateDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
 from tik_manager4.ui.dialog.work_dialog import (
     NewWorkDialog,
@@ -42,17 +45,13 @@ from tik_manager4.ui.dialog.work_dialog import (
     WorkFromTemplateDialog,
 )
 from tik_manager4.ui.mcv.category_mcv import TikCategoryLayout
-from tik_manager4.ui.mcv.project_mcv import TikProjectLayout
+from tik_manager4.ui.mcv.project_mcv import TikProjectWidget
 from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectLayout
 from tik_manager4.ui.mcv.task_mcv import TikTaskLayout
-from tik_manager4.ui.mcv.user_mcv import TikUserLayout
+from tik_manager4.ui.mcv.user_mcv import TikUserWidget
 from tik_manager4.ui.mcv.version_mcv import TikVersionLayout
 from tik_manager4.ui.widgets.common import TikButton, VerticalSeparator
-from tik_manager4.ui.dialog.update_dialog import UpdateDialog
 from tik_manager4.ui.widgets.pop import WaitDialog
-from tik_manager4 import management
-from tik_manager4.management.exceptions import SyncError
-
 
 LOG = logging.getLogger(__name__)
 WINDOW_NAME = f"Tik Manager {version.__version__}"
@@ -63,18 +62,21 @@ def launch(dcc="Standalone", dont_show=False):
     window_name = f"Tik Manager {version.__version__} - {dcc}"
     all_widgets = QtWidgets.QApplication.allWidgets()
     tik = tik_manager4.initialize(dcc)
+    if tik.dcc.custom_launcher and not dont_show: # This is only for main ui.
+        return tik.dcc.launch(tik, window_name=window_name)
     parent = tik.dcc.get_main_window()
     for entry in all_widgets:
         try:
             if entry.objectName() == window_name:
+            # if entry.objectName().startswith("Tik Manager"):
                 entry.close()
                 entry.deleteLater()
         except (AttributeError, TypeError):
             pass
-    m = MainUI(tik, parent=parent, window_name=window_name)
+    main_ui_obj = MainUI(tik, parent=parent, window_name=window_name)
     if not dont_show:
-        m.show()
-    return m
+        main_ui_obj.show()
+    return main_ui_obj
 
 
 class MainUI(QtWidgets.QMainWindow):
@@ -83,8 +85,11 @@ class MainUI(QtWidgets.QMainWindow):
     def __init__(self, main_object, window_name=WINDOW_NAME, **kwargs):
         """Initialize the main UI."""
         # pylint: disable=too-many-statements
-        super(MainUI, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.tik = main_object
+
+        # show the support splash screen
+        self.support_splash()
 
         self.setWindowTitle(window_name)
         self.setObjectName(window_name)
@@ -104,16 +109,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.title_layout = QtWidgets.QHBoxLayout()
 
-        project_user_layout = QtWidgets.QHBoxLayout()
-
-        self.project_layout = QtWidgets.QHBoxLayout()
-        self.user_layout = QtWidgets.QHBoxLayout()
-
-        project_user_layout.addLayout(self.project_layout)
-        line = VerticalSeparator()
-        project_user_layout.addWidget(line)
-
-        project_user_layout.addLayout(self.user_layout)
+        self.project_user_layout = QtWidgets.QHBoxLayout()
 
         self.main_layout = QtWidgets.QVBoxLayout()
         self.splitter = QtWidgets.QSplitter(
@@ -140,8 +136,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.version_layout = QtWidgets.QVBoxLayout(version_widget)
         self.version_layout.setContentsMargins(2, 2, 2, 2)
 
-        #####################
-
         self.work_buttons_frame = QtWidgets.QFrame()
         self.work_buttons_frame.setMaximumHeight(50)
 
@@ -151,14 +145,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.work_buttons_frame.setLayout(self.work_buttons_layout)
 
         self.master_layout.addLayout(self.title_layout)
-        self.master_layout.addLayout(project_user_layout)
+        self.master_layout.addLayout(self.project_user_layout)
         self.master_layout.addLayout(self.main_layout)
 
         self.master_layout.addWidget(self.work_buttons_frame)
 
-        #####################
-
         self.project_mcv = None
+        self.user_mcv = None
+        self.separator_line = None
         self.subprojects_mcv = None
         self.tasks_mcv = None
         self.categories_mcv = None
@@ -172,16 +166,43 @@ class MainUI(QtWidgets.QMainWindow):
         self.setStatusBar(self.status_bar)
 
         self.initialize_mcv()
-        self.menu_bar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 680, 18))
+        self.menu_bar = QtWidgets.QMenuBar(self)
         self.build_bars()
         self.build_buttons()
-        #
-        self.build_extensions()
 
         self.resume_last_state()
         self.management_lock()
 
         self.status_bar.showMessage("Status | Ready")
+
+    def support_splash(self, count_limit=10):
+        """Show the support splash screen if its time and not disabled."""
+        support_data = self.tik.user.resume.get_property("support_data", default={})
+        # if there is a version mismatch or this is the initial run, reset it
+        if support_data.get("version", None) != version.__version__:
+            support_data = {
+                "version": version.__version__,
+                "count": 0,
+                "disabled": False
+            }
+            self.tik.user.resume.edit_property("support_data", support_data)
+            self.tik.user.resume.apply_settings()
+            return
+
+        if support_data.get("count", 0) < count_limit:
+            support_data["count"] += 1
+            self.tik.user.resume.edit_property("support_data", support_data)
+            self.tik.user.resume.apply_settings()
+            return
+
+        if support_data.get("count", 0) >= count_limit:
+            support_data["count"] = 0
+            if not support_data.get("disabled", False):
+                splash = support_splash.launch_interrupt(parent=self)
+                support_data["disabled"] = splash.dont_show_again_cb.isChecked()
+            self.tik.user.resume.edit_property("support_data", support_data)
+            self.tik.user.resume.apply_settings()
+        return
 
     def resume_last_state(self):
         """Resume the last selection from the user settings."""
@@ -219,7 +240,6 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             # if there are no subprojects, then select the first one
             self.subprojects_mcv.sub_view.select_first_item()
-            LOG.info("No subproject found, selecting the first one.")
 
             # if there is no task, then select the first one
             self.tasks_mcv.task_view.select_first_item()
@@ -260,13 +280,80 @@ class MainUI(QtWidgets.QMainWindow):
         if window_state:
             self.setGeometry(QtCore.QRect(*self.tik.user.main_window_state))
 
+        # enable/disable ui elements
+        ui_elements = self.tik.user.ui_elements
+        self.project_visibility.setChecked(ui_elements.get("project", True))
+        self.user_login_visibility.setChecked(ui_elements.get("user", True))
+        self.buttons_visibility.setChecked(ui_elements.get("buttons", True))
+
+    def set_last_state(self):
+        """Set the last selections for the user"""
+        # get the currently selected subproject
+        _subproject_item = self.subprojects_mcv.sub_view.get_selected_items()
+        if _subproject_item:
+            _subproject_item = _subproject_item[0]
+            self.tik.user.last_subproject = _subproject_item.subproject.id
+            _task_item = self.tasks_mcv.task_view.get_selected_item()
+            if _task_item:
+                # self.tik.user.last_task = _task_item.task.reference_id
+                self.tik.user.last_task = _task_item.task.id
+                # Do we care?
+                _category_index = self.categories_mcv.get_category_index()
+                # we can always safely write the category index
+                self.tik.user.last_category = _category_index
+                _work_item = self.categories_mcv.work_tree_view.get_selected_item()
+                if _work_item:
+                    self.tik.user.last_work = _work_item.tik_obj.id
+                    _version_nmb = self.versions_mcv.get_selected_version_number()
+                    # we can always safely write the version number
+                    self.tik.user.last_version = _version_nmb
+
+        self.tik.user.split_sizes = self.splitter.sizes()
+
+        # get the visibilities of columns for mcvs
+        columns_states = {
+            "subprojects": self.subprojects_mcv.sub_view.get_visible_columns(),
+            "tasks": self.tasks_mcv.task_view.get_visible_columns(),
+            "categories": self.categories_mcv.work_tree_view.get_visible_columns(),
+        }
+        self.tik.user.visible_columns = columns_states
+
+        column_sizes = {
+            "subprojects": self.subprojects_mcv.sub_view.get_column_sizes(),
+            "tasks": self.tasks_mcv.task_view.get_column_sizes(),
+            "categories": self.categories_mcv.work_tree_view.get_column_sizes(),
+        }
+        self.tik.user.column_sizes = column_sizes
+
+        self.tik.user.main_window_state = (
+            self.geometry().x(),
+            self.geometry().y(),
+            self.geometry().width(),
+            self.geometry().height(),
+        )
+
+        # get the ui elements visibility
+        ui_elements = {
+            "project": self.project_visibility.isChecked(),
+            "user": self.user_login_visibility.isChecked(),
+            "buttons": self.buttons_visibility.isChecked(),
+        }
+        self.tik.user.ui_elements = ui_elements
+
     def initialize_mcv(self):
         """Initialize the model-control-views."""
-        self.project_mcv = TikProjectLayout(self.tik, parent=self)
-        self.project_layout.addLayout(self.project_mcv)
+        self.project_mcv = TikProjectWidget(self.tik, parent=self)
+        self.project_user_layout.addWidget(self.project_mcv)
 
-        self.user_mcv = TikUserLayout(self.tik.user)
-        self.user_layout.addLayout(self.user_mcv)
+        self.separator_line = VerticalSeparator()
+        self.project_user_layout.addWidget(self.separator_line)
+
+        self.user_mcv = TikUserWidget(self.tik.user)
+        self.project_user_layout.addWidget(self.user_mcv)
+
+        # limit the height of the project and user mcv
+        self.project_mcv.setMaximumHeight(40)
+        self.user_mcv.setMaximumHeight(40)
 
         self.subprojects_mcv = TikSubProjectLayout(self.tik.project)
         self.subproject_tree_layout.addLayout(self.subprojects_mcv)
@@ -321,7 +408,6 @@ class MainUI(QtWidgets.QMainWindow):
         )
         self.categories_mcv.work_tree_view.file_dropped.connect(self.on_save_any_file)
         self.versions_mcv.version.preview_btn.clicked.connect(self.on_show_preview)
-        # self.versions_mcv.element_view_btn.clicked.connect(self.on_element_view)
         self.versions_mcv.element_view_event.connect(self.on_element_view)
 
         if self.tik.dcc.name == "Standalone":
@@ -336,53 +422,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.on_work_from_template
         )
 
-    def set_last_state(self):
-        """Set the last selections for the user"""
-        # get the currently selected subproject
-        _subproject_item = self.subprojects_mcv.sub_view.get_selected_items()
-        if _subproject_item:
-            _subproject_item = _subproject_item[0]
-            self.tik.user.last_subproject = _subproject_item.subproject.id
-            _task_item = self.tasks_mcv.task_view.get_selected_item()
-            if _task_item:
-                # self.tik.user.last_task = _task_item.task.reference_id
-                self.tik.user.last_task = _task_item.task.id
-                # Do we care?
-                _category_index = self.categories_mcv.get_category_index()
-                # we can always safely write the category index
-                self.tik.user.last_category = _category_index
-                _work_item = self.categories_mcv.work_tree_view.get_selected_item()
-                if _work_item:
-                    self.tik.user.last_work = _work_item.tik_obj.id
-                    _version_nmb = self.versions_mcv.get_selected_version_number()
-                    # we can always safely write the version number
-                    self.tik.user.last_version = _version_nmb
-
-        self.tik.user.split_sizes = self.splitter.sizes()
-
-        # get the visibilities of columns for mcvs
-        columns_states = {
-            "subprojects": self.subprojects_mcv.sub_view.get_visible_columns(),
-            "tasks": self.tasks_mcv.task_view.get_visible_columns(),
-            "categories": self.categories_mcv.work_tree_view.get_visible_columns(),
-        }
-        self.tik.user.visible_columns = columns_states
-
-        column_sizes = {
-            "subprojects": self.subprojects_mcv.sub_view.get_column_sizes(),
-            "tasks": self.tasks_mcv.task_view.get_column_sizes(),
-            "categories": self.categories_mcv.work_tree_view.get_column_sizes(),
-        }
-        self.tik.user.column_sizes = column_sizes
-
-        self.tik.user.main_window_state = (
-            self.geometry().x(),
-            self.geometry().y(),
-            self.geometry().width(),
-            self.geometry().height(),
-        )
-
-    # override the closeEvent to save the window state
     def closeEvent(self, event):  # pylint: disable=invalid-name
         """Override the close event to save the window state."""
         self.tik.user.last_subproject = None
@@ -404,24 +443,23 @@ class MainUI(QtWidgets.QMainWindow):
 
     def build_buttons(self):
         "Build the buttons"
-
         # Work buttons
         save_new_work_btn = TikButton("Save New Work")
-        save_new_work_btn.setMinimumSize(150, 40)
+        save_new_work_btn.setMinimumSize(12, 40)
         work_from_template_btn = TikButton("Work from Template")
-        work_from_template_btn.setMinimumSize(150, 40)
+        work_from_template_btn.setMinimumSize(12, 40)
         save_file_as_work_btn = TikButton("Save File as Work")
-        save_file_as_work_btn.setMinimumSize(150, 40)
+        save_file_as_work_btn.setMinimumSize(12, 40)
         save_folder_as_work_btn = TikButton("Save Folder as Work")
-        save_folder_as_work_btn.setMinimumSize(150, 40)
+        save_folder_as_work_btn.setMinimumSize(12, 40)
         increment_version_btn = TikButton("Increment Version")
-        increment_version_btn.setMinimumSize(150, 40)
+        increment_version_btn.setMinimumSize(12, 40)
         self.ingest_version_btn = TikButton("Ingest Version")
-        self.ingest_version_btn.setMinimumSize(150, 40)
+        self.ingest_version_btn.setMinimumSize(12, 40)
         publish_scene_btn = TikButton("Publish Scene")
-        publish_scene_btn.setMinimumSize(150, 40)
+        publish_scene_btn.setMinimumSize(12, 40)
         publish_snapshot_btn = TikButton("Publish Snapshot")
-        publish_snapshot_btn.setMinimumSize(150, 40)
+        publish_snapshot_btn.setMinimumSize(12, 40)
         # set the publish icon to the button
         publish_snapshot_btn.setIcon(pick.icon("published"))
         publish_snapshot_btn.setIconSize(QtCore.QSize(24, 24))
@@ -468,7 +506,9 @@ class MainUI(QtWidgets.QMainWindow):
         # pylint: disable=too-many-statements
         self.setMenuBar(self.menu_bar)
         file_menu = self.menu_bar.addMenu("File")
-        tools_menu = self.menu_bar.addMenu("Tools")
+        # build extensions before window and help menus
+        self.build_extensions()
+        window_menu = self.menu_bar.addMenu("UI Elements")
         help_menu = self.menu_bar.addMenu("Help")
 
         # File Menu
@@ -487,6 +527,9 @@ class MainUI(QtWidgets.QMainWindow):
         file_menu.addSeparator()
         save_new_work = QtWidgets.QAction(pick.icon("save"), "&Save New Work", self)
         file_menu.addAction(save_new_work)
+        new_work_from_template = QtWidgets.QAction(pick.icon("save"),
+                                                   "&Create Work From Template", self)
+        file_menu.addAction(new_work_from_template)
         increment_version = QtWidgets.QAction("&Increment Version", self)
         file_menu.addAction(increment_version)
         ingest_version = QtWidgets.QAction("&Ingest Version", self)
@@ -510,11 +553,23 @@ class MainUI(QtWidgets.QMainWindow):
         file_menu.addAction(exit_action)
 
         # make the menu bar items wide enough to show the icons and all text
-        # Tools Menu
+        # Window Menu
+        self.project_visibility = QtWidgets.QAction("&Project", self)
+        self.project_visibility.setCheckable(True)
+        self.project_visibility.setChecked(True)
+        window_menu.addAction(self.project_visibility)
+        self.user_login_visibility = QtWidgets.QAction("&User Login", self)
+        self.user_login_visibility.setCheckable(True)
+        self.user_login_visibility.setChecked(True)
+        window_menu.addAction(self.user_login_visibility)
+        self.buttons_visibility = QtWidgets.QAction("&Buttons", self)
+        self.buttons_visibility.setCheckable(True)
+        self.buttons_visibility.setChecked(True)
+        window_menu.addAction(self.buttons_visibility)
 
         # Help Menu
         issues_and_feature_requests = QtWidgets.QAction(
-            "&Issues & Feature Requests", self
+            "&Issues && Feature Requests", self
         )
         help_menu.addAction(issues_and_feature_requests)
         online_docs = QtWidgets.QAction("&Online Documentation", self)
@@ -522,6 +577,9 @@ class MainUI(QtWidgets.QMainWindow):
         help_menu.addSeparator()
         check_for_updates = QtWidgets.QAction("&Check for Updates", self)
         help_menu.addAction(check_for_updates)
+        help_menu.addSeparator()
+        support_tik_manager = QtWidgets.QAction("&Support Tik Manager", self)
+        help_menu.addAction(support_tik_manager)
 
         # SIGNALS
         create_project.triggered.connect(self.on_create_new_project)
@@ -532,6 +590,7 @@ class MainUI(QtWidgets.QMainWindow):
         exit_action.triggered.connect(self.close)
 
         save_new_work.triggered.connect(self.on_new_work)
+        new_work_from_template.triggered.connect(self.on_work_from_template)
         save_file_as_work.triggered.connect(lambda: self.on_save_any_file(folder=False))
         save_folder_as_work.triggered.connect(
             lambda: self.on_save_any_file(folder=True)
@@ -548,38 +607,52 @@ class MainUI(QtWidgets.QMainWindow):
         issues_and_feature_requests.triggered.connect(
             lambda: webbrowser.open("https://github.com/masqu3rad3/tik_manager4/issues")
         )
+        support_tik_manager.triggered.connect(lambda: support_splash.launch_support(self))
 
-        # check if the tik.main.dcc has a preview method
-        if self.tik.dcc.preview_enabled:
-            create_preview = QtWidgets.QAction(
-                pick.icon("camera"), "&Create Preview", self
-            )
-            tools_menu.addAction(create_preview)
-            create_preview.triggered.connect(self.on_create_preview)
+        self.project_visibility.toggled.connect(self.project_mcv.setVisible)
+        self.project_visibility.toggled.connect(self.separator_line.setVisible)
+        self.user_login_visibility.toggled.connect(self.user_mcv.setVisible)
+        self.user_login_visibility.toggled.connect(self.separator_line.setVisible)
+        # when buttons visibility is toggled, delete the buttons
+        self.buttons_visibility.toggled.connect(self.work_buttons_frame.setVisible)
 
         self.menu_bar.setMinimumWidth(self.menu_bar.sizeHint().width())
 
     def build_extensions(self):
         """Collect the management extensions and build the menu."""
         # get the management extensions
-        for platform_name, extension_class in management.ui_extensions.items():
+        for _platform_name, extension_class in management.ui_extensions.items():
             extension = extension_class(self)
             extension.build_ui()
+
+        # get the dcc extensions
+        if self.tik.dcc.extensions:
+            # create a menu item for the dcc extensions
+            dcc_menu = self.menu_bar.addMenu(f"{self.tik.dcc.name}")
+        else:
+            return
+        for _key, extension_class in self.tik.dcc.extensions.items():
+            extension = extension_class(self)
+            extension.menu_item = dcc_menu
+            extension.execute()
 
     def management_connect(self, platform_name=None):
         """Convenience function to connect to a management platform."""
         nice_name = platform_name.capitalize()
-        self.wait_dialog = WaitDialog(
+        wait_dialog = WaitDialog(
                         message=f"Connecting to {nice_name}...",
                         parent=self,
                     )
-        self.wait_dialog.display()
+        wait_dialog.display()
         handler, msg = self.tik.get_management_handler(platform_name)
         if not handler or not handler.is_authenticated:
-            self.wait_dialog.kill()
-            self.feedback.pop_info(title="Authentication Failed", text=f"Authentication failed while connecting to {platform_name}\n\n{msg}", critical=True)
+            wait_dialog.kill()
+            self.feedback.pop_info(
+                title="Authentication Failed",
+                text=f"Authentication failed while connecting to {platform_name}\n\n{msg}",
+                critical=True)
             return None
-        self.wait_dialog.kill()
+        wait_dialog.kill()
         self.status_bar.showMessage(f"Connected to {nice_name} successfully.", 5000)
 
         return handler
@@ -923,7 +996,10 @@ class MainUI(QtWidgets.QMainWindow):
         """"Pops up the question dialog to proceed without management."""
         platform = platform.capitalize()
         ret = self.feedback.pop_question(title=f"Connection Error - {platform}",
-                                         text=f"An error occurred while connecting/syncing to the {platform} project.\n\nDo you want to proceed without {platform}?",
+                                         text=f"An error occurred while "
+                                              f"connecting/syncing to the "
+                                              f"{platform} project.\n\nDo you "
+                                              f"want to proceed without {platform}?",
                                          buttons=["yes", "no"])
         if ret == "no":
             self.tik.fallback_to_default_project()
@@ -949,7 +1025,7 @@ class MainUI(QtWidgets.QMainWindow):
             try:
                 synced = handler.sync_project()
             except SyncError as exc:
-                LOG.warning(f"Sync Error %s", exc)
+                LOG.warning("Sync Error %s", exc)
                 wait_popup.kill()
                 can_proceed = self._can_proceed_without_management(management_platform)
                 if not can_proceed:
@@ -986,54 +1062,6 @@ class MainUI(QtWidgets.QMainWindow):
     def on_login(self):
         """Launch login dialog."""
         dialog = LoginDialog(self.tik.user, parent=self)
-        dialog.show()
-
-    def on_create_preview(self):
-        """Initiate a preview creation and launch the preview dialog."""
-        # find the work by scene
-        scene_file_path = self.tik.dcc.get_scene_file()
-        if not scene_file_path:
-            self.feedback.pop_info(
-                title="Scene file cannot be found.",
-                text="Scene file cannot be found. "
-                "Please either save your scene by creating a new work or "
-                "ingest it into an existing one.",
-                critical=True,
-            )
-            return
-        _work, _version = self.tik.project.find_work_by_absolute_path(scene_file_path)
-        if not _work:
-            self.feedback.pop_info(
-                title="Work object cannot be found.",
-                text="Work cannot be found. Versions can only saved on work objects.\n"
-                "If there is no work associated with current scene either create a work "
-                "or use the ingest method to save it into an existing work",
-                critical=True,
-            )
-            return
-
-        # find the task from the work
-        _task = self.tik.project.find_task_by_id(_work.task_id)
-        # get the resolution from the task (if any)
-        _task_metadata = _task.metadata
-        _resolution = _task_metadata.get_value(
-            "resolution", fallback_value=None
-        )
-        _range_start = _task_metadata.get_value(
-            "start_frame", fallback_value=None
-        )
-        _range_end = _task_metadata.get_value(
-            "end_frame", fallback_value=None
-        )
-        _range = [_range_start, _range_end]
-
-        dialog = PreviewDialog(
-            work_object=_work,
-            version=_version,
-            resolution=_resolution,
-            frame_range=_range,
-            parent=self,
-        )
         dialog.show()
 
     def on_show_preview(self):

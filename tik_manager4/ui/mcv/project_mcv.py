@@ -5,6 +5,34 @@ from tik_manager4.ui.dialog.project_dialog import SetProjectDialog
 from tik_manager4.ui.widgets.common import TikButton
 from tik_manager4.ui import pick
 
+class TikProjectWidget(QtWidgets.QWidget):
+    """Widget for displaying project information"""
+
+    project_set = QtCore.Signal(str)
+
+    def __init__(self, main_object, parent=None):
+        super().__init__()
+        self.parent = parent
+        self.main_object = main_object
+
+        self.layout = TikProjectLayout(main_object, parent=self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self.layout)
+
+        # transfer the project_set signal
+        self.layout.project_set.connect(self.project_set)
+
+    def refresh(self):
+        """Refresh the project path"""
+        self.layout.refresh()
+
+    def set_project(self):
+        """Set the project"""
+        return self.layout.set_project()
+
+    def set_recent_project(self):
+        """Set the recent project"""
+        return self.layout.set_recent_project()
 
 class TikProjectLayout(QtWidgets.QHBoxLayout):
     """Layout for displaying project information"""

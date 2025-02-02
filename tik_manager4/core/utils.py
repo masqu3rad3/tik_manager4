@@ -9,6 +9,8 @@ import subprocess
 import re
 import unicodedata
 
+from tik_manager4.external import fileseq
+
 CURRENT_PLATFORM = platform.system()
 
 LOG = logging.getLogger(__name__)
@@ -50,6 +52,22 @@ def execute(file_path, executable=None):
             Flags can be passed at the eng of the string.
             e.g. "path/to/file -flag1 -flag2".
     """
+    # check if file exists
+    path_obj = Path(file_path)
+    if not path_obj.exists():
+        # may it be a sequential file?
+        if len(path_obj.suffixes) < 2:
+            raise FileNotFoundError(
+                "The file does not exist. {}".format(file_path))
+        pattern = path_obj.as_posix().replace(path_obj.suffixes[0], ".@")
+
+        try:
+            seq = fileseq.findSequenceOnDisk(pattern)
+            file_path = seq.index(0)
+        except fileseq.FileSeqException as exc:
+            raise FileNotFoundError(
+                "The file does not exist. {}".format(file_path)) from exc
+
     if executable:
         # validate the existence
         if not Path(executable).is_file():
@@ -83,16 +101,6 @@ def sanitize_text(text, allow_spaces=False):
     sanitized_text = re.sub(pattern, "", text)
 
     return sanitized_text
-
-# def move(source, target, force=True):
-#     """Move the source file or folder to the target location."""
-#     if Path(source).is_file():
-#         copy_function = shutil.copy2
-#     else:
-#         copy_function = shutil.copytree
-#
-#     Path(target).parent.mkdir(parents=True, exist_ok=True)
-#     shutil.move(source, target, copy_function=copy_function)
 
 def move(source, target, force=True, raise_error=False):
     """Move the source file or folder to the target location.
@@ -167,3 +175,11 @@ def write_unprotect(file_or_folder):
         except Exception as e:  # pylint: disable=broad-except
             LOG.error(f"Error removing write protection: {e}")
             return False, f"Error removing write protection: {e}"
+
+def get_nice_name(input_str):
+    """Convert camel case or snake case to nice name."""
+    # Use regular expression to split the string at camel case boundaries
+    words = re.findall(r"[A-Z][a-z]*|[a-z]+", input_str)
+    # Capitalize the first letter of each word and join them with a space
+    nice_name = " ".join(word.capitalize() for word in words)
+    return nice_name

@@ -1,12 +1,6 @@
 """Popup dialogs."""
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore
-try:
-    from tik_manager4.external.pyqttoast.toast import Toast, ToastPreset
-except:
-    Toast = None
-    ToastPreset = None
-
 
 class WaitDialog(QtWidgets.QDialog):
     def __init__(self, message="Please wait...", frameless=True, message_size=20, parent=None):
@@ -43,6 +37,11 @@ class WaitDialog(QtWidgets.QDialog):
         # make the dialog transparent
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 
+        # center the dialog
+
+        # Store the initial position
+        self.initial_position = self.pos()
+
     def set_message_size(self, size):
         font = self.font()
         font.setFamily("Roboto")
@@ -51,6 +50,12 @@ class WaitDialog(QtWidgets.QDialog):
 
     def set_message(self, message):
         self.label.setText(message)
+        self.label.adjustSize()  # Adjust the size of the label to fit the new message
+        self.frame.adjustSize()  # Adjust the size of the frame to fit the new message
+        self.adjustSize()  # Adjust the size of the dialog to fit the new message
+        self.close()  # Close the dialog to update the message
+        self.show()
+
         QtWidgets.QApplication.processEvents()  # Ensure the UI updates immediately
 
     # Function to show the dialog
@@ -65,41 +70,28 @@ class WaitDialog(QtWidgets.QDialog):
         self.close()
 
 
-class Toaster(QtWidgets.QWidget):
-    """Toast wrapper for showing messages."""
-    def __init__(self, parent=None):
-        super().__init__()
-        self.parent = parent or self
-        if not Toast or not ToastPreset:
-            self.mode_pairs = {}
-        else:
-            self.mode_pairs = {
-                "info": ToastPreset.INFORMATION_DARK,
-                "warning": ToastPreset.WARNING_DARK,
-                "error": ToastPreset.ERROR_DARK,
-                "success": ToastPreset.SUCCESS_DARK,
-            }
-
-    def make_toast(self, title, text, duration=5000, mode="info"):
-        """Make a toast."""
-        if not Toast or not ToastPreset:
-            # Some DCCs don't support toasts
-            return
-        toast = Toast(self.parent)
-        toast.setDuration(duration)
-        toast.setTitle(title)
-        toast.setText(text)
-        toast.applyPreset(self.mode_pairs[mode])  # Apply style preset
-        toast.show()
-
 # test the wait dialog
 if __name__ == "__main__":
     import sys
     from time import sleep
     app = QtWidgets.QApplication(sys.argv)
-    dialog = WaitDialog("Please wait...")
+    dialog = WaitDialog("Please wait...", message_size=30)
     dialog.display()
+    sleep(1)
+    dialog.set_message("Please wait...AAA")
+    sleep(1)
+    dialog.set_message("Please wait...AAAAAA")
+    sleep(1)
+    dialog.set_message("Please wait...AAAAAAAAA")
+    sleep(1)
+
     # app.exec_()
-    sleep(2)
+    # sleep(1)
+    # dialog.set_message("Still doing its thing. Wait a bit more")
+    # sleep(1)
+    # dialog.set_message("Almost there...Wait a bit more. Apologies for inconvenience.")
+    # sleep(1)
+    # dialog.set_message("Almost done")
+    # sleep(1)
     dialog.kill()
     sys.exit()

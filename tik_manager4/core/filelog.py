@@ -70,12 +70,14 @@ class Filelog:
         self._end_logging()
         return self.log_name
 
-    def info(self, msg):
+    def info(self, msg, *args):
         """Log an info message.
 
         Args:
             msg (str): The message to log.
         """
+        # use args to format the message mimicking the lazy logging
+        msg = msg % args if args else msg
         stamped_msg = "%sINFO     : %s" %(self._get_now(), msg)
         self._start_logging()
         self.logger.info(stamped_msg)
@@ -83,12 +85,13 @@ class Filelog:
         self._end_logging()
         return msg
 
-    def warning(self, msg):
+    def warning(self, msg, *args):
         """Log a warning message.
 
         Args:
             msg (str): The message to log.
         """
+        msg = msg % args if args else msg
         stamped_msg = "%sWARNING  : %s" % (self._get_now(), msg)
         self._start_logging()
         self.logger.warning(stamped_msg)
@@ -96,13 +99,14 @@ class Filelog:
         self._end_logging()
         return msg
 
-    def error(self, msg, proceed=True):
+    def error(self, msg, *args, proceed=True):
         """Log an error message.
 
         Args:
             msg (str): The message to log.
             proceed (bool): Whether to raise an exception after logging the error.
         """
+        msg = msg % args if args else msg
         stamped_msg = "%sERROR    : %s" % (self._get_now(), msg)
         self._start_logging()
         self.logger.error(stamped_msg, exc_info=True)
@@ -112,12 +116,13 @@ class Filelog:
             raise msg
         return msg
 
-    def exception(self, msg):
+    def exception(self, msg, *args):
         """Log an exception message.
 
         Args:
             msg (str): The message to log.
         """
+        msg = msg % args if args else msg
         stamped_msg = "%sEXCEPTION: %s" % (self._get_now(), msg)
         self._start_logging()
         self.logger.exception(stamped_msg)

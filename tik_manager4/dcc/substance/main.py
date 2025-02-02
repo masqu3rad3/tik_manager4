@@ -11,6 +11,7 @@ from tik_manager4.dcc.substance import validate
 from tik_manager4.dcc.substance import extract
 from tik_manager4.dcc.substance import ingest
 from tik_manager4.dcc.substance import utils
+from tik_manager4.dcc.substance import extension
 
 LOG = logging.getLogger(__name__)
 class Dcc(MainCore):
@@ -22,6 +23,7 @@ class Dcc(MainCore):
     validations = validate.classes
     extracts = extract.classes
     ingests = ingest.classes
+    extensions = extension.classes
 
     @staticmethod
     def get_main_window():

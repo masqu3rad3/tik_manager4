@@ -143,6 +143,14 @@ def set_ranges(range_list):
     bpy.context.scene.frame_start = range_list[0]
     bpy.context.scene.frame_end = range_list[-1]
 
+def get_scene_fps():
+    """Return the scene FPS."""
+    return bpy.context.scene.render.fps
+
+def set_scene_fps(fps_value):
+    """Set the scene FPS."""
+    bpy.context.scene.render.fps = fps_value
+
 def get_override_context(context=None):
     context = bpy.context.copy()
 

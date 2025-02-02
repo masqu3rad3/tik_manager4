@@ -3,7 +3,7 @@
 import traceback
 from pathlib import Path
 import importlib
-from tik_manager4.external.fileseq import filesequence as fileseq
+from tik_manager4.external import fileseq
 from tik_manager4.core import filelog
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.metadata import Metadata
@@ -26,8 +26,6 @@ class ExtractCore:
     # any ingestor with the same bundle_match_id will be able to ingest this bundle.
 
     def __init__(self, exposed_settings=None, global_exposed_settings=None):
-        # get the module name as name
-        # self._name = None
         self.global_exposed_settings_ui: dict = global_exposed_settings or {}
         self.exposed_settings_ui: dict = exposed_settings or {}
 
@@ -232,8 +230,9 @@ class ExtractCore:
         _path = self.resolve_output()
 
         # get everything in the path as fileseq
-        f_handler = fileseq.FileSequence("")
-        found_seqs = f_handler.findSequencesOnDisk(_path)
+        # f_handler = fileseq.FileSequence("")
+        # found_seqs = f_handler.findSequencesOnDisk(_path)
+        found_seqs = fileseq.findSequencesOnDisk(_path)
 
         for seq in found_seqs:
             self._bundle_info[seq.basename()] = {

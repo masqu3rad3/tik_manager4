@@ -8,6 +8,7 @@ from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.dcc.trigger import validate
 from tik_manager4.dcc.trigger import extract
 from tik_manager4.dcc.trigger import ingest
+from tik_manager4.dcc.trigger import extension
 
 LOG = logging.getLogger(__name__)
 class Dcc(MainCore):
@@ -19,6 +20,7 @@ class Dcc(MainCore):
     validations = validate.classes
     extracts = extract.classes
     ingests = ingest.classes
+    extensions = extension.classes
 
     trigger_api = trigger.ApiHandler()
 

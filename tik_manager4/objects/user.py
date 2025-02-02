@@ -238,6 +238,20 @@ class User:
         """
         self.resume.edit_property("main_window_state", value)
 
+    @property
+    def ui_elements(self):
+        """The GUI elements."""
+        return self.resume.get_property("ui_elements", {})
+
+    @ui_elements.setter
+    def ui_elements(self, value):
+        """Set the GUI elements.
+
+        Args:
+            value (dict): Dictionary of GUI elements.
+        """
+        self.resume.edit_property("ui_elements", value)
+
     @classmethod
     def __set_authentication_status(cls, state):
         """Sets the authentication status of the user.
