@@ -99,7 +99,7 @@ class LocalizeMixin(Entity):
             project_name = Path(self.guard.project_root).name
             localized_purgatory_path = Path(local_folder, project_name, ".purgatory", self.path, *args)
             return localized_purgatory_path.as_posix()
-        return self.get_purgatory_database_path(*args)
+        return self.get_purgatory_project_path(*args)
 
     def show_project_folder(self):
         """Override the show_project_folder method to resolve the local or project path."""
