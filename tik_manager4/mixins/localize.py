@@ -48,7 +48,6 @@ class LocalizeMixin(Entity):
             return None
         return localized_path_obj.as_posix()
 
-
     def get_localized_path(self, *args, return_str=True):
         """Return the localized path for the entity.
 

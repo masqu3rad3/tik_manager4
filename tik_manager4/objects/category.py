@@ -36,6 +36,14 @@ class Category(Entity):
     def works(self):
         """Return the works under the category."""
         self.scan_works()
+        # filter the works that have at least one non-deleted version
+        valid_works = {key: value for key, value in self._works.items() if value.has_valid_versions()}
+        return valid_works
+
+    @property
+    def all_works(self):
+        """Return all the works under the category."""
+        self.scan_works()
         return self._works
 
     def get_works_by_wildcard(self, wildcard):

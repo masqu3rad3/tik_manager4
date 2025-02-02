@@ -4,7 +4,7 @@ import http.client
 import json
 from pathlib import Path
 from tik_manager4.core import filelog, settings, utils
-from tik_manager4.objects import user, project
+from tik_manager4.objects import user, project, purgatory
 from tik_manager4 import dcc
 from tik_manager4 import management
 from tik_manager4.external.packaging.version import Version
@@ -34,7 +34,7 @@ class Main:
         self.project.guard.set_commons(self.user.commons)
         self.project.guard.set_localize_settings(self.user.localization)
         self.all_dcc_extensions = dcc.EXTENSION_DICT
-
+        self.purgatory = purgatory.Purgatory(self)
 
         self.default_project = Path(utils.get_home_dir(), "TM4_default")
 

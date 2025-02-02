@@ -552,11 +552,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.info.thumbnail.setEnabled(True)
         self.version.preview_btn.setEnabled(True)
         self.base = base
-        self.populate_versions(base.versions)
+        # self.populate_versions(base.versions)
+        self.populate_versions(base)
         self.version.combo.blockSignals(False)
 
-    def populate_versions(self, versions):
+    # def populate_versions(self, versions):
+    def populate_versions(self, base, show_all=True):
         """Populate the version dropdown with the versions from the base object."""
+        versions = base.all_versions if show_all else base.versions
         self.version.combo.blockSignals(True)
         self.version.combo.clear()
         self.version.combo.set_items(versions)
@@ -769,13 +772,15 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 critical=True,
             )
             return
-        self.populate_versions(self.base.versions)
+        # self.populate_versions(self.base.versions)
+        self.populate_versions(self.base)
 
     def refresh(self):
         """Refresh the version dropdown."""
         if self.base:
             self.base.reload()
-            self.populate_versions(self.base.versions)
+            # self.populate_versions(self.base.versions)
+            self.populate_versions(self.base)
         else:
             self.version.combo.clear()
             self.info.notes_editor.clear()

@@ -509,6 +509,7 @@ class MainUI(QtWidgets.QMainWindow):
         # build extensions before window and help menus
         self.build_extensions()
         window_menu = self.menu_bar.addMenu("UI Elements")
+        purgatory_menu = self.menu_bar.addMenu("Purgatory")
         help_menu = self.menu_bar.addMenu("Help")
 
         # File Menu
@@ -567,6 +568,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.buttons_visibility.setChecked(True)
         window_menu.addAction(self.buttons_visibility)
 
+        # Purgatory Menu
+        purge_local_purgatory = QtWidgets.QAction("&Purge Local Purgatory", self)
+        purge_project_purgatory = QtWidgets.QAction("&Purge Project Purgatory", self)
+        purgatory_menu.addAction(purge_local_purgatory)
+        purgatory_menu.addAction(purge_project_purgatory)
+
         # Help Menu
         issues_and_feature_requests = QtWidgets.QAction(
             "&Issues && Feature Requests", self
@@ -609,6 +616,9 @@ class MainUI(QtWidgets.QMainWindow):
         )
         support_tik_manager.triggered.connect(lambda: support_splash.launch_support(self))
 
+        purge_local_purgatory.triggered.connect(self.on_purge_local_purgatory)
+        purge_project_purgatory.triggered.connect(self.on_purge_project_purgatory)
+
         self.project_visibility.toggled.connect(self.project_mcv.setVisible)
         self.project_visibility.toggled.connect(self.separator_line.setVisible)
         self.user_login_visibility.toggled.connect(self.user_mcv.setVisible)
@@ -617,6 +627,45 @@ class MainUI(QtWidgets.QMainWindow):
         self.buttons_visibility.toggled.connect(self.work_buttons_frame.setVisible)
 
         self.menu_bar.setMinimumWidth(self.menu_bar.sizeHint().width())
+
+    def on_purge_local_purgatory(self):
+        """Purge the local purgatory."""
+        # user confirmation
+        confirm = self.feedback.pop_question(
+            title="Purge Local Purgatory",
+            text="Are you sure you want to purge the local purgatory?",
+            buttons=["yes", "cancel"]
+        )
+        if not confirm:
+            return
+        state, msg = self.tik.purgatory.purge_local()
+        title = "Local Purgatory Purged" if state else "Purge Failed"
+        self.feedback.pop_info(
+            title=title,
+            text=msg,
+            critical=not state
+        )
+
+    def on_purge_project_purgatory(self):
+        """Purge the project purgatory."""
+        # pre-check
+        if not self._pre_check(level=3):
+            return
+        # user confirmation
+        confirm = self.feedback.pop_question(
+            title="Purge Project Purgatory",
+            text="Are you sure you want to purge the project purgatory?",
+            buttons=["yes", "cancel"]
+        )
+        if not confirm:
+            return
+        state, msg = self.tik.purgatory.purge_origin()
+        title = "Project Purgatory Purged" if state else "Purge Failed"
+        self.feedback.pop_info(
+            title=title,
+            text=msg,
+            critical=not state
+        )
 
     def build_extensions(self):
         """Collect the management extensions and build the menu."""

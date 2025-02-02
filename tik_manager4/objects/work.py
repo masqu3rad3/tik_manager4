@@ -133,12 +133,25 @@ class Work(Settings, LocalizeMixin):
     @property
     def versions(self):
         """Versions of the work in a list."""
+        # filter out the deleted versions
+        return [version for version in self._versions if not version.deleted]
+
+    @property
+    def all_versions(self):
+        """All versions of the work including deleted ones."""
         return self._versions
 
     @property
     def version_count(self):
         """Total number of versions belonging to the work."""
         return len(self._versions)
+
+    def has_valid_versions(self):
+        """Check if the work has at least one valid version."""
+        for version in self._versions:
+            if not version.deleted:
+                return True
+        return False
 
     def set_parent_task(self, task_obj):
         """Set the parent task of the work."""
@@ -171,7 +184,8 @@ class Work(Settings, LocalizeMixin):
         """Return the last version of the work."""
         # First try to get the last version from the versions list. If not found, return 0.
         if self._versions:
-            return self._versions[-1].version
+            # return self._versions[-1].version
+            return self.all_versions[-1].version # same as _versions but more explicit
         else:
             return 0
 
@@ -459,8 +473,8 @@ class Work(Settings, LocalizeMixin):
             version.move_to_purgatory()
 
         # finally move the database file
-        db_destination = Path(self.get_resolved_purgatory_path(), self.settings_file.name)
-        utils.move(self.settings_file.as_posix(), db_destination.as_posix())
+        # db_destination = Path(self.get_resolved_purgatory_path(), self.settings_file.name)
+        # utils.move(self.settings_file.as_posix(), db_destination.as_posix())
         return 1, "success"
 
     def check_owner_permissions(self, version_number):
@@ -510,7 +524,7 @@ class Work(Settings, LocalizeMixin):
             version_obj.move_to_purgatory()
 
             # remove the version from the versions list
-            self._versions.remove(version_obj)
+            # self._versions.remove(version_obj)
             self.apply_settings()
         return 1, msg
 

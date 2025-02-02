@@ -752,6 +752,7 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
     def __init__(self, *args, **kwargs):
         """Initialize the layout."""
         super(TikCategoryLayout, self).__init__(*args, **kwargs)
+        self.show_all = False # if true, shows deleted items too.
         header_lay = QtWidgets.QHBoxLayout()
         header_lay.setContentsMargins(0, 0, 0, 0)
         self.addLayout(header_lay)
@@ -904,12 +905,23 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         if self.mode == 0 and self._last_category:
             self.work_tree_view.model.set_works(works.values())
         else:
-            _publishes = [
+            _publishes = self._collect_publishes(works)
+            self.work_tree_view.model.set_publishes(_publishes)
+
+    def _collect_publishes(self, works):
+        """Collect the publishes from the works."""
+        if self.show_all:
+            return [
+                work_obj.publish
+                for work_obj in works.values()
+                if work_obj.publish.all_versions
+            ]
+        else:
+            return [
                 work_obj.publish
                 for work_obj in works.values()
                 if work_obj.publish.versions
             ]
-            self.work_tree_view.model.set_publishes(_publishes)
 
     def refresh(self):
         """Refresh the current category."""

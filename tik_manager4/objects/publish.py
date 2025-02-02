@@ -58,13 +58,20 @@ class Publish(LocalizeMixin):
     @property
     def versions(self):
         """Versions of the publish."""
+        all_versions = self.all_versions
+        return [version for version in all_versions if not version.deleted]
+
+    @property
+    def all_versions(self):
+        """All versions of the publish, including the deleted ones."""
         self.scan_publish_versions()
         return list(self._publish_versions.values())
 
     @property
     def version_count(self):
         """Number of publish versions."""
-        return len(self.versions)
+        # return len(self.versions)
+        return len(self.all_versions)
 
     @property
     def state(self):
@@ -96,7 +103,8 @@ class Publish(LocalizeMixin):
     def get_last_version(self):
         """Return the last publish version."""
         # find the latest publish version
-        _publish_version_numbers = [data.version for data in self.versions]
+        # _publish_version_numbers = [data.version for data in self.versions]
+        _publish_version_numbers = [data.version for data in self.all_versions]
         return 0 if not _publish_version_numbers else max(_publish_version_numbers)
 
     def get_publish_data_folder(self):
@@ -371,5 +379,5 @@ class Publish(LocalizeMixin):
         version_obj.move_to_purgatory()
 
         # remove the publish version from the publish versions
-        self._publish_versions.pop(version_obj.settings_file)
+        # self._publish_versions.pop(version_obj.settings_file)
         return 1, "success"

@@ -49,6 +49,7 @@ class PublishVersion(Settings, LocalizeMixin):
         self._elements = []
         self._localized: bool = False
         self._localized_path: str = ""
+        self._deleted: bool = False
 
         self.modified_time = None  # to compare and update if necessary
 
@@ -78,6 +79,7 @@ class PublishVersion(Settings, LocalizeMixin):
         self._work_version = self.get_property("work_version", self._work_version)
         self._localized = self.get_property("localized", self._localized)
         self._localized_path = self.get_property("localized_path", self._localized_path)
+        self._deleted = self.get_property("deleted", self._deleted)
 
     @property
     def creator(self):
@@ -183,6 +185,11 @@ class PublishVersion(Settings, LocalizeMixin):
         """The user of the publish version. Alias for creator."""
         return self._creator
 
+    @property
+    def deleted(self):
+        """The deleted status of the publish version."""
+        return self._deleted
+
     def is_promoted(self):
         """Return if the publish is promoted or not.
 
@@ -274,23 +281,27 @@ class PublishVersion(Settings, LocalizeMixin):
             target_abs_path = self.get_resolved_purgatory_path(relative_path)
             utils.move(source_abs_path, target_abs_path)
 
-        # move the thumbnail to purgatory
-        thumbnail_relative_path = self.get("thumbnail", None)
-        if thumbnail_relative_path:
-            thumbnail_abs_path = self.get_abs_database_path(
-                thumbnail_relative_path
-            )
-            thumbnail_dest_abs_path = self.get_purgatory_database_path(
-                thumbnail_relative_path
-            )
-            utils.move(thumbnail_abs_path, thumbnail_dest_abs_path)
+        # # move the thumbnail to purgatory
+        # thumbnail_relative_path = self.get("thumbnail", None)
+        # if thumbnail_relative_path:
+        #     thumbnail_abs_path = self.get_abs_database_path(
+        #         thumbnail_relative_path
+        #     )
+        #     thumbnail_dest_abs_path = self.get_purgatory_database_path(
+        #         thumbnail_relative_path
+        #     )
+        #     utils.move(thumbnail_abs_path, thumbnail_dest_abs_path)
+        #
+        # # move the database file to purgatory
+        # _file_name = Path(self.settings_file).name
+        # dest_abs_file_path = self.get_purgatory_database_path(
+        #     self.name, _file_name
+        # )
+        # utils.move(self.settings_file, dest_abs_file_path)
 
-        # move the database file to purgatory
-        _file_name = Path(self.settings_file).name
-        dest_abs_file_path = self.get_purgatory_database_path(
-            self.name, _file_name
-        )
-        utils.move(self.settings_file, dest_abs_file_path)
+        self._deleted = True
+        self.edit_property("deleted", True)
+        self.apply_settings(force=True)
 
 
 class WorkVersion(LocalizeMixin):
@@ -313,6 +324,7 @@ class WorkVersion(LocalizeMixin):
         self._version_number: int = 0
         self._workstation: str = ""
         self._relative_path = parent_path
+        self._deleted: bool = False
         if data_dictionary:
             self.from_dict(data_dictionary)
 
@@ -378,6 +390,11 @@ class WorkVersion(LocalizeMixin):
         """The workstation of the work version."""
         return self._workstation
 
+    @property
+    def deleted(self):
+        """The deleted status of the work version."""
+        return self._deleted
+
     def from_dict(self, dictionary):
         """Apply the values from given dictionary."""
         for key, value in dictionary.items():
@@ -399,6 +416,7 @@ class WorkVersion(LocalizeMixin):
             "user": self._user,
             "version_number": self._version_number,
             "workstation": self._workstation,
+            "deleted": self._deleted
         }
 
     def move_to_purgatory(self):
@@ -407,12 +425,14 @@ class WorkVersion(LocalizeMixin):
         target_abs_path = self.get_resolved_purgatory_path()
         utils.move(source_abs_path, target_abs_path)
 
-        # move the thumbnail
-        thumbnail_abs_path = self.get_abs_database_path(self.thumbnail)
-        thumbnail_dest_path = self.get_purgatory_database_path(
-            self.thumbnail
-        )
-        utils.move(thumbnail_abs_path, thumbnail_dest_path)
+        # # move the thumbnail
+        # thumbnail_abs_path = self.get_abs_database_path(self.thumbnail)
+        # thumbnail_dest_path = self.get_purgatory_database_path(
+        #     self.thumbnail
+        # )
+        # utils.move(thumbnail_abs_path, thumbnail_dest_path)
+
+        self._deleted = True
 
     def __str__(self):
         """Return the type of the class and the current data."""
