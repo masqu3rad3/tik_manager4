@@ -41,8 +41,12 @@ class SupportSplashScreen(QtWidgets.QDialog):
 
         # Message
         message_label = QtWidgets.QLabel(
-            "<p>So we’ll keep this short—just like the time between your last save and that unexpected crash.</p>"
-            "<p>Tik Manager is free and open-source, and we want to keep it that way! If you find it useful, consider supporting its development. No pressure, but even a small contribution helps keep things running smoothly (and buys us more coffee ☕).</p>"
+            "<p>So we’ll keep this short—just like the time between your last "
+            "save and that unexpected crash.</p>"
+            "<p>Tik Manager is free and open-source, and we want to keep it "
+            "that way! If you find it useful, consider supporting its development. "
+            "No pressure, but even a small contribution helps keep the project "
+            "alive (and fuels our caffeine addiction ☕).</p>"
         )
         message_label.setWordWrap(True)
         message_label.setAlignment(QtCore.Qt.AlignCenter)
@@ -50,7 +54,9 @@ class SupportSplashScreen(QtWidgets.QDialog):
         main_layout.addWidget(message_label)
 
         # Checkbox
-        self.dont_show_again_cb = QtWidgets.QCheckBox("Spare me from pop-ups (until the next update)")
+        self.dont_show_again_cb = QtWidgets.QCheckBox(
+            "Spare me from pop-ups (until the next update)"
+        )
         self.dont_show_again_cb.setChecked(True)
         self.dont_show_again_cb.setStyleSheet("font-size: 13px;")
         main_layout.addWidget(self.dont_show_again_cb)
@@ -149,10 +155,11 @@ class SupportDialog(QtWidgets.QDialog):
 if __name__ == "__main__":
     import sys
 
-    # app = QtWidgets.QApplication(sys.argv)
-    # splash = SupportSplashScreen()
-    # splash.exec_()
-
     app = QtWidgets.QApplication(sys.argv)
+    splash = SupportSplashScreen()
+    splash.show()
+
+    # app = QtWidgets.QApplication(sys.argv)
     support_dialog = SupportDialog()
-    support_dialog.exec_()
+    support_dialog.show()
+    sys.exit(app.exec_())
