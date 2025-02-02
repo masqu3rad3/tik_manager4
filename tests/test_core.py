@@ -290,11 +290,12 @@ def test_execute(tmp_path):
         with patch("subprocess.Popen") as mock_popen:
             utils.execute(str(_file), executable="existing_executable")
 
-    # Test for Windows
-    with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Windows"):
-        with patch("os.startfile") as mock_startfile:
-            utils.execute(str(_file))
-            mock_startfile.assert_called_once_with(str(_file))
+    if platform.system() == "Windows":
+        # Test for Windows
+        with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Windows"):
+            with patch("os.startfile") as mock_startfile:
+                utils.execute(str(_file))
+                mock_startfile.assert_called_once_with(str(_file))
 
     # Test for Linux
     with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Linux"):
@@ -313,26 +314,27 @@ def test_execute_with_sequential_file(monkeypatch, tmp_path):
     # Create a mock sequential file
     seq_file = tmp_path / "test_seq.0001.exr"
     seq_file.touch()
-    seq_pattern = seq_file.as_posix().replace(".0001.exr", ".@.exr")
-
-    # Mock the fileseq.findSequenceOnDisk function to return a sequence
-    mock_seq = [seq_file]
-    monkeypatch.setattr(fileseq, "findSequenceOnDisk", lambda x: mock_seq)
-
-    # Test the execute function with the sequential file
-    with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Windows"):
-        with patch("os.startfile") as mock_startfile:
-            utils.execute(seq_file.as_posix())
-            mock_startfile.assert_called_once_with(seq_file.as_posix())
 
     mock_seq = MagicMock()
     monkeypatch.setattr(fileseq, "findSequenceOnDisk", lambda x: mock_seq)
-    # utils.execute(seq_file.as_posix())
-    with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Windows"):
-        with patch("os.startfile") as mock_startfile:
-            utils.execute(str(seq_file.as_posix()))
-            mock_startfile.assert_called_once_with(str(seq_file.as_posix()))
 
+    if platform.system() == "Windows":
+        with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Windows"):
+            with patch("os.startfile") as mock_startfile:
+                utils.execute(str(seq_file.as_posix()))
+                mock_startfile.assert_called_once_with(str(seq_file.as_posix()))
+
+    # Test for Linux
+    with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Linux"):
+        with patch("subprocess.Popen") as mock_popen:
+            utils.execute(str(seq_file.as_posix()))
+            mock_popen.assert_called_once_with(["xdg-open", str(seq_file.as_posix())])
+
+    # Test for another platform (Darwin in this case)
+    with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Darwin"):
+        with patch("subprocess.Popen") as mock_popen:
+            utils.execute(str(seq_file.as_posix()))
+            mock_popen.assert_called_once_with(["open", str(seq_file.as_posix())])
 
 def test_execute_with_nonexistent_file(tmp_path):
     """Test execute function with a nonexistent file."""
