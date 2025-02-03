@@ -241,3 +241,9 @@ class Category(Entity):
         if name:
             parts.append(name)
         return "_".join(parts)
+
+    def delete_works(self):
+        """Mark the category as deleted."""
+        # destroy all works under the category
+        for work in self.works.values():
+            work.destroy()

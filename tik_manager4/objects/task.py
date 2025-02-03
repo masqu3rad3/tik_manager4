@@ -62,11 +62,11 @@ class Task(Settings, Entity):
         self._relative_path = self.get_property("path") or path
         self._file_name = self.get_property("file_name") or file_name
         self._type = self.metadata.get_value("mode", "")
-
         self._state = self.get_property("state") or "active"
+        self._deleted = self.get_property("deleted") or False
 
         self._categories = {}
-        self.build_categories(self.get_property("categories") or categories)
+        self.build_categories(self.get_property("categories") or categories or [])
 
 
     def refresh(self):
@@ -127,6 +127,11 @@ class Task(Settings, Entity):
     def state(self):
         """State of the task."""
         return self._state
+
+    @property
+    def deleted(self):
+        """Deleted state of the task."""
+        return self._deleted
 
     def omit(self):
         """Omit the task."""
@@ -256,29 +261,60 @@ class Task(Settings, Entity):
         if state != 1:
             return -1
 
-        # delete category from database
-        self._categories.pop(category)
-        self._current_value["categories"] = list(self._categories.keys())
-        self.apply_settings()
-
         if not _is_empty:
             LOG.warning(
                 "Sending category '{0}' from task '{1}' to purgatory.".format(
                     category, self.name
                 )
             )
-            Path(self.get_purgatory_database_path(category)).mkdir(parents=True, exist_ok=True)
+            # Path(self.get_purgatory_database_path(category)).mkdir(parents=True, exist_ok=True)
             Path(self.get_purgatory_project_path(category)).mkdir(parents=True, exist_ok=True)
-            shutil.move(
-                self.get_abs_database_path(self.name, category),
-                self.get_purgatory_database_path(self.name, category),
-            )
+            # shutil.move(
+            #     self.get_abs_database_path(self.name, category),
+            #     self.get_purgatory_database_path(self.name, category),
+            # )
+            # mark everything under the category as deleted and move work files to purgatory
+            self.categories[category].delete_works()
+
             shutil.move(
                 self.get_abs_project_path(self.name, category),
                 self.get_purgatory_project_path(self.name, category),
             )
 
+        # delete category from database
+        self._categories.pop(category)
+        self._current_value["categories"] = list(self._categories.keys())
+        self.apply_settings()
+
         return 1
+
+    def destroy(self):
+        """Destroy the task, deleting all categories and everything in them."""
+
+        permission_level = 2 if self.is_empty() else 3
+        state = self.check_permissions(level=permission_level)
+        if state != 1:
+            return -1
+
+        for category_name, category_obj in self.categories.items():
+            category_obj.delete_works()
+            # we dont touch the category names.
+
+        # categories_to_delete = list(self.categories.keys())
+        # for category in categories_to_delete:
+        #     self.delete_category(category)
+        # tag the task as deleted
+        self._deleted = True
+        self.edit_property("deleted", True)
+        self.apply_settings()
+        return 1
+
+    def is_empty(self):
+        """Check all categories and return True if all are empty."""
+        for category in self.categories:
+            if not self.categories[category].is_empty():
+                return False
+        return True
 
     def order_categories(self, new_order):
         """Order the categories of the task.

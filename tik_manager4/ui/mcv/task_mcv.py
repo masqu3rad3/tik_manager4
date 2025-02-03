@@ -20,6 +20,7 @@ class TikTaskItem(QtGui.QStandardItem):
         "shot": (0, 115, 255),
         "global": (255, 141, 28),
         "other": (255, 255, 255),
+        "deleted": (255, 0, 0),
     }
 
     def __init__(self, task_obj):
@@ -42,10 +43,6 @@ class TikTaskItem(QtGui.QStandardItem):
 
         self._state = None
 
-        # _color = self.color_dict.get(task_obj.type, (255, 255, 255))
-        # self.setForeground(QtGui.QColor(*_color))
-
-        # self.setFont(fnt)
         self.setText(task_obj.nice_name or task_obj.name)
 
         self.refresh()
@@ -53,6 +50,12 @@ class TikTaskItem(QtGui.QStandardItem):
     def refresh(self):
         """Refresh the item"""
         self.set_state(self.task.state)
+
+        if self.task.deleted:
+            self.setForeground(QtGui.QColor(255, 0, 0))
+            self.setFont(QtGui.QFont("Open Sans", 12, italic=True))
+            _icon = pick.icon(f"{self.task.type}-ghost.png")
+            self.setIcon(_icon)
 
     def set_state(self, state):
         """Set the state of the item.
@@ -65,6 +68,12 @@ class TikTaskItem(QtGui.QStandardItem):
         self.fnt.setStrikeOut(state == "omitted")
         self.setFont(self.fnt)
         self.setForeground(QtGui.QColor(*_color))
+
+        # it its deleted make is transparent and italic
+        if state == "deleted":
+            self.setForeground(QtGui.QColor(255, 0, 0, 100))
+            self.setFont(QtGui.QFont("Open Sans", 12, italic=True))
+
 
 
 class TikTaskColumnItem(QtGui.QStandardItem):
@@ -420,6 +429,7 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
     def __init__(self):
         """Initialize the layout"""
         super(TikTaskLayout, self).__init__()
+        # self.show_all = False # if true, shows deleted items too.
         header_lay = QtWidgets.QHBoxLayout()
         header_lay.setContentsMargins(0, 0, 0, 0)
         self.addLayout(header_lay)

@@ -1,4 +1,4 @@
-# pylint: disable=super-with-arguments
+90# pylint: disable=super-with-arguments
 """Module for Subproject object."""
 
 from pathlib import Path
@@ -35,6 +35,7 @@ class Subproject(Entity):
         self.__parent_sub = parent_sub
         self._sub_projects: dict = {}
         self._tasks: dict = {}
+        self._filtered_tasks: dict = {}
         self._metadata = metadata or Metadata({})
 
     @property
@@ -49,8 +50,14 @@ class Subproject(Entity):
 
     @property
     def tasks(self):
-        """All tasks under the subproject as dictionary where each key
+        """Return all NON-DELETED tasks under the subproject as dictionary where each key
         is the name of the task and value is a task object."""
+        # filter the tasks that are not deleted
+        return self._filtered_tasks
+
+    @property
+    def all_tasks(self):
+        """All tasks, including the deleted ones under the subproject."""
         return self._tasks
 
     @property
@@ -231,13 +238,12 @@ class Subproject(Entity):
         # TODO Currently the overriden uid is not getting checked
         #  if it is really unique or not
 
-    def scan_tasks(self):
+    def scan_tasks(self, return_filtered=False):
         """Scan the subproject for tasks.
 
         Returns:
             dict: The tasks under the subproject.
         """
-
         _tasks_search_dir = Path(self.get_abs_database_path())
         _task_paths = list(_tasks_search_dir.glob("*.ttask"))
 
@@ -267,7 +273,11 @@ class Subproject(Entity):
             for _deleted_task_name in _deleted_task_names:
                 del self._tasks[_deleted_task_name]
 
-        return self._tasks
+        # filter the tasks that are not deleted
+        self._filtered_tasks = {task_name: task_obj
+                                for task_name, task_obj
+                                in self._tasks.items() if not task_obj.deleted}
+        return self._tasks if not return_filtered else self._filtered_tasks
 
     def add_task(self,
                  name,
@@ -337,10 +347,7 @@ class Subproject(Entity):
         Args:
             task (Task): The task object to check.
         """
-        for category in task.categories:
-            if not task.categories[category].is_empty():
-                return False
-        return True
+        return task.is_empty()
 
     def delete_task(self, task_name):
         """Delete the task from the subproject.
@@ -360,74 +367,83 @@ class Subproject(Entity):
             return -1, msg
 
         # check all categories are empty
-        _is_empty = self.is_task_empty(task)
-        permission_level = 2 if _is_empty else 3
+        # _is_empty = self.is_task_empty(task)
+        # permission_level = 2 if _is_empty else 3
+        is_empty = task.is_empty()
+        permission_level = 2 if is_empty else 3
         state = self.check_permissions(level=permission_level)
         if state != 1:
             return -1
 
-        # move everything to the purgatory
-        if not _is_empty:
+        if not is_empty:
             LOG.warning(
                 f"Sending task {task_name} " f"and everything underneath to purgatory."
             )
 
-            target_purgatory_database_folder = Path(
-                self.get_purgatory_database_path(task.name)
-            )
-            target_purgatory_project_folder = Path(
-                self.get_purgatory_project_path(task.name)
-            )
-            target_purgatory_task_path = Path(
-                self.get_purgatory_database_path(task.file_name)
-            )
-            for purgatory_folder in [
-                target_purgatory_database_folder,
-                target_purgatory_project_folder,
-            ]:
-                if purgatory_folder.exists():
-                    try:
-                        shutil.rmtree(purgatory_folder)
-                    except PermissionError:
-                        msg = (
-                            f"{purgatory_folder.as_posix()} folder already "
-                            f"exists in purgatory and its read only."
-                            f"Please delete it manually or purge the purgatory."
-                        )
-                        LOG.error(msg)
-                        return -1, msg
+        task.destroy()
 
-            if target_purgatory_task_path.exists():
-                try:
-                    # remove the file
-                    target_purgatory_task_path.unlink()
-                except PermissionError:
-                    msg = (
-                        f"{target_purgatory_task_path.as_posix()} "
-                        f"folder already exists in purgatory and its read only."
-                        f"Please delete it manually or purge the purgatory."
-                    )
-                    LOG.error(msg)
-                    return -1, msg
-            target_purgatory_database_folder.parent.mkdir(parents=True, exist_ok=True)
-            target_purgatory_project_folder.parent.mkdir(parents=True, exist_ok=True)
-
-
-            shutil.move(
-                task.get_abs_database_path(task.name),
-                target_purgatory_database_folder.parent.as_posix(),
-                copy_function=shutil.copytree,
-            )
-            shutil.move(
-                task.get_abs_project_path(task.name),
-                target_purgatory_project_folder.parent.as_posix(),
-                copy_function=shutil.copytree,
-            )
-            shutil.move(
-                task.settings_file, target_purgatory_task_path.as_posix()
-            )
-        else:  # if the task is empty, just delete the database file
-            Path(task.settings_file).unlink()
+        # move everything to the purgatory
+        # if not _is_empty:
+        #     LOG.warning(
+        #         f"Sending task {task_name} " f"and everything underneath to purgatory."
+        #     )
+        #
+        #     target_purgatory_database_folder = Path(
+        #         self.get_purgatory_database_path(task.name)
+        #     )
+        #     target_purgatory_project_folder = Path(
+        #         self.get_purgatory_project_path(task.name)
+        #     )
+        #     target_purgatory_task_path = Path(
+        #         self.get_purgatory_database_path(task.file_name)
+        #     )
+        #     for purgatory_folder in [
+        #         target_purgatory_database_folder,
+        #         target_purgatory_project_folder,
+        #     ]:
+        #         if purgatory_folder.exists():
+        #             try:
+        #                 shutil.rmtree(purgatory_folder)
+        #             except PermissionError:
+        #                 msg = (
+        #                     f"{purgatory_folder.as_posix()} folder already "
+        #                     f"exists in purgatory and its read only."
+        #                     f"Please delete it manually or purge the purgatory."
+        #                 )
+        #                 LOG.error(msg)
+        #                 return -1, msg
+        #
+        #     if target_purgatory_task_path.exists():
+        #         try:
+        #             # remove the file
+        #             target_purgatory_task_path.unlink()
+        #         except PermissionError:
+        #             msg = (
+        #                 f"{target_purgatory_task_path.as_posix()} "
+        #                 f"folder already exists in purgatory and its read only."
+        #                 f"Please delete it manually or purge the purgatory."
+        #             )
+        #             LOG.error(msg)
+        #             return -1, msg
+        #     target_purgatory_database_folder.parent.mkdir(parents=True, exist_ok=True)
+        #     target_purgatory_project_folder.parent.mkdir(parents=True, exist_ok=True)
+        #
+        #
+        #     shutil.move(
+        #         task.get_abs_database_path(task.name),
+        #         target_purgatory_database_folder.parent.as_posix(),
+        #         copy_function=shutil.copytree,
+        #     )
+        #     shutil.move(
+        #         task.get_abs_project_path(task.name),
+        #         target_purgatory_project_folder.parent.as_posix(),
+        #         copy_function=shutil.copytree,
+        #     )
+        #     shutil.move(
+        #         task.settings_file, target_purgatory_task_path.as_posix()
+        #     )
+        # else:  # if the task is empty, just delete the database file
+        #     Path(task.settings_file).unlink()
 
         self._tasks.pop(task_name)
         return 1, "success"

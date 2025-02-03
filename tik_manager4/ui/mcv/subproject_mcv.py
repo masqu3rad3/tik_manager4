@@ -177,6 +177,7 @@ class TikSubView(QtWidgets.QTreeView):
 
     def __init__(self, project_obj=None, right_click_enabled=True):
         super(TikSubView, self).__init__()
+        self.show_all = False
         self._recursive_task_scan = False
         self._feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
@@ -356,21 +357,21 @@ class TikSubView(QtWidgets.QTreeView):
         self.resizeColumnToContents(4)
 
     @staticmethod
-    def collect_tasks(sub_items, recursive=True):
+    def collect_tasks(sub_items, recursive=True, filtered=True):
         if not isinstance(sub_items, list):
             sub_items = [sub_items]
         for sub_item in sub_items:
             if not isinstance(sub_item, tik_manager4.objects.subproject.Subproject):
                 # just to prevent crashes if something goes wrong
                 return
-            for key, value in sub_item.scan_tasks().items():
+            for key, value in sub_item.scan_tasks(return_filtered=filtered).items():
                 yield value
 
             if recursive:
                 queue = list(sub_item.subs.values())
                 while queue:
                     sub = queue.pop(0)
-                    for key, value in sub.scan_tasks().items():
+                    for key, value in sub.scan_tasks(return_filtered=filtered).items():
                         yield value
                     queue.extend(list(sub.subs.values()))
 
@@ -391,7 +392,7 @@ class TikSubView(QtWidgets.QTreeView):
             if _item:
                 sub_project_objects.append(_item.subproject)
         _tasks = self.collect_tasks(
-            sub_project_objects, recursive=self._recursive_task_scan
+            sub_project_objects, recursive=self._recursive_task_scan, filtered=not self.show_all
         )
         self.item_selected.emit(_tasks)
 
@@ -677,6 +678,8 @@ class ProxyModel(FilterModel):
 class TikSubProjectLayout(QtWidgets.QVBoxLayout):
     def __init__(self, project_obj, recursive_enabled=True, right_click_enabled=True):
         super(TikSubProjectLayout, self).__init__()
+        self._show_all = False
+
         self.project_obj = project_obj
         # add a label
         header_lay = QtWidgets.QHBoxLayout()
@@ -717,6 +720,18 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
             self.sub_view.hideColumn(idx)
 
         self.refresh_btn.clicked.connect(self.manual_refresh)
+
+        self.show_all = self._show_all
+
+    @property
+    def show_all(self):
+        return self._show_all
+
+    @show_all.setter
+    def show_all(self, value):
+        self._show_all = value
+        self.sub_view.show_all = value
+        # self.sub_view.get_tasks()
 
     def manual_refresh(self):
         """Refresh the layout and the view"""
