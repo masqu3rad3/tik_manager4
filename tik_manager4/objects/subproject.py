@@ -311,10 +311,19 @@ class Subproject(Entity):
         relative_path = Path(self.path, file_name)
         abs_path = Path(self.guard.database_root, relative_path)
         if abs_path.exists():
-            LOG.warning(
-                f"There is a task under this sub-project with the same name => {name}"
-            )
-            return -1
+            # instanciate the task object and see if its deleted or not
+            _task = Task(absolute_path=abs_path, parent_sub=self)
+            if not _task.deleted:
+                LOG.warning(
+                    f"There is a task under this sub-project with the same name => {name}"
+                )
+                return -1
+            # edit the task
+            _task.revive()
+            _task.edit(categories=categories, metadata_overrides=metadata_overrides)
+            self._tasks[name] = _task
+            return _task
+
         _task_id = uid or self.generate_id()
         _task = Task(
             str(abs_path),
@@ -336,6 +345,12 @@ class Subproject(Entity):
         _task.add_property("file_name", file_name)
         _task.add_property("metadata_overrides", metadata_overrides)
         _task.add_property("state", "active")
+        if abs_path.exists() and not _task.deleted:
+            LOG.warning(
+                f"There is a task under this sub-project with the same name => {name}"
+            )
+            return -1
+
         _task.apply_settings()
         self._tasks[name] = _task
         return _task

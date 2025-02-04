@@ -475,6 +475,7 @@ class Work(Settings, LocalizeMixin):
         # finally move the database file
         # db_destination = Path(self.get_resolved_purgatory_path(), self.settings_file.name)
         # utils.move(self.settings_file.as_posix(), db_destination.as_posix())
+        self.apply_settings()
         return 1, "success"
 
     def check_owner_permissions(self, version_number):

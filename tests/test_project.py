@@ -469,6 +469,12 @@ class TestProject:
             categories=["Model", "Rig", "LookDev"],
             parent_path="Assets/Characters/Soldier",
         )
+        print(existing_task)
+        print(existing_task)
+        print(existing_task)
+        print(existing_task)
+        print(existing_task)
+        print(existing_task)
         assert (
             task.edit(
                 nice_name="Wonderboy",
