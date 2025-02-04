@@ -215,10 +215,6 @@ class Task(Settings, Entity):
         if nice_name and nice_name != self.nice_name:
             # check the sibling tasks to see if the name is already taken
             sibling_task_names = [task.nice_name for task in self.parent_sub.tasks.values()]
-            print("sibling_task_names", sibling_task_names)
-            print("sibling_task_names", sibling_task_names)
-            print("sibling_task_names", sibling_task_names)
-            print("sibling_task_names", sibling_task_names)
             if nice_name in sibling_task_names:
                 msg = f"Task name '{nice_name}' already exists in sub '{self.parent_sub.name}'."
                 LOG.error(msg)

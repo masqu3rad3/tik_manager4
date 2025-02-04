@@ -469,12 +469,7 @@ class TestProject:
             categories=["Model", "Rig", "LookDev"],
             parent_path="Assets/Characters/Soldier",
         )
-        print(existing_task)
-        print(existing_task)
-        print(existing_task)
-        print(existing_task)
-        print(existing_task)
-        print(existing_task)
+
         assert (
             task.edit(
                 nice_name="Wonderboy",
@@ -643,7 +638,8 @@ class TestProject:
 
         tik2.project.subs[sub.name].delete_task("second_task")
 
-        assert sub.scan_tasks() == sub.tasks
+        assert sub.scan_tasks() != sub.tasks # because tasks doesn't return deleted ones.
+        assert sub.scan_tasks() == sub.all_tasks # because all_tasks returns all tasks
 
     def test_if_a_task_is_empty(self, project_manual_path, tik):
         sub, task, work = self._create_a_subproject_task_and_work(
@@ -1151,8 +1147,8 @@ class TestProject:
             tik.project.subs["Assets"]
             .subs["Characters"]
             .subs["Soldier"]
-            .delete_task("superman")
-            == -1
+            .delete_task("superman")[0]
+            == False
         )
         # check if the log message is correct
         assert tik.log.get_last_message() == (
@@ -1165,7 +1161,7 @@ class TestProject:
             .subs["Characters"]
             .subs["Soldier"]
             .delete_task("this_task_doesnt_exist")[0]
-            == -1
+            == False
         )
 
         # delete the task
@@ -1175,7 +1171,7 @@ class TestProject:
             .subs["Characters"]
             .subs["Soldier"]
             .delete_task("superman")[0]
-            == 1
+            == True
         )
 
     def test_deleting_non_empty_task(self, project_manual_path, tik, monkeypatch):
@@ -1186,34 +1182,14 @@ class TestProject:
         # create an additional work
         task.categories["Model"].create_work("test_work_to_double_delete")
         result = sub.delete_task(task.name)
-        assert result == (1, "success")
+        assert result == (True, "success")
 
         # create the same task and same work again
         task = sub.add_task(task.name, categories=["Model", "Rig", "LookDev"])
         task.categories["Model"].create_work("test_work_to_double_delete")
 
-        # mock the shutil.rmtree to raise a PermissionError
-        def mock_rmtree(*args, **kwargs):
-            raise PermissionError
-
-        monkeypatch.setattr(shutil, "rmtree", mock_rmtree)
         result = sub.delete_task(task.name)
-        assert result[0] == -1
-
-        # mock the unlink method to raise a PermissionError
-        monkeypatch.undo()
-
-        def mock_unlink(*args, **kwargs):
-            raise PermissionError
-
-        monkeypatch.setattr(Path, "unlink", mock_unlink)
-        result = sub.delete_task(task.name)
-        assert result[0] == -1
-
-        # remove the mock and clean the purgatory.
-        monkeypatch.undo()
-        result = sub.delete_task(task.name)
-        assert result == (1, "success")
+        assert result == (True, "success")
 
     def test_deleting_empty_categories(self, project_manual_path, tik):
         self.test_adding_categories(project_manual_path, tik)
@@ -1285,5 +1261,5 @@ class TestProject:
             .subs["Characters"]
             .subs["Soldier"]
             .delete_task("superboy")[0]
-            == 1
+            == True
         )

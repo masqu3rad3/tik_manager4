@@ -364,14 +364,18 @@ class TikSubView(QtWidgets.QTreeView):
             if not isinstance(sub_item, tik_manager4.objects.subproject.Subproject):
                 # just to prevent crashes if something goes wrong
                 return
-            for key, value in sub_item.scan_tasks(return_filtered=filtered).items():
+            sub_item.scan_tasks()
+            tasks = sub_item.tasks if filtered else sub_item.all_tasks
+            for key, value in tasks.items():
                 yield value
 
             if recursive:
                 queue = list(sub_item.subs.values())
                 while queue:
                     sub = queue.pop(0)
-                    for key, value in sub.scan_tasks(return_filtered=filtered).items():
+                    sub.scan_tasks()
+                    tasks = sub.tasks if filtered else sub.all_tasks
+                    for key, value in tasks.items():
                         yield value
                     queue.extend(list(sub.subs.values()))
 

@@ -405,15 +405,15 @@ class TikTaskView(QtWidgets.QTreeView):
                 if really_sure != "ok":
                     return
 
-            state = item.task.parent_sub.delete_task(item.task.name)
+            state, msg = item.task.parent_sub.delete_task(item.task.name)
             if state:
                 # find the item in the model and remove it
-                for i in range(self.model.rowCount()):
-                    if self.model.item(i).task == item.task:
-                        self.model.removeRow(i)
+                for row_id in range(self.model.rowCount()):
+                    if self.model.item(row_id).task == item.task:
+                        self.model.removeRow(row_id)
                         break
             else:
-                msg = LOG.last_message()
+                # msg = LOG.last_message()
                 self._feedback.pop_info(
                     title="Task Not Deleted", text=msg, critical=True
                 )
