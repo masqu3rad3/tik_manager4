@@ -6,7 +6,6 @@ import socket
 import shutil
 from pathlib import Path
 
-from tik_manager4.core import utils
 from tik_manager4.core.constants import ObjectType
 from tik_manager4.dcc.standalone.main import Dcc as StandaloneDcc
 from tik_manager4.core.settings import Settings
@@ -145,6 +144,11 @@ class Work(Settings, LocalizeMixin):
     def version_count(self):
         """Total number of versions belonging to the work."""
         return len(self._versions)
+
+    @property
+    def deleted(self):
+        """Check if the work is deleted."""
+        return not self.has_valid_versions()
 
     def has_valid_versions(self):
         """Check if the work has at least one valid version."""
@@ -470,7 +474,9 @@ class Work(Settings, LocalizeMixin):
             self.publish.destroy()
 
         for version in self.versions:
-            version.move_to_purgatory()
+            state, msg = version.move_to_purgatory()
+            if not state:
+                return -1, msg
 
         # finally move the database file
         # db_destination = Path(self.get_resolved_purgatory_path(), self.settings_file.name)

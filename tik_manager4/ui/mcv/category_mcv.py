@@ -60,7 +60,10 @@ class TikWorkItem(QtGui.QStandardItem):
                     "promoted": The work is promoted.
         """
         self.state = state
-        _state_color = self.state_color_dict.get(state, (255, 255, 0))
+        if self.tik_obj.deleted:
+            _state_color = (255, 0, 0)
+        else:
+            _state_color = self.state_color_dict.get(state, (255, 255, 0))
         # cross out omitted items
         self.fnt.setStrikeOut(state == "omitted")
         self.setFont(self.fnt)
@@ -752,7 +755,7 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
     def __init__(self, *args, **kwargs):
         """Initialize the layout."""
         super(TikCategoryLayout, self).__init__(*args, **kwargs)
-        self.show_all = False # if true, shows deleted items too.
+        self._show_all = False # if true, shows deleted items too.
         header_lay = QtWidgets.QHBoxLayout()
         header_lay.setContentsMargins(0, 0, 0, 0)
         self.addLayout(header_lay)
@@ -821,6 +824,14 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self.pre_tab = None
 
         self.refresh_btn.clicked.connect(self.refresh)
+
+    def set_show_all(self, state):
+        """Set the show all state.
+        Args:
+            state (bool): The state of the show all.
+        """
+        self._show_all = state
+        self.refresh()
 
     def get_active_category(self):
         """Get the active category object and return it."""
@@ -901,7 +912,10 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self._last_category = self.category_tab_widget.tabText(index)
         if not self._last_category:
             return
-        works = self.task.categories[self._last_category].works
+        if self._show_all:
+            works = self.task.categories[self._last_category].all_works
+        else:
+            works = self.task.categories[self._last_category].works
         if self.mode == 0 and self._last_category:
             self.work_tree_view.model.set_works(works.values())
         else:
@@ -910,7 +924,7 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 
     def _collect_publishes(self, works):
         """Collect the publishes from the works."""
-        if self.show_all:
+        if self._show_all:
             return [
                 work_obj.publish
                 for work_obj in works.values()

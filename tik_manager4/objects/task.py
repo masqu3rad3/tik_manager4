@@ -276,7 +276,9 @@ class Task(Settings, Entity):
             #     self.get_purgatory_database_path(self.name, category),
             # )
             # mark everything under the category as deleted and move work files to purgatory
-            self.categories[category].delete_works()
+            result, _msg = self.categories[category].delete_works()
+            if not result:
+                return -1
 
             shutil.move(
                 self.get_abs_project_path(self.name, category),

@@ -570,9 +570,14 @@ class MainUI(QtWidgets.QMainWindow):
 
         # Purgatory Menu
         purge_local_purgatory = QtWidgets.QAction("&Purge Local Purgatory", self)
-        purge_project_purgatory = QtWidgets.QAction("&Purge Project Purgatory", self)
         purgatory_menu.addAction(purge_local_purgatory)
+        purge_project_purgatory = QtWidgets.QAction("&Purge Project Purgatory", self)
         purgatory_menu.addAction(purge_project_purgatory)
+        purgatory_menu.addSeparator()
+        show_deleted_items = QtWidgets.QAction("&Show Deleted Items", self)
+        show_deleted_items.setCheckable(True)
+        show_deleted_items.setChecked(False)
+        purgatory_menu.addAction(show_deleted_items)
 
         # Help Menu
         issues_and_feature_requests = QtWidgets.QAction(
@@ -618,6 +623,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         purge_local_purgatory.triggered.connect(self.on_purge_local_purgatory)
         purge_project_purgatory.triggered.connect(self.on_purge_project_purgatory)
+        show_deleted_items.triggered.connect(self.on_show_deleted_items_toggle)
 
         self.project_visibility.toggled.connect(self.project_mcv.setVisible)
         self.project_visibility.toggled.connect(self.separator_line.setVisible)
@@ -627,6 +633,13 @@ class MainUI(QtWidgets.QMainWindow):
         self.buttons_visibility.toggled.connect(self.work_buttons_frame.setVisible)
 
         self.menu_bar.setMinimumWidth(self.menu_bar.sizeHint().width())
+
+    def on_show_deleted_items_toggle(self, state):
+        """Toggle the visibility of deleted items."""
+        print(state)
+        self.subprojects_mcv.set_show_all(state)
+        self.categories_mcv.set_show_all(state)
+        # self.categories_mcv.work_tree_view.show_deleted_items()
 
     def on_purge_local_purgatory(self):
         """Purge the local purgatory."""

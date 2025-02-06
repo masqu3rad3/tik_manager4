@@ -267,8 +267,9 @@ class TestProject:
 
         soft_sub = sub.add_sub_project("soft_sub")
 
-        # no uid or path provided
-        assert tik.project.delete_sub_project(uid=None, path=None) == -1
+        # delete sub-project without an uid or path will raise an Exception
+        with pytest.raises(Exception):
+            tik.project.delete_sub_project(uid=None, path=None)
 
         # not permissions to delete
         tik.user.set("Generic", password="1234")

@@ -6,7 +6,9 @@ from tik_manager4.core import utils
 from tik_manager4.core.constants import ObjectType
 from tik_manager4.core.settings import Settings
 from tik_manager4.mixins.localize import LocalizeMixin
+from tik_manager4.core import filelog
 
+LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class PublishVersion(Settings, LocalizeMixin):
     """PublishVersion object class.
@@ -275,11 +277,15 @@ class PublishVersion(Settings, LocalizeMixin):
 
     def move_to_purgatory(self):
         """Move the publish version to the purgatory folder."""
+
+        errors = []
         for element in self.elements:
             relative_path = element["path"]
             source_abs_path = self.get_resolved_path(relative_path)
             target_abs_path = self.get_resolved_purgatory_path(relative_path)
-            utils.move(source_abs_path, target_abs_path)
+            result, msg = utils.move(source_abs_path, target_abs_path)
+            if not result:
+                errors.append(msg)
 
         # # move the thumbnail to purgatory
         # thumbnail_relative_path = self.get("thumbnail", None)
@@ -299,9 +305,14 @@ class PublishVersion(Settings, LocalizeMixin):
         # )
         # utils.move(self.settings_file, dest_abs_file_path)
 
+        # format the error messages list as a single string
+
+        if errors:
+            return False, "\n".join(errors)
         self._deleted = True
         self.edit_property("deleted", True)
         self.apply_settings(force=True)
+        return True
 
 
 class WorkVersion(LocalizeMixin):
@@ -423,7 +434,10 @@ class WorkVersion(LocalizeMixin):
         """Move the work version to the purgatory folder."""
         source_abs_path = self.get_resolved_path()
         target_abs_path = self.get_resolved_purgatory_path()
-        utils.move(source_abs_path, target_abs_path)
+        result, msg = utils.move(source_abs_path, target_abs_path)
+        if not result:
+            LOG.error(msg)
+            return False, msg
 
         # # move the thumbnail
         # thumbnail_abs_path = self.get_abs_database_path(self.thumbnail)
@@ -433,6 +447,7 @@ class WorkVersion(LocalizeMixin):
         # utils.move(thumbnail_abs_path, thumbnail_dest_path)
 
         self._deleted = True
+        return True, f"{source_abs_path} moved to {target_abs_path}."
 
     def __str__(self):
         """Return the type of the class and the current data."""

@@ -333,7 +333,9 @@ class Publish(LocalizeMixin):
         # move the whole publish folder to purgatory
 
         for publish_obj in self.versions:
-            publish_obj.move_to_purgatory()
+            state, msg = publish_obj.move_to_purgatory()
+            if not state:
+                return -1, msg
 
         # clear the publish versions
         self._publish_versions = {}
@@ -376,7 +378,9 @@ class Publish(LocalizeMixin):
             LOG.warning(msg)
             return -1, msg
 
-        version_obj.move_to_purgatory()
+        state, msg = version_obj.move_to_purgatory()
+        if not state:
+            return -1, msg
 
         # remove the publish version from the publish versions
         # self._publish_versions.pop(version_obj.settings_file)

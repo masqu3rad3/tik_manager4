@@ -246,4 +246,7 @@ class Category(Entity):
         """Mark the category as deleted."""
         # destroy all works under the category
         for work in self.works.values():
-            work.destroy()
+            state, msg = work.destroy()
+            if state != 1:
+                return False, msg
+        return True, "Works under the category are successfully deleted."

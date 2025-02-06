@@ -139,9 +139,21 @@ class Project(Subproject):
         else:
             _remove_path = path
 
-        if self._remove_sub_project(uid, path) == -1:
+        sub = self.__validate_and_get_sub(uid, path)
+        if sub == -1:
             return -1
-        self._delete_folders(str(Path(self._database_path, _remove_path)))
+
+        # if self._remove_sub_project(uid, path) == -1:
+        #     return -1
+        # self._delete_folders(str(Path(self._database_path, _remove_path)))
+
+        # make it less destructive
+        result = sub.destroy()
+        if not result == 1:
+            return -1
+        #     parent_path = (Path(kill_sub.path).parent).as_posix() or ""
+        #     parent_sub = self.find_sub_by_path(parent_path)
+        # del sub.parent_sub.subs[sub.name]
         self.save_structure()
         return 1
 

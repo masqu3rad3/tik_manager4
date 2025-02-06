@@ -13,18 +13,20 @@ class TikSubItem(QtGui.QStandardItem):
         super(TikSubItem, self).__init__()
 
         self.subproject = sub_obj
-
-        # test
-        icon_name = self.subproject.metadata.get_value("mode", fallback_value="global")
-        icon = pick.icon("{}.png".format(icon_name))
-        self.setIcon(icon)
-        #
-        fnt = QtGui.QFont("Open Sans", 12)
-        fnt.setBold(False)
-        self.setEditable(False)
-        self.setForeground(QtGui.QColor(255, 255, 255))
-        self.setFont(fnt)
         self.setText(sub_obj.name)
+        self.refresh()
+
+    def refresh(self):
+        if self.subproject.deleted:
+            self.setForeground(QtGui.QColor(255, 0, 0))
+            self.setFont(QtGui.QFont("Open Sans", 12, italic=True))
+            _icon = pick.icon(f"{self.subproject.type}-ghost.png")
+            self.setIcon(_icon)
+        else:
+            self.setForeground(QtGui.QColor(255, 255, 255))
+            self.setFont(QtGui.QFont("Open Sans", 12, italic=False))
+            _icon = pick.icon(f"{self.subproject.type}.png")
+            self.setIcon(_icon)
 
 
 class TikColumnItem(QtGui.QStandardItem):
@@ -65,6 +67,7 @@ class TikSubModel(QtGui.QStandardItemModel):
         )
         self.setHorizontalHeaderLabels(self.columns)
 
+        self.show_all =False
         self.project = None
         self.root_item = None
         self.set_data(structure_object)
@@ -110,8 +113,11 @@ class TikSubModel(QtGui.QStandardItemModel):
                         "name": neighbour.name,
                         "path": neighbour.path,
                         "tasks": neighbour.tasks,
+                        "deleted": neighbour.deleted,
                         "subs": [],  # this will be filled with the while loop
                     }
+                    if sub_data["deleted"] and not self.show_all:
+                        continue
                     parent["subs"].append(sub_data)
                     _item = self.append_sub(neighbour, parent_row)
 
@@ -582,12 +588,20 @@ class TikSubView(QtWidgets.QTreeView):
                 # make sure the index is pointing to the first column
                 first_column_index = _index.sibling(_index.row(), 0)
                 # get the item from index
-                _item = self.model.itemFromIndex(first_column_index)
+                parent_item = self.model.itemFromIndex(first_column_index)
                 # The reason we are doing this is that we may change
                 # the parent of the item on new subproject UI
             else:
-                _item = self.model.root_item
-            self.model.append_sub(_new_sub, _item)
+                parent_item = self.model.root_item
+            # get all children under the parent_item
+            # if any of the children has the same name as the new subproject, remove it
+            for row in range(parent_item.rowCount()):
+                child = parent_item.takeRow(row)
+                if child[0].subproject.name == _new_sub.name:
+                    parent_item.removeRow(row)
+
+
+            self.model.append_sub(_new_sub, parent_item)
 
     def edit_sub_project(self, item):
         # first check for the user permission:
@@ -650,9 +664,12 @@ class TikSubView(QtWidgets.QTreeView):
                     return
             state = self.model.project.delete_sub_project(uid=item.subproject.id)
             if state != -1:
-                _parent = item.parent()
-                _index = _parent.index() if _parent else QtCore.QModelIndex()
-                self.model.removeRow(item.row(), _index)
+                if self.show_all:
+                    item.refresh()
+                else:
+                    _parent = item.parent()
+                    _index = _parent.index() if _parent else QtCore.QModelIndex()
+                    self.model.removeRow(item.row(), _index)
 
                 # after removing the row, find the current selected one
                 # and emit the clicked signal
@@ -727,6 +744,9 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
 
         self.show_all = self._show_all
 
+    def set_show_all(self, value):
+        self.show_all = value
+
     @property
     def show_all(self):
         return self._show_all
@@ -735,6 +755,8 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
     def show_all(self, value):
         self._show_all = value
         self.sub_view.show_all = value
+        self.sub_view.model.show_all = value
+        self.manual_refresh()
         # self.sub_view.get_tasks()
 
     def manual_refresh(self):
