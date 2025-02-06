@@ -613,11 +613,12 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.toggle_sync_state(state=state, critical=critical)
 
         _index = self.version.combo.currentIndex()
-        # check if the _index is the latest in combo box
-        if _index == self.version.combo.count() - 1:
-            self.version.combo.setProperty("preVersion", False)
-        else:
-            self.version.combo.setProperty("preVersion", True)
+        item = self.version.combo.get_item(_index)
+
+        # adjust the css properties
+        self.version.combo.setProperty("deleted", item.deleted)
+        self.version.combo.setProperty("preVersion",
+                                       _index != self.version.combo.count() - 1)
         self.version.combo.setStyleSheet("")
 
         self.element.element_combo.clear()

@@ -287,32 +287,12 @@ class PublishVersion(Settings, LocalizeMixin):
             if not result:
                 errors.append(msg)
 
-        # # move the thumbnail to purgatory
-        # thumbnail_relative_path = self.get("thumbnail", None)
-        # if thumbnail_relative_path:
-        #     thumbnail_abs_path = self.get_abs_database_path(
-        #         thumbnail_relative_path
-        #     )
-        #     thumbnail_dest_abs_path = self.get_purgatory_database_path(
-        #         thumbnail_relative_path
-        #     )
-        #     utils.move(thumbnail_abs_path, thumbnail_dest_abs_path)
-        #
-        # # move the database file to purgatory
-        # _file_name = Path(self.settings_file).name
-        # dest_abs_file_path = self.get_purgatory_database_path(
-        #     self.name, _file_name
-        # )
-        # utils.move(self.settings_file, dest_abs_file_path)
-
-        # format the error messages list as a single string
-
         if errors:
             return False, "\n".join(errors)
         self._deleted = True
         self.edit_property("deleted", True)
         self.apply_settings(force=True)
-        return True
+        return True, "Success"
 
 
 class WorkVersion(LocalizeMixin):

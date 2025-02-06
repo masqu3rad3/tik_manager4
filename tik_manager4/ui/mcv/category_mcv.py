@@ -125,7 +125,10 @@ class TikPublishItem(QtGui.QStandardItem):
 
         """
         self.state = state
-        _state_color = self.state_color_dict[state]
+        if self.tik_obj.deleted:
+            _state_color = (255, 0, 0)
+        else:
+            _state_color = self.state_color_dict.get(state, (255, 255, 0))
         # cross out omitted items
         self.fnt.setStrikeOut(state == "omitted")
         self.setFont(self.fnt)

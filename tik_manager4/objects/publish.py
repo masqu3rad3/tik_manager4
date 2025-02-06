@@ -83,6 +83,12 @@ class Publish(LocalizeMixin):
         """Parent task of the publish."""
         return self.work_object.parent_task
 
+    @property
+    def deleted(self):
+        """Return True if the publish is deleted."""
+        # if there are no non-deleted versions, the publish is considered deleted
+        return not bool(self.versions)
+
     def reload(self):
         """Reload the publish object."""
         self.work_object.reload()

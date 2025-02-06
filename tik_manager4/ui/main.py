@@ -101,6 +101,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         # set style
+        # _style_file = pick.style_file(file_name="purgatory.css")
         _style_file = pick.style_file()
         self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
 
@@ -636,7 +637,14 @@ class MainUI(QtWidgets.QMainWindow):
 
     def on_show_deleted_items_toggle(self, state):
         """Toggle the visibility of deleted items."""
-        print(state)
+        if state == True:
+            # make a border around the
+            _style_file = pick.style_file(file_name="purgatory.css")
+            self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
+            print(state)
+        else:
+            _style_file = pick.style_file()
+            self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
         self.subprojects_mcv.set_show_all(state)
         self.categories_mcv.set_show_all(state)
         # self.categories_mcv.work_tree_view.show_deleted_items()
