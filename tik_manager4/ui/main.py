@@ -171,6 +171,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.build_bars()
         self.build_buttons()
 
+        self._purgatory_mode = False
+
         self.resume_last_state()
         self.management_lock()
 
@@ -391,10 +393,12 @@ class MainUI(QtWidgets.QMainWindow):
             self.tasks_mcv.task_view.add_tasks
         )
         self.tasks_mcv.task_view.item_selected.connect(self.categories_mcv.set_task)
+        self.tasks_mcv.task_view.task_resurrected.connect(
+            self.subprojects_mcv.sub_view.refresh
+        )
         self.tasks_mcv.task_view.refresh_requested.connect(
             self.subprojects_mcv.sub_view.get_tasks
         )
-
         self.categories_mcv.work_tree_view.item_selected.connect(
             self.versions_mcv.set_base
         )
@@ -408,6 +412,12 @@ class MainUI(QtWidgets.QMainWindow):
             self.versions_mcv.on_import
         )
         self.categories_mcv.work_tree_view.file_dropped.connect(self.on_save_any_file)
+        self.categories_mcv.work_tree_view.work_resurrected.connect(
+            self.tasks_mcv.task_view.refresh
+        )
+        self.categories_mcv.work_tree_view.work_resurrected.connect(
+            self.subprojects_mcv.sub_view.refresh
+        )
         self.versions_mcv.version.preview_btn.clicked.connect(self.on_show_preview)
         self.versions_mcv.element_view_event.connect(self.on_element_view)
 
@@ -624,7 +634,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         purge_local_purgatory.triggered.connect(self.on_purge_local_purgatory)
         purge_project_purgatory.triggered.connect(self.on_purge_project_purgatory)
-        show_deleted_items.triggered.connect(self.on_show_deleted_items_toggle)
+        show_deleted_items.triggered.connect(self.toggle_purgatory_mode)
 
         self.project_visibility.toggled.connect(self.project_mcv.setVisible)
         self.project_visibility.toggled.connect(self.separator_line.setVisible)
@@ -635,19 +645,21 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.menu_bar.setMinimumWidth(self.menu_bar.sizeHint().width())
 
-    def on_show_deleted_items_toggle(self, state):
+    def toggle_purgatory_mode(self, state):
         """Toggle the visibility of deleted items."""
         if state == True:
             # make a border around the
             _style_file = pick.style_file(file_name="purgatory.css")
             self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
-            print(state)
         else:
             _style_file = pick.style_file()
             self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
-        self.subprojects_mcv.set_show_all(state)
-        self.categories_mcv.set_show_all(state)
-        # self.categories_mcv.work_tree_view.show_deleted_items()
+        self.subprojects_mcv.set_purgatory_mode(state)
+        self.tasks_mcv.set_purgatory_mode(state)
+        self.categories_mcv.set_purgatory_mode(state)
+        self.versions_mcv.set_purgatory_mode(state)
+
+        self._purgatory_mode = state
 
     def on_purge_local_purgatory(self):
         """Purge the local purgatory."""

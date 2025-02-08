@@ -24,7 +24,7 @@ class Subproject(Entity):
     """
     object_type = ObjectType.SUBPROJECT
 
-    def __init__(self, parent_sub=None, metadata=None, deleted=False,  **kwargs):
+    def __init__(self, parent_sub=None, metadata=None, **kwargs):
         """Initialize Subproject object.
         Args:
             parent_sub (Subproject): The parent subproject.
@@ -36,7 +36,6 @@ class Subproject(Entity):
         self._sub_projects: dict = {}
         self._tasks: dict = {}
         self._metadata = metadata or Metadata({})
-        self._deleted = deleted
 
     @property
     def parent(self):
@@ -70,7 +69,7 @@ class Subproject(Entity):
     @property
     def deleted(self):
         """Whether the subproject is deleted or not."""
-        return self._deleted
+        return self.metadata.get_value("deleted", fallback_value=False)
 
     @property
     def parent_sub(self):
@@ -82,9 +81,27 @@ class Subproject(Entity):
         """The type of the subproject."""
         return self.metadata.get_value("mode", fallback_value="global")
 
+    def get_project(self):
+        """The project object."""
+        # traverse up until the project is found
+        return self.__parent_sub.get_project()
+
     def revive(self):
-        """Revive the subproject if it is deleted."""
-        self._deleted = False
+        """Revive the subproject if it is deleted.
+        This is a soft recover. DATABASE IS NOT TOUCHED.
+        """
+        self.metadata.add_item("deleted", False, overridden=True)
+        return 1
+
+    def resurrect(self):
+        """Resurrect the subproject if it is deleted."""
+        # traverse up until the project, making sure all the parents are revived
+        self.revive()
+        if self.object_type == ObjectType.PROJECT:
+            self.get_project().save_structure() # this is just not to IDE to complain
+            return True, "success"
+        self.__parent_sub.resurrect()
+        return True, "success"
 
     def replace_metadata(self, metadata):
         """Replace the metadata with the given one."""
@@ -100,7 +117,7 @@ class Subproject(Entity):
             "id": self.id,
             "name": self.name,
             "path": self.path,
-            "deleted": self.deleted,
+            # "deleted": self.deleted,
             "subs": [],  # this will be filled with the while loop
         }
 
@@ -126,9 +143,10 @@ class Subproject(Entity):
                         "path": neighbour.path,
                         "subs": [],  # this will be filled with the while loop
                     }
-                    # add the deleted flag only if it is True
-                    if neighbour.deleted:
-                        sub_data["deleted"] = True
+                    # add the deleted flag only if there is a key for it.
+
+                    # if neighbour.deleted:
+                    #     sub_data["deleted"] = True
                     for key, metaitem in neighbour.metadata.items():
                         if metaitem.overridden:
                             sub_data[key] = metaitem.value
@@ -195,7 +213,7 @@ class Subproject(Entity):
                             properties[key] = value
 
                     _metadata.override(properties)
-                    sub_project = sub.__build_sub_project(_name, sub, _metadata, _id, deleted=_deleted)
+                    sub_project = sub.__build_sub_project(_name, sub, _metadata, _id)
 
                     # define the path and categories separately
                     sub_project._relative_path = _relative_path
@@ -208,7 +226,7 @@ class Subproject(Entity):
                     visited.append(neighbour)
                     queue.append([sub_project, neighbour.get("subs", [])])
 
-    def __build_sub_project(self, name, parent_sub, metadata, uid, deleted=False):
+    def __build_sub_project(self, name, parent_sub, metadata, uid):
         """Build a nested subproject.
 
         Args:
@@ -222,13 +240,13 @@ class Subproject(Entity):
         """
 
         sub_pr = Subproject(
-            name=name, parent_sub=parent_sub, metadata=metadata, uid=uid, deleted=deleted
+            name=name, parent_sub=parent_sub, metadata=metadata, uid=uid
         )
         sub_pr.path = str(Path(self.path, name))
         self._sub_projects[name] = sub_pr
         return sub_pr
 
-    def add_sub_project(self, name, parent_sub=None, uid=None, deleted=False, **properties):
+    def add_sub_project(self, name, parent_sub=None, uid=None, **properties):
         """Add a subproject.
 
         Requires permissions. Does NOT create folders or store in
@@ -271,20 +289,11 @@ class Subproject(Entity):
             )
             return -1
 
-        # # TODO look at this if it can be improved
-        # _metadata = Metadata(dict(self.metadata.get_all_items())) or Metadata({})
-        # # eliminate the None values
-        # properties = {k: v for k, v in properties.items() if v is not None}
-        # _metadata.override(properties)
-
         new_sub = self.__build_sub_project(
-            name, parent_sub, _metadata, uid, deleted
+            name, parent_sub, _metadata, uid
         )  # keep uid at the end
 
         return new_sub
-
-        # TODO Currently the overriden uid is not getting checked
-        #  if it is really unique or not
 
     def scan_tasks(self):
         """Scan the subproject for tasks.
@@ -621,49 +630,6 @@ class Subproject(Entity):
         self.scan_tasks()
         return not self.subs and not self.tasks
 
-    # def _remove_sub_project(self, uid=None, path=None):
-    #     """Remove the subproject from the object but not from the database.
-    #
-    #     Either uid or path is required.
-    #
-    #     Args:
-    #         uid (int, optional): Unique id of the subproject.
-    #         path (str, optional): The path of the subproject.
-    #
-    #     Returns:
-    #         int: 1 if successful, -1 otherwise.
-    #     """
-    #
-    #     if not uid and not path:
-    #         LOG.error("Deleting sub project requires at least an id or path ")
-    #         return -1
-    #
-    #     # Minimum required permission level is 2
-    #     state = self.check_permissions(level=2)
-    #     if state != 1:
-    #         return -1
-    #
-    #     if uid:
-    #         kill_sub = self.find_sub_by_id(uid)
-    #     else:
-    #         kill_sub = self.find_sub_by_path(path)
-    #
-    #     if kill_sub == -1:
-    #         LOG.warning("Subproject cannot be found")
-    #         return -1
-    #
-    #     # if the subproject is not empty, we need to have level 3
-    #     if not self.is_subproject_empty(kill_sub):
-    #         state = self.check_permissions(level=3)
-    #         if state != 1:
-    #             return -1
-    #
-    #     parent_path = (Path(kill_sub.path).parent).as_posix() or ""
-    #     parent_sub = self.find_sub_by_path(parent_path)
-    #     del parent_sub.subs[kill_sub.name]
-    #
-    #     return 1
-
     def destroy(self):
         """Destroy the subproject object.
 
@@ -671,6 +637,12 @@ class Subproject(Entity):
         The subproject will not be removed from the database as it is getting
         controlled with the project object.
         """
+
+        # If the subproject is PROJECT, this is not allowed
+        if self.object_type == ObjectType.PROJECT:
+            LOG.warning("Project Root cannot be deleted.")
+            return -1
+
         state = self.check_permissions(level=2)
         if state != 1:
             return -1
@@ -681,11 +653,7 @@ class Subproject(Entity):
             if state != 1:
                 return -1
 
-        # del self.__parent_sub.subs[self.name]
-        # print(f"Destroying {self.name}")
-        # print(f"Parent sub is {self.__parent_sub.name}")
-        # self.__parent_sub.subs.pop(self.name)
-        self._deleted = True
+        self.metadata.add_item("deleted", True, overridden=True)
 
         for task in self.tasks.values():
             result = task.destroy()

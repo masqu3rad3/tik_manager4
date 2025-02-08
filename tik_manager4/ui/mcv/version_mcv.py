@@ -118,6 +118,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
     def __init__(self, project_object, *args, **kwargs):
         """Initialize the TikVersionLayout."""
         super().__init__()
+        self._purgatory_mode = False
         self.project = project_object
         self.base = None
         self.parent = kwargs.get("parent")
@@ -166,6 +167,21 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.connect_signals()
 
         self.set_base(self.base)
+
+    def set_purgatory_mode(self, state):
+        """Set the purgatory mode."""
+        self.purgatory_mode = state
+
+    @property
+    def purgatory_mode(self):
+        """Get the purgatory mode."""
+        return self._purgatory_mode
+
+    @purgatory_mode.setter
+    def purgatory_mode(self, state):
+        """Set the purgatory mode."""
+        self._purgatory_mode = state
+        self.refresh()
 
     def build_ui(self):
         """Setup the UI."""
@@ -557,9 +573,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.version.combo.blockSignals(False)
 
     # def populate_versions(self, versions):
-    def populate_versions(self, base, show_all=True):
+    def populate_versions(self, base):
         """Populate the version dropdown with the versions from the base object."""
-        versions = base.all_versions if show_all else base.versions
+        versions = base.all_versions if self._purgatory_mode else base.versions
         self.version.combo.blockSignals(True)
         self.version.combo.clear()
         self.version.combo.set_items(versions)

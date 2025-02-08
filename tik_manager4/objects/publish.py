@@ -391,3 +391,20 @@ class Publish(LocalizeMixin):
         # remove the publish version from the publish versions
         # self._publish_versions.pop(version_obj.settings_file)
         return 1, "success"
+
+    def resurrect(self):
+        """Resurrect the publishes stalk. This brings back the LAST publish
+        version from purgatory.
+
+        Returns:
+            tuple: (state(int), message(str)): 1 if the operation is
+                successful, -1 otherwise. A message is returned as well.
+        """
+        # if the upstream work is deleted, first resurrect the work (and everything above)
+        if self.work_object.deleted:
+            state = self.work_object.resurrect()
+            if state == -1:
+                return -1
+
+        # resurrect the last publish version
+        self.all_versions[-1].resurrect()

@@ -71,7 +71,7 @@ class Work(Settings, LocalizeMixin):
         self._task_name = self.get_property("task_name", self._task_name)
         self._task_id = self.get_property("task_id")
         self._relative_path = self.get_property("path", self._relative_path)
-        self._versions = [WorkVersion(self._relative_path, version) for version in self.get_property("versions", [])]
+        self._versions = [WorkVersion(self._relative_path, version, self) for version in self.get_property("versions", [])]
         self._software_version = self.get_property("softwareVersion")
         self._state = self.get_property("state", self._state)
         # keeping the 'working' state for backward compatibility.
@@ -251,7 +251,7 @@ class Work(Settings, LocalizeMixin):
             "file_format": file_format,
             "dcc_version": "NA",
         }
-        version_obj = WorkVersion(self.path, version_dict)
+        version_obj = WorkVersion(self.path, version_dict, self)
         self._versions.append(version_obj)
         self.apply_settings()
         return version_obj
@@ -337,7 +337,7 @@ class Work(Settings, LocalizeMixin):
         if is_localized:
             version_dict["localized"] = is_localized
             version_dict["localized_path"] = output_path
-        version_obj = WorkVersion(self.path, version_dict)
+        version_obj = WorkVersion(self.path, version_dict, self)
         self._versions.append(version_obj)
         self.apply_settings()
         self._dcc_handler.post_save()
@@ -483,6 +483,19 @@ class Work(Settings, LocalizeMixin):
         # utils.move(self.settings_file.as_posix(), db_destination.as_posix())
         self.apply_settings()
         return 1, "success"
+
+    def resurrect(self):
+        """Resurrect the work and all upstream hiearachy. This won't resurrect any publish and resurrect only the last work version."""
+        # resurrect the upstream hierarchy
+        if self.parent_task.deleted:
+            state = self.parent_task.resurrect()
+            if state == -1:
+                return -1
+
+        # resurrect only the last version. This is because we dont want any versionless works.
+        self.all_versions[-1].revive()
+        self.apply_settings()
+        return 1
 
     def check_owner_permissions(self, version_number):
         """Check the permissions for 'owner' and 'admin-only' actions.

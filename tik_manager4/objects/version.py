@@ -294,6 +294,24 @@ class PublishVersion(Settings, LocalizeMixin):
         self.apply_settings(force=True)
         return True, "Success"
 
+    def resurrect(self):
+        """Bring back the publish version from purgatory."""
+        errors = []
+        for element in self.elements:
+            relative_path = element["path"]
+            source_abs_path = self.get_resolved_purgatory_path(relative_path)
+            target_abs_path = self.get_resolved_path(relative_path)
+            result, msg = utils.move(source_abs_path, target_abs_path)
+            if not result:
+                errors.append(msg)
+
+        if errors:
+            return False, "\n".join(errors)
+        self._deleted = False
+        self.edit_property("deleted", False)
+        self.apply_settings(force=True)
+        return True, "Success"
+
 
 class WorkVersion(LocalizeMixin):
     """WorkVersion object class.
@@ -303,7 +321,8 @@ class WorkVersion(LocalizeMixin):
     """
     object_type = ObjectType.WORK_VERSION
 
-    def __init__(self, parent_path, data_dictionary=None):
+    # def __init__(self, parent_path, data_dictionary=None):
+    def __init__(self, parent_path, data_dictionary, parent_work):
         super().__init__()
         self._dcc_version: str = "NA"
         self._file_format: str = ""
@@ -316,8 +335,10 @@ class WorkVersion(LocalizeMixin):
         self._workstation: str = ""
         self._relative_path = parent_path
         self._deleted: bool = False
-        if data_dictionary:
-            self.from_dict(data_dictionary)
+        # if data_dictionary:
+        #     self.from_dict(data_dictionary)
+        self.from_dict(data_dictionary)
+        self.parent_work = parent_work
 
     @property
     def dcc_version(self):
@@ -427,6 +448,19 @@ class WorkVersion(LocalizeMixin):
         # utils.move(thumbnail_abs_path, thumbnail_dest_path)
 
         self._deleted = True
+        return True, f"{source_abs_path} moved to {target_abs_path}."
+
+    def resurrect(self):
+        """Bring back the work version from purgatory."""
+        source_abs_path = self.get_resolved_purgatory_path()
+        target_abs_path = self.get_resolved_path()
+        result, msg = utils.move(source_abs_path, target_abs_path)
+        if not result:
+            LOG.error(msg)
+            return False, msg
+
+        self._deleted = False
+        self.parent_work.apply_settings()
         return True, f"{source_abs_path} moved to {target_abs_path}."
 
     def __str__(self):

@@ -67,7 +67,7 @@ class TikSubModel(QtGui.QStandardItemModel):
         )
         self.setHorizontalHeaderLabels(self.columns)
 
-        self.show_all =False
+        self.purgatory_mode =False
         self.project = None
         self.root_item = None
         self.set_data(structure_object)
@@ -116,7 +116,7 @@ class TikSubModel(QtGui.QStandardItemModel):
                         "deleted": neighbour.deleted,
                         "subs": [],  # this will be filled with the while loop
                     }
-                    if sub_data["deleted"] and not self.show_all:
+                    if sub_data["deleted"] and not self.purgatory_mode:
                         continue
                     parent["subs"].append(sub_data)
                     _item = self.append_sub(neighbour, parent_row)
@@ -183,7 +183,7 @@ class TikSubView(QtWidgets.QTreeView):
 
     def __init__(self, project_obj=None, right_click_enabled=True):
         super(TikSubView, self).__init__()
-        self.show_all = False
+        self.purgatory_mode = False
         self._recursive_task_scan = False
         self._feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
@@ -270,16 +270,26 @@ class TikSubView(QtWidgets.QTreeView):
         )
         return len(_all_items)
 
-    def select_by_id(self, unique_id):
+    def select_by_id(self, unique_id, append=False):
         """Look at the id column and select
-        the subproject item that matched the unique id."""
+        the subproject item that matched the unique id.
+
+        Args:
+            unique_id (str): The unique id to search for.
+            append (bool): Whether to append the selection or not.
+        """
 
         match_item = self.model.find_item_by_id_column(unique_id)
         if match_item:
             idx = match_item.index()
             idx = idx.sibling(idx.row(), 0)
             index = self.proxy_model.mapFromSource(idx)
-            self.setCurrentIndex(index)
+            if append:
+                self.selectionModel().select(
+                    index, QtCore.QItemSelectionModel.Select | QtCore.QItemSelectionModel.Rows
+                )
+            else:
+                self.setCurrentIndex(index)
             return True
 
         return False
@@ -348,11 +358,22 @@ class TikSubView(QtWidgets.QTreeView):
     def refresh(self):
         """Re-populates the model keeping the expanded state"""
         # store the expanded items
+        # get the selected items
+        selected_items = self.get_selected_items()
+
         expanded_state = self.get_expanded_state()
+
         self.model.populate()
         self.set_expanded_state(expanded_state)
         self.clearSelection()
-        self.select_first_item()
+        # self.select_first_item()
+        # re-select the selected items
+        if not selected_items:
+            self.select_first_item()
+            return
+        for item in selected_items:
+            self.select_by_id(item.subproject.id, append=True)
+        return
 
     def expandAll(self):
         super(TikSubView, self).expandAll()
@@ -402,7 +423,7 @@ class TikSubView(QtWidgets.QTreeView):
             if _item:
                 sub_project_objects.append(_item.subproject)
         _tasks = self.collect_tasks(
-            sub_project_objects, recursive=self._recursive_task_scan, filtered=not self.show_all
+            sub_project_objects, recursive=self._recursive_task_scan, filtered=not self.purgatory_mode
         )
         self.item_selected.emit(_tasks)
 
@@ -528,26 +549,35 @@ class TikSubView(QtWidgets.QTreeView):
         else:
             level = 0
         right_click_menu = QtWidgets.QMenu(self)
-        act_new_sub = right_click_menu.addAction(self.tr("New Sub-Project"))
-        act_new_sub.setEnabled(not self.is_management_locked)
-        act_new_sub.triggered.connect(lambda _=None, x=item: self.new_sub_project(item))
-        act_edit_sub = right_click_menu.addAction(self.tr("Edit Sub-Project"))
-        act_edit_sub.triggered.connect(
-            lambda _=None, x=item: self.edit_sub_project(item)
-        )
-        act_delete_sub = right_click_menu.addAction(self.tr("Delete Sub-Project(s)"))
-        act_delete_sub.setEnabled(not self.is_management_locked)
-        act_delete_sub.triggered.connect(
-            lambda _=None, x=item: self.delete_sub_project(item)
-        )
 
-        right_click_menu.addSeparator()
+        if self.purgatory_mode:
+            if item.subproject.deleted:
+                act_resurrect = right_click_menu.addAction(self.tr("Resurrect"))
+                act_resurrect.setEnabled(not self.is_management_locked)
+                act_resurrect.triggered.connect(
+                    lambda _=None, x=item: self.on_resurrect(item)
+                )
+                right_click_menu.addSeparator()
 
-        act_new_task = right_click_menu.addAction(self.tr("New Task"))
-        act_new_task.setEnabled(not self.is_management_locked)
-        act_new_task.triggered.connect(self.new_task)
-
-        right_click_menu.addSeparator()
+        else:
+            right_click_menu = QtWidgets.QMenu(self)
+            act_new_sub = right_click_menu.addAction(self.tr("New Sub-Project"))
+            act_new_sub.setEnabled(not self.is_management_locked)
+            act_new_sub.triggered.connect(lambda _=None, x=item: self.new_sub_project(item))
+            act_edit_sub = right_click_menu.addAction(self.tr("Edit Sub-Project"))
+            act_edit_sub.triggered.connect(
+                lambda _=None, x=item: self.edit_sub_project(item)
+            )
+            act_delete_sub = right_click_menu.addAction(self.tr("Delete Sub-Project(s)"))
+            act_delete_sub.setEnabled(not self.is_management_locked)
+            act_delete_sub.triggered.connect(
+                lambda _=None, x=item: self.delete_sub_project(item)
+            )
+            right_click_menu.addSeparator()
+            act_new_task = right_click_menu.addAction(self.tr("New Task"))
+            act_new_task.setEnabled(not self.is_management_locked)
+            act_new_task.triggered.connect(self.new_task)
+            right_click_menu.addSeparator()
 
         act_open_project_folder = right_click_menu.addAction(
             self.tr("Open Project Folder In Explorer")
@@ -563,6 +593,12 @@ class TikSubView(QtWidgets.QTreeView):
         )
 
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
+
+    def on_resurrect(self, item):
+        item.subproject.resurrect()
+        self.refresh()
+        # select bacj the resurrected item
+        self.select_by_id(item.subproject.id)
 
     def new_sub_project(self, item):
         # first check for the user permission:
@@ -595,10 +631,13 @@ class TikSubView(QtWidgets.QTreeView):
                 parent_item = self.model.root_item
             # get all children under the parent_item
             # if any of the children has the same name as the new subproject, remove it
-            for row in range(parent_item.rowCount()):
-                child = parent_item.takeRow(row)
-                if child[0].subproject.name == _new_sub.name:
-                    parent_item.removeRow(row)
+
+            # for row in range(parent_item.rowCount()):
+            #     child = parent_item.takeRow(row)
+            #     if not child:
+            #         continue
+            #     if child[0].subproject.name == _new_sub.name:
+            #         parent_item.removeRow(row)
 
 
             self.model.append_sub(_new_sub, parent_item)
@@ -664,7 +703,7 @@ class TikSubView(QtWidgets.QTreeView):
                     return
             state = self.model.project.delete_sub_project(uid=item.subproject.id)
             if state != -1:
-                if self.show_all:
+                if self.purgatory_mode:
                     item.refresh()
                 else:
                     _parent = item.parent()
@@ -699,7 +738,7 @@ class ProxyModel(FilterModel):
 class TikSubProjectLayout(QtWidgets.QVBoxLayout):
     def __init__(self, project_obj, recursive_enabled=True, right_click_enabled=True):
         super(TikSubProjectLayout, self).__init__()
-        self._show_all = False
+        self._purgatory_mode = False
 
         self.project_obj = project_obj
         # add a label
@@ -742,21 +781,22 @@ class TikSubProjectLayout(QtWidgets.QVBoxLayout):
 
         self.refresh_btn.clicked.connect(self.manual_refresh)
 
-        self.show_all = self._show_all
+        self.purgatory_mode = self._purgatory_mode
 
-    def set_show_all(self, value):
-        self.show_all = value
+    def set_purgatory_mode(self, value):
+        self.purgatory_mode = value
 
     @property
-    def show_all(self):
-        return self._show_all
+    def purgatory_mode(self):
+        return self._purgatory_mode
 
-    @show_all.setter
-    def show_all(self, value):
-        self._show_all = value
-        self.sub_view.show_all = value
-        self.sub_view.model.show_all = value
-        self.manual_refresh()
+    @purgatory_mode.setter
+    def purgatory_mode(self, value):
+        self._purgatory_mode = value
+        self.sub_view.purgatory_mode = value
+        self.sub_view.model.purgatory_mode = value
+        self.refresh()
+        # self.manual_refresh()
         # self.sub_view.get_tasks()
 
     def manual_refresh(self):

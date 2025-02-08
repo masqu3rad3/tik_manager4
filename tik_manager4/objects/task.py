@@ -313,6 +313,18 @@ class Task(Settings, Entity):
         self.apply_settings()
         return 1
 
+    def resurrect(self):
+        """Resurrect the task. Make sure the parent sub (and everything above) is not deleted."""
+        state = self.check_permissions(level=2)
+        if state != 1:
+            return -1
+        if self.parent_sub.deleted:
+            self.parent_sub.resurrect()
+        self._deleted = False
+        self.edit_property("deleted", False)
+        self.apply_settings()
+        return 1
+
     def is_empty(self):
         """Check all categories and return True if all are empty."""
         for category in self.categories:

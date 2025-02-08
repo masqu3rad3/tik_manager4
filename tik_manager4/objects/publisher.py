@@ -476,7 +476,7 @@ class SnapshotPublisher(Publisher):
         super(SnapshotPublisher, self).__init__(args)
         # this overrides the dcc handler which resolved on inherited
         # class to standalone
-        self.__dcc_handler = standalone.Dcc()
+        self._dcc_handler = standalone.Dcc()
 
     @property
     def work_object(self):
@@ -519,9 +519,9 @@ class SnapshotPublisher(Publisher):
 
         # get either the snapshot or snapshot_bundle depending if its a folder or file
         if Path(abs_path).is_dir():
-            snapshot_extractor = self.__dcc_handler.extracts["snapshot_bundle"]()
+            snapshot_extractor = self._dcc_handler.extracts["snapshot_bundle"]()
         else:
-            snapshot_extractor = self.__dcc_handler.extracts["snapshot"]()
+            snapshot_extractor = self._dcc_handler.extracts["snapshot"]()
         snapshot_extractor.category = self._work_object.category  # define the category
 
         snapshot_extractor.source_path = abs_path
@@ -553,7 +553,7 @@ class SnapshotPublisher(Publisher):
         )
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
         extension = self._resolved_extractors["snapshot"].extension or "Bundle"
-        self.__dcc_handler.text_to_image(
+        self._dcc_handler.text_to_image(
             extension, thumbnail_path, *(thumbnail_resolution), color="cyan"
         )
         self._published_object.add_property(

@@ -89,7 +89,7 @@ class TikTaskModel(QtGui.QStandardItemModel):
     def __init__(self):
         """Initialize the model"""
         super(TikTaskModel, self).__init__()
-
+        self.purgatory_mode = False
         self.setHorizontalHeaderLabels(self.columns)
 
         self._tasks = []
@@ -128,11 +128,13 @@ class TikTaskModel(QtGui.QStandardItemModel):
 class TikTaskView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
     refresh_requested = QtCore.Signal()
+    task_resurrected = QtCore.Signal()
     # open_url_requested = QtCore.Signal(object)
 
     def __init__(self):
         """Initialize the view"""
         super(TikTaskView, self).__init__()
+        self.purgatory_mode = False
         self.guard = Guard()
         self._feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
@@ -255,6 +257,8 @@ class TikTaskView(QtWidgets.QTreeView):
 
     def set_tasks(self, tasks_gen):
         """Set the data for the model"""
+        # get the selected item
+        selected_item = self.get_selected_item()
         self.model.clear()
         for task in tasks_gen:
             # if the task is already in model, skip it
@@ -263,6 +267,9 @@ class TikTaskView(QtWidgets.QTreeView):
 
             self.model.append_task(task)
         self.expandAll()
+        # if the item still exists, select it
+        if selected_item:
+            self.select_by_id(selected_item.task.id)
 
     def get_selected_item(self):
         """Return the selected item"""
@@ -314,23 +321,32 @@ class TikTaskView(QtWidgets.QTreeView):
         else:
             level = 0
 
-        act_edit_task = right_click_menu.addAction(self.tr("Edit Task"))
-        right_click_menu.addSeparator()
+        if self.purgatory_mode:
+            if item.task.deleted:
+                act_resurrect = right_click_menu.addAction(self.tr("Resurrect Task"))
+                act_resurrect.setEnabled(not self.is_management_locked)
+                act_resurrect.triggered.connect(
+                    lambda _=None, x=item: self.on_resurrect(item)
+                )
+                right_click_menu.addSeparator()
+        else:
+            act_edit_task = right_click_menu.addAction(self.tr("Edit Task"))
+            right_click_menu.addSeparator()
 
-        act_edit_task.triggered.connect(lambda _=None, x=item: self.edit_task(item))
+            act_edit_task.triggered.connect(lambda _=None, x=item: self.edit_task(item))
 
-        revive_item_act = right_click_menu.addAction(self.tr("Revive Task"))
-        revive_item_act.setEnabled(not self.is_management_locked)
-        revive_item_act.triggered.connect(lambda _=None, x=item: self.revive_task(item))
-        omit_item_act = right_click_menu.addAction(self.tr("Omit Task"))
-        omit_item_act.setEnabled(not self.is_management_locked)
-        omit_item_act.triggered.connect(lambda _=None, x=item: self.omit_task(item))
+            revive_item_act = right_click_menu.addAction(self.tr("Revive Task"))
+            revive_item_act.setEnabled(not self.is_management_locked)
+            revive_item_act.triggered.connect(lambda _=None, x=item: self.revive_task(item))
+            omit_item_act = right_click_menu.addAction(self.tr("Omit Task"))
+            omit_item_act.setEnabled(not self.is_management_locked)
+            omit_item_act.triggered.connect(lambda _=None, x=item: self.omit_task(item))
 
-        act_delete_task = right_click_menu.addAction(self.tr("Delete Task"))
-        act_delete_task.setEnabled(not self.is_management_locked)
-        act_delete_task.triggered.connect(lambda _=None, x=item: self.delete_task(item))
+            act_delete_task = right_click_menu.addAction(self.tr("Delete Task"))
+            act_delete_task.setEnabled(not self.is_management_locked)
+            act_delete_task.triggered.connect(lambda _=None, x=item: self.delete_task(item))
 
-        right_click_menu.addSeparator()
+            right_click_menu.addSeparator()
 
         open_url_act = right_click_menu.addAction(self.tr("Open URL"))
         open_url_act.setVisible(self.is_management_locked)
@@ -339,6 +355,16 @@ class TikTaskView(QtWidgets.QTreeView):
 
         # emit signal to open the url
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
+
+    def on_resurrect(self, item):
+        """Resurrect the task"""
+        item.task.resurrect()
+        self.task_resurrected.emit()
+        self.refresh()
+        # send a signal to the subproject view to refresh.
+        # this is just in case if the resurrected task was under a deleted subproject
+        # In that case, the subproject gets resurrected as well.
+
 
     def test(self, item):
         if not self.guard.management_handler:
@@ -422,14 +448,19 @@ class TikTaskView(QtWidgets.QTreeView):
 
     def refresh(self):
         """Re-populate the model."""
+        # get the selected item
+        # selected_item = self.get_selected_item()
         self.refresh_requested.emit()
+        # if the item still exists, select it
+        # if selected_item:
+        #     self.select_by_id(selected_item.task.id)
 
 
 class TikTaskLayout(QtWidgets.QVBoxLayout):
     def __init__(self):
         """Initialize the layout"""
         super(TikTaskLayout, self).__init__()
-        # self.show_all = False # if true, shows deleted items too.
+        self._purgatory_mode = False
         header_lay = QtWidgets.QHBoxLayout()
         header_lay.setContentsMargins(0, 0, 0, 0)
         self.addLayout(header_lay)
@@ -454,6 +485,19 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
             self.task_view.hideColumn(idx)
 
         self.refresh_btn.clicked.connect(self.refresh)
+
+    def set_purgatory_mode(self, value):
+        self.purgatory_mode = value
+
+    @property
+    def purgatory_mode(self):
+        return self._purgatory_mode
+
+    @purgatory_mode.setter
+    def purgatory_mode(self, value):
+        self._purgatory_mode = value
+        self.task_view.purgatory_mode = value
+        self.task_view.model.purgatory_mode = value
 
     def refresh(self):
         self.task_view.refresh()

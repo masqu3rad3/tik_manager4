@@ -325,7 +325,8 @@ QMenu::item
 
 QMenu::item:selected
 {
-    color: #000000;
+  background-color: #7c5a33; /* Adjust to a lighter color for better readability */
+  color: #F0F0F0; /* Ensure the text color is readable */
 }
 
 /* QAbstractItemView ------------------------------------------------------
