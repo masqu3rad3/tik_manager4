@@ -4,7 +4,7 @@ import sys
 
 from tik_manager4.core.utils import get_nice_name
 from tik_manager4.ui.Qt import QtWidgets
-from tik_manager4.ui.widgets.common import TikMessageBox
+from tik_manager4.ui.widgets.common import TikMessageBox, TikButtonBox
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
@@ -53,18 +53,19 @@ QPushButton:pressed {
 }
 """
 
+def style_button(button, height: int = 30, width: int = 100,
+                 label: Optional[str] = None):
+    """Applies consistent styling to a button."""
+    button.setFixedHeight(height)
+    button.setFixedWidth(width)
+    button.setStyleSheet(BUTTON_STYLE)
+    if label:
+        button.setText(label)
+
 class Feedback:
     def __init__(self, parent=None):
         self.parent = parent
         self.result = None
-
-    def style_button(self, button, height: int = 30, width: int = 100, label: Optional[str] = None):
-        """Applies consistent styling to a button."""
-        button.setFixedHeight(height)
-        button.setFixedWidth(width)
-        button.setStyleSheet(BUTTON_STYLE)
-        if label:
-            button.setText(label)
 
     def pop_info(
         self,
@@ -86,7 +87,7 @@ class Feedback:
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
 
         ok_button = msg.button(QtWidgets.QMessageBox.Ok)
-        self.style_button(ok_button, label=button_label)
+        style_button(ok_button, label=button_label)
 
         result = msg.exec_()
         if on_close:
@@ -152,7 +153,7 @@ class Feedback:
 
         # go over all buttons and style them
         for button in q.buttons():
-            self.style_button(button)
+            style_button(button)
 
         ret = q.exec_()
         for key, value in button_dict.items():
@@ -167,3 +168,61 @@ class Feedback:
         dlg.setFileMode(QtWidgets.QFileDialog.Directory)
         if dlg.exec_():
             return str(Path(dlg.selectedFiles()[0]))
+
+
+class Confirmation(QtWidgets.QDialog):
+    """A user interaction class to prevent accidental actions.
+
+    The user will be asked to confirm a word (such as the name of a project or task)
+    before proceeding. This prevents accidental actions.
+    """
+
+    def __init__(self, parent=None, confirmation_word=None):
+        super().__init__(parent)
+        self.setModal(True)  # Make it a modal dialog
+        self.setWindowTitle("Confirmation")
+
+        self.result = None
+        self._confirmation_word = confirmation_word
+
+        # Create layout and widgets
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.label = QtWidgets.QLabel("Type the confirmation word to proceed:", self)
+        self.input_field = QtWidgets.QLineEdit(self)
+        self.input_field.setPlaceholderText("Type confirmation word here")
+        self.input_field.setFocus()
+        button_box = TikButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.input_field)
+        self.layout.addWidget(button_box)
+
+        # SIGNALS
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+
+    def set_confirmation_word(self, word):
+        """Set the confirmation word that the user must type correctly."""
+        self._confirmation_word = word
+
+    def ask_confirmation(self, title="Question", text="Type the confirmation word to proceed"):
+        """Pop up the confirmation dialog and check the user input."""
+        self.setWindowTitle(title)
+        self.label.setText(text)
+
+        if self.exec_() == QtWidgets.QDialog.Accepted:
+            user_input = self.input_field.text()
+            if user_input == self._confirmation_word:
+                self.result = True
+                return True
+
+        self.result = False
+        return False
+
+# test the module
+if __name__ == "__main__":
+    confirmation = Confirmation(confirmation_word="test")
+    confirmation.ask_confirmation()
+    print(confirmation.result)
+    sys.exit(app.exec_())

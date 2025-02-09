@@ -19,9 +19,10 @@ from tik_manager4.dcc.houdini import extension
 LOG = logging.getLogger(__name__)
 
 
+
 class Dcc(MainCore):
     name = "Houdini"
-    _main_format = ".hip" if not hou.isApprentice() else ".hipnc"
+    _main_format = utils.resolve_extension()
     formats = [_main_format, ".hiplc"]
     preview_enabled = True  # Whether or not to enable the preview in the UI
     validations = validate.classes
@@ -50,8 +51,9 @@ class Dcc(MainCore):
         Returns: (String) File path
 
         """
-        if hou.isApprentice():
-            file_path = Path(file_path).with_suffix(".hipnc").as_posix()
+        # Make sure the extension is compatible with the current license.
+        ext = utils.resolve_extension()
+        file_path = Path(file_path).with_suffix(ext).as_posix()
         hou.hipFile.save(file_name=file_path)
         return file_path
 

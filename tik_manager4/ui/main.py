@@ -31,7 +31,7 @@ from tik_manager4.core import utils
 from tik_manager4.management.exceptions import SyncError
 from tik_manager4.ui import pick
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
-from tik_manager4.ui.dialog.feedback import Feedback
+from tik_manager4.ui.dialog.feedback import Feedback, Confirmation
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog
 from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
 from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
@@ -62,8 +62,9 @@ def launch(dcc="Standalone", dont_show=False):
     window_name = f"Tik Manager {version.__version__} - {dcc}"
     all_widgets = QtWidgets.QApplication.allWidgets()
     tik = tik_manager4.initialize(dcc)
-    if tik.dcc.custom_launcher and not dont_show: # This is only for main ui.
-        return tik.dcc.launch(tik, window_name=window_name)
+    # if tik.dcc.custom_launcher and not dont_show: # This is only for main ui.
+    if tik.dcc.custom_launcher:
+        return tik.dcc.launch(tik, window_name=window_name, dont_show=dont_show)
     parent = tik.dcc.get_main_window()
     for entry in all_widgets:
         try:
@@ -101,7 +102,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         # set style
-        _style_file = pick.style_file()
+        # _style_file = pick.style_file(file_name="purgatory.css")
+        _style_file = pick.style_file(file_name="tikManager.qss")
         self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
 
         # define layouts
@@ -169,6 +171,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.menu_bar = QtWidgets.QMenuBar(self)
         self.build_bars()
         self.build_buttons()
+
+        self._purgatory_mode = False
 
         self.resume_last_state()
         self.management_lock()
@@ -390,10 +394,11 @@ class MainUI(QtWidgets.QMainWindow):
             self.tasks_mcv.task_view.add_tasks
         )
         self.tasks_mcv.task_view.item_selected.connect(self.categories_mcv.set_task)
+        self.tasks_mcv.task_view.task_resurrected.connect(self.refresh_project)
+
         self.tasks_mcv.task_view.refresh_requested.connect(
             self.subprojects_mcv.sub_view.get_tasks
         )
-
         self.categories_mcv.work_tree_view.item_selected.connect(
             self.versions_mcv.set_base
         )
@@ -407,8 +412,22 @@ class MainUI(QtWidgets.QMainWindow):
             self.versions_mcv.on_import
         )
         self.categories_mcv.work_tree_view.file_dropped.connect(self.on_save_any_file)
+        self.categories_mcv.work_tree_view.work_resurrected.connect(self.refresh_project)
+        # self.categories_mcv.work_tree_view.work_resurrected.connect(
+        #     self.subprojects_mcv.sub_view.refresh
+        # )
         self.versions_mcv.version.preview_btn.clicked.connect(self.on_show_preview)
         self.versions_mcv.element_view_event.connect(self.on_element_view)
+        self.versions_mcv.version_resurrected.connect(self.refresh_project)
+        # self.versions_mcv.version_resurrected.connect(
+        #     self.categories_mcv.work_tree_view.refresh
+        # )
+        # self.versions_mcv.version_resurrected.connect(
+        #     self.tasks_mcv.task_view.refresh
+        # )
+        # self.versions_mcv.version_resurrected.connect(
+        #     self.subprojects_mcv.sub_view.refresh
+        # )
 
         if self.tik.dcc.name == "Standalone":
             self.categories_mcv.work_tree_view.save_new_work_event.connect(
@@ -509,6 +528,7 @@ class MainUI(QtWidgets.QMainWindow):
         # build extensions before window and help menus
         self.build_extensions()
         window_menu = self.menu_bar.addMenu("UI Elements")
+        purgatory_menu = self.menu_bar.addMenu("Purgatory")
         help_menu = self.menu_bar.addMenu("Help")
 
         # File Menu
@@ -567,6 +587,17 @@ class MainUI(QtWidgets.QMainWindow):
         self.buttons_visibility.setChecked(True)
         window_menu.addAction(self.buttons_visibility)
 
+        # Purgatory Menu
+        purge_local_purgatory = QtWidgets.QAction("&Purge Local Purgatory", self)
+        purgatory_menu.addAction(purge_local_purgatory)
+        purge_project_purgatory = QtWidgets.QAction("&Purge Project Purgatory", self)
+        purgatory_menu.addAction(purge_project_purgatory)
+        purgatory_menu.addSeparator()
+        show_deleted_items = QtWidgets.QAction("&Show Deleted Items", self)
+        show_deleted_items.setCheckable(True)
+        show_deleted_items.setChecked(False)
+        purgatory_menu.addAction(show_deleted_items)
+
         # Help Menu
         issues_and_feature_requests = QtWidgets.QAction(
             "&Issues && Feature Requests", self
@@ -609,6 +640,10 @@ class MainUI(QtWidgets.QMainWindow):
         )
         support_tik_manager.triggered.connect(lambda: support_splash.launch_support(self))
 
+        purge_local_purgatory.triggered.connect(self.on_purge_local_purgatory)
+        purge_project_purgatory.triggered.connect(self.on_purge_project_purgatory)
+        show_deleted_items.triggered.connect(self.toggle_purgatory_mode)
+
         self.project_visibility.toggled.connect(self.project_mcv.setVisible)
         self.project_visibility.toggled.connect(self.separator_line.setVisible)
         self.user_login_visibility.toggled.connect(self.user_mcv.setVisible)
@@ -617,6 +652,75 @@ class MainUI(QtWidgets.QMainWindow):
         self.buttons_visibility.toggled.connect(self.work_buttons_frame.setVisible)
 
         self.menu_bar.setMinimumWidth(self.menu_bar.sizeHint().width())
+
+    def toggle_purgatory_mode(self, state):
+        """Toggle the visibility of deleted items."""
+        self.set_last_state()
+
+        if state == True:
+            # make a border around the
+            _style_file = pick.style_file(file_name="purgatory.qss")
+            self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
+        else:
+            _style_file = pick.style_file()
+            self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
+        self.subprojects_mcv.set_purgatory_mode(state)
+        self.tasks_mcv.set_purgatory_mode(state)
+        self.categories_mcv.set_purgatory_mode(state)
+        self.versions_mcv.set_purgatory_mode(state)
+
+        self._purgatory_mode = state
+
+        self.resume_last_state()
+
+    def on_purge_local_purgatory(self):
+        """Purge the local purgatory."""
+        # user confirmation
+        confirm = self.feedback.pop_question(
+            title="Purge Local Purgatory",
+            text="Are you sure you want to purge the local purgatory?",
+            buttons=["yes", "cancel"]
+        )
+        if not confirm:
+            return
+        state, msg = self.tik.purgatory.purge_local()
+        title = "Local Purgatory Purged" if state else "Purge Failed"
+        self.feedback.pop_info(
+            title=title,
+            text=msg,
+            critical=not state
+        )
+
+    def on_purge_project_purgatory(self):
+        """Purge the project purgatory."""
+        # pre-check
+        if not self._pre_check(level=3):
+            return
+        # user confirmation
+        confirm = self.feedback.pop_question(
+            title="Purge Project Purgatory",
+            text="Are you sure you want to purge the project purgatory?",
+            buttons=["yes", "cancel"]
+        )
+        if not confirm:
+            return
+        text_confirm_obj = Confirmation(parent=self, confirmation_word=self.tik.project.name)
+        correct_answer = text_confirm_obj.ask_confirmation(text="Please type the project name to confirm.")
+        if not correct_answer:
+            self.feedback.pop_info(
+                title="Purge Failed",
+                text="The project name does not match. Purge failed.",
+                critical=True
+            )
+            return
+
+        state, msg = self.tik.purgatory.purge_origin()
+        title = "Project Purgatory Purged" if state else "Purge Failed"
+        self.feedback.pop_info(
+            title=title,
+            text=msg,
+            critical=not state
+        )
 
     def build_extensions(self):
         """Collect the management extensions and build the menu."""
@@ -965,8 +1069,10 @@ class MainUI(QtWidgets.QMainWindow):
 
     def refresh_project(self):
         """Refresh the project ui."""
+        self.set_last_state()
         self.project_mcv.refresh()
         self.refresh_subprojects()
+        self.resume_last_state()
 
     def refresh_subprojects(self):
         """Refresh the subprojects' ui."""

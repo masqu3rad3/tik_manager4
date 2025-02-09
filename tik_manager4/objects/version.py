@@ -6,7 +6,9 @@ from tik_manager4.core import utils
 from tik_manager4.core.constants import ObjectType
 from tik_manager4.core.settings import Settings
 from tik_manager4.mixins.localize import LocalizeMixin
+from tik_manager4.core import filelog
 
+LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class PublishVersion(Settings, LocalizeMixin):
     """PublishVersion object class.
@@ -49,6 +51,7 @@ class PublishVersion(Settings, LocalizeMixin):
         self._elements = []
         self._localized: bool = False
         self._localized_path: str = ""
+        self._deleted: bool = False
 
         self.modified_time = None  # to compare and update if necessary
 
@@ -78,6 +81,7 @@ class PublishVersion(Settings, LocalizeMixin):
         self._work_version = self.get_property("work_version", self._work_version)
         self._localized = self.get_property("localized", self._localized)
         self._localized_path = self.get_property("localized_path", self._localized_path)
+        self._deleted = self.get_property("deleted", self._deleted)
 
     @property
     def creator(self):
@@ -183,6 +187,11 @@ class PublishVersion(Settings, LocalizeMixin):
         """The user of the publish version. Alias for creator."""
         return self._creator
 
+    @property
+    def deleted(self):
+        """The deleted status of the publish version."""
+        return self._deleted
+
     def is_promoted(self):
         """Return if the publish is promoted or not.
 
@@ -268,29 +277,44 @@ class PublishVersion(Settings, LocalizeMixin):
 
     def move_to_purgatory(self):
         """Move the publish version to the purgatory folder."""
+
+        errors = []
         for element in self.elements:
             relative_path = element["path"]
             source_abs_path = self.get_resolved_path(relative_path)
             target_abs_path = self.get_resolved_purgatory_path(relative_path)
-            utils.move(source_abs_path, target_abs_path)
+            result, msg = utils.move(source_abs_path, target_abs_path)
+            if not result:
+                errors.append(msg)
 
-        # move the thumbnail to purgatory
-        thumbnail_relative_path = self.get("thumbnail", None)
-        if thumbnail_relative_path:
-            thumbnail_abs_path = self.get_abs_database_path(
-                thumbnail_relative_path
-            )
-            thumbnail_dest_abs_path = self.get_purgatory_database_path(
-                thumbnail_relative_path
-            )
-            utils.move(thumbnail_abs_path, thumbnail_dest_abs_path)
+        if errors:
+            return False, "\n".join(errors)
+        self._deleted = True
+        self.edit_property("deleted", True)
+        self.apply_settings(force=True)
+        return True, "Success"
 
-        # move the database file to purgatory
-        _file_name = Path(self.settings_file).name
-        dest_abs_file_path = self.get_purgatory_database_path(
-            self.name, _file_name
-        )
-        utils.move(self.settings_file, dest_abs_file_path)
+    def resurrect(self):
+        """Bring back the publish version from purgatory."""
+        errors = []
+        for element in self.elements:
+            relative_path = element["path"]
+            source_abs_path = self.get_resolved_purgatory_path(relative_path)
+            target_abs_path = self.get_resolved_path(relative_path)
+            result, msg = utils.move(source_abs_path, target_abs_path)
+            if not result:
+                errors.append(msg)
+
+        if errors:
+            return False, "\n".join(errors)
+
+        # make sure hiearchy is resurrected (or not deleted)
+        # TODO we need the parent work to resurrect upstream
+
+        self._deleted = False
+        self.edit_property("deleted", False)
+        self.apply_settings(force=True)
+        return True, "Success"
 
 
 class WorkVersion(LocalizeMixin):
@@ -301,7 +325,8 @@ class WorkVersion(LocalizeMixin):
     """
     object_type = ObjectType.WORK_VERSION
 
-    def __init__(self, parent_path, data_dictionary=None):
+    # def __init__(self, parent_path, data_dictionary=None):
+    def __init__(self, parent_path, data_dictionary, parent_work):
         super().__init__()
         self._dcc_version: str = "NA"
         self._file_format: str = ""
@@ -313,8 +338,11 @@ class WorkVersion(LocalizeMixin):
         self._version_number: int = 0
         self._workstation: str = ""
         self._relative_path = parent_path
-        if data_dictionary:
-            self.from_dict(data_dictionary)
+        self._deleted: bool = False
+        # if data_dictionary:
+        #     self.from_dict(data_dictionary)
+        self.from_dict(data_dictionary)
+        self.parent_work = parent_work
 
     @property
     def dcc_version(self):
@@ -378,6 +406,11 @@ class WorkVersion(LocalizeMixin):
         """The workstation of the work version."""
         return self._workstation
 
+    @property
+    def deleted(self):
+        """The deleted status of the work version."""
+        return self._deleted
+
     def from_dict(self, dictionary):
         """Apply the values from given dictionary."""
         for key, value in dictionary.items():
@@ -399,20 +432,36 @@ class WorkVersion(LocalizeMixin):
             "user": self._user,
             "version_number": self._version_number,
             "workstation": self._workstation,
+            "deleted": self._deleted
         }
 
     def move_to_purgatory(self):
         """Move the work version to the purgatory folder."""
         source_abs_path = self.get_resolved_path()
         target_abs_path = self.get_resolved_purgatory_path()
-        utils.move(source_abs_path, target_abs_path)
+        result, msg = utils.move(source_abs_path, target_abs_path)
+        if not result:
+            LOG.error(msg)
+            return False, msg
 
-        # move the thumbnail
-        thumbnail_abs_path = self.get_abs_database_path(self.thumbnail)
-        thumbnail_dest_path = self.get_purgatory_database_path(
-            self.thumbnail
-        )
-        utils.move(thumbnail_abs_path, thumbnail_dest_path)
+        self._deleted = True
+        return True, f"{source_abs_path} moved to {target_abs_path}."
+
+    def resurrect(self):
+        """Bring back the work version from purgatory."""
+        source_abs_path = self.get_resolved_purgatory_path()
+        target_abs_path = self.get_resolved_path()
+        result, msg = utils.move(source_abs_path, target_abs_path)
+        if not result:
+            LOG.error(msg)
+            return False, msg
+        # make sure hiearchy is resurrected (or not deleted)
+        if self.parent_work.deleted:
+            self.parent_work.resurrect(dont_resurrect_versions=True)
+
+        self._deleted = False
+        self.parent_work.apply_settings()
+        return True, f"{source_abs_path} moved to {target_abs_path}."
 
     def __str__(self):
         """Return the type of the class and the current data."""

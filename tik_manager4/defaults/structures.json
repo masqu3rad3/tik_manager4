@@ -58,6 +58,7 @@
       {
         "name": "Assets",
         "path": "Assets",
+        "mode": "asset",
         "subs": [
           {
             "name": "Characters",

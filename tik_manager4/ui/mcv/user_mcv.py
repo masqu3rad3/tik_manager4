@@ -16,8 +16,6 @@ class TikUserWidget(QtWidgets.QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
 
-        # self.layout.set_user_btn.clicked.connect(self.on_set_user)
-
     def refresh(self):
         """Refresh the user name"""
         self.layout.refresh()
