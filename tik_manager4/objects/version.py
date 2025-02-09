@@ -307,6 +307,10 @@ class PublishVersion(Settings, LocalizeMixin):
 
         if errors:
             return False, "\n".join(errors)
+
+        # make sure hiearchy is resurrected (or not deleted)
+        # TODO we need the parent work to resurrect upstream
+
         self._deleted = False
         self.edit_property("deleted", False)
         self.apply_settings(force=True)
@@ -458,6 +462,9 @@ class WorkVersion(LocalizeMixin):
         if not result:
             LOG.error(msg)
             return False, msg
+        # make sure hiearchy is resurrected (or not deleted)
+        if self.parent_work.deleted:
+            self.parent_work.resurrect(dont_resurrect_versions=True)
 
         self._deleted = False
         self.parent_work.apply_settings()

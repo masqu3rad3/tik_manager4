@@ -114,6 +114,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
     element_view_event = QtCore.Signal(str, str)
     status_updated = QtCore.Signal(str, int)
+    version_resurrected = QtCore.Signal()
 
     def __init__(self, project_object, *args, **kwargs):
         """Initialize the TikVersionLayout."""
@@ -866,6 +867,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         right_click_menu = QtWidgets.QMenu()
         right_click_menu.setStyleSheet(self.parent.styleSheet())  # Add this line
 
+        # get the current version object from the combo box
+
+        if self.purgatory_mode:
+            _version = self.version.combo.get_current_item()
+            if _version.deleted:
+                act_resurrect = right_click_menu.addAction(self.tr("Resurrect Version"))
+                act_resurrect.triggered.connect(lambda _=None, x=_version: self.on_resurrect(_version))
+
         delete_version_action = QtWidgets.QAction(self.tr("Delete Version"), self)
         right_click_menu.addAction(delete_version_action)
         delete_version_action.triggered.connect(self.delete_version)
@@ -884,6 +893,12 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         open_database_folder_action.triggered.connect(self.open_database_folder)
 
         right_click_menu.exec_((QtGui.QCursor.pos()))
+
+    def on_resurrect(self, version_obj):
+        """Resurrect the selected version."""
+        version_obj.resurrect()
+        self.version_resurrected.emit()
+        self.refresh()
 
     def publish_snapshot(self):
         """Publish a snapshot of the current work."""

@@ -55,3 +55,8 @@ def set_environment_variable(var, value):
     hscript_command = "set -g %s = '%s'" % (var, value)
     hou.hscript(str(hscript_command))
 
+def resolve_extension():
+    """Return the appropriate format for non-commercial version."""
+    if hou.isApprentice() or hou.licenseCategory() == hou.licenseCategoryType.Education:
+        return ".hipnc"
+    return ".hip"

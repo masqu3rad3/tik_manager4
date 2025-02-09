@@ -2,6 +2,7 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 import tik_manager4.ui.dialog.subproject_dialog
 import tik_manager4.ui.dialog.task_dialog
 from tik_manager4.ui.widgets.common import HorizontalSeparator, TikIconButton
+from tik_manager4.ui.widgets.style import ColorKeepingDelegate
 from tik_manager4.ui.mcv.filter import FilterModel, FilterWidget
 from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4
@@ -184,6 +185,8 @@ class TikSubView(QtWidgets.QTreeView):
     def __init__(self, project_obj=None, right_click_enabled=True):
         super(TikSubView, self).__init__()
         self.purgatory_mode = False
+        self.setItemDelegate(ColorKeepingDelegate())
+
         self._recursive_task_scan = False
         self._feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
@@ -408,10 +411,10 @@ class TikSubView(QtWidgets.QTreeView):
 
     def get_tasks(self, idx=None):
         """Returns the tasks of the selected subproject"""
-
         selected_indexes = self.selectedIndexes()
 
         if not selected_indexes:
+            self.item_selected.emit([])
             return
         sub_project_objects = []
         for idx in selected_indexes:

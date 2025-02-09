@@ -5,6 +5,7 @@ from tik_manager4.core import filelog
 from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4.ui.dialog.task_dialog
 from tik_manager4.ui.widgets.common import HorizontalSeparator, TikIconButton
+from tik_manager4.ui.widgets.style import ColorKeepingDelegate
 from tik_manager4.ui.mcv.filter import FilterModel, FilterWidget
 from tik_manager4.objects.guard import Guard
 
@@ -75,7 +76,6 @@ class TikTaskItem(QtGui.QStandardItem):
             self.setFont(QtGui.QFont("Open Sans", 12, italic=True))
 
 
-
 class TikTaskColumnItem(QtGui.QStandardItem):
     def __init__(self, text):
         super(TikTaskColumnItem, self).__init__(text)
@@ -135,6 +135,7 @@ class TikTaskView(QtWidgets.QTreeView):
         """Initialize the view"""
         super(TikTaskView, self).__init__()
         self.purgatory_mode = False
+        self.setItemDelegate(ColorKeepingDelegate())
         self.guard = Guard()
         self._feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
@@ -498,6 +499,7 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
         self._purgatory_mode = value
         self.task_view.purgatory_mode = value
         self.task_view.model.purgatory_mode = value
+        self.refresh()
 
     def refresh(self):
         self.task_view.refresh()

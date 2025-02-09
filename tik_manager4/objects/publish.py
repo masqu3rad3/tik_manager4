@@ -392,9 +392,14 @@ class Publish(LocalizeMixin):
         # self._publish_versions.pop(version_obj.settings_file)
         return 1, "success"
 
-    def resurrect(self):
-        """Resurrect the publishes stalk. This brings back the LAST publish
-        version from purgatory.
+    def resurrect(self, dont_resurrect_versions=False):
+        """Resurrect the publishes stalk.
+
+        By default this brings back the LAST publish version from purgatory.
+
+        Args:
+            dont_resurrect_versions (bool, optional): If True, the versions of
+                the publish will not be resurrected. Defaults to False.
 
         Returns:
             tuple: (state(int), message(str)): 1 if the operation is
@@ -406,5 +411,7 @@ class Publish(LocalizeMixin):
             if state == -1:
                 return -1
 
-        # resurrect the last publish version
-        self.all_versions[-1].resurrect()
+        if not dont_resurrect_versions:
+            # resurrect only the last version. This is because we dont want any versionless works.
+            self.all_versions[-1].resurrect()
+        return 1

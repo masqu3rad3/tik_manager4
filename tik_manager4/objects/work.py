@@ -484,17 +484,23 @@ class Work(Settings, LocalizeMixin):
         self.apply_settings()
         return 1, "success"
 
-    def resurrect(self):
-        """Resurrect the work and all upstream hiearachy. This won't resurrect any publish and resurrect only the last work version."""
+    def resurrect(self, dont_resurrect_versions=False):
+        """Resurrect the work and all upstream hiearachy.
+
+        This won't resurrect any publish and resurrect only the last work version by default.
+        Args:
+            dont_resurrect_versions (bool, optional): If True, do not resurrect the versions.
+        """
         # resurrect the upstream hierarchy
         if self.parent_task.deleted:
             state = self.parent_task.resurrect()
             if state == -1:
                 return -1
 
-        # resurrect only the last version. This is because we dont want any versionless works.
-        self.all_versions[-1].revive()
-        self.apply_settings()
+        if not dont_resurrect_versions:
+            # resurrect only the last version. This is because we dont want any versionless works.
+            self.all_versions[-1].resurrect()
+        # self.apply_settings()
         return 1
 
     def check_owner_permissions(self, version_number):

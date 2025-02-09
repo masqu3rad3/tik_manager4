@@ -8,6 +8,7 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.work_dialog import NewVersionDialog
 from tik_manager4.ui.widgets.common import HorizontalSeparator, TikIconButton
+from tik_manager4.ui.widgets.style import ColorKeepingDelegate
 from tik_manager4.ui.mcv.filter import FilterModel, FilterWidget
 
 from tik_manager4.ui import pick
@@ -271,6 +272,8 @@ class TikCategoryView(QtWidgets.QTreeView):
         """
         super(TikCategoryView, self).__init__(parent)
         self.purgatory_mode = False
+        self.setItemDelegate(ColorKeepingDelegate())
+        self.publish_mode = False
         self.feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
@@ -577,7 +580,7 @@ class TikCategoryView(QtWidgets.QTreeView):
 
     def refresh(self):
         """Re-populate the model keeping the expanded state."""
-        self.model.populate()
+        self.model.populate(publishes=self.publish_mode)
 
     @staticmethod
     def metadata_pre_checks(dcc_handler, metadata):
@@ -935,9 +938,11 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         """Change the mode."""
         if self.work_radio_button.isChecked():
             self.mode = 0
+            self.work_tree_view.publish_mode = False
             self.mode_changed.emit(0)
         else:
             self.mode = 1
+            self.work_tree_view.publish_mode = True
             self.mode_changed.emit(1)
         self.category_tab_widget.currentChanged.emit(
             self.category_tab_widget.currentIndex()

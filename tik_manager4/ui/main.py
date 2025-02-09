@@ -393,9 +393,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.tasks_mcv.task_view.add_tasks
         )
         self.tasks_mcv.task_view.item_selected.connect(self.categories_mcv.set_task)
-        self.tasks_mcv.task_view.task_resurrected.connect(
-            self.subprojects_mcv.sub_view.refresh
-        )
+        self.tasks_mcv.task_view.task_resurrected.connect(self.refresh_project)
+
         self.tasks_mcv.task_view.refresh_requested.connect(
             self.subprojects_mcv.sub_view.get_tasks
         )
@@ -412,14 +411,22 @@ class MainUI(QtWidgets.QMainWindow):
             self.versions_mcv.on_import
         )
         self.categories_mcv.work_tree_view.file_dropped.connect(self.on_save_any_file)
-        self.categories_mcv.work_tree_view.work_resurrected.connect(
-            self.tasks_mcv.task_view.refresh
-        )
-        self.categories_mcv.work_tree_view.work_resurrected.connect(
-            self.subprojects_mcv.sub_view.refresh
-        )
+        self.categories_mcv.work_tree_view.work_resurrected.connect(self.refresh_project)
+        # self.categories_mcv.work_tree_view.work_resurrected.connect(
+        #     self.subprojects_mcv.sub_view.refresh
+        # )
         self.versions_mcv.version.preview_btn.clicked.connect(self.on_show_preview)
         self.versions_mcv.element_view_event.connect(self.on_element_view)
+        self.versions_mcv.version_resurrected.connect(self.refresh_project)
+        # self.versions_mcv.version_resurrected.connect(
+        #     self.categories_mcv.work_tree_view.refresh
+        # )
+        # self.versions_mcv.version_resurrected.connect(
+        #     self.tasks_mcv.task_view.refresh
+        # )
+        # self.versions_mcv.version_resurrected.connect(
+        #     self.subprojects_mcv.sub_view.refresh
+        # )
 
         if self.tik.dcc.name == "Standalone":
             self.categories_mcv.work_tree_view.save_new_work_event.connect(
@@ -647,6 +654,8 @@ class MainUI(QtWidgets.QMainWindow):
 
     def toggle_purgatory_mode(self, state):
         """Toggle the visibility of deleted items."""
+        self.set_last_state()
+
         if state == True:
             # make a border around the
             _style_file = pick.style_file(file_name="purgatory.css")
@@ -660,6 +669,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.versions_mcv.set_purgatory_mode(state)
 
         self._purgatory_mode = state
+
+        self.resume_last_state()
 
     def on_purge_local_purgatory(self):
         """Purge the local purgatory."""
@@ -1047,8 +1058,10 @@ class MainUI(QtWidgets.QMainWindow):
 
     def refresh_project(self):
         """Refresh the project ui."""
+        self.set_last_state()
         self.project_mcv.refresh()
         self.refresh_subprojects()
+        self.resume_last_state()
 
     def refresh_subprojects(self):
         """Refresh the subprojects' ui."""

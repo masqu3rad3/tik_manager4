@@ -12,7 +12,8 @@ QWidget {
 QWidget:item:selected
 {
   background-color: #191919;
-  color: #000000;
+  /*color: #000000;*/
+  /*color: inherit;*/
 }
 
 QWidget:disabled
@@ -521,13 +522,7 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qframe
 
 --------------------------------------------------------------------------- */
 
-/*
-QLabel {
-  border: 0px solid #4c4c4c;
-  margin: 0px;
-  color: #F0F0F0;
-}
-*/
+
 QLabel::disabled {
   background-color: #191919;
   border: 1px solid #404040;
@@ -661,52 +656,7 @@ QProgressBar::chunk:disabled {
   margin: 0.5px;
 }
 
-/* ------------------------------------------------------------------------ */
-/* BUTTONS ---------------------------------------------------------------- */
-/* ------------------------------------------------------------------------ */
-/* QPushButton ------------------------------------------------------------
 
-https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qpushbutton
-
---------------------------------------------------------------------------- */
-
-/*
-QPushButton
-{
-    color: #b1b1b1;
-    background-color: #404040;
-    border-width: 1px;
-    border-color: #1e1e1e;
-    border-style: solid;
-    padding: 5px;
-    font-size: 12px;
-}
-
-
-QPushButton:hover
-{
-    background-color: #505050;
-    border: 1px solid #7c5a33;
-}
-
-
-QPushButton:disabled {
-  background-color: #191919;
-  border: 1px solid #404040;
-  color: #505050;
-  padding: 3px;
-}
-
-QPushButton:pressed {
-  background-color: #7c5a33;
-  border: 1px solid #7c5a33;
-}
-
-QPushButton[menuButton=true] {
-  min-width: 120;
-  min-height: 45;
-}
-*/
 
 
 /* QToolButton ------------------------------------------------------------
@@ -1249,44 +1199,6 @@ QTreeView:branch:open:has-children:!has-siblings:hover, QTreeView:branch:open:ha
 }
 
 
-
-/*
-QTreeView::indicator:checked,
-QListView::indicator:checked {
-  image: url("rc:checkbox_checked.png");
-}
-
-QTreeView::indicator:checked:hover, QTreeView::indicator:checked:focus, QTreeView::indicator:checked:pressed,
-QListView::indicator:checked:hover,
-QListView::indicator:checked:focus,
-QListView::indicator:checked:pressed {
-  image: url("rc:checkbox_checked_focus.png");
-}
-
-QTreeView::indicator:unchecked,
-QListView::indicator:unchecked {
-  image: url("rc:checkbox_unchecked.png");
-}
-
-QTreeView::indicator:unchecked:hover, QTreeView::indicator:unchecked:focus, QTreeView::indicator:unchecked:pressed,
-QListView::indicator:unchecked:hover,
-QListView::indicator:unchecked:focus,
-QListView::indicator:unchecked:pressed {
-  image: url("rc:checkbox_unchecked_focus.png");
-}
-
-QTreeView::indicator:indeterminate,
-QListView::indicator:indeterminate {
-  image: url("rc:checkbox_indeterminate.png");
-}
-
-QTreeView::indicator:indeterminate:hover, QTreeView::indicator:indeterminate:focus, QTreeView::indicator:indeterminate:pressed,
-QListView::indicator:indeterminate:hover,
-QListView::indicator:indeterminate:focus,
-QListView::indicator:indeterminate:pressed {
-  image: url("rc:checkbox_indeterminate_focus.png");
-}
-*/
 QTreeView,
 QListView,
 QTableView,
@@ -1295,7 +1207,7 @@ QColumnView {
   border-width: 2px;
   border-color: #0f1113;
   background-color: #0f1113;
-  color: #F0F0F0;
+  /*color: #F0F0F0;*/
   border-radius: 0px;
 }
 
@@ -1306,7 +1218,7 @@ QListView:disabled,
 QTableView:disabled,
 QColumnView:disabled {
   background-color: #0f1113;
-  color: #505050;
+  /*color: #505050;*/
 }
 
 QTreeView:selected,
@@ -1314,7 +1226,7 @@ QListView:selected,
 QTableView:selected,
 QColumnView:selected {
   background: #0f1113;
-  color: #F0F0F0;
+  /*color: #F0F0F0;*/
 }
 
 QTreeView::hover,
@@ -1347,6 +1259,19 @@ QColumnView::item:selected:hover {
   border-radius: 0px;
 }
 
+QTreeView::item:selected,
+QListView::item:selected,
+QTableView::item:selected,
+QColumnView::item:selected {
+  background-color: #7c5a33;
+  border-style: solid;
+  border-color: #25282e;
+  border-radius: 0px;
+      /*color: inherit; !* Retain the original item color *!*/
+      /*color: unset; !* Unset the color to retain the original item color *!*/
+  /* color: #F0F0F0; */ /* Commented out to retain original item color */
+}
+
 QTreeView::item:selected:active,
 QListView::item:selected:active,
 QTableView::item:selected:active,
@@ -1355,7 +1280,20 @@ QColumnView::item:selected:active {
   border-style: solid;
   border-color: #25282e;
   border-radius: 0px;
+    /*color: #00A000;*/
 }
+
+QTreeView::item:selected:!active,
+QListView::item:selected:!active,
+QTableView::item:selected:!active,
+QColumnView::item:selected:!active {
+  background-color: #7c5a33;
+  border-style: solid;
+  border-color: #25282e;
+  border-radius: 0px;
+    /*color: inherit;*/
+}
+
 
 QTreeView::item:!selected:hover,
 QListView::item:!selected:hover,
@@ -1364,7 +1302,7 @@ QColumnView::item:!selected:hover {
   background-color: #4b3e32;
   border-style: solid;
   border-color: #25282e;
-  color: #F0F0F0;
+  /*color: #F0F0F0;*/
   border-radius: 0px;
 }
 
@@ -1644,10 +1582,10 @@ QDateEdit QAbstractItemView {
   selection-background-color: #1464A0;
 }
 
-QAbstractView:hover {
-  border: 1px solid #4c4c4c;
-  color: #F0F0F0;
-}
+/*QAbstractView:hover {*/
+/*  border: 1px solid #4c4c4c;*/
+/*  color: #F0F0F0;*/
+/*}*/
 
 QAbstractView:selected {
   background: #1464A0;
