@@ -367,19 +367,40 @@ class Dcc(MainCore):
         """Return the DCC major version."""
         return str(cmds.about(query=True, majorVersion=True))
 
-    def launch(self, tik_main_object, window_name=None):
+    def launch(self, tik_main_object, window_name=None, dont_show=False):
         """Launch Tik Main UI with DCC specific way."""
-        print("Launching Maya Main UI")
         parent = self.get_main_window()
+
+
 
         workspace_name = f"{window_name}WorkspaceControl"
         if cmds.workspaceControl(workspace_name, query=True, exists=True):
             cmds.workspaceControl(workspace_name, edit=True, close=True)
             cmds.deleteUI(workspace_name, control=True)
 
-        main_ui = DockableMainUI(main_object=tik_main_object, window_name=window_name, parent=parent)
-        main_ui.show(dockable=True)
+        if not dont_show:
+            main_ui = DockableMainUI(main_object=tik_main_object, window_name=window_name, parent=parent)
+            main_ui.show(dockable=True)
+        else:
+            all_widgets = QtWidgets.QApplication.allWidgets()
+            for entry in all_widgets:
+                try:
+                    if entry.objectName() == window_name+"NoShow":
+                        # if entry.objectName().startswith("Tik Manager"):
+                        entry.close()
+                        entry.deleteLater()
+                except (AttributeError, TypeError):
+                    pass
+            main_ui = RegularMainUI(main_object=tik_main_object, parent=parent, window_name=window_name+"NoShow")
 
+        return main_ui
+
+
+class RegularMainUI(tik4_main):
+    def __init__(self, main_object=None, window_name=None, parent=None, **kwargs):
+        super(RegularMainUI, self).__init__(main_object=main_object, window_name=window_name, parent=parent, **kwargs)
+        # make sure it is getting created center according to the parent
+        self.move(parent.frameGeometry().center() - self.rect().center())
 
 class DockableMainUI(MayaQWidgetDockableMixin, tik4_main):
     def __init__(self, main_object=None, window_name=None, parent=None, **kwargs):

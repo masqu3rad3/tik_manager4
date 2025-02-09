@@ -62,8 +62,9 @@ def launch(dcc="Standalone", dont_show=False):
     window_name = f"Tik Manager {version.__version__} - {dcc}"
     all_widgets = QtWidgets.QApplication.allWidgets()
     tik = tik_manager4.initialize(dcc)
-    if tik.dcc.custom_launcher and not dont_show: # This is only for main ui.
-        return tik.dcc.launch(tik, window_name=window_name)
+    # if tik.dcc.custom_launcher and not dont_show: # This is only for main ui.
+    if tik.dcc.custom_launcher:
+        return tik.dcc.launch(tik, window_name=window_name, dont_show=dont_show)
     parent = tik.dcc.get_main_window()
     for entry in all_widgets:
         try:
