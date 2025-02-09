@@ -102,7 +102,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # set style
         # _style_file = pick.style_file(file_name="purgatory.css")
-        _style_file = pick.style_file()
+        _style_file = pick.style_file(file_name="tikManager.css")
         self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
 
         # define layouts

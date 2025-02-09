@@ -3,22 +3,21 @@
 --------------------------------------------------------------------------- */
 
 QWidget {
-  background-color: #191919;
+  background-color: #303030;
   color: #F0F0F0;
-  selection-background-color: #141414;
+  selection-background-color: #171717;
   selection-color: #F0F0F0;
 }
 
 QWidget:item:selected
 {
-  background-color: #191919;
-  /*color: #000000;*/
-  /*color: inherit;*/
+  background-color: #ff8d1c;
+  color: #000000;
 }
 
 QWidget:disabled
 {
-  background-color: #191919;
+  background-color: #303030;
   color: #505050;
 }
 
