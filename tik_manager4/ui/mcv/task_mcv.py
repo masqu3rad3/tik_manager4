@@ -129,7 +129,6 @@ class TikTaskView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
     refresh_requested = QtCore.Signal()
     task_resurrected = QtCore.Signal()
-    # open_url_requested = QtCore.Signal(object)
 
     def __init__(self):
         """Initialize the view"""
@@ -359,9 +358,13 @@ class TikTaskView(QtWidgets.QTreeView):
 
     def on_resurrect(self, item):
         """Resurrect the task"""
-        item.task.resurrect()
+        state, msg = item.task.resurrect()
+        if not state:
+            self._feedback.pop_info("Task Not Resurrected", msg, critical=True)
+            return
         self.task_resurrected.emit()
         self.refresh()
+        return
         # send a signal to the subproject view to refresh.
         # this is just in case if the resurrected task was under a deleted subproject
         # In that case, the subproject gets resurrected as well.
@@ -449,12 +452,7 @@ class TikTaskView(QtWidgets.QTreeView):
 
     def refresh(self):
         """Re-populate the model."""
-        # get the selected item
-        # selected_item = self.get_selected_item()
         self.refresh_requested.emit()
-        # if the item still exists, select it
-        # if selected_item:
-        #     self.select_by_id(selected_item.task.id)
 
 
 class TikTaskLayout(QtWidgets.QVBoxLayout):

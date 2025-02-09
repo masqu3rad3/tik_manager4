@@ -303,10 +303,6 @@ class Task(Settings, Entity):
         for category_name, category_obj in self.categories.items():
             category_obj.delete_works()
             # we dont touch the category names.
-
-        # categories_to_delete = list(self.categories.keys())
-        # for category in categories_to_delete:
-        #     self.delete_category(category)
         # tag the task as deleted
         self._deleted = True
         self.edit_property("deleted", True)
@@ -317,13 +313,13 @@ class Task(Settings, Entity):
         """Resurrect the task. Make sure the parent sub (and everything above) is not deleted."""
         state = self.check_permissions(level=2)
         if state != 1:
-            return -1
+            return False, "User has no permission to resurrect task."
         if self.parent_sub.deleted:
             self.parent_sub.resurrect()
         self._deleted = False
         self.edit_property("deleted", False)
         self.apply_settings()
-        return 1
+        return True, "Task resurrected successfully."
 
     def is_empty(self):
         """Check all categories and return True if all are empty."""

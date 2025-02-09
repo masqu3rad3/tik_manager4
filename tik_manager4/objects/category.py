@@ -122,8 +122,6 @@ class Category(Entity):
         Returns:
             tik_manager4.objects.work: Work object.
         """
-        # import dcc
-        # print(dcc.EXTENSION_DICT)
         _ignore_checks = ignore_checks
         constructed_name = self.construct_name(name)
         # creating work from an arbitrary path is always considered as a 'standalone' process

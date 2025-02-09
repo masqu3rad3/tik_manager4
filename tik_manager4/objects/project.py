@@ -149,7 +149,6 @@ class Project(Subproject):
             return -1
         # make it less destructive
         result = sub.destroy()
-        # result = sub.revive()
         if not result == 1:
             return -1
         self.save_structure()

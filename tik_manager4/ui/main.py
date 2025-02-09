@@ -31,7 +31,7 @@ from tik_manager4.core import utils
 from tik_manager4.management.exceptions import SyncError
 from tik_manager4.ui import pick
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
-from tik_manager4.ui.dialog.feedback import Feedback
+from tik_manager4.ui.dialog.feedback import Feedback, Confirmation
 from tik_manager4.ui.dialog.project_dialog import NewProjectDialog
 from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
 from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
@@ -103,7 +103,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # set style
         # _style_file = pick.style_file(file_name="purgatory.css")
-        _style_file = pick.style_file(file_name="tikManager.css")
+        _style_file = pick.style_file(file_name="tikManager.qss")
         self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
 
         # define layouts
@@ -659,7 +659,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         if state == True:
             # make a border around the
-            _style_file = pick.style_file(file_name="purgatory.css")
+            _style_file = pick.style_file(file_name="purgatory.qss")
             self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
         else:
             _style_file = pick.style_file()
@@ -704,6 +704,16 @@ class MainUI(QtWidgets.QMainWindow):
         )
         if not confirm:
             return
+        text_confirm_obj = Confirmation(parent=self, confirmation_word=self.tik.project.name)
+        correct_answer = text_confirm_obj.ask_confirmation(text="Please type the project name to confirm.")
+        if not correct_answer:
+            self.feedback.pop_info(
+                title="Purge Failed",
+                text="The project name does not match. Purge failed.",
+                critical=True
+            )
+            return
+
         state, msg = self.tik.purgatory.purge_origin()
         title = "Project Purgatory Purged" if state else "Purge Failed"
         self.feedback.pop_info(

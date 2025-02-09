@@ -494,12 +494,6 @@ class TikSubView(QtWidgets.QTreeView):
         self.setModel(self.proxy_model)
         self.model.populate()
 
-    # def filter(self, text):
-    #     # pass
-    #     self.proxy_model.setFilterRegExp(
-    #         QtCore.QRegExp(text, QtCore.Qt.CaseInsensitive, QtCore.QRegExp.RegExp)
-    #     )
-
     def header_right_click_menu(self, position):
         """Creates a right click menu for the header"""
 
@@ -598,7 +592,10 @@ class TikSubView(QtWidgets.QTreeView):
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
     def on_resurrect(self, item):
-        item.subproject.resurrect()
+        state, msg = item.subproject.resurrect()
+        if not state:
+            self._feedback.pop_info("Sub-project Not Resurrected", msg, critical=True)
+            return
         self.refresh()
         # select bacj the resurrected item
         self.select_by_id(item.subproject.id)
@@ -632,16 +629,6 @@ class TikSubView(QtWidgets.QTreeView):
                 # the parent of the item on new subproject UI
             else:
                 parent_item = self.model.root_item
-            # get all children under the parent_item
-            # if any of the children has the same name as the new subproject, remove it
-
-            # for row in range(parent_item.rowCount()):
-            #     child = parent_item.takeRow(row)
-            #     if not child:
-            #         continue
-            #     if child[0].subproject.name == _new_sub.name:
-            #         parent_item.removeRow(row)
-
 
             self.model.append_sub(_new_sub, parent_item)
 

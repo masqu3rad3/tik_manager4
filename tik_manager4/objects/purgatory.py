@@ -10,18 +10,6 @@ class Purgatory(object):
         super().__init__()
         self.main = main_object
 
-    def get_lost_versions(self):
-        """Returns all the lost souls in purgatory"""
-        pass
-
-    def terminate(self, entity):
-        """Sends the entity to the heaven. There is no turning back"""
-        pass
-
-    def resurrect(self, entity):
-        """Brings the entity back to life"""
-        pass
-
     def purge_origin(self):
         """Purge all the entities in origin project purgatory"""
         purgatory_folder = Path(self.main.project.absolute_path) / ".purgatory"
@@ -51,3 +39,4 @@ class Purgatory(object):
             return False, f"Error purging purgatory: {exc}"
         return True, "Local Purgatory purged successfully."
 
+    # TODO: Implement move to and from purgatory functions here with clean feedbacks.

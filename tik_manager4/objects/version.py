@@ -444,13 +444,6 @@ class WorkVersion(LocalizeMixin):
             LOG.error(msg)
             return False, msg
 
-        # # move the thumbnail
-        # thumbnail_abs_path = self.get_abs_database_path(self.thumbnail)
-        # thumbnail_dest_path = self.get_purgatory_database_path(
-        #     self.thumbnail
-        # )
-        # utils.move(thumbnail_abs_path, thumbnail_dest_path)
-
         self._deleted = True
         return True, f"{source_abs_path} moved to {target_abs_path}."
 

@@ -109,7 +109,6 @@ class Publish(LocalizeMixin):
     def get_last_version(self):
         """Return the last publish version."""
         # find the latest publish version
-        # _publish_version_numbers = [data.version for data in self.versions]
         _publish_version_numbers = [data.version for data in self.all_versions]
         return 0 if not _publish_version_numbers else max(_publish_version_numbers)
 
@@ -389,7 +388,6 @@ class Publish(LocalizeMixin):
             return -1, msg
 
         # remove the publish version from the publish versions
-        # self._publish_versions.pop(version_obj.settings_file)
         return 1, "success"
 
     def resurrect(self, dont_resurrect_versions=False):

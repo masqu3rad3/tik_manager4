@@ -574,9 +574,13 @@ class TikCategoryView(QtWidgets.QTreeView):
             item (TikWorkItem or TikPublishItem):
                 The work or publish item to be resurrected.
         """
-        item.tik_obj.resurrect()
+        state, msg = item.tik_obj.resurrect()
+        if not state:
+            self.feedback.pop_info(title="Error", text=msg, critical=True)
+            return
         self.work_resurrected.emit()
         self.refresh()
+        return
 
     def refresh(self):
         """Re-populate the model keeping the expanded state."""

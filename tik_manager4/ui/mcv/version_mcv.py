@@ -238,12 +238,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         notes_layout = QtWidgets.QVBoxLayout()
         self.addLayout(notes_layout)
         self.info.notes_lbl.setFont(QtGui.QFont("Arial", 10))
-        # self.info.notes_editor.setReadOnly(True)
         notes_layout.addWidget(self.info.notes_lbl)
         notes_layout.addWidget(self.info.notes_editor)
 
         self.info.thumbnail.setToolTip("Right Click for replace options")
-        # self.info.thumbnail.setMinimumSize(QtCore.QSize(221, 124))
         self.info.thumbnail.setMinimumSize(QtCore.QSize(55, 30))
         self.info.thumbnail.setFrameShape(QtWidgets.QFrame.Box)
         self.info.thumbnail.setScaledContents(True)
@@ -564,12 +562,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.toggle_sync_state(False)
             return
         self.version.combo.setEnabled(True)
-        # self.element.element_view_btn.setEnabled(True)
         self.info.notes_editor.setEnabled(True)
         self.info.thumbnail.setEnabled(True)
         self.version.preview_btn.setEnabled(True)
         self.base = base
-        # self.populate_versions(base.versions)
         self.populate_versions(base)
         self.version.combo.blockSignals(False)
 
@@ -658,10 +654,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.version.preview_btn.setEnabled(bool(_version.previews))
             owner = _version.user
         self.version.owner_lbl.setText(f"Owner: {owner}")
-        # self.info.notes_editor.clear()
         self.info.thumbnail.clear()
         self.info.notes_editor.set_version(_version)
-        # self.info.notes_editor.setPlainText(_version.notes)
         _thumbnail_path = self.base.get_abs_database_path(_version.thumbnail)
         self.info.thumbnail.set_media(_thumbnail_path)
         self.element.element_combo.blockSignals(False)
@@ -896,9 +890,17 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
     def on_resurrect(self, version_obj):
         """Resurrect the selected version."""
-        version_obj.resurrect()
+        state, msg = version_obj.resurrect()
+        if not state:
+            self.feedback.pop_info(
+                title="Resurrect Error",
+                text=msg,
+                critical=True,
+            )
+            return
         self.version_resurrected.emit()
         self.refresh()
+        return
 
     def publish_snapshot(self):
         """Publish a snapshot of the current work."""

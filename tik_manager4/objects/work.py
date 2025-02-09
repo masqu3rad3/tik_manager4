@@ -478,9 +478,6 @@ class Work(Settings, LocalizeMixin):
             if not state:
                 return -1, msg
 
-        # finally move the database file
-        # db_destination = Path(self.get_resolved_purgatory_path(), self.settings_file.name)
-        # utils.move(self.settings_file.as_posix(), db_destination.as_posix())
         self.apply_settings()
         return 1, "success"
 
@@ -493,15 +490,14 @@ class Work(Settings, LocalizeMixin):
         """
         # resurrect the upstream hierarchy
         if self.parent_task.deleted:
-            state = self.parent_task.resurrect()
-            if state == -1:
-                return -1
+            state, msg = self.parent_task.resurrect()
+            if not state:
+                return False, msg
 
         if not dont_resurrect_versions:
             # resurrect only the last version. This is because we dont want any versionless works.
             self.all_versions[-1].resurrect()
-        # self.apply_settings()
-        return 1
+        return True, "success"
 
     def check_owner_permissions(self, version_number):
         """Check the permissions for 'owner' and 'admin-only' actions.
@@ -548,9 +544,7 @@ class Work(Settings, LocalizeMixin):
         version_obj = self.get_version(version_number)
         if version_obj:
             version_obj.move_to_purgatory()
-
             # remove the version from the versions list
-            # self._versions.remove(version_obj)
             self.apply_settings()
         return 1, msg
 

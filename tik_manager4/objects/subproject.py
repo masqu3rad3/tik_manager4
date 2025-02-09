@@ -144,9 +144,6 @@ class Subproject(Entity):
                         "subs": [],  # this will be filled with the while loop
                     }
                     # add the deleted flag only if there is a key for it.
-
-                    # if neighbour.deleted:
-                    #     sub_data["deleted"] = True
                     for key, metaitem in neighbour.metadata.items():
                         if metaitem.overridden:
                             sub_data[key] = metaitem.value
