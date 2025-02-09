@@ -639,8 +639,8 @@ class TestProject:
 
         tik2.project.subs[sub.name].delete_task("second_task")
 
-        assert sub.scan_tasks() != sub.tasks # because tasks doesn't return deleted ones.
-        assert sub.scan_tasks() == sub.all_tasks # because all_tasks returns all tasks
+        assert tik2.project.subs[sub.name].tasks != tik2.project.subs[sub.name].all_tasks
+
 
     def test_if_a_task_is_empty(self, project_manual_path, tik):
         sub, task, work = self._create_a_subproject_task_and_work(

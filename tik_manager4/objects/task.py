@@ -306,7 +306,7 @@ class Task(Settings, Entity):
         # tag the task as deleted
         self._deleted = True
         self.edit_property("deleted", True)
-        self.apply_settings()
+        self.apply_settings(force=True)
         return 1
 
     def resurrect(self):

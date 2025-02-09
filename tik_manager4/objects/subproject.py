@@ -442,10 +442,8 @@ class Subproject(Entity):
             LOG.warning(
                 f"Sending task {task_name} " f"and everything underneath to purgatory."
             )
-
         task.destroy()
 
-        self._tasks.pop(task_name)
         return True, "success"
 
     def find_tasks_by_wildcard(self, wildcard):
