@@ -594,7 +594,10 @@ class Work(Settings, LocalizeMixin):
         )
 
         if not new_thumbnail_path:
-            self._dcc_handler.generate_thumbnail(target_absolute_path, *(self._thumbnail_resolution))
+            thumbnail_resolution = self.guard.preview_settings.get(
+                "ThumbnailResolution", (220, 124))
+            self._dcc_handler.generate_thumbnail(target_absolute_path,
+                                                 *thumbnail_resolution)
             version_obj.thumbnail = target_relative_path
         else:
             shutil.copy(new_thumbnail_path, target_absolute_path)
