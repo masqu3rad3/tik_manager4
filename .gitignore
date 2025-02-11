@@ -19,6 +19,10 @@ venv.bak/
 .Python
 build/
 dist/
+package/build/
+docs/build/
+tik_manager4/build/
+tik_manager4/dist/
 develop-eggs/
 
 # VSCode
