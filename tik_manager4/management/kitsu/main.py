@@ -77,7 +77,9 @@ class ProductionPlatform(ManagementCore):
             try:
                 self.gazu.log_in(kitsu_user, CRYPTOR.decrypt(token))
             except (ConnectionError, CryptorError) as exc:
-                return None, f"Connection Error: {exc}"
+                # get rid of the token and force the user to login again.
+                self.logout()
+                self.authenticate()
         else:
             try:
                 login_widget = login.Login(self.gazu)
@@ -89,7 +91,6 @@ class ProductionPlatform(ManagementCore):
                     crypted_token = CRYPTOR.encrypt(login_widget.inputs["password"].text())
                     self.tik_main.user.resume.edit_property("kitsu_token", crypted_token)
                     self.tik_main.user.resume.edit_property("kitsu_user", login_widget.inputs["user"].text())
-                # self.gazu.log_in("admin@example.com", "mysecretpassword")
             except ConnectionError as exc:
                 return None, f"Connection Error: {exc}"
 
@@ -101,7 +102,8 @@ class ProductionPlatform(ManagementCore):
 
     def logout(self):
         """Logout the user."""
-        self.gazu.log_out()
+        if self.is_authenticated:
+            self.gazu.log_out()
         self.tik_main.user.resume.edit_property("kitsu_token", None)
         self.tik_main.user.resume.edit_property("kitsu_user", None)
         self.is_authenticated = False
