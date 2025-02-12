@@ -12,6 +12,8 @@ from tik_manager4.ui import pick
 
 
 LOG = logging.getLogger(__name__)
+# set the log level to info
+LOG.setLevel(logging.INFO)
 
 class AnimatedLabel(QtWidgets.QLabel):
     """
@@ -219,6 +221,6 @@ class Login(QtWidgets.QDialog):
 
         if result:
             name = "{user[first_name]} {user[last_name]}".format(**result)
-            LOG.info("Logged in as %s.." % name)
+            LOG.debug("Logged in as %s.." % name)
             self.logged_in.emit(True)
         self.accept()
