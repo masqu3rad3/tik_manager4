@@ -244,9 +244,9 @@ class Dcc(MainCore):
         favored_codecs = ["H.264", "jpg", "MPEG-4 Video", "none"]
         for format_ in favored_formats:
             for codec in favored_codecs:
-                if codec in available_codecs[format_]:
-                    extension = "mov" if format_ == "qt" else "avi"
-                    return format_, codec, extension
+                if codec in available_codecs.get(format_, []):
+                    favored_extension = "mov" if format_ == "qt" else "avi"
+                    return format_, codec, favored_extension
         return None, None, None
 
     @staticmethod
