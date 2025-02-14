@@ -13,19 +13,22 @@ from tik_manager4.dcc.houdini import validate
 from tik_manager4.dcc.houdini import extract
 from tik_manager4.dcc.houdini import ingest
 from tik_manager4.dcc.houdini import utils
+from tik_manager4.dcc.houdini import extension
 
 
 LOG = logging.getLogger(__name__)
 
 
+
 class Dcc(MainCore):
     name = "Houdini"
-    _main_format = ".hip" if not hou.isApprentice() else ".hipnc"
+    _main_format = utils.resolve_extension()
     formats = [_main_format, ".hiplc"]
     preview_enabled = True  # Whether or not to enable the preview in the UI
     validations = validate.classes
     extracts = extract.classes
     ingests = ingest.classes
+    extensions = extension.classes
 
     @staticmethod
     def get_main_window():
@@ -48,8 +51,9 @@ class Dcc(MainCore):
         Returns: (String) File path
 
         """
-        if hou.isApprentice():
-            file_path = Path(file_path).with_suffix(".hipnc").as_posix()
+        # Make sure the extension is compatible with the current license.
+        ext = utils.resolve_extension()
+        file_path = Path(file_path).with_suffix(ext).as_posix()
         hou.hipFile.save(file_name=file_path)
         return file_path
 
@@ -268,7 +272,7 @@ class Dcc(MainCore):
     @staticmethod
     def get_scene_fps():
         """Return the current FPS value set by DCC. None if not supported."""
-        return hou.fps()
+        return utils.get_scene_fps()
 
     def set_scene_fps(self, fps_value):
         """
@@ -279,6 +283,4 @@ class Dcc(MainCore):
         Returns: None
 
         """
-        range = self.get_ranges()
-        hou.setFps(fps_value)
-        self.set_ranges(range)
+        utils.set_scene_fps(fps_value)

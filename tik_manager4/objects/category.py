@@ -36,6 +36,14 @@ class Category(Entity):
     def works(self):
         """Return the works under the category."""
         self.scan_works()
+        # filter the works that have at least one non-deleted version
+        valid_works = {key: value for key, value in self._works.items() if value.has_valid_versions()}
+        return valid_works
+
+    @property
+    def all_works(self):
+        """Return all the works under the category."""
+        self.scan_works()
         return self._works
 
     def get_works_by_wildcard(self, wildcard):
@@ -114,8 +122,6 @@ class Category(Entity):
         Returns:
             tik_manager4.objects.work: Work object.
         """
-        # import dcc
-        # print(dcc.EXTENSION_DICT)
         _ignore_checks = ignore_checks
         constructed_name = self.construct_name(name)
         # creating work from an arbitrary path is always considered as a 'standalone' process
@@ -233,3 +239,12 @@ class Category(Entity):
         if name:
             parts.append(name)
         return "_".join(parts)
+
+    def delete_works(self):
+        """Mark the category as deleted."""
+        # destroy all works under the category
+        for work in self.works.values():
+            state, msg = work.destroy()
+            if state != 1:
+                return False, msg
+        return True, "Works under the category are successfully deleted."

@@ -1,7 +1,7 @@
 
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog.feedback import Feedback
-from tik_manager4.management.shotgrid.ui.dialog import CreateFromShotgridDialog
+from tik_manager4.management.ui.dialog import CreateFromManagementDialog
 from tik_manager4.ui.widgets.pop import WaitDialog
 
 from tik_manager4.management.extension_core import ExtensionCore
@@ -70,11 +70,12 @@ class UiExtensions(ExtensionCore):
         if not handler:
             return
 
-        dialog = CreateFromShotgridDialog(handler, parent=self.parent)
+        dialog = CreateFromManagementDialog(handler, parent=self.parent)
         state = dialog.exec()
         if state:
             # hard refresh the project
-            self.parent.subprojects_mcv.manual_refresh()
+            # self.parent.subprojects_mcv.manual_refresh()
+            self.parent.refresh_project()
             self.parent.status_bar.showMessage("Project created successfully")
         return
 

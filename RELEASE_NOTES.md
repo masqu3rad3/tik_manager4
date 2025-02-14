@@ -1,5 +1,16 @@
 # Release Notes
 
+## v4.3.6
+- [TIK-152] Dcc Specific Utils methodology added. Similar to extractors, ingestors and validators, now it is possible to define DCC specific utilities, accessible from the Main UI.
+- [TIK-39] Implementation of Purgatory. The deleted items (sub-projects, tasks, works, publishes and versions) are not permanently deleted anymore. They are moved to the purgatory and can be restored if needed with the exception of manual purge of purgatory.
+- [TIK-151] Integration of Kitsu.
+- Dockable UI for Maya.
+- Fix for the resolution related error when replacing preview images.
+- Referencing (Link) fix for Blender.
+- Improved UI interactions, style changes and performance optimizations.
+- Quicktime related error fix when taking playblasts from Maya. 
+- Various minor bug fixes and improvements.
+
 ## v4.3.1
 - [TIK-145] Added native DCC support for snapshots saves. Now the snapshotted works can be directly opened from related DCCs.
 - [TIK-146] Making the validations and extracts orderable. The order can be arranged from the settings (per-project or common).

@@ -10,6 +10,7 @@ from tik_manager4.dcc.blender import validate
 from tik_manager4.dcc.blender import extract
 from tik_manager4.dcc.blender import ingest
 from tik_manager4.dcc.blender import utils
+from tik_manager4.dcc.blender import extension
 
 LOG = logging.getLogger(__name__)
 
@@ -27,6 +28,7 @@ class Dcc(MainCore):
     validations = validate.classes
     extracts = extract.classes
     ingests = ingest.classes
+    extensions = extension.classes
 
     # Override the applicable methods from the MainCore class
 
@@ -261,9 +263,9 @@ class Dcc(MainCore):
     @staticmethod
     def get_scene_fps():
         """Return the scene FPS."""
-        return bpy.context.scene.render.fps
+        return utils.get_scene_fps()
 
     @staticmethod
     def set_scene_fps(fps_value):
         """Set the scene FPS."""
-        bpy.context.scene.render.fps = fps_value
+        utils.set_scene_fps(fps_value)

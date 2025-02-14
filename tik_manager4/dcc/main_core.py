@@ -9,6 +9,8 @@ class MainCore():
     validations = {}
     extracts = {}
     ingests = {}
+    extensions = {}
+    custom_launcher = False
 
     @staticmethod
     def pre_publish():
@@ -205,4 +207,7 @@ class MainCore():
         """Test function"""
         pass
 
-    # TODO: validation methods for checking the existence and read/write permmisions
+    @staticmethod
+    def launch():
+        """Open main menu with DCC custom commands."""
+        pass

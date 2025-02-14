@@ -9,9 +9,9 @@ Supported types:
 
 
 """
-import re
 from pathlib import Path
 from tik_manager4.core.settings import Settings
+from tik_manager4.core.utils import get_nice_name
 
 from tik_manager4.ui.widgets import value_widgets
 from tik_manager4.ui.widgets.category_list import CategoryList
@@ -22,13 +22,6 @@ from tik_manager4.ui.widgets.validated_string import ValidatedString
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 
 
-def get_nice_name(input_str):
-    """Convert camel case or snake case to nice name."""
-    # Use regular expression to split the string at camel case boundaries
-    words = re.findall(r"[A-Z][a-z]*|[a-z]+", input_str)
-    # Capitalize the first letter of each word and join them with a space
-    nice_name = " ".join(word.capitalize() for word in words)
-    return nice_name
 def guess_data_type(data, enums=None):
     """Guess the type of the data to be used as ui definition."""
     if enums:

@@ -6,6 +6,7 @@ from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.dcc.photoshop import validate
 from tik_manager4.dcc.photoshop import extract
 from tik_manager4.dcc.photoshop import ingest
+from tik_manager4.dcc.photoshop import extension
 
 # test dispatch
 # psApp = Dispatch("Photoshop.Application")
@@ -20,6 +21,8 @@ class Dcc(MainCore):
     validations = validate.classes
     extracts = extract.classes
     ingests = ingest.classes
+    extensions = extension.classes
+
     def __init__(self):
         super().__init__()
 

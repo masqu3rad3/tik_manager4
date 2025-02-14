@@ -127,6 +127,23 @@ class StyleFrame(ClickableFrame, StyleEditor):
     pass
 
 
+def lighten_color(color_str, factor=110):
+    """
+    Lightens the given color.
+
+    Args:
+        color_str (str): The color to lighten as a hex string.
+        factor (int): The percentage to lighten (100 = no change, >100 = lighter, <100 = darker).
+
+    Returns:
+        str: A lighter color as a hex string.
+    """
+    color = QtGui.QColor(
+        color_str)  # Automatically handles both #RRGGBB and "rgb(r,g,b)"
+    lighter_color = color.lighter(
+        factor)  # Increase brightness by the given factor
+    return lighter_color.name()  # Returns as hex string
+
 class TikButton(QtWidgets.QPushButton, StyleEditor):
     """Unified button class for the whole app."""
 
@@ -169,7 +186,13 @@ class TikButton(QtWidgets.QPushButton, StyleEditor):
         color: {text_color};
         background-color: {background_color};
         border-color: {border_color};
-        }}"""
+        }}
+        QPushButton:hover
+        {{
+        background-color: {lighten_color(background_color)};
+        border: 1px solid #ff8d1c;
+        }}
+        """
 
         self._append_style(color_style)
 

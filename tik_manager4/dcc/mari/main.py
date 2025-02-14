@@ -12,6 +12,7 @@ from tik_manager4.dcc.mari import validate
 from tik_manager4.dcc.mari import extract
 from tik_manager4.dcc.mari import ingest
 from tik_manager4.dcc.mari import utils
+from tik_manager4.dcc.mari import extension
 
 LOG = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ class Dcc(MainCore):
     validations = validate.classes
     extracts = extract.classes
     ingests = ingest.classes
+    extensions = extension.classes
 
     # Override the applicable methods from the MainCore class
 

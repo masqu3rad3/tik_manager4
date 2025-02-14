@@ -64,6 +64,11 @@ class Project(Subproject):
         """Return the database path of the project."""
         return self._database_path
 
+    def get_project(self):
+        """Return the project object."""
+        # We are overriding the method to return the project itself
+        return self
+
     def save_structure(self):
         """Save the project structure to the database.
 
@@ -139,9 +144,13 @@ class Project(Subproject):
         else:
             _remove_path = path
 
-        if self._remove_sub_project(uid, path) == -1:
+        sub = self.__validate_and_get_sub(uid, path)
+        if sub == -1:
             return -1
-        self._delete_folders(str(Path(self._database_path, _remove_path)))
+        # make it less destructive
+        result = sub.destroy()
+        if not result == 1:
+            return -1
         self.save_structure()
         return 1
 

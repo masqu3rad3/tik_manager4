@@ -8,6 +8,7 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.dialog.work_dialog import NewVersionDialog
 from tik_manager4.ui.widgets.common import HorizontalSeparator, TikIconButton
+from tik_manager4.ui.widgets.style import ColorKeepingDelegate
 from tik_manager4.ui.mcv.filter import FilterModel, FilterWidget
 
 from tik_manager4.ui import pick
@@ -60,7 +61,10 @@ class TikWorkItem(QtGui.QStandardItem):
                     "promoted": The work is promoted.
         """
         self.state = state
-        _state_color = self.state_color_dict.get(state, (255, 255, 0))
+        if self.tik_obj.deleted:
+            _state_color = (255, 0, 0)
+        else:
+            _state_color = self.state_color_dict.get(state, (255, 255, 0))
         # cross out omitted items
         self.fnt.setStrikeOut(state == "omitted")
         self.setFont(self.fnt)
@@ -122,7 +126,10 @@ class TikPublishItem(QtGui.QStandardItem):
 
         """
         self.state = state
-        _state_color = self.state_color_dict[state]
+        if self.tik_obj.deleted:
+            _state_color = (255, 0, 0)
+        else:
+            _state_color = self.state_color_dict.get(state, (255, 255, 0))
         # cross out omitted items
         self.fnt.setStrikeOut(state == "omitted")
         self.setFont(self.fnt)
@@ -156,7 +163,7 @@ class TikCategoryModel(QtGui.QStandardItemModel):
     def __init__(self):
         """Initialize the model."""
         super(TikCategoryModel, self).__init__()
-
+        self.purgatory_mode = False
         self.setHorizontalHeaderLabels(self.columns)
 
         self._works = []
@@ -247,6 +254,7 @@ class TikCategoryView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
     version_created = QtCore.Signal()
     file_dropped = QtCore.Signal(str)
+    work_resurrected = QtCore.Signal()
     load_event = (
         QtCore.Signal()
     )  # the signal for main UI importing the selected version of the selected work
@@ -263,6 +271,9 @@ class TikCategoryView(QtWidgets.QTreeView):
                 The parent widget of the view.
         """
         super(TikCategoryView, self).__init__(parent)
+        self.purgatory_mode = False
+        self.setItemDelegate(ColorKeepingDelegate())
+        self.publish_mode = False
         self.feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
@@ -501,17 +512,41 @@ class TikCategoryView(QtWidgets.QTreeView):
         else:
             level = 0
 
-        # if the item is a work, add the ingest action
-        if item.tik_obj.object_type == ObjectType.WORK:
-            ingest_act = right_click_menu.addAction(self.tr("Ingest Here"))
-            ingest_act.triggered.connect(lambda _=None, x=item: self.ingest_here(item))
+        if self.purgatory_mode:
+            if item.tik_obj.deleted:
+                act_resurrect = right_click_menu.addAction(self.tr("Resurrect"))
+                act_resurrect.triggered.connect(
+                    lambda _=None, x=item: self.on_resurrect(item)
+                )
+                right_click_menu.addSeparator()
+        else:
+            if item.tik_obj.object_type == ObjectType.WORK:
+                ingest_act = right_click_menu.addAction(self.tr("Ingest Here"))
+                ingest_act.triggered.connect(lambda _=None, x=item: self.ingest_here(item))
+                right_click_menu.addSeparator()
+
+            load_act = right_click_menu.addAction(self.tr("Load"))
+            load_act.triggered.connect(self.load_event.emit)
+            import_act = right_click_menu.addAction(self.tr("Import To the Scene"))
+            import_act.triggered.connect(self.import_event.emit)
             right_click_menu.addSeparator()
 
-        load_act = right_click_menu.addAction(self.tr("Load"))
-        load_act.triggered.connect(self.load_event.emit)
-        import_act = right_click_menu.addAction(self.tr("Import To the Scene"))
-        import_act.triggered.connect(self.import_event.emit)
-        right_click_menu.addSeparator()
+            revive_item_act = right_click_menu.addAction(
+                self.tr("Revive Work/Publish"))
+            revive_item_act.triggered.connect(
+                lambda _=None, x=item: self.revive_item(item))
+            omit_item_act = right_click_menu.addAction(
+                self.tr("Omit Work/Publish"))
+            omit_item_act.triggered.connect(
+                lambda _=None, x=item: self.omit_item(item))
+            delete_item_act = right_click_menu.addAction(
+                self.tr("Delete Work/Publish"))
+            delete_item_act.triggered.connect(
+                lambda _=None, x=item: self.delete_item(item))
+
+            right_click_menu.addSeparator()
+
+
         open_database_folder_act = right_click_menu.addAction(
             self.tr("Open Database Folder")
         )
@@ -531,20 +566,25 @@ class TikCategoryView(QtWidgets.QTreeView):
             lambda _=None, x=item: self.copy_scene_path(item)
         )
 
-        right_click_menu.addSeparator()
-
-        revive_item_act = right_click_menu.addAction(self.tr("Revive Work/Publish"))
-        revive_item_act.triggered.connect(lambda _=None, x=item: self.revive_item(item))
-        omit_item_act = right_click_menu.addAction(self.tr("Omit Work/Publish"))
-        omit_item_act.triggered.connect(lambda _=None, x=item: self.omit_item(item))
-        delete_item_act = right_click_menu.addAction(self.tr("Delete Work/Publish"))
-        delete_item_act.triggered.connect(lambda _=None, x=item: self.delete_item(item))
-
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
+
+    def on_resurrect(self, item):
+        """Resurrect the given item.
+        Args:
+            item (TikWorkItem or TikPublishItem):
+                The work or publish item to be resurrected.
+        """
+        state, msg = item.tik_obj.resurrect()
+        if not state:
+            self.feedback.pop_info(title="Error", text=msg, critical=True)
+            return
+        self.work_resurrected.emit()
+        self.refresh()
+        return
 
     def refresh(self):
         """Re-populate the model keeping the expanded state."""
-        self.model.populate()
+        self.model.populate(publishes=self.publish_mode)
 
     @staticmethod
     def metadata_pre_checks(dcc_handler, metadata):
@@ -752,6 +792,7 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
     def __init__(self, *args, **kwargs):
         """Initialize the layout."""
         super(TikCategoryLayout, self).__init__(*args, **kwargs)
+        self._purgatory_mode = False # if true, shows deleted items too.
         header_lay = QtWidgets.QHBoxLayout()
         header_lay.setContentsMargins(0, 0, 0, 0)
         self.addLayout(header_lay)
@@ -821,6 +862,26 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 
         self.refresh_btn.clicked.connect(self.refresh)
 
+    def set_purgatory_mode(self, state):
+        """Set the show all state.
+        Args:
+            state (bool): The state of the show all.
+        """
+        self.purgatory_mode = state
+
+    @property
+    def purgatory_mode(self):
+        """Return the purgatory mode."""
+        return self._purgatory_mode
+
+    @purgatory_mode.setter
+    def purgatory_mode(self, value):
+        """Set the purgatory mode."""
+        self._purgatory_mode = value
+        self.work_tree_view.purgatory_mode = value
+        self.work_tree_view.model.purgatory_mode = value
+        self.refresh()
+
     def get_active_category(self):
         """Get the active category object and return it."""
         if self.task and self.category_tab_widget.currentWidget():
@@ -881,9 +942,11 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         """Change the mode."""
         if self.work_radio_button.isChecked():
             self.mode = 0
+            self.work_tree_view.publish_mode = False
             self.mode_changed.emit(0)
         else:
             self.mode = 1
+            self.work_tree_view.publish_mode = True
             self.mode_changed.emit(1)
         self.category_tab_widget.currentChanged.emit(
             self.category_tab_widget.currentIndex()
@@ -900,16 +963,30 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
         self._last_category = self.category_tab_widget.tabText(index)
         if not self._last_category:
             return
-        works = self.task.categories[self._last_category].works
+        if self._purgatory_mode:
+            works = self.task.categories[self._last_category].all_works
+        else:
+            works = self.task.categories[self._last_category].works
         if self.mode == 0 and self._last_category:
             self.work_tree_view.model.set_works(works.values())
         else:
-            _publishes = [
+            _publishes = self._collect_publishes(works)
+            self.work_tree_view.model.set_publishes(_publishes)
+
+    def _collect_publishes(self, works):
+        """Collect the publishes from the works."""
+        if self._purgatory_mode:
+            return [
+                work_obj.publish
+                for work_obj in works.values()
+                if work_obj.publish.all_versions
+            ]
+        else:
+            return [
                 work_obj.publish
                 for work_obj in works.values()
                 if work_obj.publish.versions
             ]
-            self.work_tree_view.model.set_publishes(_publishes)
 
     def refresh(self):
         """Refresh the current category."""

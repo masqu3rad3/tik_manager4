@@ -1,9 +1,13 @@
+
+import webbrowser
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.core import filelog
 from tik_manager4.ui.dialog.feedback import Feedback
 import tik_manager4.ui.dialog.task_dialog
 from tik_manager4.ui.widgets.common import HorizontalSeparator, TikIconButton
+from tik_manager4.ui.widgets.style import ColorKeepingDelegate
 from tik_manager4.ui.mcv.filter import FilterModel, FilterWidget
+from tik_manager4.objects.guard import Guard
 
 from tik_manager4.ui import pick
 
@@ -17,6 +21,7 @@ class TikTaskItem(QtGui.QStandardItem):
         "shot": (0, 115, 255),
         "global": (255, 141, 28),
         "other": (255, 255, 255),
+        "deleted": (255, 0, 0),
     }
 
     def __init__(self, task_obj):
@@ -39,10 +44,6 @@ class TikTaskItem(QtGui.QStandardItem):
 
         self._state = None
 
-        # _color = self.color_dict.get(task_obj.type, (255, 255, 255))
-        # self.setForeground(QtGui.QColor(*_color))
-
-        # self.setFont(fnt)
         self.setText(task_obj.nice_name or task_obj.name)
 
         self.refresh()
@@ -50,6 +51,12 @@ class TikTaskItem(QtGui.QStandardItem):
     def refresh(self):
         """Refresh the item"""
         self.set_state(self.task.state)
+
+        if self.task.deleted:
+            self.setForeground(QtGui.QColor(255, 0, 0))
+            self.setFont(QtGui.QFont("Open Sans", 12, italic=True))
+            _icon = pick.icon(f"{self.task.type}-ghost.png")
+            self.setIcon(_icon)
 
     def set_state(self, state):
         """Set the state of the item.
@@ -62,6 +69,11 @@ class TikTaskItem(QtGui.QStandardItem):
         self.fnt.setStrikeOut(state == "omitted")
         self.setFont(self.fnt)
         self.setForeground(QtGui.QColor(*_color))
+
+        # it its deleted make is transparent and italic
+        if state == "deleted":
+            self.setForeground(QtGui.QColor(255, 0, 0, 100))
+            self.setFont(QtGui.QFont("Open Sans", 12, italic=True))
 
 
 class TikTaskColumnItem(QtGui.QStandardItem):
@@ -77,7 +89,7 @@ class TikTaskModel(QtGui.QStandardItemModel):
     def __init__(self):
         """Initialize the model"""
         super(TikTaskModel, self).__init__()
-
+        self.purgatory_mode = False
         self.setHorizontalHeaderLabels(self.columns)
 
         self._tasks = []
@@ -116,14 +128,17 @@ class TikTaskModel(QtGui.QStandardItemModel):
 class TikTaskView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
     refresh_requested = QtCore.Signal()
+    task_resurrected = QtCore.Signal()
 
     def __init__(self):
         """Initialize the view"""
         super(TikTaskView, self).__init__()
+        self.purgatory_mode = False
+        self.setItemDelegate(ColorKeepingDelegate())
+        self.guard = Guard()
         self._feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-
         # do not show branches
         self.setRootIsDecorated(False)
 
@@ -242,6 +257,8 @@ class TikTaskView(QtWidgets.QTreeView):
 
     def set_tasks(self, tasks_gen):
         """Set the data for the model"""
+        # get the selected item
+        selected_item = self.get_selected_item()
         self.model.clear()
         for task in tasks_gen:
             # if the task is already in model, skip it
@@ -250,6 +267,9 @@ class TikTaskView(QtWidgets.QTreeView):
 
             self.model.append_task(task)
         self.expandAll()
+        # if the item still exists, select it
+        if selected_item:
+            self.select_by_id(selected_item.task.id)
 
     def get_selected_item(self):
         """Return the selected item"""
@@ -301,23 +321,61 @@ class TikTaskView(QtWidgets.QTreeView):
         else:
             level = 0
 
-        act_edit_task = right_click_menu.addAction(self.tr("Edit Task"))
-        right_click_menu.addSeparator()
+        if self.purgatory_mode:
+            if item.task.deleted:
+                act_resurrect = right_click_menu.addAction(self.tr("Resurrect Task"))
+                act_resurrect.setEnabled(not self.is_management_locked)
+                act_resurrect.triggered.connect(
+                    lambda _=None, x=item: self.on_resurrect(item)
+                )
+                right_click_menu.addSeparator()
+        else:
+            act_edit_task = right_click_menu.addAction(self.tr("Edit Task"))
+            right_click_menu.addSeparator()
 
-        act_edit_task.triggered.connect(lambda _=None, x=item: self.edit_task(item))
+            act_edit_task.triggered.connect(lambda _=None, x=item: self.edit_task(item))
 
-        revive_item_act = right_click_menu.addAction(self.tr("Revive Task"))
-        revive_item_act.setEnabled(not self.is_management_locked)
-        revive_item_act.triggered.connect(lambda _=None, x=item: self.revive_task(item))
-        omit_item_act = right_click_menu.addAction(self.tr("Omit Task"))
-        omit_item_act.setEnabled(not self.is_management_locked)
-        omit_item_act.triggered.connect(lambda _=None, x=item: self.omit_task(item))
+            revive_item_act = right_click_menu.addAction(self.tr("Revive Task"))
+            revive_item_act.setEnabled(not self.is_management_locked)
+            revive_item_act.triggered.connect(lambda _=None, x=item: self.revive_task(item))
+            omit_item_act = right_click_menu.addAction(self.tr("Omit Task"))
+            omit_item_act.setEnabled(not self.is_management_locked)
+            omit_item_act.triggered.connect(lambda _=None, x=item: self.omit_task(item))
 
-        act_delete_task = right_click_menu.addAction(self.tr("Delete Task"))
-        act_delete_task.setEnabled(not self.is_management_locked)
-        act_delete_task.triggered.connect(lambda _=None, x=item: self.delete_task(item))
+            act_delete_task = right_click_menu.addAction(self.tr("Delete Task"))
+            act_delete_task.setEnabled(not self.is_management_locked)
+            act_delete_task.triggered.connect(lambda _=None, x=item: self.delete_task(item))
 
+            right_click_menu.addSeparator()
+
+        open_url_act = right_click_menu.addAction(self.tr("Open URL"))
+        open_url_act.setVisible(self.is_management_locked)
+        # open_url_act.triggered.connect(lambda _=None, x=item: self.open_url_requested.emit(item))
+        open_url_act.triggered.connect(lambda _=None, x=item: self.test(item))
+
+        # emit signal to open the url
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
+
+    def on_resurrect(self, item):
+        """Resurrect the task"""
+        state, msg = item.task.resurrect()
+        if not state:
+            self._feedback.pop_info("Task Not Resurrected", msg, critical=True)
+            return
+        self.task_resurrected.emit()
+        self.refresh()
+        return
+        # send a signal to the subproject view to refresh.
+        # this is just in case if the resurrected task was under a deleted subproject
+        # In that case, the subproject gets resurrected as well.
+
+
+    def test(self, item):
+        if not self.guard.management_handler:
+            return
+        url = self.guard.management_handler.get_entity_url(item.task.type, item.task.id)
+        if url:
+            webbrowser.open(url)
 
     def edit_task(self, item):
         if item.task.check_permissions(level=2) == -1:
@@ -377,15 +435,15 @@ class TikTaskView(QtWidgets.QTreeView):
                 if really_sure != "ok":
                     return
 
-            state = item.task.parent_sub.delete_task(item.task.name)
+            state, msg = item.task.parent_sub.delete_task(item.task.name)
             if state:
                 # find the item in the model and remove it
-                for i in range(self.model.rowCount()):
-                    if self.model.item(i).task == item.task:
-                        self.model.removeRow(i)
+                for row_id in range(self.model.rowCount()):
+                    if self.model.item(row_id).task == item.task:
+                        self.model.removeRow(row_id)
                         break
             else:
-                msg = LOG.last_message()
+                # msg = LOG.last_message()
                 self._feedback.pop_info(
                     title="Task Not Deleted", text=msg, critical=True
                 )
@@ -395,15 +453,13 @@ class TikTaskView(QtWidgets.QTreeView):
     def refresh(self):
         """Re-populate the model."""
         self.refresh_requested.emit()
-        # self.model.clear()
-        # self.set_tasks(self.model._tasks)
-
 
 
 class TikTaskLayout(QtWidgets.QVBoxLayout):
     def __init__(self):
         """Initialize the layout"""
         super(TikTaskLayout, self).__init__()
+        self._purgatory_mode = False
         header_lay = QtWidgets.QHBoxLayout()
         header_lay.setContentsMargins(0, 0, 0, 0)
         self.addLayout(header_lay)
@@ -428,6 +484,20 @@ class TikTaskLayout(QtWidgets.QVBoxLayout):
             self.task_view.hideColumn(idx)
 
         self.refresh_btn.clicked.connect(self.refresh)
+
+    def set_purgatory_mode(self, value):
+        self.purgatory_mode = value
+
+    @property
+    def purgatory_mode(self):
+        return self._purgatory_mode
+
+    @purgatory_mode.setter
+    def purgatory_mode(self, value):
+        self._purgatory_mode = value
+        self.task_view.purgatory_mode = value
+        self.task_view.model.purgatory_mode = value
+        self.refresh()
 
     def refresh(self):
         self.task_view.refresh()

@@ -1,4 +1,4 @@
-# pylint: disable=super-with-arguments
+90# pylint: disable=super-with-arguments
 """Module for Subproject object."""
 
 from pathlib import Path
@@ -49,14 +49,63 @@ class Subproject(Entity):
 
     @property
     def tasks(self):
-        """All tasks under the subproject as dictionary where each key
+        """Return all NON-DELETED tasks under the subproject as dictionary where each key
         is the name of the task and value is a task object."""
+        # filter the tasks that are not deleted
+        return {task_name: task_obj
+         for task_name, task_obj
+         in self._tasks.items() if not task_obj.deleted}
+
+    @property
+    def all_tasks(self):
+        """All tasks, including the deleted ones under the subproject."""
         return self._tasks
 
     @property
     def metadata(self):
         """The metadata associated with the subproject."""
         return self._metadata
+
+    @property
+    def deleted(self):
+        """Whether the subproject is deleted or not."""
+        return self.metadata.get_value("deleted", fallback_value=False)
+
+    @property
+    def parent_sub(self):
+        """The parent subproject."""
+        return self.__parent_sub
+
+    @property
+    def type(self):
+        """The type of the subproject."""
+        return self.metadata.get_value("mode", fallback_value="global")
+
+    def get_project(self):
+        """The project object."""
+        # traverse up until the project is found
+        return self.__parent_sub.get_project()
+
+    def revive(self):
+        """Revive the subproject if it is deleted.
+        This is a soft recover. DATABASE IS NOT TOUCHED.
+        """
+        self.metadata.add_item("deleted", False, overridden=True)
+        return 1
+
+    def resurrect(self):
+        """Resurrect the subproject if it is deleted."""
+        # traverse up until the project, making sure all the parents are revived
+        self.revive()
+        if self.object_type == ObjectType.PROJECT:
+            self.get_project().save_structure() # this is just not to IDE to complain
+            return True, "success"
+        self.__parent_sub.resurrect()
+        return True, "success"
+
+    def replace_metadata(self, metadata):
+        """Replace the metadata with the given one."""
+        self._metadata = metadata
 
     def get_sub_tree(self):
         """Return the subproject tree as a dictionary."""
@@ -68,6 +117,7 @@ class Subproject(Entity):
             "id": self.id,
             "name": self.name,
             "path": self.path,
+            # "deleted": self.deleted,
             "subs": [],  # this will be filled with the while loop
         }
 
@@ -93,6 +143,7 @@ class Subproject(Entity):
                         "path": neighbour.path,
                         "subs": [],  # this will be filled with the while loop
                     }
+                    # add the deleted flag only if there is a key for it.
                     for key, metaitem in neighbour.metadata.items():
                         if metaitem.overridden:
                             sub_data[key] = metaitem.value
@@ -141,6 +192,10 @@ class Subproject(Entity):
 
             for neighbour in data_position:
                 if neighbour not in visited:
+                    _deleted = neighbour.get("deleted", False)
+                    # if _deleted:
+                    #     print(f"Skipping {neighbour.get('name')} as it is deleted")
+                    #     continue
                     _id = neighbour.get("id", None)
                     _name = neighbour.get("name", None)
                     _relative_path = neighbour.get("path", None)
@@ -199,6 +254,8 @@ class Subproject(Entity):
             name (str): Name of the subproject.
             parent_sub (Subproject, optional): Parent subproject object.
             uid (int, optional): Unique id of the subproject.
+            deleted (bool, optional): Whether the subproject is deleted or not.
+                                        Default is False.
             **properties (dict): Any extra properties to be added to the subproject.
 
         Returns:
@@ -210,17 +267,24 @@ class Subproject(Entity):
         if state != 1:
             return -1
 
-        if name in self._sub_projects:
-            LOG.warning(
-                "{0} already exist in sub-projects of {1}".format(name, self._name)
-            )
-            return -1
-
         # TODO look at this if it can be improved
         _metadata = Metadata(dict(self.metadata.get_all_items())) or Metadata({})
         # eliminate the None values
         properties = {k: v for k, v in properties.items() if v is not None}
         _metadata.override(properties)
+
+        if name in self._sub_projects:
+            # check if it is deleted
+            if self._sub_projects[name].deleted:
+                self._sub_projects[name].revive()
+                # set the metadata
+                self._sub_projects[name].replace_metadata(_metadata)
+                return self._sub_projects[name]
+
+            LOG.warning(
+                "{0} already exist in sub-projects of {1}".format(name, self._name)
+            )
+            return -1
 
         new_sub = self.__build_sub_project(
             name, parent_sub, _metadata, uid
@@ -228,16 +292,12 @@ class Subproject(Entity):
 
         return new_sub
 
-        # TODO Currently the overriden uid is not getting checked
-        #  if it is really unique or not
-
     def scan_tasks(self):
         """Scan the subproject for tasks.
 
         Returns:
             dict: The tasks under the subproject.
         """
-
         _tasks_search_dir = Path(self.get_abs_database_path())
         _task_paths = list(_tasks_search_dir.glob("*.ttask"))
 
@@ -301,10 +361,19 @@ class Subproject(Entity):
         relative_path = Path(self.path, file_name)
         abs_path = Path(self.guard.database_root, relative_path)
         if abs_path.exists():
-            LOG.warning(
-                f"There is a task under this sub-project with the same name => {name}"
-            )
-            return -1
+            # instanciate the task object and see if its deleted or not
+            _task = Task(absolute_path=abs_path, parent_sub=self)
+            if not _task.deleted:
+                LOG.warning(
+                    f"There is a task under this sub-project with the same name => {name}"
+                )
+                return -1
+            # edit the task
+            _task.revive()
+            _task.edit(categories=categories, metadata_overrides=metadata_overrides)
+            self._tasks[name] = _task
+            return _task
+
         _task_id = uid or self.generate_id()
         _task = Task(
             str(abs_path),
@@ -326,6 +395,12 @@ class Subproject(Entity):
         _task.add_property("file_name", file_name)
         _task.add_property("metadata_overrides", metadata_overrides)
         _task.add_property("state", "active")
+        if abs_path.exists() and not _task.deleted:
+            LOG.warning(
+                f"There is a task under this sub-project with the same name => {name}"
+            )
+            return -1
+
         _task.apply_settings()
         self._tasks[name] = _task
         return _task
@@ -337,10 +412,7 @@ class Subproject(Entity):
         Args:
             task (Task): The task object to check.
         """
-        for category in task.categories:
-            if not task.categories[category].is_empty():
-                return False
-        return True
+        return task.is_empty()
 
     def delete_task(self, task_name):
         """Delete the task from the subproject.
@@ -357,80 +429,22 @@ class Subproject(Entity):
         if not task:
             msg = f"There is no task with the name: {task_name}"
             LOG.warning(msg)
-            return -1, msg
+            return False, msg
 
         # check all categories are empty
-        _is_empty = self.is_task_empty(task)
-        permission_level = 2 if _is_empty else 3
+        is_empty = task.is_empty()
+        permission_level = 2 if is_empty else 3
         state = self.check_permissions(level=permission_level)
         if state != 1:
-            return -1
+            return False, "This user doesn't have permissions for this process."
 
-        # move everything to the purgatory
-        if not _is_empty:
+        if not is_empty:
             LOG.warning(
                 f"Sending task {task_name} " f"and everything underneath to purgatory."
             )
+        task.destroy()
 
-            target_purgatory_database_folder = Path(
-                self.get_purgatory_database_path(task.name)
-            )
-            target_purgatory_project_folder = Path(
-                self.get_purgatory_project_path(task.name)
-            )
-            target_purgatory_task_path = Path(
-                self.get_purgatory_database_path(task.file_name)
-            )
-            for purgatory_folder in [
-                target_purgatory_database_folder,
-                target_purgatory_project_folder,
-            ]:
-                if purgatory_folder.exists():
-                    try:
-                        shutil.rmtree(purgatory_folder)
-                    except PermissionError:
-                        msg = (
-                            f"{purgatory_folder.as_posix()} folder already "
-                            f"exists in purgatory and its read only."
-                            f"Please delete it manually or purge the purgatory."
-                        )
-                        LOG.error(msg)
-                        return -1, msg
-
-            if target_purgatory_task_path.exists():
-                try:
-                    # remove the file
-                    target_purgatory_task_path.unlink()
-                except PermissionError:
-                    msg = (
-                        f"{target_purgatory_task_path.as_posix()} "
-                        f"folder already exists in purgatory and its read only."
-                        f"Please delete it manually or purge the purgatory."
-                    )
-                    LOG.error(msg)
-                    return -1, msg
-            target_purgatory_database_folder.parent.mkdir(parents=True, exist_ok=True)
-            target_purgatory_project_folder.parent.mkdir(parents=True, exist_ok=True)
-
-
-            shutil.move(
-                task.get_abs_database_path(task.name),
-                target_purgatory_database_folder.parent.as_posix(),
-                copy_function=shutil.copytree,
-            )
-            shutil.move(
-                task.get_abs_project_path(task.name),
-                target_purgatory_project_folder.parent.as_posix(),
-                copy_function=shutil.copytree,
-            )
-            shutil.move(
-                task.settings_file, target_purgatory_task_path.as_posix()
-            )
-        else:  # if the task is empty, just delete the database file
-            Path(task.settings_file).unlink()
-
-        self._tasks.pop(task_name)
-        return 1, "success"
+        return True, "success"
 
     def find_tasks_by_wildcard(self, wildcard):
         """Return the tasks matching the wildcard.
@@ -471,7 +485,6 @@ class Subproject(Entity):
             _search = current.get_task_by_id(uid)
             if _search != -1:
                 return _search
-        LOG.warning("Requested uid does not exist")
         return -1
 
     def find_sub_by_id(self, uid):
@@ -492,7 +505,6 @@ class Subproject(Entity):
             if current.id == uid:
                 return current
             queue.extend(list(current.subs.values()))
-        LOG.warning("Requested uid does not exist")
         return -1
 
     def find_sub_by_path(self, path):
@@ -513,7 +525,6 @@ class Subproject(Entity):
             if current.path == path:
                 return current
             queue.extend(list(current.subs.values()))
-        LOG.warning("Requested path does not exist")
         return -1
 
     def find_subs_by_wildcard(self, wildcard):
@@ -609,46 +620,45 @@ class Subproject(Entity):
         sub.scan_tasks()
         return not sub.subs and not sub.tasks
 
-    def _remove_sub_project(self, uid=None, path=None):
-        """Remove the subproject from the object but not from the database.
+    def is_empty(self):
+        """Check if the subproject is empty."""
+        self.scan_tasks()
+        return not self.subs and not self.tasks
 
-        Either uid or path is required.
+    def destroy(self):
+        """Destroy the subproject object.
 
-        Args:
-            uid (int, optional): Unique id of the subproject.
-            path (str, optional): The path of the subproject.
-
-        Returns:
-            int: 1 if successful, -1 otherwise.
+        This will tag the subproject and all its children as deleted.
+        The subproject will not be removed from the database as it is getting
+        controlled with the project object.
         """
 
-        if not uid and not path:
-            LOG.error("Deleting sub project requires at least an id or path ")
+        # If the subproject is PROJECT, this is not allowed
+        if self.object_type == ObjectType.PROJECT:
+            LOG.warning("Project Root cannot be deleted.")
             return -1
 
-        # Minimum required permission level is 2
         state = self.check_permissions(level=2)
         if state != 1:
             return -1
 
-        if uid:
-            kill_sub = self.find_sub_by_id(uid)
-        else:
-            kill_sub = self.find_sub_by_path(path)
-
-        if kill_sub == -1:
-            LOG.warning("Subproject cannot be found")
-            return -1
-
         # if the subproject is not empty, we need to have level 3
-        if not self.is_subproject_empty(kill_sub):
+        if not self.is_empty():
             state = self.check_permissions(level=3)
             if state != 1:
                 return -1
 
-        parent_path = (Path(kill_sub.path).parent).as_posix() or ""
-        parent_sub = self.find_sub_by_path(parent_path)
-        del parent_sub.subs[kill_sub.name]
+        self.metadata.add_item("deleted", True, overridden=True)
+
+        for task in self.tasks.values():
+            result = task.destroy()
+            if result != 1:
+                return -1
+
+        for sub in self.subs.values():
+            result = sub.destroy()
+            if result != 1:
+                return -1
 
         return 1
 

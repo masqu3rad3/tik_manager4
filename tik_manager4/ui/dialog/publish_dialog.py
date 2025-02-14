@@ -318,9 +318,11 @@ class PublishSceneDialog(QtWidgets.QDialog):
             # self.management_tasks_combo = QtWidgets.QComboBox()
             wait_dialog.set_message("Fetching Tasks...")
             tasks_data_list = self.project.publisher.get_management_tasks()
-            self.management_tasks_combo = ManagementTasksCombo(tasks_data_list)
-            # task_model = ManagementTasksComboBoxModel(tasks_data_list)
-            # self.management_tasks_combo.setModel(task_model)
+            # get the current category. This will be attempted to be selected in the combo
+            current_category = self.project.publisher.work_object.category
+            self.management_tasks_combo = ManagementTasksCombo(
+                tasks_data_list,
+                default_item_name=current_category)
             management_tasks_lay.addWidget(management_tasks_label)
             management_tasks_lay.addWidget(self.management_tasks_combo)
 
@@ -333,10 +335,24 @@ class PublishSceneDialog(QtWidgets.QDialog):
             wait_dialog.set_message("Fetching Status Lists...")
             self.management_status_combo.addItems(
                 m_handler.get_available_status_lists())
+            self._status_combo_update()
+            self.management_tasks_combo.currentIndexChanged.connect(
+                self._status_combo_update)
             management_tasks_lay.addWidget(management_status_label)
             management_tasks_lay.addWidget(self.management_status_combo)
             management_tasks_lay.addStretch()
             wait_dialog.kill()
+
+    def _status_combo_update(self):
+        """Try to update the status combo according to the selected task."""
+        if not self.is_management_driven:
+            return
+        status = self.management_tasks_combo.get_current_status()
+        if status:
+            # try to select the status from the status combo if it is available
+            index = self.management_status_combo.findText(status)
+            if index != -1:
+                self.management_status_combo.setCurrentIndex(index)
 
     def _preview_widgets(self):
         """Build the preview widgets if the preview is available."""
@@ -379,9 +395,6 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
         preview_layout = QtWidgets.QHBoxLayout()
         self.bottom_layout.addLayout(preview_layout)
-
-        # preview_lbl = QtWidgets.QLabel("Preview: ")
-        # preview_layout.addWidget(preview_lbl)
 
         preview_enabled_cb = QtWidgets.QCheckBox(text="Take Preview")
         preview_enabled_cb.setChecked(True)
@@ -637,7 +650,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
 class ValidateRow(QtWidgets.QHBoxLayout):
     """Custom Layout for validation rows."""
 
-    def __init__(self, validator_object, *args, **kwargs):
+    def __init__(self, validator_object, toaster=None, *args, **kwargs):
         """Initialize the ValidateRow."""
         super(ValidateRow, self).__init__(*args, **kwargs)
         self.validator = validator_object
@@ -723,11 +736,13 @@ class ValidateRow(QtWidgets.QHBoxLayout):
         LOG.info("fixing %s...", self.button.text())
         self.validator.fix()
         self.validator.validate()
-        if self.validator.state != "passed":
-            # TODO: dialog or some kind of feedback
-            pass
-        self.update_state()
         end = time()
+        if self.validator.state != "passed":
+            # TODO: pop up a dialog to inform the user that the fix failed
+            LOG.info("fix failed")
+        self.update_state()
+
+
         LOG.info("took %s seconds", end - start)
 
     def select(self):
@@ -930,12 +945,23 @@ class ManagementTasksComboBoxModel(QtCore.QAbstractListModel):
     def rowCount(self, parent=None):
         return len(self.items)
 
+    def get_display_name(self, item):
+        """Get the display name of the item."""
+        # This makes sure the display name becomes compatible for both
+        # Shotgrid and Kitsu. If there are more management platforms
+        # this method should be updated
+        return item.get('content', '') or item.get('task_type_name', '')
+
+    def get_status_name(self, item):
+        """Get the status name of the item."""
+        return item.get('sg_status_list', '') or item.get('task_status_name', '')
+
     def data(self, index, role=QtCore.Qt.DisplayRole):
         if not index.isValid() or not (0 <= index.row() < len(self.items)):
             return None
         if role == QtCore.Qt.DisplayRole:
             # Display only the 'content' key's value
-            return self.items[index.row()].get('content', '')
+            return self.get_display_name(self.items[index.row()])
         return None
 
     def get_item(self, index):
@@ -944,18 +970,41 @@ class ManagementTasksComboBoxModel(QtCore.QAbstractListModel):
             return self.items[index]
         return None
 
+    def get_status(self, index):
+        """Method to get the status of the item."""
+        if 0 <= index < len(self.items):
+            return self.get_status_name(self.items[index])
+        return None
+
 class ManagementTasksCombo(QtWidgets.QComboBox):
     """Custom ComboBox for Management Tasks."""
-    def __init__(self, items, parent=None):
+    def __init__(self, items, parent=None, default_item_name: str=None):
         super().__init__(parent)
         self.items = items
         self.model = ManagementTasksComboBoxModel(items)
         self.setModel(self.model)
 
+        # if there is a default item defined, try to set it ONLY if exists in the items
+        if default_item_name:
+            self.set_item(default_item_name)
+
+    def set_item(self, item_name):
+        """Set the item by name."""
+        for idx, item in enumerate(self.items):
+            if self.model.get_display_name(item) == item_name:
+                self.setCurrentIndex(idx)
+                return
+
     def get_current_item(self):
         """Get the current selected item."""
         index = self.currentIndex()
         return self.model.get_item(index)
+
+    def get_current_status(self):
+        """Get the current selected status."""
+        index = self.currentIndex()
+        return self.model.get_status(index)
+
 
 
 # test this dialog

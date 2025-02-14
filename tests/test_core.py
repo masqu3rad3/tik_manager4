@@ -2,7 +2,7 @@
 import sys
 import time
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import platform
 import codecs
 from pathlib import Path
@@ -10,8 +10,10 @@ from tik_manager4.core import filelog
 from tik_manager4.core import io
 from tik_manager4.core import settings
 from tik_manager4.core import utils
+from tik_manager4.external import fileseq
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.external.filelock import FileLock, Timeout
+from tik_manager4.core.cli import FeedbackCLI
 
 
 def test_filelog(tmp_path: Path):
@@ -277,6 +279,8 @@ def test_execute(tmp_path):
     """Test execute function."""
     # test the situation where the file does not exist
     _file = tmp_path / "test_execute.txt"
+    # create a file
+    _file.touch()
 
     # an executable that does not exist
     with pytest.raises(ValueError):
@@ -304,3 +308,83 @@ def test_execute(tmp_path):
         with patch("subprocess.Popen") as mock_popen:
             utils.execute(str(_file))
             mock_popen.assert_called_once_with(["open", str(_file)])
+
+def test_execute_with_sequential_file(monkeypatch, tmp_path):
+    """Test execute function with a sequential file."""
+    # Create a mock sequential file
+    seq_file = tmp_path / "test_seq.0001.exr"
+    seq_file.touch()
+
+    mock_seq = MagicMock()
+    monkeypatch.setattr(fileseq, "findSequenceOnDisk", lambda x: mock_seq)
+
+    if platform.system() == "Windows":
+        with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Windows"):
+            with patch("os.startfile") as mock_startfile:
+                utils.execute(str(seq_file.as_posix()))
+                mock_startfile.assert_called_once_with(str(seq_file.as_posix()))
+
+    # Test for Linux
+    with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Linux"):
+        with patch("subprocess.Popen") as mock_popen:
+            utils.execute(str(seq_file.as_posix()))
+            mock_popen.assert_called_once_with(["xdg-open", str(seq_file.as_posix())])
+
+    # Test for another platform (Darwin in this case)
+    with patch("tik_manager4.core.utils.CURRENT_PLATFORM", "Darwin"):
+        with patch("subprocess.Popen") as mock_popen:
+            utils.execute(str(seq_file.as_posix()))
+            mock_popen.assert_called_once_with(["open", str(seq_file.as_posix())])
+
+def test_execute_with_nonexistent_file(tmp_path):
+    """Test execute function with a nonexistent file."""
+    non_existent_file = tmp_path / "non_existent_file.txt"
+    with pytest.raises(FileNotFoundError):
+        utils.execute(non_existent_file.as_posix())
+
+def test_execute_with_nonexistent_sequential_file(tmp_path):
+    """Test execute function with a nonexistent sequential file."""
+    non_existent_seq_file = tmp_path / "non_existent_seq.0001.exr"
+    with pytest.raises(FileNotFoundError):
+        print(non_existent_seq_file.as_posix())
+        utils.execute(non_existent_seq_file.as_posix())
+
+def test_pop_info_displays_message_and_exits_on_critical():
+    feedback = FeedbackCLI()
+    with patch("sys.exit") as mock_exit, patch("builtins.input", return_value=""):
+        result = feedback.pop_info(
+            title="Critical Info",
+            text="This is a critical message.",
+            critical=True
+        )
+        assert result == 1
+        mock_exit.assert_called_once_with(1)
+
+def test_pop_info_displays_message_and_returns_ok():
+    feedback = FeedbackCLI()
+    with patch("builtins.input", return_value=""):
+        result = feedback.pop_info(
+            title="Info",
+            text="This is an informational message."
+        )
+        assert result == 1
+
+def test_pop_question_displays_question_and_returns_user_selection():
+    feedback = FeedbackCLI()
+    with patch("builtins.input", return_value="yes"):
+        result = feedback.pop_question(
+            title="Question",
+            text="Do you want to proceed?",
+            buttons=["yes", "no"]
+        )
+        assert result == "yes"
+
+def test_pop_question_reprompts_on_invalid_input():
+    feedback = FeedbackCLI()
+    with patch("builtins.input", side_effect=["invalid", "yes"]):
+        result = feedback.pop_question(
+            title="Question",
+            text="Do you want to proceed?",
+            buttons=["yes", "no"]
+        )
+        assert result == "yes"

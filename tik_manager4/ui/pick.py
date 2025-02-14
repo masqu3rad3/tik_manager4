@@ -22,10 +22,10 @@ def icon(icon_name):
     return QtGui.QIcon(str(RC_FOLDER / icon_name))
 
 
-def style_file():
+def style_file(file_name="tikManager.qss"):
     """Returns the style file as QtCore.QFile object."""
     QtCore.QDir.addSearchPath("css", str(THEME_FOLDER))
     QtCore.QDir.addSearchPath("rc", str(RC_FOLDER))
-    style_qfile = QtCore.QFile("css:tikManager.qss")
+    style_qfile = QtCore.QFile(f"css:{file_name}")
     style_qfile.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
     return style_qfile
