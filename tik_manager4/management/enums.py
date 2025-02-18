@@ -8,3 +8,5 @@ class EventType(Enum):
     NEW_SHOT = "new_shot"
     UPDATE_ASSET = "update_asset"
     UPDATE_SHOT = "update_shot"
+    NEW_TASK = "new_task"
+    DELETE_TASK = "delete_task"

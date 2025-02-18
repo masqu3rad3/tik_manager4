@@ -180,10 +180,10 @@ class Task(Settings, Entity):
         state = self.check_permissions(level=2)
         if state != 1:
             return -1
-        if category not in self.guard.category_definitions.properties.keys():
-            msg = f"'{category}' is not defined in category definitions."
-            LOG.error(msg)
-            raise ValueError(msg)
+        # if category not in self.guard.category_definitions.properties.keys():
+        #     msg = f"'{category}' is not defined in category definitions."
+        #     LOG.error(msg)
+        #     raise ValueError(msg)
         if category in self._categories.keys():
             msg = f"'{category}' already exists in task '{self.name}'."
             LOG.warning(msg)
