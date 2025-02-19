@@ -314,37 +314,46 @@ class ProductionPlatform(ManagementCore):
         events = self.gazu.sync.get_last_events(project=project, after=formatted_time)
 
         valid_event_types = ["asset:new", "shot:new", "asset:delete", "shot:delete",
-                             "asset:update", "shot:update", "task:new"]
+                             "asset:update", "shot:update", "asset:delete",
+                             "shot:delete", "task:new", "task:delete"]
         # pprint(events)
         for event in reversed(events):
+
             event_type = event.get("name")
             if event_type not in valid_event_types:
                 continue
-            sync_block = SyncBlock(self.gazu, self.tik_main, project)
-            if event_type == "asset:new":
-                sync_block.event_type = EventType.NEW_ASSET
-                asset_data = self.gazu.asset.get_asset(event["data"]["asset_id"])
-                sync_block.kitsu_data = asset_data
-                sync_block.subproject = assets_sub
-                # sync_block.categories = asset_categories
-            elif event_type == "shot:new":
-                sync_block.event_type = EventType.NEW_SHOT
-                shot_data = self.gazu.shot.get_shot(event["data"]["shot_id"])
-                sync_block.kitsu_data = shot_data
-                sync_block.subproject = shots_sub
-                # sync_block.categories = shot_categories
-            elif event_type in ["asset:delete", "asset:update"]:
-                sync_block.event_type = EventType.UPDATE_ASSET
-                asset_data = self.gazu.asset.get_asset(event["data"]["asset_id"])
-                sync_block.kitsu_data = asset_data
-            elif event_type in ["shot:delete", "shot:update"]:
-                sync_block.event_type = EventType.UPDATE_SHOT
-                shot_data = self.gazu.shot.get_shot(event["data"]["shot_id"])
-                sync_block.kitsu_data = shot_data
-            elif event_type == "task:new":
-                task_data = self.gazu.task.get_task(event["data"]["task_id"])
-                sync_block.event_type = EventType.NEW_TASK
-                sync_block.kitsu_data = task_data # this is the task data
+            try:
+                sync_block = SyncBlock(self.gazu, self.tik_main, project)
+                if event_type == "asset:new":
+                    sync_block.event_type = EventType.NEW_ASSET
+                    asset_data = self.gazu.asset.get_asset(event["data"]["asset_id"])
+                    sync_block.kitsu_data = asset_data
+                    sync_block.subproject = assets_sub
+                    # sync_block.categories = asset_categories
+                elif event_type == "shot:new":
+                    sync_block.event_type = EventType.NEW_SHOT
+                    shot_data = self.gazu.shot.get_shot(event["data"]["shot_id"])
+                    sync_block.kitsu_data = shot_data
+                    sync_block.subproject = shots_sub
+                    # sync_block.categories = shot_categories
+                elif event_type in ["asset:delete", "asset:update"]:
+                    sync_block.event_type = EventType.UPDATE_ASSET
+                    asset_data = self.gazu.asset.get_asset(event["data"]["asset_id"])
+                    sync_block.kitsu_data = asset_data
+                elif event_type in ["shot:delete", "shot:update"]:
+                    sync_block.event_type = EventType.UPDATE_SHOT
+                    shot_data = self.gazu.shot.get_shot(event["data"]["shot_id"])
+                    sync_block.kitsu_data = shot_data
+                elif event_type == "task:new":
+                    task_data = self.gazu.task.get_task(event["data"]["task_id"])
+                    sync_block.event_type = EventType.NEW_TASK
+                    sync_block.kitsu_data = task_data # this is the task data
+                elif event_type == "task:delete":
+                    task_data = self.gazu.task.get_task(event["data"]["task_id"])
+                    sync_block.event_type = EventType.DELETE_TASK
+                    sync_block.kitsu_data = task_data
+            except self.gazu.exception.RouteNotFoundException:
+                continue
 
             yield sync_block
 
@@ -570,6 +579,9 @@ class SyncBlock:
             self._new_shot()
         elif self.event_type == EventType.NEW_TASK:
             self._new_task()
+        elif self.event_type == EventType.DELETE_TASK:
+            # pass
+            self._delete_task()
 
     def _new_asset(self):
         """Create a new asset in the tik project from the Kitsu data."""
@@ -715,6 +727,15 @@ class SyncBlock:
         tik_task.edit_property("metadata_overrides", tik_task._metadata_overrides)
         tik_task.apply_settings()
 
+    def __get_tik_task_from_kitsu_task_data(self, kitsu_task_data):
+        """Get the corresponding tik task from the kitsu task."""
+        entity_type = kitsu_task_data["task_type"]["for_entity"]
+        entity_name = kitsu_task_data["task_type"]["name"]
+        if entity_type == "Asset":
+            parent_kitsu_entity = self.gazu.asset.get_asset(self.kitsu_data["entity_id"])
+        elif entity_type == "Shot":
+            parent_kitsu_entity = self.gazu.shot.get_shot(self.kitsu_data["entity_id"])
+
     def _new_task(self):
         """Create a new category under the corresponding tik-task for the new kitsu-task."""
 
@@ -729,7 +750,17 @@ class SyncBlock:
             LOG.error(f"Unknown entity type ({entity_type}). Skipping the task {entity_name}.")
             return
         tik_task = self.tik_main.project.find_task_by_id(parent_kitsu_entity["id"])
-        tik_task.add_category(entity_name)
+        if tik_task != -1:
+            tik_task.add_category(entity_name)
+
+    def _delete_task(self):
+        """Omit everything under the category when the kitsu-task deleted."""
+        pass
+        # We are not deleting anything. Instead, we omit any work associated with the task.
+        # This is because we don't want to delete the work done by the artists.
+
+
+
 
     def __get_asset_categories(self, asset_id):
         """Get the asset categories from the Kitsu server."""
