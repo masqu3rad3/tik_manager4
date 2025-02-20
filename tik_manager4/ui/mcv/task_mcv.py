@@ -351,7 +351,7 @@ class TikTaskView(QtWidgets.QTreeView):
         open_url_act = right_click_menu.addAction(self.tr("Open URL"))
         open_url_act.setVisible(self.is_management_locked)
         # open_url_act.triggered.connect(lambda _=None, x=item: self.open_url_requested.emit(item))
-        open_url_act.triggered.connect(lambda _=None, x=item: self.test(item))
+        open_url_act.triggered.connect(lambda _=None, x=item: self.open_url(item))
 
         # emit signal to open the url
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
@@ -370,7 +370,7 @@ class TikTaskView(QtWidgets.QTreeView):
         # In that case, the subproject gets resurrected as well.
 
 
-    def test(self, item):
+    def open_url(self, item):
         if not self.guard.management_handler:
             return
         url = self.guard.management_handler.get_entity_url(item.task.type, item.task.id)

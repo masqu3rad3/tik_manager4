@@ -28,8 +28,8 @@ if kitsu_folder not in sys.path:
 from requests.exceptions import ConnectionError
 from gazu.exception import ServerErrorException
 
-logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 CRYPTOR = Cryptor()
 
 class ProductionPlatform(ManagementCore):
@@ -141,6 +141,14 @@ class ProductionPlatform(ManagementCore):
         """Get all the assets from a project."""
         return self.gazu.asset.all_assets_for_project(project_id)
 
+    def get_all_episodes(self, project_id):
+        """Get all the episodes from a project."""
+        return self.gazu.shot.all_episodes_for_project(project_id)
+
+    def get_all_sequences(self, project_id):
+        """Get all the sequences from a project."""
+        return self.gazu.shot.all_sequences_for_project(project_id)
+
     def get_all_shots(self, project_id):
         """Get all the shots from a project."""
         return self.gazu.shot.all_shots_for_project(project_id)
@@ -154,6 +162,7 @@ class ProductionPlatform(ManagementCore):
             raise Exception("Project is not linked to a Shotgrid project.")
 
         all_assets = self.get_all_assets(project_id)
+        all_sequences = self.get_all_sequences(project_id)
         all_shots = self.get_all_shots(project_id)
 
         assets_sub = self._get_assets_sub()
@@ -167,6 +176,14 @@ class ProductionPlatform(ManagementCore):
             sync_block.kitsu_data = asset
             sync_block.subproject = assets_sub
             # sync_block.categories = asset_categories
+            sync_block.execute()
+
+        for sequence in all_sequences:
+            sync_block = SyncBlock(self.gazu, self.tik_main, project_id)
+            sync_block.event_type = EventType.NEW_SEQUENCE
+            sync_block.kitsu_data = sequence
+            sync_block.subproject = shots_sub
+            # sync_block.categories = shot_categories
             sync_block.execute()
 
         for shot in all_shots:
@@ -239,6 +256,8 @@ class ProductionPlatform(ManagementCore):
             return None
 
         all_assets = self.get_all_assets(kitsu_project_id)
+        all_episodes = self.get_all_episodes(kitsu_project_id)
+        all_sequences = self.get_all_sequences(kitsu_project_id)
         all_shots = self.get_all_shots(kitsu_project_id)
 
         assets_sub = self._get_assets_sub()
@@ -284,11 +303,27 @@ class ProductionPlatform(ManagementCore):
             sync_block.categories = asset_categories
             sync_block.execute()
 
+        for episode in all_episodes:
+            sync_block = SyncBlock(self.gazu, self.tik_main, project)
+            sync_block.event_type = EventType.NEW_EPISODE
+            sync_block.kitsu_data = episode
+            sync_block.subproject = shots_sub
+            sync_block.categories = shot_categories
+            sync_block.execute()
+
+        for sequence in all_sequences:
+            sync_block = SyncBlock(self.gazu, self.tik_main, project)
+            sync_block.event_type = EventType.NEW_SEQUENCE
+            sync_block.kitsu_data = sequence
+            sync_block.subproject = shots_sub # this is the root of all shots
+            sync_block.categories = shot_categories
+            sync_block.execute()
+
         for shot in all_shots:
             sync_block = SyncBlock(self.gazu, self.tik_main, project)
             sync_block.event_type = EventType.NEW_SHOT
             sync_block.kitsu_data = shot
-            sync_block.subproject = shots_sub
+            sync_block.subproject = shots_sub # this is the root of all shots
             sync_block.categories = shot_categories
             sync_block.execute()
 
@@ -313,9 +348,10 @@ class ProductionPlatform(ManagementCore):
         formatted_time = parsed_time.strftime("%Y-%m-%dT%H:%M:%S")
         events = self.gazu.sync.get_last_events(project=project, after=formatted_time)
 
-        valid_event_types = ["asset:new", "shot:new", "asset:delete", "shot:delete",
-                             "asset:update", "shot:update", "asset:delete",
-                             "shot:delete", "task:new", "task:delete"]
+        valid_event_types = ["asset:new", "shot:new", "sequence:new",
+                             "asset:delete", "shot:delete", "sequence:delete",
+                             "asset:update", "shot:update", "sequence:update",
+                             "task:new", "task:delete"]
         # pprint(events)
         for event in reversed(events):
 
@@ -336,23 +372,47 @@ class ProductionPlatform(ManagementCore):
                     sync_block.kitsu_data = shot_data
                     sync_block.subproject = shots_sub
                     # sync_block.categories = shot_categories
-                elif event_type in ["asset:delete", "asset:update"]:
+                elif event_type == "sequence:new":
+                    sync_block.event_type = EventType.NEW_SEQUENCE
+                    sequence_data = self.gazu.shot.get_sequence(event["data"]["sequence_id"])
+                    sync_block.kitsu_data = sequence_data
+                    sync_block.subproject = shots_sub
+                elif event_type == "asset:update":
                     sync_block.event_type = EventType.UPDATE_ASSET
                     asset_data = self.gazu.asset.get_asset(event["data"]["asset_id"])
                     sync_block.kitsu_data = asset_data
-                elif event_type in ["shot:delete", "shot:update"]:
+                elif event_type == "shot:update":
                     sync_block.event_type = EventType.UPDATE_SHOT
                     shot_data = self.gazu.shot.get_shot(event["data"]["shot_id"])
                     sync_block.kitsu_data = shot_data
+                elif event_type == "sequence:update":
+                    sync_block.event_type = EventType.UPDATE_SEQUENCE
+                    sequence_data = self.gazu.shot.get_sequence(event["data"]["sequence_id"])
+                    sync_block.kitsu_data = sequence_data
+                elif event_type == "asset:delete":
+                    # if the asset deleted we cannot request the kitsu data.
+                    sync_block.event_type = EventType.DELETE_ASSET
+                    sync_block.kitsu_data = event
+                elif event_type == "shot:delete":
+                    # if the shot deleted we cannot request the kitsu data.
+                    sync_block.event_type = EventType.DELETE_SHOT
+                    sync_block.kitsu_data = event
+                elif event_type == "sequence:delete":
+                    # if the sequence deleted we cannot request the kitsu data.
+                    sync_block.event_type = EventType.DELETE_SEQUENCE
+                    sync_block.kitsu_data = event
                 elif event_type == "task:new":
                     task_data = self.gazu.task.get_task(event["data"]["task_id"])
                     sync_block.event_type = EventType.NEW_TASK
                     sync_block.kitsu_data = task_data # this is the task data
                 elif event_type == "task:delete":
-                    task_data = self.gazu.task.get_task(event["data"]["task_id"])
+                    # task_data = self.gazu.task.get_task(event["data"]["task_id"])
+                    # if the tasks is deleted, we cannot reach the task data.
+                    # in this case. we will use the event data.
                     sync_block.event_type = EventType.DELETE_TASK
-                    sync_block.kitsu_data = task_data
+                    sync_block.kitsu_data = event
             except self.gazu.exception.RouteNotFoundException:
+                LOG.warning(f"Route not found for event: {event}", exc_info=True, stack_info=True)
                 continue
 
             yield sync_block
@@ -392,7 +452,16 @@ class ProductionPlatform(ManagementCore):
         if entity_type.lower() == "asset":
             return self.gazu.task.all_tasks_for_asset(entity_id)
         elif entity_type.lower() == "shot":
-            return self.gazu.task.all_tasks_for_shot(entity_id)
+            # this can be a shot or a sequence
+            try:
+                return self.gazu.task.all_tasks_for_shot(entity_id)
+            except self.gazu.exception.RouteNotFoundException:
+                try:
+                    return self.gazu.task.all_tasks_for_sequence(entity_id)
+                except self.gazu.exception.RouteNotFoundException:
+                    LOG.warning("Cannot find the tasks for the entity.", exc_info=True)
+                    return []
+
 
     def get_available_status_lists(self, force=False):
         """Return the available status lists."""
@@ -429,13 +498,20 @@ class ProductionPlatform(ManagementCore):
     def get_entity_url(self, entity_type, entity_id):
         """Return the URL of the entity."""
         url = None
+        print(entity_type, entity_id)
         try:
             if entity_type.lower() == "asset":
                 url = self.gazu.asset.get_asset_url(entity_id)
-            else: # anything other than asset will be considered as shot
-                url = self.gazu.shot.get_shot_url(entity_id)
-        except ServerErrorException:
-            LOG.warning("Server Error while getting the URL.")
+            else:
+                try:
+                    url = self.gazu.shot.get_shot_url(entity_id)
+                except self.gazu.exception.RouteNotFoundException:
+                    try:
+                        url = self.gazu.shot.get_sequence_url(entity_id)
+                    except self.gazu.exception.RouteNotFoundException:
+                        raise ValueError("Invalid entity type.")
+        except (ServerErrorException, self.gazu.exception.RouteNotFoundException):
+            LOG.warning("Server Error while getting the URL.", exc_info=True)
         return url
 
     def _get_status_id_from_name(self, status_name):
@@ -508,6 +584,24 @@ class SyncBlock:
     }
 
     def __init__(self, gazu_instance, tik_main, project):
+
+        self.function_mapping = {
+            EventType.NEW_ASSET: self._new_asset,
+            EventType.NEW_SHOT: self._new_shot,
+            EventType.NEW_SEQUENCE: self._new_sequence,
+            EventType.NEW_EPISODE: self._new_episode,
+            EventType.UPDATE_ASSET: self._update_asset,
+            EventType.UPDATE_SHOT: self._update_shot,
+            EventType.UPDATE_SEQUENCE: self._update_sequence,
+            EventType.UPDATE_EPISODE: self._update_episode,
+            EventType.DELETE_ASSET: self._delete_asset,
+            EventType.DELETE_SHOT: self._delete_shot,
+            EventType.DELETE_SEQUENCE: self._delete_sequence,
+            EventType.DELETE_EPISODE: self._delete_episode,
+            EventType.NEW_TASK: self._new_task,
+            EventType.DELETE_TASK: self._delete_task
+        }
+
         self.gazu = gazu_instance
         self.tik_main = tik_main
         self.project = project
@@ -569,19 +663,8 @@ class SyncBlock:
 
     def execute(self):
         """Execute the sync block."""
-        if self.event_type == EventType.UPDATE_ASSET:
-            self._update_asset()
-        elif self.event_type == EventType.UPDATE_SHOT:
-            self._update_shot()
-        elif self.event_type == EventType.NEW_ASSET:
-            self._new_asset()
-        elif self.event_type == EventType.NEW_SHOT:
-            self._new_shot()
-        elif self.event_type == EventType.NEW_TASK:
-            self._new_task()
-        elif self.event_type == EventType.DELETE_TASK:
-            # pass
-            self._delete_task()
+        print(f"Executing {self.event_type} for {self.kitsu_data['name']}")
+        self.function_mapping[self.event_type]()
 
     def _new_asset(self):
         """Create a new asset in the tik project from the Kitsu data."""
@@ -608,18 +691,32 @@ class SyncBlock:
             sub = self.subproject
 
         asset_name = utils.sanitize_text(asset_name)
-        task = sub.find_task_by_id(asset_id)
 
+        metadata_overrides = self._retrieve_metadata_overrides(
+            self.kitsu_data.get("data"))
 
+        task = sub.find_task_by_id(asset_id, query_all=True)
 
-
-        if task != -1:
-            self._update_asset()
-        else:
+        if task == -1:
             category_names = self.__get_asset_categories(asset_id)
-            task = sub.add_task(asset_name, categories=category_names, uid=asset_id)
+            task = sub.add_task(
+                asset_name,
+                categories=category_names,
+                metadata_overrides=metadata_overrides,
+                uid=asset_id,
+                force_edit=True
+            )
+        else:
+            self._update_asset()
+
+        if task == -1:
+            LOG.warning(f"Task creation failed for {asset_name}")
+            return None
+
         if self.kitsu_data["canceled"]:
             task.omit()
+        else:
+            task.revive()
 
         return task
 
@@ -650,33 +747,89 @@ class SyncBlock:
                 query_sub = query_sub.subs[episode]
 
         # looks like kitsu requires a sequence for all shots
-        if query_sub.subs.get(sequence["name"]) is None:
+        tik_sequence_name = utils.sanitize_text(sequence["name"])
+        if query_sub.subs.get(tik_sequence_name) is None:
             query_sub = self.tik_main.project.create_sub_project(
-                sequence["name"],
+                tik_sequence_name,
                 parent_path=query_sub.path,
-                uid=sequence["id"],
             )
         else:
-            query_sub = self.subproject.subs[sequence["name"]]
+            query_sub = self.subproject.subs[tik_sequence_name]
         shot_name = utils.sanitize_text(shot_name)
 
         metadata_overrides = self._retrieve_metadata_overrides(self.kitsu_data.get("data"))
+        metadata_overrides.update({"mode": "shot"})
 
-        task = query_sub.find_task_by_id(shot_id)
-        if task != -1:
-            self._update_shot()
-        else:
+        task = query_sub.find_task_by_id(shot_id, query_all=True)
+
+        if task == -1:
             category_names = self.__get_shot_categories(shot_id)
             task = query_sub.add_task(
                 shot_name,
                 categories=category_names,
-                uid=shot_id,
                 metadata_overrides=metadata_overrides,
+                uid=shot_id,
+                force_edit=True
             )
+        else:
+            self._update_shot()
+
+        if task == -1:
+            LOG.warning(f"Task creation failed for {shot_name}")
+            return None
+
         if self.kitsu_data["canceled"]:
             task.omit()
+        else:
+            task.revive()
 
         return task
+
+    def _new_sequence(self):
+        """Create a new sequence in the tik project from the Kitsu data."""
+        sequence_id = self.kitsu_data["id"]
+        sequence_name = self.kitsu_data["name"]
+        if not sequence_name:
+            if self._skip_empty_entity_names:
+                return None
+
+        # first create a subproject for the sequence and than a task under it.
+        tik_sequence_name = utils.sanitize_text(sequence_name)
+        if self.subproject.subs.get(tik_sequence_name) is None:
+            query_sub = self.tik_main.project.create_sub_project(
+                tik_sequence_name,
+                parent_path=self.subproject.path,
+                # uid=sequence["id"],
+            )
+        else:
+            query_sub = self.subproject.subs[tik_sequence_name]
+
+        metadata_overrides = self._retrieve_metadata_overrides(self.kitsu_data.get("data"))
+        metadata_overrides.update({"mode": "shot"})
+        # create the task under the sequence
+        # first check if the task already exists
+        query_sub.scan_tasks()
+        task = query_sub.all_tasks.get(tik_sequence_name, None)
+        if not task:
+            category_names = self.__get_sequence_categories(sequence_id)
+            task = query_sub.add_task(
+                sequence_name,
+                categories=category_names,
+                uid=sequence_id,
+                metadata_overrides=metadata_overrides,
+            )
+            if task == -1:
+                return None
+
+        if self.kitsu_data["canceled"]:
+            task.omit()
+        else:
+            task.revive()
+        return task
+
+    def _new_episode(self):
+        """Create a new episode in the tik project from the Kitsu data."""
+        pass
 
     def _update_asset(self):
         """"Sync the properties of the asset with the one in Kitsu Server.
@@ -727,39 +880,168 @@ class SyncBlock:
         tik_task.edit_property("metadata_overrides", tik_task._metadata_overrides)
         tik_task.apply_settings()
 
-    def __get_tik_task_from_kitsu_task_data(self, kitsu_task_data):
-        """Get the corresponding tik task from the kitsu task."""
-        entity_type = kitsu_task_data["task_type"]["for_entity"]
-        entity_name = kitsu_task_data["task_type"]["name"]
-        if entity_type == "Asset":
-            parent_kitsu_entity = self.gazu.asset.get_asset(self.kitsu_data["entity_id"])
-        elif entity_type == "Shot":
-            parent_kitsu_entity = self.gazu.shot.get_shot(self.kitsu_data["entity_id"])
+    def _update_sequence(self):
+        """Sync the properties of the sequence with the one in Kitsu Server."""
+        sequence_id = self.kitsu_data["id"]
+        tik_task = self.tik_main.project.find_task_by_id(sequence_id)
+
+        category_names = self.__get_sequence_categories(sequence_id)
+        existing_categories = tik_task.categories.keys()
+        for category in category_names:
+            if category not in existing_categories:
+                tik_task.add_category(category)
+
+        if self.kitsu_data["canceled"]:
+            tik_task.omit()
+        else:
+            tik_task.revive()
+
+        metadata_overrides = self._retrieve_metadata_overrides(self.kitsu_data.get("data"))
+
+        for key, value in metadata_overrides.items():
+            if value:
+                tik_task._metadata_overrides[key] = value
+            elif tik_task._metadata_overrides.get(key):
+                tik_task._metadata_overrides.pop(key)
+
+        tik_task.edit_property("metadata_overrides", tik_task._metadata_overrides)
+        tik_task.apply_settings()
+
+    def _update_episode(self):
+        """Sync the properties of the episode with the one in Kitsu Server."""
+        pass
+
+    def _delete_asset(self):
+        """Omit the asset-task from the tik project."""
+        entity_id = self.kitsu_data["data"]["asset_id"]
+        tik_task = self.tik_main.project.find_task_by_id(entity_id)
+        if tik_task == -1:
+            return
+        tik_task.omit()
+
+    def _delete_shot(self):
+        """Omit the shot-task from the tik project.
+        Example kitsu_data (coming from the event):
+        {
+        'created_at': '2025-02-20T01:47:14',
+              'data': {
+                  'project_id': '359f08e0-8905-4c21-a37f-9b1b5bcfebe0',
+                  'shot_id': '2e158c17-f46b-4339-848a-63e077e9dbe4'
+                  },
+              'id': '1a89bf60-4922-48a6-9bb5-01275ee6bcc8',
+              'name': 'shot:delete',
+              'user_id': 'fd16bb80-3bb2-45e2-ac72-877ecdc7a3a7'
+        }
+        """
+        entity_id = self.kitsu_data["data"]["shot_id"]
+        # LOG.debug(f"Deleting shot with id:{entity_id}")
+        # LOG.debug(f"Kitsu data: {self.kitsu_data}")
+        tik_task = self.tik_main.project.find_task_by_id(entity_id)
+        if tik_task == -1:
+            return
+        tik_task.omit()
+
+    def _delete_sequence(self):
+        """Omit the shot-task from the tik project.
+        Example kitsu_data (coming from the event):
+        {
+        'created_at': '2025-02-20T01:47:14',
+              'data': {
+                  'project_id': '359f08e0-8905-4c21-a37f-9b1b5bcfebe0',
+                  'sequence_id': 'a8e4198e-8894-4da3-950c-80c598303ef6'
+                  },
+              'id': '94559de1-fd95-4867-89b8-fc68fe8b6c46',
+              'name': 'sequence:delete',
+              'user_id': 'fd16bb80-3bb2-45e2-ac72-877ecdc7a3a7'
+        }
+        """
+        entity_id = self.kitsu_data["data"]["sequence_id"]
+        tik_task = self.tik_main.project.find_task_by_id(entity_id)
+        if tik_task == -1:
+            return
+        tik_task.omit()
+
+    def _delete_episode(self):
+        """Omit the episode-task from the tik project."""
+        pass
+
+    def __get_tik_task_from_kitsu_task_data(self, entity_id, entity_type=None):
+        """Get the corresponding tik task (one level up) from the kitsu task."""
+        # it the entity type is not provided, we will try to both asset and shot
+        if not entity_type:
+            try:
+                parent_kitsu_entity = self.gazu.asset.get_asset(entity_id)
+            except self.gazu.exception.RouteNotFoundException:
+                try:
+                    parent_kitsu_entity = self.gazu.shot.get_shot(entity_id)
+                except self.gazu.exception.RouteNotFoundException:
+                    try:
+                        parent_kitsu_entity = self.gazu.shot.get_sequence(entity_id)
+                    except self.gazu.exception.RouteNotFoundException:
+                        LOG.error(f"Entity with id:{entity_id} not found in Kitsu.")
+                        return None
+        else:
+            if entity_type == "Asset":
+                parent_kitsu_entity = self.gazu.asset.get_asset(entity_id)
+            elif entity_type == "Shot":
+                parent_kitsu_entity = self.gazu.shot.get_shot(entity_id)
+            elif entity_type == "Sequence":
+                parent_kitsu_entity = self.gazu.shot.get_sequence(entity_id)
+            else:
+                LOG.error(f"Unknown entity type ({entity_type}). Skipping the task with id:{entity_id}.")
+                return None
+        tik_task = self.tik_main.project.find_task_by_id(parent_kitsu_entity["id"])
+        if tik_task == -1:
+            return None
+        return tik_task
 
     def _new_task(self):
         """Create a new category under the corresponding tik-task for the new kitsu-task."""
 
         # Kitsu tasks are equivalent to tik categories
-        entity_type = self.kitsu_data["task_type"]["for_entity"]
         entity_name = self.kitsu_data["task_type"]["name"]
-        if entity_type == "Asset":
-            parent_kitsu_entity = self.gazu.asset.get_asset(self.kitsu_data["entity_id"])
-        elif entity_type == "Shot":
-            parent_kitsu_entity = self.gazu.shot.get_shot(self.kitsu_data["entity_id"])
-        else:
-            LOG.error(f"Unknown entity type ({entity_type}). Skipping the task {entity_name}.")
+        entity_id = self.kitsu_data["entity_id"]
+        entity_type = self.kitsu_data["task_type"]["for_entity"]
+        tik_task = self.__get_tik_task_from_kitsu_task_data(entity_id, entity_type)
+        if not tik_task:
             return
-        tik_task = self.tik_main.project.find_task_by_id(parent_kitsu_entity["id"])
-        if tik_task != -1:
-            tik_task.add_category(entity_name)
+        tik_task.add_category(entity_name)
 
     def _delete_task(self):
-        """Omit everything under the category when the kitsu-task deleted."""
-        pass
+        """Omit everything under the category when the kitsu-task deleted.
+        Example kitsu_data (coming from the event):
+        {'created_at': '2025-02-19T22:45:54',
+        'data': {
+                'entity_id': '8308c5a6-966a-43c7-bcf6-7f8c113119ba',
+                'project_id': '359f08e0-8905-4c21-a37f-9b1b5bcfebe0',
+                'task_id': '20986a22-1a45-46d4-9791-fcec982f0c2d',
+                'task_type_id': 'c58805e4-7e38-4b35-bb9b-89c2e5ea4569'
+                },
+        'id': 'bf114c1b-c970-4b8a-969d-b4b3c28a042e',
+        'name': 'task:delete',
+        'user_id': 'fd16bb80-3bb2-45e2-ac72-877ecdc7a3a7'}
+        """
         # We are not deleting anything. Instead, we omit any work associated with the task.
         # This is because we don't want to delete the work done by the artists.
+        entity_id = self.kitsu_data["data"]["entity_id"]
+        tik_task = self.__get_tik_task_from_kitsu_task_data(entity_id=entity_id)
+        if not tik_task:
+            return
+        # get the kitsu task type by task_type_id
+        kitsu_task_type = self.gazu.task.get_task_type(self.kitsu_data["data"]["task_type_id"])
+        if not kitsu_task_type:
+            LOG.error(f"Task type with id:{self.kitsu_data['data']['task_type_id']} not found in Kitsu.")
+            return
+        category_name = kitsu_task_type["name"]
+        print("category_name", category_name)
+        category_obj = tik_task.categories.get(category_name, None)
+        if not category_obj:
+            return
 
-
+        for work in category_obj.works.values():
+            print("work", work)
+            print("work", work.path)
+            work.omit()
 
 
     def __get_asset_categories(self, asset_id):
@@ -770,6 +1052,11 @@ class SyncBlock:
     def __get_shot_categories(self, shot_id):
         """Get the shot categories from the Kitsu server."""
         all_tasks = self.gazu.task.all_tasks_for_shot(shot_id)
+        return [task["task_type_name"] for task in all_tasks]
+
+    def __get_sequence_categories(self, sequence_id):
+        """Get the sequence categories from the Kitsu server."""
+        all_tasks = self.gazu.task.all_tasks_for_sequence(sequence_id)
         return [task["task_type_name"] for task in all_tasks]
 
     def _retrieve_metadata_overrides(self, data):
