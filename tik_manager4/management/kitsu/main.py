@@ -167,7 +167,13 @@ class ProductionPlatform(ManagementCore):
 
         project_id = project_id or self.tik_main.project.settings.get("host_project_id")
         if not project_id:
-            raise Exception("Project is not linked to a Shotgrid project.")
+            LOG.error("Project is not linked to a Kitsu project.")
+            return False, "Project is not linked to a Kitsu project."
+
+        management_platform = self.tik_main.project.settings.get("management_platform")
+        if management_platform != "kitsu":
+            LOG.error("Project is not linked to a Kitsu project.")
+            return False, "Project is not linked to a Kitsu project."
 
         all_assets = self.get_all_assets(project_id)
         all_episodes = self.get_all_episodes(project_id)
@@ -207,6 +213,8 @@ class ProductionPlatform(ManagementCore):
 
         self.tik_main.project.settings.edit_property("last_sync", sync_stamp)
         self.tik_main.project.settings.apply_settings(force=True)
+
+        return True, "Success"
 
     def _get_assets_sub(self):
         """Get the 'Assets' sub from the tik project.
@@ -333,7 +341,6 @@ class ProductionPlatform(ManagementCore):
                              "asset:delete", "shot:delete", "sequence:delete",
                              "asset:update", "shot:update", "sequence:update",
                              "task:new", "task:delete"]
-        # pprint(events)
         for event in reversed(events):
 
             event_type = event.get("name")
@@ -644,7 +651,6 @@ class SyncBlock:
 
     def execute(self):
         """Execute the sync block."""
-        print(f"Executing {self.event_type} for {self.kitsu_data['name']}")
         self.function_mapping[self.event_type]()
 
     def _new_asset(self):
@@ -712,8 +718,6 @@ class SyncBlock:
                 return None
             shot_name = shot_id
         # sequence = self.gazu.entity.get_entity(self.kitsu_data["parent_id"])
-        from pprint import pprint
-        pprint(self.kitsu_data)
         kitsu_sequence = self.gazu.shot.get_sequence(self.kitsu_data["parent_id"])
         query_sub = self.subproject
 
@@ -951,8 +955,6 @@ class SyncBlock:
         }
         """
         entity_id = self.kitsu_data["data"]["shot_id"]
-        # LOG.debug(f"Deleting shot with id:{entity_id}")
-        # LOG.debug(f"Kitsu data: {self.kitsu_data}")
         tik_task = self.tik_main.project.find_task_by_id(entity_id)
         if tik_task == -1:
             return
@@ -980,7 +982,11 @@ class SyncBlock:
 
     def _delete_episode(self):
         """Omit the episode-task from the tik project."""
-        pass
+        entity_id = self.kitsu_data["data"]["episode_id"]
+        tik_task = self.tik_main.project.find_task_by_id(entity_id)
+        if tik_task == -1:
+            return
+        tik_task.omit()
 
     def __get_tik_task_from_kitsu_task_data(self, entity_id, entity_type=None):
         """Get the corresponding tik task (one level up) from the kitsu task."""
@@ -1050,14 +1056,11 @@ class SyncBlock:
             LOG.error(f"Task type with id:{self.kitsu_data['data']['task_type_id']} not found in Kitsu.")
             return
         category_name = kitsu_task_type["name"]
-        print("category_name", category_name)
         category_obj = tik_task.categories.get(category_name, None)
         if not category_obj:
             return
 
         for work in category_obj.works.values():
-            print("work", work)
-            print("work", work.path)
             work.omit()
 
 
