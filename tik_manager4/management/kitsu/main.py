@@ -153,29 +153,42 @@ class ProductionPlatform(ManagementCore):
         """Get all the shots from a project."""
         return self.gazu.shot.all_shots_for_project(project_id)
 
-    def force_sync(self):
-        """Force the sync of the project."""
+    def force_sync(self, project_id=None):
+        """Force the sync of the project.
+
+        Args:
+            project_id (str, optional): The project ID to sync. If not provided,
+                attempts to get it from the project database. Defaults to None.
+
+        Raises:
+            Exception: If the project is not linked to a Shotgrid project.
+        """
         sync_stamp = self.date_stamp()
 
-        project_id = self.tik_main.project.settings.get("host_project_id")
+        project_id = project_id or self.tik_main.project.settings.get("host_project_id")
         if not project_id:
             raise Exception("Project is not linked to a Shotgrid project.")
 
         all_assets = self.get_all_assets(project_id)
+        all_episodes = self.get_all_episodes(project_id)
         all_sequences = self.get_all_sequences(project_id)
         all_shots = self.get_all_shots(project_id)
 
         assets_sub = self._get_assets_sub()
         shots_sub = self._get_shots_sub()
 
-        # asset_categories, shot_categories = self._get_categories(project_id)
-
         for asset in all_assets:
             sync_block = SyncBlock(self.gazu, self.tik_main, project_id)
             sync_block.event_type = EventType.NEW_ASSET
             sync_block.kitsu_data = asset
             sync_block.subproject = assets_sub
-            # sync_block.categories = asset_categories
+            sync_block.execute()
+
+        for episode in all_episodes:
+            sync_block = SyncBlock(self.gazu, self.tik_main, project_id)
+            sync_block.event_type = EventType.NEW_EPISODE
+            sync_block.kitsu_data = episode
+            sync_block.subproject = shots_sub
             sync_block.execute()
 
         for sequence in all_sequences:
@@ -183,7 +196,6 @@ class ProductionPlatform(ManagementCore):
             sync_block.event_type = EventType.NEW_SEQUENCE
             sync_block.kitsu_data = sequence
             sync_block.subproject = shots_sub
-            # sync_block.categories = shot_categories
             sync_block.execute()
 
         for shot in all_shots:
@@ -191,7 +203,6 @@ class ProductionPlatform(ManagementCore):
             sync_block.event_type = EventType.NEW_SHOT
             sync_block.kitsu_data = shot
             sync_block.subproject = shots_sub
-            # sync_block.categories = shot_categories
             sync_block.execute()
 
         self.tik_main.project.settings.edit_property("last_sync", sync_stamp)
@@ -255,13 +266,13 @@ class ProductionPlatform(ManagementCore):
         if ret == -1:
             return None
 
-        all_assets = self.get_all_assets(kitsu_project_id)
-        all_episodes = self.get_all_episodes(kitsu_project_id)
-        all_sequences = self.get_all_sequences(kitsu_project_id)
-        all_shots = self.get_all_shots(kitsu_project_id)
-
-        assets_sub = self._get_assets_sub()
-        shots_sub = self._get_shots_sub()
+        # all_assets = self.get_all_assets(kitsu_project_id)
+        # all_episodes = self.get_all_episodes(kitsu_project_id)
+        # all_sequences = self.get_all_sequences(kitsu_project_id)
+        # all_shots = self.get_all_shots(kitsu_project_id)
+        #
+        # assets_sub = self._get_assets_sub()
+        # shots_sub = self._get_shots_sub()
 
         asset_categories, shot_categories = self._get_categories(project)
 
@@ -295,38 +306,6 @@ class ProductionPlatform(ManagementCore):
         self.tik_main.project.category_definitions.apply_settings(force=True)
         # TODO: move to the base class [END]
 
-        for asset in all_assets:
-            sync_block = SyncBlock(self.gazu, self.tik_main, project)
-            sync_block.event_type = EventType.NEW_ASSET
-            sync_block.kitsu_data = asset
-            sync_block.subproject = assets_sub
-            sync_block.categories = asset_categories
-            sync_block.execute()
-
-        for episode in all_episodes:
-            sync_block = SyncBlock(self.gazu, self.tik_main, project)
-            sync_block.event_type = EventType.NEW_EPISODE
-            sync_block.kitsu_data = episode
-            sync_block.subproject = shots_sub
-            sync_block.categories = shot_categories
-            sync_block.execute()
-
-        for sequence in all_sequences:
-            sync_block = SyncBlock(self.gazu, self.tik_main, project)
-            sync_block.event_type = EventType.NEW_SEQUENCE
-            sync_block.kitsu_data = sequence
-            sync_block.subproject = shots_sub # this is the root of all shots
-            sync_block.categories = shot_categories
-            sync_block.execute()
-
-        for shot in all_shots:
-            sync_block = SyncBlock(self.gazu, self.tik_main, project)
-            sync_block.event_type = EventType.NEW_SHOT
-            sync_block.kitsu_data = shot
-            sync_block.subproject = shots_sub # this is the root of all shots
-            sync_block.categories = shot_categories
-            sync_block.execute()
-
         # tag the project as management driven
         self.tik_main.project.settings.edit_property("management_driven", True)
         self.tik_main.project.settings.edit_property("management_platform", "kitsu")
@@ -335,6 +314,8 @@ class ProductionPlatform(ManagementCore):
         self.tik_main.project.settings.edit_property("last_sync", sync_stamp)
 
         self.tik_main.project.settings.apply_settings(force=True)
+
+        self.force_sync(project_id=kitsu_project_id)
 
         if not set_project: # switch back to the original project
             self.tik_main.set_project(current_project_path)
@@ -498,7 +479,6 @@ class ProductionPlatform(ManagementCore):
     def get_entity_url(self, entity_type, entity_id):
         """Return the URL of the entity."""
         url = None
-        print(entity_type, entity_id)
         try:
             if entity_type.lower() == "asset":
                 url = self.gazu.asset.get_asset_url(entity_id)
@@ -610,6 +590,7 @@ class SyncBlock:
         self._subproject = None
         self._categories = None
         self._skip_empty_entity_names = self.tik_main.user.commons.management_settings.get("skip_empty_entity_names")
+        self._validate_hierarchy = True # if True, it will validate existing of the parent entities
 
     @property
     def event_type(self):
@@ -730,32 +711,19 @@ class SyncBlock:
             if self._skip_empty_entity_names:
                 return None
             shot_name = shot_id
-        sequence = self.gazu.entity.get_entity(self.kitsu_data["parent_id"])
-        is_episodic = sequence.get("parent_id", None)
+        # sequence = self.gazu.entity.get_entity(self.kitsu_data["parent_id"])
+        from pprint import pprint
+        pprint(self.kitsu_data)
+        kitsu_sequence = self.gazu.shot.get_sequence(self.kitsu_data["parent_id"])
         query_sub = self.subproject
-        if is_episodic:
-            episode_data = self.gazu.entity.get_entity(sequence["parent_id"])
-            episode = episode_data["name"]
-            if query_sub.subs.get(episode) is None:
-                query_sub = self.tik_main.project.create_sub_project(
-                    episode,
-                    parent_path=query_sub.path,
-                    uid=episode_data["id"],
-                    mode="episode",
-                )
-            else:
-                query_sub = query_sub.subs[episode]
 
-        # looks like kitsu requires a sequence for all shots
-        tik_sequence_name = utils.sanitize_text(sequence["name"])
-        if query_sub.subs.get(tik_sequence_name) is None:
-            query_sub = self.tik_main.project.create_sub_project(
-                tik_sequence_name,
-                parent_path=query_sub.path,
-            )
+        # check the sequence tik-task is there or not. Assume the subs are created if the task is there.
+        sequence_tik_task = query_sub.find_task_by_id(self.kitsu_data["parent_id"], query_all=True)
+        if sequence_tik_task == -1:
+            # create the sequence
+            sequence_task, query_sub = self._new_sequence(data=kitsu_sequence)
         else:
-            query_sub = self.subproject.subs[tik_sequence_name]
-        shot_name = utils.sanitize_text(shot_name)
+            query_sub = sequence_tik_task.parent_sub
 
         metadata_overrides = self._retrieve_metadata_overrides(self.kitsu_data.get("data"))
         metadata_overrides.update({"mode": "shot"})
@@ -785,51 +753,100 @@ class SyncBlock:
 
         return task
 
-    def _new_sequence(self):
-        """Create a new sequence in the tik project from the Kitsu data."""
-        sequence_id = self.kitsu_data["id"]
-        sequence_name = self.kitsu_data["name"]
-        if not sequence_name:
+    def _new_sequence(self, data=None):
+        """Create a new sequence in the tik project from the Kitsu data.
+
+        Args:
+            data (dict, optional): The data of the episode. If not provided the
+                class variable will be used instead. Defaults to None.
+        """
+        data = data or self.kitsu_data
+        # check if the sequence is episodic or not
+        episode_id = data.get("parent_id", None)
+        query_sub = self.subproject
+        if episode_id:
+            episode = self.gazu.shot.get_episode(episode_id)
+            episode_tik_task = self.tik_main.project.find_task_by_id(episode_id)
+            if episode_tik_task == -1:
+                episode_tik_task, query_sub = self._new_episode(data=episode)
+            else:
+                query_sub = episode_tik_task.parent_sub
+
+        return self.__new_supreme_entity(
+            data["name"],
+            data["id"],
+            "Sequence",
+            query_sub,
+            metadata_overrides=self._retrieve_metadata_overrides(
+                data.get("data")),
+            is_canceled=data.get("canceled", False)
+        )
+
+    def _new_episode(self, data=None):
+        """Create a new episode in the tik project from the Kitsu data.
+
+        Args:
+            data (dict, optional): The data of the episode. If not provided the
+                class variable will be used instead. Defaults to None.
+
+        """
+        data = data or self.kitsu_data
+
+        return self.__new_supreme_entity(
+            data["name"],
+            data["id"],
+            "Episode",
+            self.subproject,
+            metadata_overrides=self._retrieve_metadata_overrides(data.get("data")),
+            is_canceled=data.get("canceled", False)
+        )
+
+
+    def __new_supreme_entity(self,
+                             entity_name,
+                             entity_id,
+                             entity_type,
+                             query_sub,
+                             metadata_overrides=None,
+                             is_canceled=False
+                             ):
+        """Convenience function for creating new supreme entities (episode and sequence)"""
+        metadata_overrides = metadata_overrides or {}
+        if not entity_name:
             if self._skip_empty_entity_names:
                 return None
 
-        # first create a subproject for the sequence and than a task under it.
-        tik_sequence_name = utils.sanitize_text(sequence_name)
-        if self.subproject.subs.get(tik_sequence_name) is None:
+        tik_subproject_name = utils.sanitize_text(entity_name)
+        if query_sub.subs.get(tik_subproject_name) is None:
             query_sub = self.tik_main.project.create_sub_project(
-                tik_sequence_name,
-                parent_path=self.subproject.path,
-                # uid=sequence["id"],
+                tik_subproject_name,
+                parent_path=query_sub.path,
+                mode=entity_type.lower()
             )
         else:
-            query_sub = self.subproject.subs[tik_sequence_name]
+            query_sub = query_sub.subs[tik_subproject_name]
 
-        metadata_overrides = self._retrieve_metadata_overrides(self.kitsu_data.get("data"))
+        # we override the episode tik-task to be a shot.
         metadata_overrides.update({"mode": "shot"})
-        # create the task under the sequence
-        # first check if the task already exists
+
         query_sub.scan_tasks()
-        task = query_sub.all_tasks.get(tik_sequence_name, None)
+        task = query_sub.all_tasks.get(tik_subproject_name, None)
         if not task:
-            category_names = self.__get_sequence_categories(sequence_id)
+            category_names = self._get_entity_categories(entity_id, entity_type)
             task = query_sub.add_task(
-                sequence_name,
+                entity_name,
                 categories=category_names,
-                uid=sequence_id,
+                uid=entity_id,
                 metadata_overrides=metadata_overrides,
             )
             if task == -1:
                 return None
 
-        if self.kitsu_data["canceled"]:
+        if is_canceled:
             task.omit()
         else:
             task.revive()
-        return task
-
-    def _new_episode(self):
-        """Create a new episode in the tik project from the Kitsu data."""
-        pass
+        return task, query_sub
 
     def _update_asset(self):
         """"Sync the properties of the asset with the one in Kitsu Server.
@@ -1044,6 +1061,19 @@ class SyncBlock:
             work.omit()
 
 
+    def _get_entity_categories(self, entity_id, entity_type):
+        """Get the categories of the entity."""
+        if entity_type.lower() == "asset":
+            return self.__get_asset_categories(entity_id)
+        elif entity_type.lower() == "shot":
+            return self.__get_shot_categories(entity_id)
+        elif entity_type.lower() == "sequence":
+            return self.__get_sequence_categories(entity_id)
+        elif entity_type.lower() == "episode":
+            return self.__get_episode_categories(entity_id)
+        else:
+            raise ValueError("Invalid entity type.")
+
     def __get_asset_categories(self, asset_id):
         """Get the asset categories from the Kitsu server."""
         all_tasks = self.gazu.task.all_tasks_for_asset(asset_id)
@@ -1057,6 +1087,11 @@ class SyncBlock:
     def __get_sequence_categories(self, sequence_id):
         """Get the sequence categories from the Kitsu server."""
         all_tasks = self.gazu.task.all_tasks_for_sequence(sequence_id)
+        return [task["task_type_name"] for task in all_tasks]
+
+    def __get_episode_categories(self, episode_id):
+        """Get the episode categories from the Kitsu server."""
+        all_tasks = self.gazu.task.all_tasks_for_episode(episode_id)
         return [task["task_type_name"] for task in all_tasks]
 
     def _retrieve_metadata_overrides(self, data):
