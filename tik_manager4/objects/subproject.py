@@ -334,7 +334,8 @@ class Subproject(Entity):
                  categories,
                  task_type=None,
                  metadata_overrides=None,
-                 uid=None
+                 uid=None,
+                 force_edit=False
                  ):
         """
         Add a task to the subproject.
@@ -346,6 +347,8 @@ class Subproject(Entity):
                 it is inherited from the parent subproject (mode).
             metadata_overrides (dict, optional): Metadata overrides for the task.
             uid (int, optional): Unique id of the task.
+            force_edit (bool, optional): If True, and if a task with the same name
+                exists, it will be edited with the given settings..
 
         Returns:
             Task or int: The created task object if successful, -1 otherwise.
@@ -363,14 +366,14 @@ class Subproject(Entity):
         if abs_path.exists():
             # instanciate the task object and see if its deleted or not
             _task = Task(absolute_path=abs_path, parent_sub=self)
-            if not _task.deleted:
+            if not _task.deleted and not force_edit:
                 LOG.warning(
                     f"There is a task under this sub-project with the same name => {name}"
                 )
                 return -1
             # edit the task
             _task.revive()
-            _task.edit(categories=categories, metadata_overrides=metadata_overrides)
+            _task.edit(categories=categories, metadata_overrides=metadata_overrides, uid=uid)
             self._tasks[name] = _task
             return _task
 
@@ -395,11 +398,11 @@ class Subproject(Entity):
         _task.add_property("file_name", file_name)
         _task.add_property("metadata_overrides", metadata_overrides)
         _task.add_property("state", "active")
-        if abs_path.exists() and not _task.deleted:
-            LOG.warning(
-                f"There is a task under this sub-project with the same name => {name}"
-            )
-            return -1
+        # if abs_path.exists() and not _task.deleted:
+        #     LOG.warning(
+        #         f"There is a task under this sub-project with the same name => {name}"
+        #     )
+        #     return -1
 
         _task.apply_settings()
         self._tasks[name] = _task
@@ -446,18 +449,19 @@ class Subproject(Entity):
 
         return True, "success"
 
-    def find_tasks_by_wildcard(self, wildcard):
+    def find_tasks_by_wildcard(self, wildcard, query_all=False):
         """Return the tasks matching the wildcard.
 
         Search recursively for all subprojects and the tasks inside them.
 
         Args:
             wildcard (str): The wildcard to match.
+            query_all (bool, optional): If True, returns deleted tasks as well.
 
         Returns:
             list: List of tasks matching the wildcard.
         """
-        _tasks = self.get_tasks_by_wildcard(wildcard)
+        _tasks = self.get_tasks_by_wildcard(wildcard, query_all=query_all)
         queue = list(self.subs.values())
         while queue:
             current = queue.pop(0)
@@ -465,17 +469,18 @@ class Subproject(Entity):
             _tasks.extend(current.get_tasks_by_wildcard(wildcard))
         return _tasks
 
-    def find_task_by_id(self, uid):
+    def find_task_by_id(self, uid, query_all=False):
         """Find the task by id.
 
         Args:
             uid (int): Unique id of the task.
+            query_all (bool, optional): If True, returns deleted tasks as well.
 
         Returns:
             Task or int: The task object if successful, -1 otherwise.
         """
         # first check if the task is under this subproject
-        _search = self.get_task_by_id(uid)
+        _search = self.get_task_by_id(uid, query_all=query_all)
         if _search != -1:
             return _search
         queue = list(self.subs.values())
@@ -571,37 +576,41 @@ class Subproject(Entity):
         sub = self.find_sub_by_id(uid)
         return sub.path if sub != -1 else sub
 
-    def get_task_by_id(self, uid):
+    def get_task_by_id(self, uid, query_all=False):
         """Get the task by id.
 
         Search through only the tasks under this subproject.
 
         Args:
             uid (int): Unique id of the task.
+            query_all (bool, optional): If True, returns deleted tasks as well.
 
         Returns:
             Task or int: The task object if successful, -1 otherwise.
         """
         self.scan_tasks()
-        for _task_name, task_object in self.tasks.items():
+        query_tasks = self.all_tasks if query_all else self.tasks
+        for _task_name, task_object in query_tasks.items():
             if task_object.id == uid:
                 return task_object
         return -1
 
-    def get_tasks_by_wildcard(self, name):
+    def get_tasks_by_wildcard(self, name, query_all=False):
         """Get the task by name.
 
         Search through only the tasks under this subproject.
 
         Args:
             name (str): The wildcard to match.
+            query_all (bool, optional): If True, returns deleted tasks as well.
 
         Returns:
             list: List of tasks that match the wildcard.
         """
         self.scan_tasks()
         tasks = []
-        for _task_name, task_object in self.tasks.items():
+        query_tasks = self.all_tasks if query_all else self.tasks
+        for _task_name, task_object in query_tasks.items():
             if fnmatch(_task_name, name):
                 tasks.append(task_object)
         return tasks

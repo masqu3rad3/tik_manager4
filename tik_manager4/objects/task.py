@@ -66,7 +66,7 @@ class Task(Settings, Entity):
         self._deleted = self.get_property("deleted") or False
 
         self._categories = {}
-        self.build_categories(self.get_property("categories") or categories or [])
+        self.build_categories(self.get_property("categories") or categories or {})
 
 
     def refresh(self):
@@ -106,7 +106,7 @@ class Task(Settings, Entity):
 
     @property
     def categories(self):
-        """Available categories in the task."""
+        """Return available categories Dictionary."""
         return self._categories
 
     @property
@@ -180,10 +180,10 @@ class Task(Settings, Entity):
         state = self.check_permissions(level=2)
         if state != 1:
             return -1
-        if category not in self.guard.category_definitions.properties.keys():
-            msg = f"'{category}' is not defined in category definitions."
-            LOG.error(msg)
-            raise ValueError(msg)
+        # if category not in self.guard.category_definitions.properties.keys():
+        #     msg = f"'{category}' is not defined in category definitions."
+        #     LOG.error(msg)
+        #     raise ValueError(msg)
         if category in self._categories.keys():
             msg = f"'{category}' already exists in task '{self.name}'."
             LOG.warning(msg)
@@ -193,7 +193,7 @@ class Task(Settings, Entity):
         self.apply_settings()
         return self._categories[category]
 
-    def edit(self, nice_name=None, categories=None, metadata_overrides=None):
+    def edit(self, nice_name=None, categories=None, metadata_overrides=None, uid=None):
         """Edit the task.
 
         Edits the given arguments of the task and applies the settings.
@@ -236,6 +236,9 @@ class Task(Settings, Entity):
         if metadata_overrides is not None: # explicitly check for None
             self._metadata_overrides = metadata_overrides
             self.edit_property("metadata_overrides", metadata_overrides)
+        if uid and uid != self.id:
+            self._task_id = uid
+            self.edit_property("task_id", uid)
         self.apply_settings()
         return 1, "Success"
 
