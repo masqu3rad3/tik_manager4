@@ -990,7 +990,7 @@ class ManagementTasksCombo(QtWidgets.QComboBox):
 
     def set_item(self, item_name):
         """Set the item by name."""
-        for idx, item in enumerate(self.items):
+        for idx, item in enumerate(self.items or []):
             if self.model.get_display_name(item) == item_name:
                 self.setCurrentIndex(idx)
                 return

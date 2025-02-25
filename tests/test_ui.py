@@ -44,7 +44,7 @@ class TestUI:
         for x in kill_list:
             sys.modules.pop(x)
 
-    def test_launch_main_ui(self, qtbot):
+    def test_launch_main_ui(self, qtbot, main_object):
         m = main.launch(dcc="Standalone")
         qtbot.addWidget(m)
         assert m.windowTitle() == f"{main.WINDOW_NAME} - Standalone"

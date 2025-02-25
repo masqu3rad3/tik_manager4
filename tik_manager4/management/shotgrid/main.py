@@ -186,7 +186,13 @@ class ProductionPlatform(ManagementCore):
 
         project_id = self.tik_main.project.settings.get("host_project_id")
         if not project_id:
-            raise Exception("Project is not linked to a Shotgrid project.")
+            LOG.error("Project is not linked to a Shotgrid project.")
+            return False, "Project is not linked to a Shotgrid project."
+
+        management_platform = self.tik_main.project.settings.get("management_platform")
+        if management_platform != "shotgrid":
+            LOG.error("Project is not linked to a Shotgrid project.")
+            return False, "Project is not linked to a Shotgrid project."
 
         all_assets = self.get_all_assets(project_id)
         all_shots = self.get_all_shots(project_id)
@@ -205,6 +211,8 @@ class ProductionPlatform(ManagementCore):
 
         self.tik_main.project.settings.edit_property("last_sync", sync_stamp)
         self.tik_main.project.settings.apply_settings(force=True)
+
+        return True, "Success"
 
     def create_from_project(self, project_root, shotgrid_project_id, set_project=True):
         """Create a tik_manager4 project from the existing Shotgrid project."""

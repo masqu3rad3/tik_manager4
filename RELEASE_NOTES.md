@@ -1,5 +1,9 @@
 # Release Notes
 
+## v4.3.7
+- [206] Kitsu integration improvements.
+- Minor fix for some missing icons.
+
 ## v4.3.6
 - [TIK-152] Dcc Specific Utils methodology added. Similar to extractors, ingestors and validators, now it is possible to define DCC specific utilities, accessible from the Main UI.
 - [TIK-39] Implementation of Purgatory. The deleted items (sub-projects, tasks, works, publishes and versions) are not permanently deleted anymore. They are moved to the purgatory and can be restored if needed with the exception of manual purge of purgatory.

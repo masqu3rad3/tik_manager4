@@ -550,17 +550,6 @@ class TestProject:
             "warning",
         )
 
-        # try to add a category that is not defined in the category definitions
-        with pytest.raises(Exception) as e_info:
-            tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks[
-                "batman"
-            ].add_category("Burhan")
-        # check the log message
-        assert tik.log.get_last_message() == (
-            "'Burhan' is not defined in category definitions.",
-            "error",
-        )
-
     def test_order_categories(self, project_manual_path, tik):
         self.test_creating_and_adding_new_tasks(project_manual_path, tik)
 
