@@ -53,6 +53,8 @@ class Main:
 
         self.globalize_management_platform()
 
+        self.dcc.collect_common_plugins()
+
     def fallback_to_default_project(self):
         """Fallback to the default project."""
         if self.default_project.exists():

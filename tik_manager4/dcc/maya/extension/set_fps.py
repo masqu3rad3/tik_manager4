@@ -1,13 +1,12 @@
 
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.dcc.extension_core import ExtensionCore
-from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.dcc.maya import utils
 
 
-class Preview(ExtensionCore):
-    """Test Extension."""
+class SetFps(ExtensionCore):
+    """Set the fps for the scene from meta."""
 
     def __init__(self, parent):
         super().__init__(parent)
