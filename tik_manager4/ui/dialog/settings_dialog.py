@@ -481,6 +481,9 @@ class SettingsDialog(QtWidgets.QDialog):
         # collect all 'extract' and 'validate' folders under _dcc_folder recursively
         extract_folders = list(_dcc_folder.glob("**/extract"))
         validate_folders = list(_dcc_folder.glob("**/validate"))
+        # get the extracts and validates in the <common>/plugins folder
+        extract_folders.extend(list((Path(self.main_object.user.commons.folder_path) / "plugins").glob("**/extract")))
+        validate_folders.extend(list((Path(self.main_object.user.commons.folder_path) / "plugins").glob("**/validation")))
 
         # collect all extractors
         for _extract_folder in extract_folders:
@@ -493,6 +496,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 ]
             # update or create the dcc name in the dictionary
 
+            # get the extracts in the common folder
             self._validations_and_extracts["dcc_extracts"][dcc_name] = dcc_extracts
             extracts.extend(dcc_extracts)
 

@@ -1,6 +1,14 @@
 """Template class for all available DCC commands.
 These commands will be overriden in DCCs.
 """
+# import importlib
+from tik_manager4.core import utils
+import inspect
+from tik_manager4.dcc.extract_core import ExtractCore
+from tik_manager4.dcc.validate_core import ValidateCore
+from tik_manager4.dcc.ingest_core import IngestCore
+from tik_manager4.dcc.extension_core import ExtensionCore
+from tik_manager4.objects import guard
 
 class MainCore():
     name = ""
@@ -11,6 +19,31 @@ class MainCore():
     ingests = {}
     extensions = {}
     custom_launcher = False
+    guard = guard.Guard()
+
+    # def __init__(self):
+    #     """Initialize the class."""
+    #
+
+    @classmethod
+    def add_validation(cls, key, value):
+        """Add a validation to the validations dictionary."""
+        cls.validations[key] = value
+
+    @classmethod
+    def add_extract(cls, key, value):
+        """Add an extract to the extracts dictionary."""
+        cls.extracts[key] = value
+
+    @classmethod
+    def add_ingest(cls, key, value):
+        """Add an ingest to the ingests dictionary."""
+        cls.ingests[key] = value
+
+    @classmethod
+    def add_extension(cls, key, value):
+        """Add an extension to the extensions dictionary."""
+        cls.extensions[key] = value
 
     @staticmethod
     def pre_publish():
@@ -211,3 +244,44 @@ class MainCore():
     def launch():
         """Open main menu with DCC custom commands."""
         pass
+
+    def collect_common_plugins(self):
+        """Collect common plugins for the DCC"""
+        extract_module_files = self.guard.commons.collect_common_modules(self.name.lower(), "extract")
+        ingests_module_files = self.guard.commons.collect_common_modules(self.name.lower(), "ingest")
+        validations_module_files = self.guard.commons.collect_common_modules(self.name.lower(), "validation")
+        extensions_module_files = self.guard.commons.collect_common_modules(self.name.lower(), "extension")
+
+        extract_classes = self.collect_classes(extract_module_files, module_type = ExtractCore)
+        ingest_classes = self.collect_classes(ingests_module_files, module_type = IngestCore)
+        validation_classes = self.collect_classes(validations_module_files, module_type = ValidateCore)
+        extension_classes = self.collect_classes(extensions_module_files, module_type = ExtensionCore)
+
+        for key, value in extract_classes.items():
+            self.add_extract(key, value)
+        for key, value in ingest_classes.items():
+            self.add_ingest(key, value)
+        for key, value in validation_classes.items():
+            self.add_validation(key, value)
+        for key, value in extension_classes.items():
+            self.add_extension(key, value)
+
+    @staticmethod
+    def collect_classes(file_paths, module_type: object):
+        """Collect classes from modules in the given directory."""
+        classes = {}
+
+        exceptions = ["__init__.py"]
+
+        for mod in file_paths:
+            file_name = mod.name
+            if file_name not in exceptions and not file_name.startswith("_"):
+                module_name = mod.stem
+                module = utils.import_from_path(module_name, mod.as_posix())
+
+                for name, obj in inspect.getmembers(module):
+                    if inspect.isclass(obj) and issubclass(obj,
+                                                           module_type) and obj != module_type:
+                        classes[module_name] = obj
+
+        return classes

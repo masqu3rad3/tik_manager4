@@ -24,6 +24,11 @@ class Commons:
         self._folder_path = folder_path
         self.is_valid = self._validate_commons_folder()
 
+    @property
+    def folder_path(self):
+        """Return the folder path."""
+        return str(self._folder_path)
+
     def _validate_commons_folder(self):
         """Make sure the 'commons folder' contains the necessary setting files.
 
@@ -99,3 +104,10 @@ class Commons:
     def get_project_structures(self):
         """Return list of available project structures defined in defaults."""
         return self.structures.keys
+
+    def collect_common_modules(self, dcc_name, module_type):
+        """Collect the available studio-specific dcc modules."""
+        # check the <common_folder>/<dcc_name>/modules folder for available python files.
+        plugin_path = Path(self._folder_path, "plugins", dcc_name, module_type)
+        plugin_path.mkdir(parents=True, exist_ok=True)
+        return plugin_path.glob("*.py")
