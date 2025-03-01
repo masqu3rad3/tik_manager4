@@ -217,17 +217,20 @@ class Settings:
             file_path (str): The file path to use as fallback.
         """
         self._fallback = file_path
-        if not self._io.file_exists(self._filepath):
+        if not self._filepath or not self._io.file_exists(self._filepath):
             self.use_fallback()
 
     def use_fallback(self):
         """Use the fallback file."""
         if self._fallback:
-            self.initialize(self._io.read(self._fallback))
+            self.settings_file = self._fallback
+            # self.initialize(self._io.read(self._fallback))
             self.apply_settings(force=True)
+
     def __str__(self):
         """Return the type of the class and the current data."""
         return f"{type(self).__name__}({self._current_value})"
+
     def __repr__(self):
         """Return the type of the class and the current data."""
         return str(self._current_value)
