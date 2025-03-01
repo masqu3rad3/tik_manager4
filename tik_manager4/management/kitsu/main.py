@@ -94,7 +94,11 @@ class ProductionPlatform(ManagementCore):
             except ConnectionError as exc:
                 return None, f"Connection Error: {exc}"
 
-        self.is_authenticated = self.gazu.user.is_authenticated()
+        try:
+            self.is_authenticated = self.gazu.user.is_authenticated()
+        except ConnectionError as exc:
+            return None, f"Connection Error: {exc}"
+
         if not self.is_authenticated:
             return None, "Authentication Failed."
 
