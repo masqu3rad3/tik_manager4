@@ -6,6 +6,7 @@ from tik_manager4.core.constants import ObjectType
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator, TikIconButton
+from tik_manager4.ui.widgets.screenshot import take_screen_area
 from tik_manager4.ui.widgets.info import ImageWidget, NotesEditor
 from tik_manager4.ui.dialog.bunde_ingest_dialog import BundleIngestDialog
 from tik_manager4.core import filelog
@@ -815,6 +816,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             return
         if mode == "view":
             file_path = None
+        elif mode == "screenshot":
+            # TODO: locate the temporary image file in a proper location
+            file_path = take_screen_area(self.project.get_abs_project_path())
         else:
             # get the project directory
             file_path = QtWidgets.QFileDialog.getOpenFileName(
@@ -839,12 +843,17 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         right_click_menu = QtWidgets.QMenu()
         right_click_menu.setStyleSheet(self.parent.styleSheet())
 
+        take_snapshot_action = QtWidgets.QAction(self.tr("Take screen snapshot"), self)
+        right_click_menu.addAction(take_snapshot_action)
         replace_with_view_action = QtWidgets.QAction(
             self.tr("Replace with current view"), self
         )
         right_click_menu.addAction(replace_with_view_action)
         replace_with_file_action = QtWidgets.QAction("Replace with external file", self)
         right_click_menu.addAction(replace_with_file_action)
+        take_snapshot_action.triggered.connect(
+            lambda: self.on_replace_thumbnail(mode="screenshot")
+        )
         replace_with_view_action.triggered.connect(
             lambda: self.on_replace_thumbnail(mode="view")
         )
