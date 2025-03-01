@@ -98,7 +98,7 @@ def sanitize_text(text, allow_spaces=False):
         text = text.replace(" ", "_")
 
     # Define pattern to match allowed characters and remove illegal ones
-    pattern = r"[^A-Za-z0-9A_-]"
+    pattern = r"[^A-Za-z0-9A_ -]"
     sanitized_text = re.sub(pattern, "", text)
 
     return sanitized_text

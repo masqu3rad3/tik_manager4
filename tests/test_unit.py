@@ -6,6 +6,8 @@ import subprocess
 import http.client
 import json
 from collections.abc import Mapping
+import pytest
+
 
 # ENTITY LEVEL
 
