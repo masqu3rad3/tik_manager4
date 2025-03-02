@@ -33,15 +33,22 @@ class ScreenShot(QtWidgets.QDialog):
         self.setMouseTracking(True)
 
     def mousePressEvent(self, event):
-        self.origin = event.position().toPoint()
+        if hasattr(event, "position"):
+            self.origin = event.position().toPoint()
+        else:
+            self.origin = event.pos()
         self.rubberband.setGeometry(QtCore.QRect(self.origin, QtCore.QSize()))
         self.rubberband.show()
         QtWidgets.QWidget.mousePressEvent(self, event)
 
     def mouseMoveEvent(self, event):
         if self.origin is not None:
-            rect = QtCore.QRect(self.origin,
-                                event.position().toPoint()).normalized()
+            if hasattr(event, "position"):
+                rect = QtCore.QRect(self.origin,
+                                    event.position().toPoint()).normalized()
+            else:
+                rect = QtCore.QRect(self.origin,
+                                    event.pos().toPoint()).normalized()
             self.rubberband.setGeometry(rect)
 
         self.repaint()
