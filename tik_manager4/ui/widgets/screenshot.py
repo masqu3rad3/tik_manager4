@@ -11,14 +11,14 @@ class ScreenShot(QtWidgets.QDialog):
         self.image_map = None
         self.origin = None
 
-        uRect = QtCore.QRect()
-        for i in range(len(QtWidgets.QApplication.screens())):
-            uRect = uRect.united(
-                QtWidgets.QApplication.screens()[i].geometry())
+        screen_rect = QtCore.QRect()
+        for screen_index in range(len(QtWidgets.QApplication.screens())):
+            screen_rect = screen_rect.united(
+                QtWidgets.QApplication.screens()[screen_index].geometry())
 
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.setCursor(QtCore.Qt.CrossCursor)
-        self.setGeometry(uRect)
+        self.setGeometry(screen_rect)
 
         self.setWindowFlags(
             QtCore.Qt.FramelessWindowHint
