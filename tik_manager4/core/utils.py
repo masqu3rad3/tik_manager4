@@ -1,6 +1,7 @@
 """Cross-platform utility functions."""
-
 import os
+import sys
+import importlib.util
 import logging
 from pathlib import Path
 import shutil
@@ -97,7 +98,7 @@ def sanitize_text(text, allow_spaces=False):
         text = text.replace(" ", "_")
 
     # Define pattern to match allowed characters and remove illegal ones
-    pattern = r"[^A-Za-z0-9A_-]"
+    pattern = r"[^A-Za-z0-9A_ -]"
     sanitized_text = re.sub(pattern, "", text)
 
     return sanitized_text
@@ -183,3 +184,47 @@ def get_nice_name(input_str):
     # Capitalize the first letter of each word and join them with a space
     nice_name = " ".join(word.capitalize() for word in words)
     return nice_name
+
+def import_from_path(module_name, file_path, cleanup=True):
+    """
+    Import a Python module from an arbitrary file path.
+
+    Args:
+        module_name (str): Name to assign to the module.
+        file_path (str or Path): Full path to the Python file.
+        cleanup (bool): Whether to remove the directory from sys.path after import.
+                       Defaults to True. If the directory was already in sys.path,
+                       it will not be removed regardless of this setting.
+
+    Returns:
+        module: The imported module.
+    """
+    # Convert file_path to a Path object if it isn't already
+    file_path = Path(file_path)
+
+    # Get the parent directory of the file
+    parent_dir = str(file_path.parent)
+
+    # Check if the directory is already in sys.path
+    was_in_sys_path = parent_dir in sys.path
+
+    # Prepend the directory to sys.path if it's not already there
+    if not was_in_sys_path:
+        sys.path.insert(0, parent_dir)
+
+    try:
+        # Create a module spec
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+
+        # Create a new module based on the spec
+        module = importlib.util.module_from_spec(spec)
+
+        # Execute the module
+        spec.loader.exec_module(module)
+
+    finally:
+        # Cleanup: Remove the directory from sys.path if it wasn't there before
+        if cleanup and not was_in_sys_path and parent_dir in sys.path:
+            sys.path.remove(parent_dir)
+
+    return module

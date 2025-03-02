@@ -6,8 +6,8 @@ from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.dcc.maya import utils
 
 
-class Preview(ExtensionCore):
-    """Test Extension."""
+class SetRanges(ExtensionCore):
+    """Set the ranges to the scene from metadata."""
 
     def __init__(self, parent):
         super().__init__(parent)
