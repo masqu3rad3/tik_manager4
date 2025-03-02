@@ -1,5 +1,5 @@
 """UI Layout for work and publish objects."""
-
+import tempfile
 from pathlib import Path
 from dataclasses import dataclass
 from tik_manager4.core.constants import ObjectType
@@ -817,8 +817,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         if mode == "view":
             file_path = None
         elif mode == "screenshot":
-            # TODO: locate the temporary image file in a proper location
-            file_path = take_screen_area(self.project.get_abs_project_path())
+            file_path = take_screen_area(tempfile.TemporaryDirectory().name)
         else:
             # get the project directory
             file_path = QtWidgets.QFileDialog.getOpenFileName(
