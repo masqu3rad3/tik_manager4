@@ -585,17 +585,9 @@ def test_is_modified(tmp_path):
     settings_data["key1"] = "new_value"
     with open(settings_path, "w") as f:
         json.dump(settings_data, f)
+        f.flush()
+        os.fsync(f.fileno())  # Ensures changes are committed
     assert settings.is_modified()
-
-# def test_apply_stylesheet(tmp_path):
-#     """Test apply_stylesheet function."""
-#     from tik_manager4.ui.Qt import QtWidgets
-#     qss_file = tmp_path / "style.qss"
-#     qss_file.write_text("QWidget { background-color: red; }")
-#     widget = QtWidgets.QWidget()
-#     assert utils.apply_stylesheet(str(qss_file), widget) is True
-#     assert widget.styleSheet() == "QWidget { background-color: red; }"
-#     assert utils.apply_stylesheet("non_existent.qss", widget) is False
 
 def test_sanitize_text():
     """Test sanitize_text function."""
