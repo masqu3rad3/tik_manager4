@@ -1258,23 +1258,6 @@ class TestProject:
             == True
         )
 
-    # def test_all_works_property(self, project_manual_path, tik, monkeypatch):
-    #     """Test the all_works property function."""
-    #     sub, task, work = self._create_a_subproject_task_and_work(
-    #         project_manual_path, tik)
-    #     model_category = task.categories["Model"]
-    #
-    #     # Create additional works
-    #     model_category.create_work("work1")
-    #     model_category.create_work("work2")
-    #
-    #     # Check all works
-    #     all_works = model_category.all_works
-    #     assert len(
-    #         all_works) == 3  # Including the initial work created in _create_a_subproject_task_and_work
-    #     assert "work1" in all_works
-    #     assert "work2" in all_works
-
     def test_delete_works_failure(self, project_manual_path, tik, monkeypatch):
         """Test delete_works method when work cannot be destroyed."""
         sub, task, work = self._create_a_subproject_task_and_work(

@@ -1,3 +1,5 @@
+.. _developing_ingestors:
+
 Developing Ingestors
 ====================
 

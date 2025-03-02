@@ -28,6 +28,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'sphinx_toolbox.collapse',
+    'sphinxcontrib.youtube',
     'autoapi.extension',
 ]
 
