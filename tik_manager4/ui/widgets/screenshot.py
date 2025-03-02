@@ -1,14 +1,11 @@
-from pathlib import Path
-
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 
 
 class ScreenShot(QtWidgets.QDialog):
-    def __init__(self, folder_path):
+    def __init__(self, file_path):
         super(ScreenShot, self).__init__()
 
-        self.folder_path = folder_path
-        self.file_path = None
+        self.file_path = file_path
         self.image_map = None
         self.origin = None
 
@@ -34,22 +31,15 @@ class ScreenShot(QtWidgets.QDialog):
         self.setMouseTracking(True)
 
     def mousePressEvent(self, event):
-        if hasattr(event, "position"):
-            self.origin = event.position().toPoint()
-        else:
-            self.origin = event.pos()
+        self.origin = event.pos()
         self.rubberband.setGeometry(QtCore.QRect(self.origin, QtCore.QSize()))
         self.rubberband.show()
         QtWidgets.QWidget.mousePressEvent(self, event)
 
     def mouseMoveEvent(self, event):
         if self.origin is not None:
-            if hasattr(event, "position"):
-                rect = QtCore.QRect(self.origin,
-                                    event.position().toPoint()).normalized()
-            else:
-                rect = QtCore.QRect(self.origin,
-                                    event.pos().toPoint()).normalized()
+            pos = event.pos()
+            rect = QtCore.QRect(self.origin, pos).normalized()
             self.rubberband.setGeometry(rect)
 
         self.repaint()
@@ -101,23 +91,11 @@ class ScreenShot(QtWidgets.QDialog):
 
     def save_image(self):
         """Save the image to the specified path"""
-        screenshot_temp_path = Path(self.folder_path)
-        screenshot_temp_path.mkdir(parents=True, exist_ok=True)
-
-        self.file_path = screenshot_temp_path / "screenshot_temp.jpg"
-
-        self.image_map.save(str(self.file_path))
+        self.image_map.save(self.file_path)
 
 
-def take_screen_area(folder_path):
-    screen_shot = ScreenShot(folder_path)
+def take_screen_area(file_path):
+    screen_shot = ScreenShot(file_path)
     if screen_shot.exec() == QtWidgets.QDialog.Accepted:
         return screen_shot.file_path
     return None
-
-
-def remove_temp_folder(temp_folder, file_path):
-    if not temp_folder:
-        return
-    file_path.unlink()
-    Path(temp_folder).rmdir()
