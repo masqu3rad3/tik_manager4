@@ -193,9 +193,6 @@ class Subproject(Entity):
             for neighbour in data_position:
                 if neighbour not in visited:
                     _deleted = neighbour.get("deleted", False)
-                    # if _deleted:
-                    #     print(f"Skipping {neighbour.get('name')} as it is deleted")
-                    #     continue
                     _id = neighbour.get("id", None)
                     _name = neighbour.get("name", None)
                     _relative_path = neighbour.get("path", None)

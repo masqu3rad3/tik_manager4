@@ -112,12 +112,6 @@ class IO:
         Args:
             file_path (str): The file path to check.
         """
-        print(f"Checking if file exists: {file_path}")
-        print(f"Checking if file exists: {file_path}")
-        print(f"Checking if file exists: {file_path}")
-        print(f"Checking if file exists: {file_path}")
-        print(f"Checking if file exists: {file_path}")
-        print(f"Checking if file exists: {file_path}")
         return Path(file_path).is_file()
 
     @staticmethod

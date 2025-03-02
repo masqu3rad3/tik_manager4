@@ -88,7 +88,6 @@ class Publisher:
 
         # extracts = [x.lower() for x in category_props.get("extracts", [])]
         extracts = category_props.get("extracts", [])
-        print("extracts", extracts)
         validations = category_definitions.properties.get(
             self._work_object.category, {}
         ).get("validations", [])

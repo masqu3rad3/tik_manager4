@@ -374,7 +374,6 @@ class Preview:
             self.delete_file(_file_path)
             # _file_path.unlink()
         # TODO: Delete the file sequences too
-        print("_file_path", _file_path)
         if _file_path.suffix in compatible_images:
             pattern = re.sub(r"%\d*d", "@", str(_file_path), count=1)
             seq = fileseq.FileSequence("")

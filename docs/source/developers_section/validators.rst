@@ -4,6 +4,11 @@ Developing Validators
 Validators are sanity checks that gets run during publishing. They are
 defined in the `validate` directory -> ``tik_manager4/dcc/<dcc_name>/validate``.
 
+.. tip::
+
+        Starting from v4.3.8, Tik Manager can access validators from ``<common>/plugins/maya/validation/`` folder. This is the suggested location for any custom validators as they will be immediately available with the entire team and won't be affected by Tik Manager version updates.
+
+
 Below is a simple example of a validator for Maya that checks if the work file is following a hierarchy convention.
 
 .. code-block:: python
