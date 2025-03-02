@@ -6,7 +6,7 @@ from tik_manager4.core.constants import ObjectType
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator, TikIconButton
-from tik_manager4.ui.widgets.screenshot import take_screen_area
+from tik_manager4.ui.widgets.screenshot import take_screen_area, remove_temp_folder
 from tik_manager4.ui.widgets.info import ImageWidget, NotesEditor
 from tik_manager4.ui.dialog.bunde_ingest_dialog import BundleIngestDialog
 from tik_manager4.core import filelog
@@ -814,10 +814,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 critical=True,
             )
             return
+
+        temp_folder = None
         if mode == "view":
             file_path = None
         elif mode == "screenshot":
-            file_path = take_screen_area(tempfile.TemporaryDirectory().name)
+            temp_folder = tempfile.TemporaryDirectory().name
+            file_path = take_screen_area(temp_folder)
         else:
             # get the project directory
             file_path = QtWidgets.QFileDialog.getOpenFileName(
@@ -829,6 +832,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         self.base.replace_thumbnail(version_number, new_thumbnail_path=file_path)
         self.refresh()
+        remove_temp_folder(temp_folder, file_path)
 
     def thumbnail_right_click_menu(self, position):
         """Right click menu for the thumbnail."""

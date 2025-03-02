@@ -114,3 +114,10 @@ def take_screen_area(folder_path):
     if screen_shot.exec() == QtWidgets.QDialog.Accepted:
         return screen_shot.file_path
     return None
+
+
+def remove_temp_folder(temp_folder, file_path):
+    if not temp_folder:
+        return
+    file_path.unlink()
+    Path(temp_folder).rmdir()
