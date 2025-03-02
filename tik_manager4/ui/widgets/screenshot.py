@@ -94,18 +94,14 @@ class ScreenShot(QtWidgets.QDialog):
                                                rect.width(),
                                                rect.height())
 
-            self.save_image(self.folder_path)
-
+            self.save_image()
             self.accept()
 
         QtWidgets.QWidget.mouseReleaseEvent(self, event)
 
-    def save_image(self, folder_path=None):
+    def save_image(self):
         """Save the image to the specified path"""
-        if not folder_path:
-            return self.file_path
-
-        screenshot_temp_path = Path(folder_path)
+        screenshot_temp_path = Path(self.folder_path)
         screenshot_temp_path.mkdir(parents=True, exist_ok=True)
 
         self.file_path = screenshot_temp_path / "screenshot_temp.jpg"
@@ -113,11 +109,8 @@ class ScreenShot(QtWidgets.QDialog):
         self.image_map.save(str(self.file_path))
 
 
-def take_screen_area(file_path):
-    screen_shot = ScreenShot(file_path)
+def take_screen_area(folder_path):
+    screen_shot = ScreenShot(folder_path)
     if screen_shot.exec() == QtWidgets.QDialog.Accepted:
-        # Calling save_image() without argument ensures the image is saved
-        # only once, as the file path was already provided when initializing
-        # the ScreenShot object.
-        return screen_shot.save_image()
+        return screen_shot.file_path
     return None
