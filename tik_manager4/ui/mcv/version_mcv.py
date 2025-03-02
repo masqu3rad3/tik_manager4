@@ -817,8 +817,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         if mode == "view":
             file_path = None
         elif mode == "screenshot":
-            temp_file = tempfile.NamedTemporaryFile(suffix=".jpg",
-                                                    delete=True).name
+            temp_file = (Path(tempfile.gettempdir()) /
+                         "tik_manager_screenshot_temp.jpg").as_posix()
             file_path = take_screen_area(temp_file)
         else:
             # get the project directory
