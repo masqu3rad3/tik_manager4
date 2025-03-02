@@ -3,12 +3,13 @@
 import os
 import json
 import logging
-from datetime import datetime, timezone
+# from datetime import datetime, timezone
 import sys
 from pathlib import Path
 from copy import deepcopy
 from tik_manager4.core import utils
 from tik_manager4.management.management_core import ManagementCore
+from tik_manager4.management.exceptions import SyncError
 
 
 external_folder = Path(__file__).parents[2] / "external"
@@ -179,18 +180,19 @@ class ProductionPlatform(ManagementCore):
         assets = self.sg.find("Asset", filters, fields)
         return assets
 
-    @staticmethod
-    def date_stamp():
-        """Return the current date stamp in ISO 8601 format."""
-        # Get the current time in UTC and format it as ISO 8601
-        return datetime.now(timezone.utc).strftime(
-            '%Y-%m-%dT%H:%M:%SZ')
-
     def force_sync(self):
         """Force sync the project with Shotgrid."""
+        sync_stamp = self.date_stamp()
+
         project_id = self.tik_main.project.settings.get("host_project_id")
         if not project_id:
-            raise Exception("Project is not linked to a Shotgrid project.")
+            LOG.error("Project is not linked to a Shotgrid project.")
+            return False, "Project is not linked to a Shotgrid project."
+
+        management_platform = self.tik_main.project.settings.get("management_platform")
+        if management_platform != "shotgrid":
+            LOG.error("Project is not linked to a Shotgrid project.")
+            return False, "Project is not linked to a Shotgrid project."
 
         all_assets = self.get_all_assets(project_id)
         all_shots = self.get_all_shots(project_id)
@@ -207,8 +209,17 @@ class ProductionPlatform(ManagementCore):
         for shot in all_shots:
             self._sync_new_shot(shot, shots_sub, shot_categories)
 
+        self.tik_main.project.settings.edit_property("last_sync", sync_stamp)
+        self.tik_main.project.settings.apply_settings(force=True)
+
+        return True, "Success"
+
     def create_from_project(self, project_root, shotgrid_project_id, set_project=True):
         """Create a tik_manager4 project from the existing Shotgrid project."""
+
+        # do the sync stamp earliest as possible not to miss any changes
+        sync_stamp = self.date_stamp()
+
         current_project_path = self.tik_main.project.absolute_path
         project = self.sg.find_one(
             "Project", [["id", "is", shotgrid_project_id]], ["name"]
@@ -273,7 +284,7 @@ class ProductionPlatform(ManagementCore):
         self.tik_main.project.settings.edit_property("management_platform", "shotgrid")
         self.tik_main.project.settings.edit_property("host_project_name", project["name"])
         self.tik_main.project.settings.edit_property("host_project_id", shotgrid_project_id)
-        self.tik_main.project.settings.edit_property("last_sync", self.date_stamp())
+        self.tik_main.project.settings.edit_property("last_sync", sync_stamp)
 
         self.tik_main.project.settings.apply_settings(force=True)
 
@@ -281,6 +292,43 @@ class ProductionPlatform(ManagementCore):
             self.tik_main.set_project(current_project_path)
 
         return project_path
+
+    def get_entity_url(self, entity_type, entity_id):
+        """
+        Constructs the URL for a specific entity in ShotGrid.
+
+        Args:
+            entity_type (str): The type of the entity. Asset or Shot.
+            entity_id (int): The ID of the entity.
+
+        Returns:
+            str: The URL of the entity.
+        """
+        sanity_pairs = {
+            "asset": "Asset",
+            "Asset": "Asset",
+            "assets": "Asset",
+            "Assets": "Asset",
+            "shot": "Shot",
+            "Shot": "Shot",
+            "shots": "Shot",
+            "Shots": "Shot",
+            "episode": "shot",
+            "Episode": "shot",
+            "episodes": "shot",
+            "Episodes": "shot",
+        }
+        # first check if the id is valid
+        project_id = self.tik_main.project.settings.get("host_project_id")
+        filters = [
+            ["project", "is", {"type": "Project", "id": project_id}],
+            ["id", "is", entity_id]
+        ]
+        fields = ["id"]
+        entity = self.sg.find_one(sanity_pairs[entity_type], filters, fields)
+        if not entity:
+            return None
+        return f"{self.sg.base_url}/detail/{entity_type}/{entity_id}"
 
     def _get_changes_from_log(self):
         """Get what's changed in the project since last sync using the event logs.
@@ -311,7 +359,7 @@ class ProductionPlatform(ManagementCore):
         """
         project_id = self.tik_main.project.settings.get("host_project_id")
         if not project_id:
-            raise Exception("Project is not linked to a Shotgrid project.")
+            raise SyncError("Project is not linked to a Shotgrid project.")
 
         # Get the last sync date
         last_sync = self.tik_main.project.settings.get("last_sync")
@@ -524,6 +572,7 @@ class ProductionPlatform(ManagementCore):
 
         Creates if it doesn't exist.
         """
+        # TODO: should go to the base class
         assets_sub = self.tik_main.project.subs.get("Assets") or self.tik_main.project.create_sub_project(
             "Assets", parent_path="", mode="asset"
         )
@@ -534,6 +583,7 @@ class ProductionPlatform(ManagementCore):
 
         Creates if it doesn't exist.
         """
+        # TODO: should go to the base class
         shots_sub = self.tik_main.project.subs.get("Shots") or self.tik_main.project.create_sub_project(
             "Shots", parent_path="", mode="shot"
         )
@@ -672,9 +722,20 @@ class ProductionPlatform(ManagementCore):
         )
         return user["id"] if user else None
 
-    def publish_version(self, entity_type, entity_id, task_id, name, path,
-                        project_id, status=None, description="", thumbnail=None,
-                        preview=None, email=None):
+    def publish_version(self,
+                        entity_type=None,
+                        entity_id=None,
+                        task_id=None,
+                        name=None,
+                        path=None,
+                        project_id=None,
+                        status=None,
+                        description="",
+                        thumbnail=None,
+                        preview=None,
+                        email=None,
+                        **kwargs
+                        ):
         """Publish a version to Shotgrid.
 
         Args:
@@ -684,13 +745,21 @@ class ProductionPlatform(ManagementCore):
             name (str): The name of the version.
             path (str): Project relative path to the file.
             project_id (int): The ID of the project.
+            status (str, optional): The status of the task that will be turned into.
+                    Defaults to None.
             description (str, optional): The description of the version. Defaults to "".
             thumbnail (str, optional): The path to the thumbnail file. Defaults to None.
             preview (str, optional): The path to the preview file. Defaults to None.
+            email (str, optional): The email of the user. Defaults to None.
 
         Returns:
             dict: The published version data.
         """
+        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-locals
+        # entity_type, entity_id, task_id, name and path are mandatory
+        if not all([entity_type, entity_id, task_id, name, path, project_id]):
+            raise ValueError("entity_type, entity_id, task_id, name, path and project_id are mandatory.")
         # Build the publish data
         data = {
             "project": {"type": "Project", "id": project_id},

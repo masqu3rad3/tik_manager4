@@ -86,7 +86,7 @@ class Publisher:
         category_props = category_definitions.properties.get(
             self._work_object.category, {})
 
-        extracts = [x.lower() for x in category_props.get("extracts", [])]
+        extracts = category_props.get("extracts", [])
         validations = category_definitions.properties.get(
             self._work_object.category, {}
         ).get("validations", [])
@@ -94,7 +94,7 @@ class Publisher:
         dcc_extracts = self._dcc_handler.extracts
 
         for extract, handler in dcc_extracts.items():
-            if extract.lower() in extracts:
+            if extract in extracts:
                 resolved = handler()
                 resolved.category = self._work_object.category
                 resolved.metadata = self._metadata
@@ -103,7 +103,7 @@ class Publisher:
         # Sort the extractors to match the order in category definitions
         self._resolved_extractors = dict(
             sorted(self._resolved_extractors.items(),
-                   key=lambda x: extracts.index(x[0].lower()))
+                   key=lambda x: extracts.index(x[0]))
         )
 
         for validation in validations:
@@ -115,7 +115,7 @@ class Publisher:
 
         self._resolved_validators = dict(
             sorted(self._resolved_validators.items(),
-                   key=lambda x: validations.index(x[0].lower()))
+                   key=lambda x: validations.index(x[0]))
         )
 
         latest_publish_version = self._work_object.publish.get_last_version()
@@ -328,11 +328,12 @@ class Publisher:
     def _generate_thumbnail(self):
         """Generate the thumbnail."""
         thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.jpg"
+        thumbnail_resolution = self._work_object.guard.preview_settings.properties.get("ThumbnailResolution", [220, 124])
         thumbnail_path = self._published_object.get_abs_database_path(
             "thumbnails", thumbnail_name
         )
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
-        self._dcc_handler.generate_thumbnail(thumbnail_path, 220, 124)
+        self._dcc_handler.generate_thumbnail(thumbnail_path, *(thumbnail_resolution))
         self._published_object.add_property(
             "thumbnail", Path("thumbnails", thumbnail_name).as_posix()
         )
@@ -435,7 +436,8 @@ class Publisher:
             description=description,
             thumbnail=thumbnail,
             preview=preview,
-            email=user_email
+            email=user_email,
+            publish_version=self._publish_version
         )
         self._published_object.edit_property("publish_id", management_version["id"])
 
@@ -474,7 +476,7 @@ class SnapshotPublisher(Publisher):
         super(SnapshotPublisher, self).__init__(args)
         # this overrides the dcc handler which resolved on inherited
         # class to standalone
-        self.__dcc_handler = standalone.Dcc()
+        self._dcc_handler = standalone.Dcc()
 
     @property
     def work_object(self):
@@ -517,9 +519,9 @@ class SnapshotPublisher(Publisher):
 
         # get either the snapshot or snapshot_bundle depending if its a folder or file
         if Path(abs_path).is_dir():
-            snapshot_extractor = self.__dcc_handler.extracts["snapshot_bundle"]()
+            snapshot_extractor = self._dcc_handler.extracts["snapshot_bundle"]()
         else:
-            snapshot_extractor = self.__dcc_handler.extracts["snapshot"]()
+            snapshot_extractor = self._dcc_handler.extracts["snapshot"]()
         snapshot_extractor.category = self._work_object.category  # define the category
 
         snapshot_extractor.source_path = abs_path
@@ -545,13 +547,14 @@ class SnapshotPublisher(Publisher):
     def _generate_thumbnail(self):
         """Generate the thumbnail."""
         thumbnail_name = f"{self._work_object.name}_v{self._publish_version:03d}.png"
+        thumbnail_resolution = self._published_object.guard.preview_settings.properties.get("ThumbnailResolution", [220, 124])
         thumbnail_path = self._published_object.get_abs_database_path(
             "thumbnails", thumbnail_name
         )
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
         extension = self._resolved_extractors["snapshot"].extension or "Bundle"
-        self.__dcc_handler.text_to_image(
-            extension, thumbnail_path, 220, 124, color="cyan"
+        self._dcc_handler.text_to_image(
+            extension, thumbnail_path, *(thumbnail_resolution), color="cyan"
         )
         self._published_object.add_property(
             "thumbnail", Path("thumbnails", thumbnail_name).as_posix()

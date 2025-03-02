@@ -4,18 +4,21 @@ from pathlib import Path
 import logging
 import platform
 
+from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from maya import cmds
 from maya import mel
 import maya.OpenMaya as om
 from maya import OpenMayaUI as omui
 
 from tik_manager4.ui.Qt import QtWidgets, QtCompat
+from tik_manager4.ui.main import MainUI as tik4_main
 from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.dcc.maya import utils
 from tik_manager4.dcc.maya import panels
 from tik_manager4.dcc.maya import validate
 from tik_manager4.dcc.maya import extract
 from tik_manager4.dcc.maya import ingest
+from tik_manager4.dcc.maya import extension
 
 LOG = logging.getLogger(__name__)
 
@@ -29,6 +32,8 @@ class Dcc(MainCore):
     validations = validate.classes
     extracts = extract.classes
     ingests = ingest.classes
+    extensions = extension.classes
+    custom_launcher = True
 
     @staticmethod
     def get_main_window():
@@ -239,9 +244,9 @@ class Dcc(MainCore):
         favored_codecs = ["H.264", "jpg", "MPEG-4 Video", "none"]
         for format_ in favored_formats:
             for codec in favored_codecs:
-                if codec in available_codecs[format_]:
-                    extension = "mov" if format_ == "qt" else "avi"
-                    return format_, codec, extension
+                if codec in available_codecs.get(format_, []):
+                    favored_extension = "mov" if format_ == "qt" else "avi"
+                    return format_, codec, favored_extension
         return None, None, None
 
     @staticmethod
@@ -361,3 +366,60 @@ class Dcc(MainCore):
     def get_dcc_version():
         """Return the DCC major version."""
         return str(cmds.about(query=True, majorVersion=True))
+
+    def launch(self, tik_main_object, window_name=None, dont_show=False):
+        """Launch Tik Main UI with DCC specific way."""
+        parent = self.get_main_window()
+
+
+
+        workspace_name = f"{window_name}WorkspaceControl"
+        if cmds.workspaceControl(workspace_name, query=True, exists=True):
+            cmds.workspaceControl(workspace_name, edit=True, close=True)
+            cmds.deleteUI(workspace_name, control=True)
+
+        if not dont_show:
+            main_ui = DockableMainUI(main_object=tik_main_object, window_name=window_name, parent=parent)
+            main_ui.show(dockable=True)
+        else:
+            all_widgets = QtWidgets.QApplication.allWidgets()
+            for entry in all_widgets:
+                try:
+                    if entry.objectName() == window_name+"NoShow":
+                        # if entry.objectName().startswith("Tik Manager"):
+                        entry.close()
+                        entry.deleteLater()
+                except (AttributeError, TypeError):
+                    pass
+            main_ui = RegularMainUI(main_object=tik_main_object, parent=parent, window_name=window_name+"NoShow")
+
+        return main_ui
+
+
+class RegularMainUI(tik4_main):
+    def __init__(self, main_object=None, window_name=None, parent=None, **kwargs):
+        super(RegularMainUI, self).__init__(main_object=main_object, window_name=window_name, parent=parent, **kwargs)
+        # make sure it is getting created center according to the parent
+        self.move(parent.frameGeometry().center() - self.rect().center())
+
+class DockableMainUI(MayaQWidgetDockableMixin, tik4_main):
+    def __init__(self, main_object=None, window_name=None, parent=None, **kwargs):
+        super(DockableMainUI, self).__init__(main_object=main_object, window_name=window_name, parent=parent, **kwargs)
+
+    def dockCloseEventTriggered(self):  # pylint: disable=invalid-name
+        """Override the stub function to save the window state."""
+        self.tik.user.last_subproject = None
+        self.tik.user.last_task = None
+        self.tik.user.last_category = None
+        self.tik.user.last_work = None
+        self.tik.user.last_version = None
+
+        self.set_last_state()
+
+        # set the expanded state of the subproject tree
+        self.tik.user.expanded_subprojects = (
+            self.subprojects_mcv.sub_view.get_expanded_state()
+        )
+
+        self.tik.user.resume.apply_settings()
+        _ = QtWidgets.QApplication.allWidgets()

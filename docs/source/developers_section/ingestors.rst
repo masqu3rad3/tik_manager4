@@ -1,9 +1,16 @@
+.. _developing_ingestors:
+
 Developing Ingestors
 ====================
 
 Ingestors are the components that take data from a source and convert it into a
 standardized format that can be ingested into the system. Ingestors are
 responsible for:
+
+.. tip::
+
+        Starting from v4.3.8, Tik Manager can access ingestors from ``<common>/plugins/maya/ingest/`` folder. This is the suggested location for any custom ingestors as they will be immediately available with the entire team and won't be affected by Tik Manager version updates.
+
 
 - Getting data from the source
 - Making it compatible for a specific purpose

@@ -103,12 +103,13 @@ class PreviewDialog(QtWidgets.QDialog):
 
     def create_preview(self):
         """Create the preview."""
-        message_box = WaitDialog(frameless=False, parent=self)
+        message_box = WaitDialog(frameless=True, parent=self)
         message_box.set_message("Creating preview. Please wait...")
-        message_box.set_message_size(12)
+        # message_box.set_message_size(12)
         message_box.display()
 
         self.preview_handler.set_message_callback(message_box.set_message)
+        self.preview_handler.set_feedback(self.feedback)
         self.preview_handler.settings = self.work.guard.preview_settings.properties
         state = self.preview_handler.generate(show_after=True)
 

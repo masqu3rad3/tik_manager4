@@ -33,7 +33,6 @@ class ImageWidget(QtWidgets.QLabel):
             self.q_media = QtGui.QMovie(media_path)
             # don't start but show the first frame
             self.q_media.jumpToFrame(0)
-            # self.q_media.start()
             self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
             self.setMovie(self.q_media)
             self.is_movie = True

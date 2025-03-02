@@ -86,7 +86,11 @@ class Dcc(MainCore):
 
             # wait for the window to be minimized
             QtWidgets.QApplication.processEvents()
-            screenshot = QtWidgets.QApplication.primaryScreen().grabWindow(QtWidgets.QApplication.desktop().winId())
+
+            app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(
+                [])  # Ensure QApplication exists
+            screenshot = QtWidgets.QApplication.primaryScreen().grabWindow(
+                0)  # 0 means the entire screen
 
             ratio = width / height
             new_height = int(width / ratio)

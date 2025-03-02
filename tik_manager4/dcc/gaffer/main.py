@@ -13,6 +13,7 @@ from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.dcc.gaffer import validate
 from tik_manager4.dcc.gaffer import extract
 from tik_manager4.dcc.gaffer import ingest
+from tik_manager4.dcc.gaffer import extension
 
 LOG = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ class Dcc(MainCore):
     validations = validate.classes
     extracts = extract.classes
     ingests = ingest.classes
+    extensions = extension.classes
 
     # Override the applicable methods from the MainCore class
 

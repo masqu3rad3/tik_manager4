@@ -5,6 +5,10 @@ Developing Extractors
 
 The most common use case for extractors is to export data from a DCC to be used in another tool.
 
+.. tip::
+
+        Starting from v4.3.8, Tik Manager can access extractors from ``<common>/plugins/maya/extract/`` folder. This is the suggested location for any custom extractors as they will be immediately available with the entire team and won't be affected by Tik Manager version updates.
+
 However, an extractor doesn't necessarily have to 'extract' anything. It can be used to perform any kind of operation on the data, such as creating a report or sending an email.
 
 Hello World

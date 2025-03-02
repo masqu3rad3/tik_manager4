@@ -1,7 +1,7 @@
 
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog.feedback import Feedback
-from tik_manager4.management.shotgrid.ui.dialog import CreateFromShotgridDialog
+from tik_manager4.management.ui.dialog import CreateFromManagementDialog
 from tik_manager4.ui.widgets.pop import WaitDialog
 
 from tik_manager4.management.extension_core import ExtensionCore
@@ -43,13 +43,23 @@ class UiExtensions(ExtensionCore):
         if not is_management_driven:
             self.feedback.pop_info(title="Warning", text="The project is not management driven.\n\nOnly projects created through Shotgrid can be synced.\nUse 'Create Project from Shotgrid' menu item to create a project.\n\nNo action will be taken.")
             return
+        management_platform = self.parent.tik.project.settings.get("management_platform")
+        if management_platform != "shotgrid":
+            self.feedback.pop_info(
+                title="Warning",
+                text="The project is not managed by Shotgrid.\n\nOnly projects managed by Shotgrid can be synced.\nUse 'Create Project from Shotgrid' menu item to create a project.\n\nNo action will be taken.",
+                critical=True,
+            )
+            return
         ret = self.feedback.pop_question(title="Force Sync", text="This action will forcefully sync the project to the shotgrid project.\n\nThis action can take a long time depending on the number of assets and shots in the project.\n\nDo you want to continue?", buttons=["yes", "cancel"])
         if ret == "yes":
             wait_pop = WaitDialog("Force Synchronization In Progress. Please wait...", parent=self.parent)
             handler = self.parent.management_connect("shotgrid")
             wait_pop.display()
-            handler.force_sync()
+            result, msg = handler.force_sync()
             wait_pop.kill()
+            if not result:
+                self.feedback.pop_info(title="Error", text=msg, critical=True)
 
     def on_logout(self):
         """Logout from Shotgrid."""
@@ -70,11 +80,12 @@ class UiExtensions(ExtensionCore):
         if not handler:
             return
 
-        dialog = CreateFromShotgridDialog(handler, parent=self.parent)
+        dialog = CreateFromManagementDialog(handler, parent=self.parent)
         state = dialog.exec()
         if state:
             # hard refresh the project
-            self.parent.subprojects_mcv.manual_refresh()
+            # self.parent.subprojects_mcv.manual_refresh()
+            self.parent.refresh_project()
             self.parent.status_bar.showMessage("Project created successfully")
         return
 

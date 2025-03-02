@@ -1,8 +1,32 @@
 # Release Notes
 
-## v4.x.x
+## v4.3.7
+- [206] Kitsu integration improvements.
+- Minor fix for some missing icons.
+
+## v4.3.6
+- [TIK-152] Dcc Specific Utils methodology added. Similar to extractors, ingestors and validators, now it is possible to define DCC specific utilities, accessible from the Main UI.
+- [TIK-39] Implementation of Purgatory. The deleted items (sub-projects, tasks, works, publishes and versions) are not permanently deleted anymore. They are moved to the purgatory and can be restored if needed with the exception of manual purge of purgatory.
+- [TIK-151] Integration of Kitsu.
+- Dockable UI for Maya.
+- Fix for the resolution related error when replacing preview images.
+- Referencing (Link) fix for Blender.
+- Improved UI interactions, style changes and performance optimizations.
+- Quicktime related error fix when taking playblasts from Maya. 
+- Various minor bug fixes and improvements.
+
+## v4.3.1
 - [TIK-145] Added native DCC support for snapshots saves. Now the snapshotted works can be directly opened from related DCCs.
 - [TIK-146] Making the validations and extracts orderable. The order can be arranged from the settings (per-project or common).
+- FBX extractor and Ingestor for Blender. Thanks Hasan Civili for the contribution.
+- Commercial Houdini SOP and LOP import HDAs.
+- Additional validators for Maya:
+    - `Empty Groups` to check if there are leftover empty groups in the scene.
+    - `Non-centered Pivots` to validate all transform pivots are centered.
+    - `UDIM-Crossing UVs` to check if the UV borders are passing their UDIM spaces.
+    - `Overlapping UVs` Optimized algorithm to check the overlapping UVs which is up-to 5x faster than the previous version.
+- Customizable Thumbnail Resolution. Now the thumbnail resolution can be defined in the preview_settings with `ThumbnailResolution` key.
+- Various Bug Fixes and UI optimizations.
 
 ## v4.3.0
 - [TIK-143] Localization and cache management feature added.

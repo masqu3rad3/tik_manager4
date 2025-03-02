@@ -1,13 +1,15 @@
 """Preview Module."""
 
-import platform
-import subprocess
 from pathlib import Path
+import platform
+import re
+import subprocess
 from typing import List, Tuple
 
 from tik_manager4.core.constants import ObjectType
 from tik_manager4.core import filelog
-from tik_manager4.core import utils
+from tik_manager4.core import utils, cli
+from tik_manager4.external.fileseq import filesequence as fileseq
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
@@ -128,7 +130,7 @@ class PreviewContext:
 
 class Preview:
     """Preview class."""
-    def __init__(self, preview_context, database_object, settings=None, message_callback=None):
+    def __init__(self, preview_context, database_object, settings=None, message_callback=None, feedback=None):
         """Initialize the Preview object.
 
         Args:
@@ -143,6 +145,7 @@ class Preview:
         self._settings = settings or {}
         self._path = None
         self._message_callback = message_callback or LOG.info
+        self._feedback = feedback or cli.FeedbackCLI()
 
         self._folder = self.database_obj.get_abs_project_path("previews")
         Path(self._folder).mkdir(parents=True, exist_ok=True)
@@ -158,6 +161,18 @@ class Preview:
         else:
             # if there is no message callback, use stdout
             self._message_callback = LOG.info
+
+    def set_feedback(self, feedback):
+        """Set the feedback handler.
+
+        Args:
+            feedback (handler): The feedback handler.
+        """
+        if feedback:
+            self._feedback = feedback
+        else:
+            # if there is no feedback, CLI
+            self._feedback = cli.FeedbackCLI()
 
     @property
     def settings(self):
@@ -200,7 +215,12 @@ class Preview:
             self._message_callback("Converting the preview to MP4 format.")
             ffmpeg = self._check_ffmpeg()
             if ffmpeg:
-                abs_path = self._convert_preview(abs_path, ffmpeg, overwrite=True)
+                converted_path = self._convert_preview(abs_path, ffmpeg, overwrite=True)
+                if not converted_path:
+                    self._message_callback("Conversion failed.")
+                    # LOG.error("Conversion failed.")
+                else:
+                    abs_path = converted_path
             else:
                 self._message_callback("FFMPEG not found. Skipping conversion.")
                 LOG.warning("FFMPEG not found. Skipping conversion.")
@@ -221,10 +241,10 @@ class Preview:
         if self.database_obj.object_type == ObjectType.WORK:
             # if this is a work object, we need to update the specific version dictionary.
             version = self.database_obj.get_version(self.context.version_number)
-            if "previews" in version.keys():
-                version["previews"].update(preview_data)
+            if version.previews:
+                version.previews.update(preview_data)
             else:
-                version["previews"] = preview_data
+                version.previews = preview_data
             self.database_obj.apply_settings(force=True)
         elif self.database_obj.object_type == ObjectType.PUBLISH_VERSION:
             # PublishVersion object has no version number, so we update the previews directly
@@ -319,12 +339,6 @@ class Preview:
         output_file = _file_path.with_suffix(".mp4")
         output_file_str = str(output_file)
 
-        # deal with the existing output
-        if output_file.exists():
-            if overwrite:
-                output_file.unlink()
-            else:
-                return None
         # if the suffix is in compatible videos, use the video conversion settings
         if not is_image_seq:
             flag_start = [ffmpeg, "-i", str(_file_path)]
@@ -344,11 +358,39 @@ class Preview:
             + preset_lut["foolproof"].split()
             + [output_file_str]
         )
+        # deal with the existing output
+        if Path(output_file_str).exists():
+            if overwrite:
+                result = self.delete_file(Path(output_file_str))
+                if not result:
+                    return None
+            else:
+                return None
         if platform.system() == "Windows":
             subprocess.check_call(full_flag_list, shell=False)
         else:
             subprocess.check_call(full_flag_list)
         if _file_path.suffix in compatible_videos:
-            _file_path.unlink()
+            self.delete_file(_file_path)
+            # _file_path.unlink()
         # TODO: Delete the file sequences too
+        if _file_path.suffix in compatible_images:
+            pattern = re.sub(r"%\d*d", "@", str(_file_path), count=1)
+            seq = fileseq.FileSequence("")
+            files = seq.findSequenceOnDisk(pattern)
+            for file in files:
+                Path(file).unlink()
         return output_file_str
+
+
+    def delete_file(self, path_obj):
+        """Check if the file path is writable."""
+        try:
+            path_obj.unlink()
+            return True
+        except PermissionError:
+            ret = self._feedback.pop_question(title="Permission Denied", text=f"Cannot delete the file\n{path_obj.as_posix()}\n\nThe file might be open in another application.\n\nClose the file and/or delete it manually and continue or ignore to skip conversion process.", buttons=["retry", "ignore"])
+            if ret == "retry":
+                self.delete_file(path_obj)
+            elif ret == "ignore":
+                return False

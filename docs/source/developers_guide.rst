@@ -15,3 +15,4 @@ When followed diligently, any logic can be seamlessly integrated into Tik Manage
     /developers_section/extractors
     /developers_section/ingestors
     /developers_section/validators
+    /developers_section/extensions

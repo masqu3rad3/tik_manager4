@@ -81,7 +81,7 @@ class VersionWidgets:
     sync_btn: TikButton
     lbl: QtWidgets.QLabel
     combo: VersionComboBox
-    preview_btn: TikButton
+    preview_btn: TikIconButton
     owner_lbl: QtWidgets.QLabel
 
 
@@ -89,7 +89,7 @@ class VersionWidgets:
 class ElementWidgets:
     element_lbl: QtWidgets.QLabel
     element_combo: QtWidgets.QComboBox
-    element_view_btn: TikButton
+    element_view_btn: TikIconButton
     ingest_with_lbl: QtWidgets.QLabel
     ingest_with_combo: QtWidgets.QComboBox
 
@@ -114,10 +114,12 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
     element_view_event = QtCore.Signal(str, str)
     status_updated = QtCore.Signal(str, int)
+    version_resurrected = QtCore.Signal()
 
     def __init__(self, project_object, *args, **kwargs):
         """Initialize the TikVersionLayout."""
         super().__init__()
+        self._purgatory_mode = False
         self.project = project_object
         self.base = None
         self.parent = kwargs.get("parent")
@@ -136,14 +138,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             sync_btn=TikButton(text="Sync"),
             lbl=QtWidgets.QLabel(text="Version: "),
             combo=VersionComboBox(),
-            preview_btn=TikButton(text="Show Preview"),
+            preview_btn=TikIconButton(icon_name="player.png", circle=False, size=30),
             owner_lbl=QtWidgets.QLabel("Owner: ")
         )
 
         self.element = ElementWidgets(
             element_lbl=QtWidgets.QLabel("Element: "),
             element_combo=QtWidgets.QComboBox(),
-            element_view_btn=TikButton("View"),
+            element_view_btn=TikIconButton(icon_name="view.png", circle=False, size=30),
             ingest_with_lbl=QtWidgets.QLabel("Ingest with: "),
             ingest_with_combo=QtWidgets.QComboBox()
         )
@@ -167,6 +169,21 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         self.set_base(self.base)
 
+    def set_purgatory_mode(self, state):
+        """Set the purgatory mode."""
+        self.purgatory_mode = state
+
+    @property
+    def purgatory_mode(self):
+        """Get the purgatory mode."""
+        return self._purgatory_mode
+
+    @purgatory_mode.setter
+    def purgatory_mode(self, state):
+        """Set the purgatory mode."""
+        self._purgatory_mode = state
+        self.refresh()
+
     def build_ui(self):
         """Setup the UI."""
         header_lay = QtWidgets.QHBoxLayout()
@@ -186,14 +203,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         version_layout.addWidget(self.version.sync_btn)
         version_layout.addStretch()
         self.version.lbl.setFont(QtGui.QFont("Arial", 10))
-        self.version.lbl.setMinimumSize = QtCore.QSize(60, 30)
+        self.version.lbl.setMinimumSize = QtCore.QSize(10, 30)
         self.version.lbl.setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignRight)
         version_layout.addWidget(self.version.lbl)
 
-        self.version.combo.setMinimumSize(QtCore.QSize(60, 30))
+        self.version.combo.setMinimumSize(QtCore.QSize(10, 30))
         version_layout.addWidget(self.version.combo)
 
-        self.version.preview_btn.setMinimumSize(QtCore.QSize(60, 30))
+        self.version.preview_btn.setMinimumSize(QtCore.QSize(30, 30))
         self.version.preview_btn.setEnabled(False)
         version_layout.addWidget(self.version.preview_btn)
 
@@ -206,10 +223,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         element_layout = QtWidgets.QVBoxLayout()
         self.addLayout(element_layout)
-        self.element.element_lbl.setFont(QtGui.QFont("Arial", 10))
+        self.element.element_lbl.setFont(QtGui.QFont("Roboto", 10))
         element_layout.addWidget(self.element.element_lbl)
         element_hlay = QtWidgets.QHBoxLayout()
-        self.element.element_view_btn.setMaximumWidth(50)
+        self.element.element_view_btn.setMaximumWidth(30)
         element_hlay.addWidget(self.element.element_combo)
         element_hlay.addWidget(self.element.element_view_btn)
         element_layout.addLayout(element_hlay)
@@ -221,12 +238,11 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         notes_layout = QtWidgets.QVBoxLayout()
         self.addLayout(notes_layout)
         self.info.notes_lbl.setFont(QtGui.QFont("Arial", 10))
-        # self.info.notes_editor.setReadOnly(True)
         notes_layout.addWidget(self.info.notes_lbl)
         notes_layout.addWidget(self.info.notes_editor)
 
         self.info.thumbnail.setToolTip("Right Click for replace options")
-        self.info.thumbnail.setMinimumSize(QtCore.QSize(221, 124))
+        self.info.thumbnail.setMinimumSize(QtCore.QSize(55, 30))
         self.info.thumbnail.setFrameShape(QtWidgets.QFrame.Box)
         self.info.thumbnail.setScaledContents(True)
         self.info.thumbnail.setAlignment(QtCore.Qt.AlignCenter)
@@ -511,8 +527,11 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.buttons.load_btn.setEnabled(False)
             self.buttons.import_btn.setEnabled(False)
             self.buttons.reference_btn.setEnabled(False)
+            self.element.element_view_btn.setEnabled(False)
             return
         _element_type = self.get_selected_element_type()
+        if _element_type:
+            self.element.element_view_btn.setEnabled(True)
         _is_bundled = self.__is_element_bundled(_element_type)
         if _is_bundled:
             self.buttons.bundle_ingest_btn.setVisible(True)
@@ -534,21 +553,26 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.version.combo.clear()
             self.version.combo.setEnabled(False)
             self.element.element_combo.clear()
+            self.element.element_view_btn.setEnabled(False)
             self.info.notes_editor.clear()
             self.info.notes_editor.setEnabled(False)
             self.info.thumbnail.clear()
             self.info.thumbnail.setEnabled(False)
+            self.version.preview_btn.setEnabled(False)
             self.toggle_sync_state(False)
             return
         self.version.combo.setEnabled(True)
         self.info.notes_editor.setEnabled(True)
         self.info.thumbnail.setEnabled(True)
+        self.version.preview_btn.setEnabled(True)
         self.base = base
-        self.populate_versions(base.versions)
+        self.populate_versions(base)
         self.version.combo.blockSignals(False)
 
-    def populate_versions(self, versions):
+    # def populate_versions(self, versions):
+    def populate_versions(self, base):
         """Populate the version dropdown with the versions from the base object."""
+        versions = base.all_versions if self._purgatory_mode else base.versions
         self.version.combo.blockSignals(True)
         self.version.combo.clear()
         self.version.combo.set_items(versions)
@@ -602,11 +626,12 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.toggle_sync_state(state=state, critical=critical)
 
         _index = self.version.combo.currentIndex()
-        # check if the _index is the latest in combo box
-        if _index == self.version.combo.count() - 1:
-            self.version.combo.setProperty("preVersion", False)
-        else:
-            self.version.combo.setProperty("preVersion", True)
+        item = self.version.combo.get_item(_index)
+
+        # adjust the css properties
+        self.version.combo.setProperty("deleted", item.deleted)
+        self.version.combo.setProperty("preVersion",
+                                       _index != self.version.combo.count() - 1)
         self.version.combo.setStyleSheet("")
 
         self.element.element_combo.clear()
@@ -629,10 +654,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.version.preview_btn.setEnabled(bool(_version.previews))
             owner = _version.user
         self.version.owner_lbl.setText(f"Owner: {owner}")
-        # self.info.notes_editor.clear()
         self.info.thumbnail.clear()
         self.info.notes_editor.set_version(_version)
-        # self.info.notes_editor.setPlainText(_version.notes)
         _thumbnail_path = self.base.get_abs_database_path(_version.thumbnail)
         self.info.thumbnail.set_media(_thumbnail_path)
         self.element.element_combo.blockSignals(False)
@@ -761,13 +784,15 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 critical=True,
             )
             return
-        self.populate_versions(self.base.versions)
+        # self.populate_versions(self.base.versions)
+        self.populate_versions(self.base)
 
     def refresh(self):
         """Refresh the version dropdown."""
         if self.base:
             self.base.reload()
-            self.populate_versions(self.base.versions)
+            # self.populate_versions(self.base.versions)
+            self.populate_versions(self.base)
         else:
             self.version.combo.clear()
             self.info.notes_editor.clear()
@@ -836,6 +861,14 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         right_click_menu = QtWidgets.QMenu()
         right_click_menu.setStyleSheet(self.parent.styleSheet())  # Add this line
 
+        # get the current version object from the combo box
+
+        if self.purgatory_mode:
+            _version = self.version.combo.get_current_item()
+            if _version.deleted:
+                act_resurrect = right_click_menu.addAction(self.tr("Resurrect Version"))
+                act_resurrect.triggered.connect(lambda _=None, x=_version: self.on_resurrect(_version))
+
         delete_version_action = QtWidgets.QAction(self.tr("Delete Version"), self)
         right_click_menu.addAction(delete_version_action)
         delete_version_action.triggered.connect(self.delete_version)
@@ -854,6 +887,20 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         open_database_folder_action.triggered.connect(self.open_database_folder)
 
         right_click_menu.exec_((QtGui.QCursor.pos()))
+
+    def on_resurrect(self, version_obj):
+        """Resurrect the selected version."""
+        state, msg = version_obj.resurrect()
+        if not state:
+            self.feedback.pop_info(
+                title="Resurrect Error",
+                text=msg,
+                critical=True,
+            )
+            return
+        self.version_resurrected.emit()
+        self.refresh()
+        return
 
     def publish_snapshot(self):
         """Publish a snapshot of the current work."""
@@ -875,7 +922,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
     def __apply_to_base(self):
         """Apply the changes to the base object and persistent database."""
-        self.base._apply_versions()
+        # self.base._apply_versions()
         self.base.apply_settings(force=True)
 
 

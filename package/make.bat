@@ -34,6 +34,7 @@ IF "%ARG%"=="release" (
     REM Display help message
     echo Available commands:
     echo - release: Create the executable file
+    echo - testrelease: To hand out the executable to testers
     echo - debug: Create the executables with debug specs
     echo - clean: Remove the build folder
     echo - help: Display this help message

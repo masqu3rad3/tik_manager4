@@ -30,4 +30,4 @@ def set_ranges(range_list):
 
     """
     nuke.Root().setFirstFrame(range_list[0])
-    nuke.Root().setLastFrame(range_list[3])
+    nuke.Root().setLastFrame(range_list[-1])

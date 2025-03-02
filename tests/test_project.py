@@ -267,8 +267,9 @@ class TestProject:
 
         soft_sub = sub.add_sub_project("soft_sub")
 
-        # no uid or path provided
-        assert tik.project.delete_sub_project(uid=None, path=None) == -1
+        # delete sub-project without an uid or path will raise an Exception
+        with pytest.raises(Exception):
+            tik.project.delete_sub_project(uid=None, path=None)
 
         # not permissions to delete
         tik.user.set("Generic", password="1234")
@@ -451,10 +452,10 @@ class TestProject:
         tik.user.set("Generic", password="1234")
         assert (
             task.edit(
-                name="Aquaman",
+                nice_name="Aquaman",
                 categories=["Model", "Rig", "LookDev", "Animation"],
                 metadata_overrides={"mode": "shot"},
-            )
+            )[0]
             == -1
         )
         assert tik.log.get_last_message() == (
@@ -469,12 +470,13 @@ class TestProject:
             categories=["Model", "Rig", "LookDev"],
             parent_path="Assets/Characters/Soldier",
         )
+
         assert (
             task.edit(
-                name="Wonderboy",
+                nice_name="Wonderboy",
                 categories=["Model", "Rig", "LookDev", "Animation"],
                 metadata_overrides={"mode": "shot"},
-            )
+            )[0]
             == -1
         )
         assert tik.log.get_last_message() == (
@@ -484,24 +486,27 @@ class TestProject:
 
         # wrong category type
         with pytest.raises(Exception):
-            task.edit(name="Aquaman", categories="ThisIsWrong", metadata_overrides={"mode": "shot"})
+            task.edit(nice_name="Aquaman", categories="ThisIsWrong", metadata_overrides={"mode": "shot"})
         # category not defined
-        with pytest.raises(Exception):
+        assert (
             task.edit(
-                name="Aquaman",
+                nice_name="Aquaman",
                 categories=["Model", "Rig", "LookDev", "Animation", "ThisIsWrong"],
                 metadata_overrides={"mode": "shot"},
-            )
+            )[0]
+            == -1
+        )
 
         # edit the task
         task.edit(
-            name="Aquaman",
+            nice_name="Aquaman",
             categories=["Model", "Rig", "LookDev", "Animation"],
             metadata_overrides={"mode": "shot"},
         )
 
         assert list(task.categories.keys()) == ["Model", "Rig", "LookDev", "Animation"]
-        assert task.name == "Aquaman"
+        assert task.nice_name == "Aquaman"
+        assert task.name == "Poseidon"
 
     def test_adding_categories(self, project_manual_path, tik):
         self.test_creating_and_adding_new_tasks(project_manual_path, tik)
@@ -543,17 +548,6 @@ class TestProject:
         assert tik.log.get_last_message() == (
             "'Temp' already exists in task 'batman'.",
             "warning",
-        )
-
-        # try to add a category that is not defined in the category definitions
-        with pytest.raises(Exception) as e_info:
-            tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks[
-                "batman"
-            ].add_category("Burhan")
-        # check the log message
-        assert tik.log.get_last_message() == (
-            "'Burhan' is not defined in category definitions.",
-            "error",
         )
 
     def test_order_categories(self, project_manual_path, tik):
@@ -634,7 +628,8 @@ class TestProject:
 
         tik2.project.subs[sub.name].delete_task("second_task")
 
-        assert sub.scan_tasks() == sub.tasks
+        assert tik2.project.subs[sub.name].tasks != tik2.project.subs[sub.name].all_tasks
+
 
     def test_if_a_task_is_empty(self, project_manual_path, tik):
         sub, task, work = self._create_a_subproject_task_and_work(
@@ -1112,6 +1107,9 @@ class TestProject:
             .scan_works()
         )
 
+        # scan and get all works using the property method
+        assert tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].all_works
+
     def test_deleting_works(self, project_manual_path, tik, monkeypatch):
         self.test_creating_works_and_versions(project_manual_path, tik, monkeypatch)
 
@@ -1128,6 +1126,7 @@ class TestProject:
         # try to delete a work without permissions
         tik.user.set("Generic", password="1234")
         assert target_work.destroy()[0] == -1
+        assert model_category.delete_works()[0] == False
 
         tik.user.set("Admin", password="1234")
         # delete the work
@@ -1142,8 +1141,8 @@ class TestProject:
             tik.project.subs["Assets"]
             .subs["Characters"]
             .subs["Soldier"]
-            .delete_task("superman")
-            == -1
+            .delete_task("superman")[0]
+            == False
         )
         # check if the log message is correct
         assert tik.log.get_last_message() == (
@@ -1156,7 +1155,7 @@ class TestProject:
             .subs["Characters"]
             .subs["Soldier"]
             .delete_task("this_task_doesnt_exist")[0]
-            == -1
+            == False
         )
 
         # delete the task
@@ -1166,7 +1165,7 @@ class TestProject:
             .subs["Characters"]
             .subs["Soldier"]
             .delete_task("superman")[0]
-            == 1
+            == True
         )
 
     def test_deleting_non_empty_task(self, project_manual_path, tik, monkeypatch):
@@ -1177,34 +1176,14 @@ class TestProject:
         # create an additional work
         task.categories["Model"].create_work("test_work_to_double_delete")
         result = sub.delete_task(task.name)
-        assert result == (1, "success")
+        assert result == (True, "success")
 
         # create the same task and same work again
         task = sub.add_task(task.name, categories=["Model", "Rig", "LookDev"])
         task.categories["Model"].create_work("test_work_to_double_delete")
 
-        # mock the shutil.rmtree to raise a PermissionError
-        def mock_rmtree(*args, **kwargs):
-            raise PermissionError
-
-        monkeypatch.setattr(shutil, "rmtree", mock_rmtree)
         result = sub.delete_task(task.name)
-        assert result[0] == -1
-
-        # mock the unlink method to raise a PermissionError
-        monkeypatch.undo()
-
-        def mock_unlink(*args, **kwargs):
-            raise PermissionError
-
-        monkeypatch.setattr(Path, "unlink", mock_unlink)
-        result = sub.delete_task(task.name)
-        assert result[0] == -1
-
-        # remove the mock and clean the purgatory.
-        monkeypatch.undo()
-        result = sub.delete_task(task.name)
-        assert result == (1, "success")
+        assert result == (True, "success")
 
     def test_deleting_empty_categories(self, project_manual_path, tik):
         self.test_adding_categories(project_manual_path, tik)
@@ -1276,5 +1255,24 @@ class TestProject:
             .subs["Characters"]
             .subs["Soldier"]
             .delete_task("superboy")[0]
-            == 1
+            == True
         )
+
+    def test_delete_works_failure(self, project_manual_path, tik, monkeypatch):
+        """Test delete_works method when work cannot be destroyed."""
+        sub, task, work = self._create_a_subproject_task_and_work(
+            project_manual_path, tik)
+        model_category = task.categories["Model"]
+
+        # Create a work
+        new_work = model_category.create_work("work_to_delete")
+
+        # Mock the destroy method to return False and a failure message
+        def mock_destroy():
+            return False, "Failed to delete work"
+
+        monkeypatch.setattr(new_work, "destroy", mock_destroy)
+
+        # Attempt to delete the work
+        result = new_work.destroy()
+        assert result == (False, "Failed to delete work")

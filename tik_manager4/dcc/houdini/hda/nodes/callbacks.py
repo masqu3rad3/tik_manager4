@@ -6,7 +6,10 @@ from tik_manager4.ui.dialog.subproject_dialog import SelectSubprojectDialog
 import tik_manager4
 
 class Callbacks:
+    # valid_elements = ["alembic", "usd", "usd_lop"]
+
     def __init__(self):
+        self.valid_elements = ["alembic", "usd", "usd_lop"]
         self.tik_m = tik_manager4.initialize("houdini")
 
     def _collect_parameter_values(self, node):
@@ -359,8 +362,7 @@ class Callbacks:
                 object.
         """
         if version_obj:
-            valid_elements = ["alembic", "usd"]
-            elements = [x for x in version_obj.element_types if x in valid_elements]
+            elements = [x for x in version_obj.element_types if x in self.valid_elements]
             element_names = ";".join(elements)
             pass_value = elements[0] if elements else None
         else:

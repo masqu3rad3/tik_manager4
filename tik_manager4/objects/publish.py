@@ -58,13 +58,20 @@ class Publish(LocalizeMixin):
     @property
     def versions(self):
         """Versions of the publish."""
+        all_versions = self.all_versions
+        return [version for version in all_versions if not version.deleted]
+
+    @property
+    def all_versions(self):
+        """All versions of the publish, including the deleted ones."""
         self.scan_publish_versions()
         return list(self._publish_versions.values())
 
     @property
     def version_count(self):
         """Number of publish versions."""
-        return len(self.versions)
+        # return len(self.versions)
+        return len(self.all_versions)
 
     @property
     def state(self):
@@ -75,6 +82,12 @@ class Publish(LocalizeMixin):
     def parent_task(self):
         """Parent task of the publish."""
         return self.work_object.parent_task
+
+    @property
+    def deleted(self):
+        """Return True if the publish is deleted."""
+        # if there are no non-deleted versions, the publish is considered deleted
+        return not bool(self.versions)
 
     def reload(self):
         """Reload the publish object."""
@@ -96,7 +109,7 @@ class Publish(LocalizeMixin):
     def get_last_version(self):
         """Return the last publish version."""
         # find the latest publish version
-        _publish_version_numbers = [data.version for data in self.versions]
+        _publish_version_numbers = [data.version for data in self.all_versions]
         return 0 if not _publish_version_numbers else max(_publish_version_numbers)
 
     def get_publish_data_folder(self):
@@ -325,7 +338,9 @@ class Publish(LocalizeMixin):
         # move the whole publish folder to purgatory
 
         for publish_obj in self.versions:
-            publish_obj.move_to_purgatory()
+            state, msg = publish_obj.move_to_purgatory()
+            if not state:
+                return -1, msg
 
         # clear the publish versions
         self._publish_versions = {}
@@ -368,8 +383,33 @@ class Publish(LocalizeMixin):
             LOG.warning(msg)
             return -1, msg
 
-        version_obj.move_to_purgatory()
+        state, msg = version_obj.move_to_purgatory()
+        if not state:
+            return -1, msg
 
         # remove the publish version from the publish versions
-        self._publish_versions.pop(version_obj.settings_file)
         return 1, "success"
+
+    def resurrect(self, dont_resurrect_versions=False):
+        """Resurrect the publishes stalk.
+
+        By default this brings back the LAST publish version from purgatory.
+
+        Args:
+            dont_resurrect_versions (bool, optional): If True, the versions of
+                the publish will not be resurrected. Defaults to False.
+
+        Returns:
+            tuple: (state(int), message(str)): 1 if the operation is
+                successful, -1 otherwise. A message is returned as well.
+        """
+        # if the upstream work is deleted, first resurrect the work (and everything above)
+        if self.work_object.deleted:
+            state = self.work_object.resurrect()
+            if state == -1:
+                return -1
+
+        if not dont_resurrect_versions:
+            # resurrect only the last version. This is because we dont want any versionless works.
+            self.all_versions[-1].resurrect()
+        return 1
