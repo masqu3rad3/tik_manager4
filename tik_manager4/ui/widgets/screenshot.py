@@ -1,13 +1,14 @@
-import os
+from pathlib import Path
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 
 
 class ScreenShot(QtWidgets.QDialog):
-    def __init__(self, file_path):
+    def __init__(self, folder_path):
         super(ScreenShot, self).__init__()
 
-        self.file_path = file_path
+        self.folder_path = folder_path
+        self.file_path = None
         self.image_map = None
         self.origin = None
 
@@ -93,23 +94,23 @@ class ScreenShot(QtWidgets.QDialog):
                                                rect.width(),
                                                rect.height())
 
-            self.save_image(self.file_path)
+            self.save_image(self.folder_path)
 
             self.accept()
 
         QtWidgets.QWidget.mouseReleaseEvent(self, event)
 
-    def save_image(self, file=None):
+    def save_image(self, folder_path=None):
         """Save the image to the specified path"""
-        if not file:
+        if not folder_path:
             return self.file_path
 
-        if not os.path.exists(file):
-            os.makedirs(file)
+        screenshot_temp_path = Path(folder_path)
+        screenshot_temp_path.mkdir(parents=True, exist_ok=True)
 
-        file_path = os.path.join(file, "screenshot_temp.jpg")
-        self.file_path = file_path
-        self.image_map.save(file_path)
+        self.file_path = screenshot_temp_path / "screenshot_temp.jpg"
+
+        self.image_map.save(str(self.file_path))
 
 
 def take_screen_area(file_path):
