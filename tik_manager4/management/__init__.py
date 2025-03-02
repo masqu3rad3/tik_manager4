@@ -1,6 +1,3 @@
-import sys
-import importlib
-from pathlib import Path
 from .management_core import ManagementCore
 
 # Dictionary to store platform classes
@@ -17,5 +14,4 @@ from tik_manager4.management.kitsu.ui_extension import UiExtensions as kitsu_ui_
 platforms["kitsu"] = kitsu_platform
 ui_extensions["kitsu"] = kitsu_ui_extension
 
-# Optional: Explicitly make platforms accessible from the management package
 __all__ = ["platforms"]
