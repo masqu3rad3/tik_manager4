@@ -12,7 +12,6 @@ from tik_manager4.core import io
 from tik_manager4.core import settings
 from tik_manager4.core import utils
 from tik_manager4.external import fileseq
-from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.external.filelock import FileLock, Timeout
 from tik_manager4.core.cli import FeedbackCLI
 from tik_manager4.core.settings import Settings
@@ -587,6 +586,7 @@ def test_is_modified(tmp_path):
         json.dump(settings_data, f)
         f.flush()
         os.fsync(f.fileno())  # Ensures changes are committed
+    time.sleep(0.1)  # Small delay to allow timestamp update
     assert settings.is_modified()
 
 def test_sanitize_text():
