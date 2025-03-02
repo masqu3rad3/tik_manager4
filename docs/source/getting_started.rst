@@ -10,6 +10,8 @@ Therefore, it is important to define a folder that is accessible to all users.
 
 **Common Folder** can be changed at any time from `File Menu -> Settings -> User -> User Settings`.
 
+.. _adding_users:
+
 Adding Users
 ------------
 Users in Tik Manager4 are individuals who will be working on the project, such as artists, supervisors, and producers.

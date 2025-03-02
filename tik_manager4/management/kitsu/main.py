@@ -17,7 +17,6 @@ from tik_manager4.management.exceptions import AuthenticationError, SyncError
 
 from tik_manager4.management.kitsu.ui import login
 
-
 external_folder = Path(__file__).parents[2] / "external"
 
 kitsu_folder = (external_folder / "kitsu").as_posix()

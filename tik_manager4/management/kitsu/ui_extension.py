@@ -1,5 +1,4 @@
 """UI Extension for Kitsu"""
-from logging import critical
 
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog.feedback import Feedback
