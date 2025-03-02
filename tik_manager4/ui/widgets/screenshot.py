@@ -83,15 +83,11 @@ class ScreenShot(QtWidgets.QDialog):
             self.image_map = screen.grabWindow(0, pos.x(), pos.y(),
                                                rect.width(),
                                                rect.height())
+            self.image_map.save(self.file_path)
 
-            self.save_image()
             self.accept()
 
         QtWidgets.QWidget.mouseReleaseEvent(self, event)
-
-    def save_image(self):
-        """Save the image to the specified path"""
-        self.image_map.save(self.file_path)
 
 
 def take_screen_area(file_path):
