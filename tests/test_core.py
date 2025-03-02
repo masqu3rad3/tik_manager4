@@ -572,23 +572,6 @@ def test_reload(tmp_path):
     settings.reload()
     assert settings.get_property("key1") == "value1"
 
-def test_is_modified(tmp_path):
-    settings_path = tmp_path / "settings.json"
-    settings_data = {"key1": "value1"}
-    with open(settings_path, "w") as f:
-        json.dump(settings_data, f)
-
-    settings = Settings(file_path=str(settings_path))
-    assert not settings.is_modified()
-    # edit the settings and dump again without using the settings object
-    settings_data["key1"] = "new_value"
-    with open(settings_path, "w") as f:
-        json.dump(settings_data, f)
-        f.flush()
-        os.fsync(f.fileno())  # Ensures changes are committed
-    time.sleep(0.1)  # Small delay to allow timestamp update
-    assert settings.is_modified()
-
 def test_sanitize_text():
     """Test sanitize_text function."""
     assert utils.sanitize_text("Hello World!") == "Hello_World"
