@@ -829,6 +829,9 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 "Image files (*.jpg *.png *.gif *.webp)",
             )[0]
 
+        if mode != "view" and not file_path:
+            return
+
         self.base.replace_thumbnail(version_number, new_thumbnail_path=file_path)
         self.refresh()
 
