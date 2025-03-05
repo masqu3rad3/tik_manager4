@@ -125,6 +125,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.base = None
         self.parent = kwargs.get("parent")
         self.feedback = Feedback(parent=self.parent)
+        self.app_instance = QtWidgets.QApplication.instance()
 
         self.ingest_mapping = {}  # mapping of ingestor nice name to ingestor name
         self.element_mapping = ({})  # mapping of element type nice name to element type name
@@ -819,7 +820,19 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         elif mode == "screenshot":
             temp_file = (Path(tempfile.gettempdir()) /
                          "tik_manager_screenshot_temp.jpg").as_posix()
+
+            window = self.app_instance.activeWindow()
+
+            # hide window instance for a moment
+            if hasattr(window, "hide"):
+                window.hide()
+
             file_path = take_screen_area(temp_file)
+
+            # bring back the window
+            if hasattr(window, "show"):
+                window.show()
+
         else:
             # get the project directory
             file_path = QtWidgets.QFileDialog.getOpenFileName(
