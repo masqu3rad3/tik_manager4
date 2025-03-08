@@ -27,7 +27,7 @@ class MissingUvs(ValidateCore):
         self.failed_meshes = self._check_for_missing_uvs()
 
         if self.failed_meshes:
-            self.failed(msg=f"Overlapping UVs found on meshes: {self.failed_meshes}")
+            self.failed(msg=f"Following meshes doesn't have UVs: {self.failed_meshes}")
         else:
             self.passed()
 

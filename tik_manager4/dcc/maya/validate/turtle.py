@@ -21,7 +21,7 @@ class Turtle(ValidateCore):
         """Check for turtle nodes."""
         self.turtle_nodes = cmds.ls(self.turtle_nodes)
         if self.turtle_nodes:
-            self.failed(msg="Turtle nodes found: {}".format(self.turtle_nodes))
+            self.failed(msg=f"Turtle nodes found: {self.turtle_nodes}")
         else:
             self.passed()
 

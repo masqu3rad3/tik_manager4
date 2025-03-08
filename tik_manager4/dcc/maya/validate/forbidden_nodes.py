@@ -23,7 +23,7 @@ class ForbiddenNodes(ValidateCore):
         """Validate unique names in Maya scene."""
         forbidden_nodes = cmds.ls(type=self.forbiddenNodeTypes)
         if forbidden_nodes:
-            self.failed(msg="Forbidden nodes found: {}".format(forbidden_nodes))
+            self.failed(msg=f"Forbidden nodes found: {forbidden_nodes}")
         else:
             self.passed()
     def fix(self):
