@@ -32,7 +32,7 @@ from tik_manager4.management.exceptions import SyncError
 from tik_manager4.ui import pick
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback, Confirmation
-from tik_manager4.ui.dialog.project_dialog import NewProjectDialog
+from tik_manager4.ui.dialog.project_dialog import NewProjectDialog, SetProjectAsTemplateDialog
 from tik_manager4.ui.dialog.publish_dialog import PublishSceneDialog
 from tik_manager4.ui.dialog.settings_dialog import SettingsDialog
 from tik_manager4.ui.dialog import support_splash
@@ -413,21 +413,10 @@ class MainUI(QtWidgets.QMainWindow):
         )
         self.categories_mcv.work_tree_view.file_dropped.connect(self.on_save_any_file)
         self.categories_mcv.work_tree_view.work_resurrected.connect(self.refresh_project)
-        # self.categories_mcv.work_tree_view.work_resurrected.connect(
-        #     self.subprojects_mcv.sub_view.refresh
-        # )
+
         self.versions_mcv.version.preview_btn.clicked.connect(self.on_show_preview)
         self.versions_mcv.element_view_event.connect(self.on_element_view)
         self.versions_mcv.version_resurrected.connect(self.refresh_project)
-        # self.versions_mcv.version_resurrected.connect(
-        #     self.categories_mcv.work_tree_view.refresh
-        # )
-        # self.versions_mcv.version_resurrected.connect(
-        #     self.tasks_mcv.task_view.refresh
-        # )
-        # self.versions_mcv.version_resurrected.connect(
-        #     self.subprojects_mcv.sub_view.refresh
-        # )
 
         if self.tik.dcc.name == "Standalone":
             self.categories_mcv.work_tree_view.save_new_work_event.connect(
@@ -567,6 +556,10 @@ class MainUI(QtWidgets.QMainWindow):
         )
         file_menu.addAction(settings_item)
         file_menu.addSeparator()
+        set_as_template = QtWidgets.QAction("&Set as Template", self)
+        file_menu.addAction(set_as_template)
+        file_menu.addSeparator()
+
         user_login = QtWidgets.QAction(pick.icon("user"), "&User Login", self)
         file_menu.addAction(user_login)
         exit_action = QtWidgets.QAction("&Exit", self)
@@ -618,6 +611,7 @@ class MainUI(QtWidgets.QMainWindow):
         user_login.triggered.connect(self.on_login)
         settings_item.triggered.connect(self.on_settings)
         set_project.triggered.connect(self.project_mcv.set_project)
+        set_as_template.triggered.connect(self.on_set_project_as_template)
         exit_action.triggered.connect(self.close)
 
         save_new_work.triggered.connect(self.on_new_work)
@@ -1212,6 +1206,14 @@ class MainUI(QtWidgets.QMainWindow):
         """
         executable = self.tik.user.settings.get(f"{element_type}_viewer", None)
         utils.execute(element_path, executable=executable)
+
+    def on_set_project_as_template(self):
+        """Set the current project as a template."""
+        # pre-check the permissions
+        if not self._pre_check(level=3):
+            return
+        dialog = SetProjectAsTemplateDialog(self.tik, parent=self)
+        dialog.show()
 
     def _pre_check(self, level):
         """Check for permissions before drawing the dialog."""

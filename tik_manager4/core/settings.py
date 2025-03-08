@@ -210,6 +210,10 @@ class Settings:
         """Return the whole current data."""
         return self._current_value
 
+    def copy_data(self):
+        """Return a copy of the current data."""
+        return deepcopy(self._current_value)
+
     def set_fallback(self, file_path):
         """Use the given file in case the file_path is not found.
 

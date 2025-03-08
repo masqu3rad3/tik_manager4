@@ -621,3 +621,18 @@ def test_import_from_path(tmp_path):
     module_file.write_text("value = 42")
     module = utils.import_from_path("test_module", str(module_file))
     assert module.value == 42
+
+def test_copy_data():
+    """Test the copy_data function."""
+    settings = Settings()
+    original_data = {"key1": "value1", "key2": {"subkey": "subvalue"}}
+    settings.initialize(original_data)
+
+    copied_data = settings.copy_data()
+
+    # Ensure the copied data is the same as the original
+    assert copied_data == original_data
+
+    # Ensure the copied data is a deep copy (modifying it should not affect the original)
+    copied_data["key2"]["subkey"] = "new_subvalue"
+    assert settings.get_property("key2")["subkey"] == "subvalue"

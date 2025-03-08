@@ -202,6 +202,26 @@ class Main:
         self.globalize_management_platform()
         return 1
 
+    def add_project_as_structure_template(self, template_name=None):
+        """Add the current project as a new structure template."""
+        # check for the permission level
+        if self.user.permission_level < 3:
+            self.log.warning("This user does not have rights to perform this action")
+            return False
+
+        current_structure = self.project.structure.copy_data()
+        # go through the structure and remove the ids
+        filtered_structure = utils.remove_key(current_structure, "id")
+        filtered_structure["name"] = template_name
+        print(filtered_structure)
+
+        self.user.commons.structures.add_property(template_name, filtered_structure)
+        self.user.commons.structures.apply_settings()
+
+        return True
+
+
+
     def collect_template_paths(self):
         """Collect all template files from common, project and user folders.
 

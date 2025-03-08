@@ -1,6 +1,9 @@
 """Dialog for setting project."""
 
 import os
+from logging import critical
+
+from coverage.debug import info_header
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.widgets import path_browser
@@ -338,4 +341,79 @@ class NewProjectDialog(EditSubprojectDialog):
         self.main_object.create_project(path, **filtered_data)
         # close the dialog
         self.accept()
+
+
+class SetProjectAsTemplateDialog(QtWidgets.QDialog):
+    """Custom Dialog to set the current project as a template."""
+    def __init__(self, main_object, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.main_object = main_object
+        self.feedback = Feedback(parent=self)
+        self.setWindowTitle("Set Project as A Structure Template")
+        self.setModal(True)
+        self.master_lay = QtWidgets.QVBoxLayout(self)
+
+        self.name_le = None
+        self.build_ui()
+
+    def build_ui(self):
+        """Build the UI."""
+        # create a non-editable text field to give info
+        text_edit = QtWidgets.QTextEdit()
+        text_edit.setReadOnly(True)
+        text_edit.setPlainText(
+            "This will set the current project as a structure template. "
+            "The template will be available in the 'New Project' dialog."
+        )
+        # Set size policy to prevent excessive expansion
+        text_edit.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                QtWidgets.QSizePolicy.Minimum)
+
+        # Set a reasonable fixed height
+        text_edit.setFixedHeight(
+            text_edit.fontMetrics().lineSpacing() * 4)  # Adjust 4 if needed
+
+        self.master_lay.addWidget(text_edit)
+
+        name_lay = QtWidgets.QHBoxLayout()
+        self.master_lay.addLayout(name_lay)
+        name_lbl = QtWidgets.QLabel("Name:")
+        name_lay.addWidget(name_lbl)
+        self.name_le = QtWidgets.QLineEdit()
+        self.name_le.setPlaceholderText("Name of the template")
+        name_lay.addWidget(self.name_le)
+        button_box = TikButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
+        self.master_lay.addWidget(button_box)
+
+        # SIGNALS
+        button_box.accepted.connect(self.set_template)
+        button_box.rejected.connect(self.close)
+
+    def set_template(self):
+        """Set the current project as a template."""
+        name = self.name_le.text()
+        if not name:
+            self.feedback.pop_info(
+                title="No Name",
+                text="Please enter a name for the template",
+                critical=True
+            )
+            return
+
+        # check if the given template name already exists
+        if name in self.main_object.user.commons.structures.keys:
+            proceed = self.feedback.pop_question(
+                title="Template Exists",
+                text="A template with the same name already exists\n\n"
+                     "Do you want to overwrite it?",
+                buttons=["yes", "cancel"]
+            )
+            if proceed == "cancel":
+                return
+
+        self.main_object.add_project_as_structure_template(name)
+        self.accept()
+        self.close()
 

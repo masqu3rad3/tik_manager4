@@ -228,3 +228,13 @@ def import_from_path(module_name, file_path, cleanup=True):
             sys.path.remove(parent_dir)
 
     return module
+
+def remove_key(data, key):
+    """Recursively traverse the data and remove the key."""
+    if isinstance(data, dict):
+        return {k: remove_key(v, key) for k, v in data.items() if
+                k != key}
+    elif isinstance(data, list):
+        return [remove_key(item, key) for item in data]
+    else:
+        return data
