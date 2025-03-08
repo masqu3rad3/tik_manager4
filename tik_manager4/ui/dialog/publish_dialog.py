@@ -515,6 +515,8 @@ class PublishSceneDialog(QtWidgets.QDialog):
                 callback_handler.set_message(f"Extracting {extractor_widget.extract.name}...")
                 callback_handler.display()
             self.project.publisher.extract_single(extractor_widget.extract)
+            # update the message display
+            extractor_widget.update_message_box()
             extractor_widget.set_state(extractor_widget.extract.state)
             if extractor_widget.extract.state == "failed":
                 callback_handler.kill()
@@ -525,12 +527,12 @@ class PublishSceneDialog(QtWidgets.QDialog):
                 )
                 if q == "cancel":
                     self.project.publisher.discard()
-                    # self.__init__(self.project)
+                    QtWidgets.QApplication.processEvents()
                     return False
-                    # raise Exception("Extraction Failed")
                 if q == "continue":
                     continue
             QtWidgets.QApplication.processEvents()
+
         return True
 
     def reset_validators(self):
@@ -615,6 +617,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
         if not state:
             pop.kill()
             # user cancellation due to failed extracts
+            self.project.publisher.discard()
             return
 
         # finalize publish
@@ -638,13 +641,16 @@ class PublishSceneDialog(QtWidgets.QDialog):
         # prepare publish report and feedback
         pop.kill()
         if warnings:
-            msg = f"Publish Successful with following warnings:\n\n{warnings}"
+            msg = f"Publish finished with following warnings:\n\n{warnings}"
+            # if there are warnings, lets not close the dialog. Let the user see the warnings
+            self.feedback.pop_info(title="Publish Finished with Ignored Warnings", text=msg)
+            return
         else:
             msg = f"Publish Successful"
-        self.feedback.pop_info(title="Publish Successful", text=msg)
-        self.close()
-        self.deleteLater()
-        return
+            self.feedback.pop_info(title="Publish Successful", text=msg)
+            self.close()
+            self.deleteLater()
+            return
 
 
 class ValidateRow(QtWidgets.QHBoxLayout):
