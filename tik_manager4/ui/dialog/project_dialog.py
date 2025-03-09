@@ -1,9 +1,6 @@
 """Dialog for setting project."""
 
 import os
-from logging import critical
-
-from coverage.debug import info_header
 
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.widgets import path_browser
