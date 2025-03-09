@@ -23,7 +23,7 @@ class FPS(ValidateCore):
             self.autofixable = False
         self._current_fps = utils.get_scene_fps()
         if self._current_fps != self._defined_fps:
-            self.failed(msg="FPS is not correct. Expected: {}, Found: {}".format(self._defined_fps, self._current_fps))
+            self.failed(msg=f"FPS is not correct. Expected: {self._defined_fps}, Found: {self._current_fps}")
         else:
             self.passed()
 

@@ -30,7 +30,7 @@ class ShapeNames(ValidateCore):
             if not self.check_shapename(transform):
                 self.bad_names.append(transform)
         if self.bad_names:
-            self.failed(msg="Shape names under following parent transforms are not following the standard: {}".format(self.bad_names))
+            self.failed(msg=f"Shape names under following parent transforms are not following the standard: {self.bad_names}")
         else:
             self.passed()
 

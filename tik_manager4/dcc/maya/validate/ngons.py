@@ -30,7 +30,7 @@ class Ngons(ValidateCore):
             if ngon_count:
                 self.bad_meshes.append(mesh)
         if self.bad_meshes:
-            self.failed(msg="Ngons found in the following meshes: {}".format(self.bad_meshes))
+            self.failed(msg=f"Ngons found in the following meshes: {self.bad_meshes}")
         else:
             self.passed()
 
