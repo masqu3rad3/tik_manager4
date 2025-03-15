@@ -102,7 +102,6 @@ class Project(Subproject):
         project_commons_name = self.settings.get_property("commons_name", "")
         if project_commons_id and project_commons_id != commons_id:
             return False, f"Commons ID Mismatch\n\nThis project is linked to a different commons:\nID: {project_commons_id}\nName: {project_commons_name}\n\nTo access this project, you need to switch to the corresponding commons."
-        # self.settings.set_fallback(self.guard.commons.project_settings.settings_file)
         self.guard.set_project_settings(self.settings)
         # get preview settings
         self.preview_settings.settings_file = str(
