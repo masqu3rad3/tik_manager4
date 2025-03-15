@@ -120,8 +120,8 @@ class TestProject:
         test_project_path = self._new_asset_shot_project(project_path, tik)
         tik.project.__init__(path=test_project_path)
         # try to set a non-existing project
-        assert tik.set_project(test_project_path) == 1
-        assert tik.set_project("Burhan") == -1
+        assert tik.set_project(test_project_path)[0] == True
+        assert tik.set_project("Burhan")[0] == False
 
     def test_create_sub_project(self, project_path, tik):
         """Tests creating sub-projects with parent id and path"""
