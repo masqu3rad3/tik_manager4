@@ -127,6 +127,7 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "pathBrowser": tik_manager4.ui.widgets.path_browser.PathBrowser,
         "fileBrowser": tik_manager4.ui.widgets.path_browser.FileBrowser,
         "subprojectBrowser": tik_manager4.ui.widgets.browser.SubprojectBrowser,
+        "info": value_widgets.Info,
     }
 
     def __init__(self, ui_definition, settings_data=None, *args, **kwargs):
@@ -211,7 +212,7 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 self.addRow(_label, _layout)
             elif _type == "separator":
                 # first add a blank line
-                self.addRow("", QtWidgets.QLabel())
+                # self.addRow("", QtWidgets.QLabel())
                 # if the type is separator, simply add a new row.
                 _widget = QtWidgets.QLabel(text=_display_name)
                 # make it bold and larger

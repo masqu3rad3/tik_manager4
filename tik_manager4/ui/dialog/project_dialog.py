@@ -163,7 +163,10 @@ class SetProjectDialog(QtWidgets.QDialog):
                 the folders or bookmarks and press 'Set'",
             )
             return
-        self.main_object.set_project(project_to_set)
+        state, msg = self.main_object.set_project(project_to_set)
+        if not state:
+            self.feedback.pop_error(title="Cannot set project", text=msg)
+            return
         self.accept()
         # self.close()
 
@@ -230,7 +233,6 @@ class NewProjectDialog(EditSubprojectDialog):
             "project_root": {
                 "display_name": "Projects Root :",
                 "type": "pathBrowser",
-                # "type": "subprojectBrowser",
                 "project_object": self.tik_project,
                 "value": os.path.dirname(self.tik_project.absolute_path),
                 "tooltip": "Root for the projects",
@@ -248,6 +250,19 @@ class NewProjectDialog(EditSubprojectDialog):
                 "value": "Empty Project",
                 "tooltip": "Pick a template to start with",
             },
+            "locked_commons": {
+                "display_name": "Lock to Commons :",
+                "type": "boolean",
+                "value": True,
+                "tooltip": "The new project will be locked to the defined commons. The users set their commons to a different one won't be able to reach to this project.",
+                "disables": [[False, "common_to_lock"]],
+            },
+            "commons_to_lock": {
+                "display_name": "Current Commons :",
+                "type": "pathBrowser",
+                "value": self.main_object.user.commons.folder_path,
+                "tooltip": "The commons directory to be locked to",
+            }
         }
         return _primary_ui
 
@@ -320,6 +335,12 @@ class NewProjectDialog(EditSubprojectDialog):
 
     def _execute(self):
         """Create the project."""
+        locked_commons = self.primary_data.get_property("locked_commons")
+        if locked_commons:
+            commons_path = self.primary_data.get_property("commons_to_lock")
+            if self.main_object.user.commons.folder_path != commons_path:
+                self.main_object.user.__init__(commons_path)
+
         # build a new kwargs dictionary by filtering the settings_data
         path = os.path.join(
             self.primary_data.get_property("project_root"),
@@ -335,7 +356,7 @@ class NewProjectDialog(EditSubprojectDialog):
         # filtered_data.update_overridden_data(self.secondary_data)
         filtered_data.update_new_data(self.secondary_data)
 
-        self.main_object.create_project(path, **filtered_data)
+        self.main_object.create_project(path, locked_commons=locked_commons, **filtered_data)
         # close the dialog
         self.accept()
 

@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import shutil
+import uuid
 
 from tik_manager4.core.settings import Settings
 from tik_manager4 import defaults
@@ -9,8 +10,8 @@ from tik_manager4 import defaults
 
 class Commons:
     """Class to handle the common settings and user data"""
-    exportSettings = None
-    importSettings = None
+    # exportSettings = None
+    # importSettings = None
     user_defaults = None
     project_settings = None
     users = None
@@ -28,6 +29,16 @@ class Commons:
     def folder_path(self):
         """Return the folder path."""
         return str(self._folder_path)
+
+    @property
+    def id(self):
+        """Return the commons id."""
+        return self.management_settings.get_property("commons_id")
+
+    @property
+    def name(self):
+        """Return the commons name."""
+        return str(Path(self._folder_path).name)
 
     def _validate_commons_folder(self):
         """Make sure the 'commons folder' contains the necessary setting files.
@@ -73,6 +84,12 @@ class Commons:
         self.management_settings = Settings(
             file_path=str(Path(self._folder_path, "management_settings.json"))
         )
+        if not self.management_settings.get_property("commons_id"):
+            self.management_settings.add_property("commons_id", str(uuid.uuid1().hex))
+            # # add the folder name as the commons_name
+            # self.management_settings.add_property("commons_name", Path(self._folder_path).name)
+            self.management_settings.apply_settings()
+
         return True
 
     def check_user_permission_level(self, user_name):

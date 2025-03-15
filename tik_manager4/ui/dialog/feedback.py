@@ -94,6 +94,10 @@ class Feedback:
             on_close(result)
         return result
 
+    def pop_error(self, *args, **kwargs) -> int:
+        """Shows an error dialog box."""
+        return self.pop_info(*args, critical=True, **kwargs)
+
     def pop_question(
             self,
             title: str = "Question",

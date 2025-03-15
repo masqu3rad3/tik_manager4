@@ -802,9 +802,18 @@ class ProductionPlatform(ManagementCore):
         """Return the settings UI for the Shotgrid platform."""
         # Make sure the keys are unique accross all other platforms
         return {
+            "_shotgrid_blank": {
+                "display_name": "",
+                "value": "--------------------------------------------------------",
+                "type": "info",
+                "font_size": 12,
+            },
             "_shotgrid": {
-                "type": "separator",
-                "display_name": "Autodesk Flow Production Settings",
+                "display_name": "",
+                "type": "info",
+                "value": "Autodesk Flow Production Settings",
+                "font_size": 14,
+                "bold": True,
             },
             "sg_url": {
                 "display_name": "ShotGrid URL",

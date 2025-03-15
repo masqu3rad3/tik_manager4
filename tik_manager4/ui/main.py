@@ -175,6 +175,7 @@ class MainUI(QtWidgets.QMainWindow):
         self._purgatory_mode = False
 
         self.resume_last_state()
+
         self.management_lock()
 
         self.status_bar.showMessage("Status | Ready")

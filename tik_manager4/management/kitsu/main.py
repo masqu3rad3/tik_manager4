@@ -468,9 +468,18 @@ class ProductionPlatform(ManagementCore):
         """Return the settings UI for the Shotgrid platform."""
         # Make sure the keys are unique accross all other platforms
         return {
+            "_kitsu_blank": {
+                "display_name": "",
+                "value": "--------------------------------------------------------",
+                "type": "info",
+                "font_size": 12,
+            },
             "_kitsu": {
-                "type": "separator",
-                "display_name": "Kitsu Settings",
+                "display_name": "",
+                "type": "info",
+                "value": "Kitsu Settings",
+                "font_size": 14,
+                "bold": True,
             },
             "kitsu_url": {
                 "display_name": "Kitsu Host URL",
