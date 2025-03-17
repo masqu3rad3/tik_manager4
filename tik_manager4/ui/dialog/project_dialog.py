@@ -2,6 +2,7 @@
 
 import os
 
+from tik_manager4.core.constants import ValidationState
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.widgets import path_browser
 from tik_manager4.ui.widgets.common import TikButton, TikButtonBox
@@ -163,12 +164,24 @@ class SetProjectDialog(QtWidgets.QDialog):
                 the folders or bookmarks and press 'Set'",
             )
             return
+        validation = self.main_object.can_set_project(project_to_set)
+        if validation.state != ValidationState.SUCCESS:
+            if not validation.allow_proceed:
+                self.feedback.pop_error(
+                    title="Cannot set project",
+                    text=validation.message,
+                )
+                return
+            ret = self.feedback.pop_question(title="Warning",
+                                                 text=validation.message,
+                                                 buttons=["yes", "no"])
+            if ret == "no":
+                return
         state, msg = self.main_object.set_project(project_to_set)
         if not state:
             self.feedback.pop_error(title="Cannot set project", text=msg)
             return
         self.accept()
-        # self.close()
 
     def on_add_bookmark(self):
         """Called when the add bookmark button is clicked."""

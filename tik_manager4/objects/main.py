@@ -6,6 +6,7 @@ from pathlib import Path
 import uuid
 
 from tik_manager4.core import filelog, settings, utils
+from tik_manager4.core.constants import ValidationState, ValidationResult
 from tik_manager4.objects import user, project, purgatory
 from tik_manager4 import dcc
 from tik_manager4 import management
@@ -196,6 +197,29 @@ class Main:
             self.set_project(path_obj.as_posix())
         return 1
 
+    def can_set_project(self, absolute_path) -> ValidationResult:
+        """Check if the project is valid.
+
+        Args:
+            absolute_path (str): The absolute path to the project.
+
+        Returns:
+            object: ValidationResult object.
+        """
+        if not Path(absolute_path).exists():
+            msg = "Project Path does not exist. Aborting"
+            self.log.error(msg)
+            return ValidationResult(ValidationState.ERROR, msg, allow_proceed=False)
+        if not Path(absolute_path, "tikDatabase", "project_structure.json").exists():
+            if self.user.permission_level < 3:
+                msg = "The selected folder is not a Tik Manager project, and you do not have the necessary privileges to set it as one. Action cannot be completed."
+                self.log.error(msg)
+                return ValidationResult(ValidationState.ERROR, msg, allow_proceed=False)
+            msg = "The selected folder is not currently defined as a Tik Manager project. If you proceed, the necessary database files and folder structure will be created, and this folder will be designated as a Tik Manager project.\n\nDo you want to continue?"
+            self.log.warning(msg)
+            return ValidationResult(ValidationState.WARNING, msg, allow_proceed=True)
+        return ValidationResult(ValidationState.SUCCESS, "Success")
+
     def set_project(self, absolute_path):
         """Set the current project.
 
@@ -206,16 +230,15 @@ class Main:
             int: 1 if successful, -1 if not.
         """
         # pylint: disable=protected-access
-        if not Path(absolute_path).exists():
-            self.log.error("Project Path does not exist. Aborting")
-            return False, "Project Path does not exist. Aborting"
+        validation: ValidationResult = self.can_set_project(absolute_path)
+        if validation.state != ValidationState.SUCCESS and not validation.allow_proceed:
+            return False, validation.message
 
         state, msg = self.project._set(absolute_path, commons_id=self.user.commons.id) # pylint: disable=protected-access
         if not state:
             self.fallback_to_default_project()
             self.log.error(msg)
             return False, msg
-
 
         # add to recent projects
         self.user.add_recent_project(absolute_path)

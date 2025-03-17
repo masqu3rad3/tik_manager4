@@ -1,5 +1,6 @@
 """Constants used in the Tik Manager application."""
 
+from dataclasses import dataclass
 from enum import Enum
 
 class ObjectType(Enum):
@@ -14,3 +15,16 @@ class ObjectType(Enum):
     SUBPROJECT = "subproject"
     PROJECT = "project"
     USER = "user"
+
+class ValidationState(Enum):
+    """Enumeration of validation states."""
+    SUCCESS = "success"
+    WARNING = "warning"
+    ERROR = "error"
+
+@dataclass
+class ValidationResult:
+    """Dataclass to store validation results."""
+    state: ValidationState
+    message: str
+    allow_proceed: bool = False # Allow the user to proceed with the action

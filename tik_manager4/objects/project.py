@@ -100,6 +100,8 @@ class Project(Subproject):
         self.settings.settings_file = str(_database_path_obj / "project_settings.json")
         project_commons_id = self.settings.get_property("commons_id", None)
         project_commons_name = self.settings.get_property("commons_name", "")
+        print(f"Project Commons ID: {project_commons_id}")
+        print(f"Project Commons Name: {project_commons_name}")
         if project_commons_id and project_commons_id != commons_id:
             return False, f"Commons ID Mismatch\n\nThis project is linked to a different commons:\nID: {project_commons_id}\nName: {project_commons_name}\n\nTo access this project, you need to switch to the corresponding commons."
         self.guard.set_project_settings(self.settings)
