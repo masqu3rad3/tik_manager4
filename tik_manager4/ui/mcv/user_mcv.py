@@ -49,7 +49,6 @@ class TikUserLayout(QtWidgets.QHBoxLayout):
 
         # SIGNALS
         self.set_user_btn.clicked.connect(self.on_set_user)
-        self.refresh()
 
     def refresh(self):
         """Refresh the user name"""

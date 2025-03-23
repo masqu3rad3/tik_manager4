@@ -282,7 +282,6 @@ class TikLabel(QtWidgets.QLabel, StyleEditor):
         self.color = color
         self.set_font_size(font_size, bold=bold)
         self.set_color(text_color=self.color, border_color=self.color)
-        self.setText(text)
 
     def set_font_size(self, font_size, bold=False):
         if bold:
