@@ -371,9 +371,11 @@ class User:
 
         # set the active user
         active_user = self.resume.get_property("user")
+        print("active_user", active_user)
         state, _msg = self.set(active_user, save_to_db=False)
-        if state == -1:
-            self.set("Generic", save_to_db=False)
+        print(state, _msg)
+        # if state == -1:
+        #     self.set("Generic", save_to_db=False)
 
         self.settings.apply_settings()
         self.bookmarks.apply_settings()

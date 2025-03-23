@@ -28,3 +28,28 @@ class ValidationResult:
     state: ValidationState
     message: str
     allow_proceed: bool = False # Allow the user to proceed with the action
+
+class DataTypes(Enum):
+    """Widget Data Types."""
+    BOOLEAN = "boolean"
+    STRING = "string"
+    COMBO = "combo"
+    INTEGER = "integer"
+    FLOAT = "float"
+    SPINNERINT = "spinnerInt"
+    SPINNERFLOAT = "spinnerFloat"
+    LIST = "list"
+    DROPLIST = "dropList"
+    CATEGORYLIST = "categoryList"
+    VALIDATEDSTRING = "validatedString"
+    VECTOR2INT = "vector2Int"
+    VECTOR2FLOAT = "vector2Float"
+    VECTOR3INT = "vector3Int"
+    VECTOR3FLOAT = "vector3Float"
+    PATHBROWSER = "pathBrowser"
+    FILEBROWSER = "fileBrowser"
+    SUBPROJECTBROWSER = "subprojectBrowser"
+    MULTI = "multi"
+    GROUP = "group"
+    INFO = "info"
+    SEPARATOR = "separator"
