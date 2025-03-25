@@ -39,19 +39,19 @@ class String(QtWidgets.QLineEdit):
         self.com.valueChangeEvent(e)
 
 
-class Info(TikLabel):
-    """Simple QLabel widget to display information.
-    Mocked as a widget for consistency."""
-    def __init__(self, name, object_name=None, value="", **kwargs):
-        super(Info, self).__init__(**kwargs)
-        self.com = signals.ValueChangeStr()
-        self.value = value
-        self.setObjectName(object_name or name)
-        self.setText(value)
-        self.disables = []
-
-    def value_change_event(self, e):
-        pass
+# class Info(TikLabel):
+#     """Simple QLabel widget to display information.
+#     Mocked as a widget for consistency."""
+#     def __init__(self, name, object_name=None, value="", **kwargs):
+#         super(Info, self).__init__(**kwargs)
+#         self.com = signals.ValueChangeStr()
+#         self.value = value
+#         self.setObjectName(object_name or name)
+#         self.setText(value)
+#         self.disables = []
+#
+#     def value_change_event(self, e):
+#         pass
 
 class Combo(QtWidgets.QComboBox):
     def __init__(

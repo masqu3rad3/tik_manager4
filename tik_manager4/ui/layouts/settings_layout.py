@@ -10,6 +10,7 @@ Supported types:
 
 """
 from pathlib import Path
+from tik_manager4.core.constants import DataTypes
 from tik_manager4.core.settings import Settings
 from tik_manager4.core.utils import get_nice_name
 
@@ -25,32 +26,44 @@ from tik_manager4.ui.Qt import QtWidgets, QtCore
 def guess_data_type(data, enums=None):
     """Guess the type of the data to be used as ui definition."""
     if enums:
-        return "combo"
+        # return "combo"
+        return DataTypes.COMBO.value
     if isinstance(data, bool):
-        return "boolean"
+        # return "boolean"
+        return DataTypes.BOOLEAN.value
     elif isinstance(data, str):
         if Path(data).exists() and data != "":
-            return "pathBrowser"
-        return "string"
+            # return "pathBrowser"
+            return DataTypes.PATHBROWSER.value
+        # return "string"
+        return DataTypes.STRING.value
     elif isinstance(data, int):
-        return "integer"
+        # return "integer"
+        return DataTypes.INTEGER.value
     elif isinstance(data, float):
-        return "float"
+        # return "float"
+        return DataTypes.FLOAT.value
     elif isinstance(data, dict):
-        return "multi"
+        # return "multi"
+        return DataTypes.MULTI.value
     elif isinstance(data, (list, tuple)):
         if all(isinstance(item, int) for item in data) and len(data) == 2:
-            return "vector2Int"
+            # return "vector2Int"
+            return DataTypes.VECTOR2INT.value
         # if ANY floats, it is a vector2Float
         elif any(isinstance(item, float) for item in data) and len(data) == 2:
-            return "vector2Float"
+            # return "vector2Float"
+            return DataTypes.VECTOR2FLOAT.value
         elif all(isinstance(item, int) for item in data) and len(data) == 3:
-            return "vector3Int"
+            # return "vector3Int"
+            return DataTypes.VECTOR3INT.value
         # if ANY floats, it is a vector3Float
         elif any(isinstance(item, float) for item in data) and len(data) == 3:
-            return "vector3Float"
+            # return "vector3Float"
+            return DataTypes.VECTOR3FLOAT.value
         else:
-            return "combo"
+            # return "combo"
+            return DataTypes.COMBO.value
     else:
         return None
 def convert_to_ui_definition(settings_data):
@@ -75,9 +88,11 @@ def convert_to_ui_definition(settings_data):
             "value": "",
             "disables": [],
         }
-        if data_type == "multi":
+        # if data_type == "multi":
+        if data_type == DataTypes.MULTI.value:
             value = convert_to_ui_definition(data)
-        elif data_type == "combo":
+        # elif data_type == "combo":
+        elif data_type == DataTypes.COMBO.value:
             value = data[0]
             ui_definition[key]["items"] = data
         else:
@@ -96,9 +111,14 @@ def convert_to_settings_data(ui_definition):
     for key, data in ui_definition.items():
         if data.get("value") is None:
             continue # skip if the keys without value. (like separators)
-        if data["type"] == "multi":
+        # if data["type"] in ["separator", "info"]:
+        if data["type"] in [DataTypes.SEPARATOR.value, DataTypes.INFO.value]:
+            continue
+        # if data["type"] == "multi":
+        if data["type"] == DataTypes.MULTI.value:
             settings_data[key] = convert_to_settings_data(data["value"])
-        elif data["type"] == "group":
+        # elif data["type"] == "group":
+        elif data["type"] == DataTypes.COMBO.value:
             continue
         else:
             settings_data[key] = data["value"]
@@ -127,7 +147,7 @@ class SettingsLayout(QtWidgets.QFormLayout):
         "pathBrowser": tik_manager4.ui.widgets.path_browser.PathBrowser,
         "fileBrowser": tik_manager4.ui.widgets.path_browser.FileBrowser,
         "subprojectBrowser": tik_manager4.ui.widgets.browser.SubprojectBrowser,
-        "info": value_widgets.Info,
+        # "info": value_widgets.Info,
     }
 
     def __init__(self, ui_definition, settings_data=None, *args, **kwargs):
@@ -149,13 +169,16 @@ class SettingsLayout(QtWidgets.QFormLayout):
         value keys are unique.
         """
         for key, data in self.ui_definition.items():
-            if data["type"] == "multi":
+            # if data["type"] == "multi":
+            if data["type"] == DataTypes.MULTI.value:
                 for sub_key, sub_data in data["value"].items():
                     self.settings_data.add_property(
                         sub_key, sub_data["value"], force=False
                     )
             elif data.get("value") is None:
                 continue # skip if the keys without value. (like separators)
+            elif data["type"] in [DataTypes.SEPARATOR.value, DataTypes.INFO.value]:
+                continue # info and separator types are not stored in settings data
             else:
                 self.settings_data.add_property(
                     key, data["value"], force=False
@@ -170,7 +193,8 @@ class SettingsLayout(QtWidgets.QFormLayout):
             _tooltip = properties.pop("tooltip", "")
             _label.setToolTip(_tooltip)
             _type = properties.pop("type", None)
-            if _type == "multi":
+            # if _type == "multi":
+            if _type == DataTypes.MULTI.value:
                 multi_properties = properties.get("value", {})
                 _layout = QtWidgets.QHBoxLayout()
                 _layout.setContentsMargins(0, 0, 0, 0)
@@ -186,7 +210,8 @@ class SettingsLayout(QtWidgets.QFormLayout):
                     _widget.com.valueChanged.connect(lambda x, k=key: self._setting_data_modified(k, x))
                     _widgets.append(_widget)
                 self.addRow(_label, _layout)
-            elif _type == "group":
+            # elif _type == "group":
+            elif _type == DataTypes.GROUP.value:
                 # if it is a group, add a new row as a separator with the name
                 _group_label = QtWidgets.QLabel(text=_display_name)
                 _group_label.setStyleSheet("font-weight: bold;")
@@ -210,14 +235,14 @@ class SettingsLayout(QtWidgets.QFormLayout):
                     _widget.com.valueChanged.connect(lambda x, k=key: self._setting_data_modified(k, x))
                     _widgets.append(_widget)
                 self.addRow(_label, _layout)
-            elif _type == "separator":
+            # elif _type in  ["info", "separator"]:
+            elif _type in  [DataTypes.INFO.value, DataTypes.SEPARATOR.value]:
                 # first add a blank line
-                # self.addRow("", QtWidgets.QLabel())
                 # if the type is separator, simply add a new row.
-                _widget = QtWidgets.QLabel(text=_display_name)
+                _widget = QtWidgets.QLabel(text=properties.get("value", _display_name))
                 # make it bold and larger
                 _widget.setStyleSheet("font-weight: bold; font-size: 14px;")
-                self.addRow("", _widget)
+                self.addRow(_label, _widget)
             else:
                 _widget_class = self.widget_dict.get(_type)
                 if not _widget_class:

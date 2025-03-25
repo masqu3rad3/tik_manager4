@@ -400,49 +400,47 @@ class User:
             tuple: (1, "Success") if successful, (-1, LOG.warning) otherwise.
         """
         # check if the user exists in common database
-        if user_name in self.commons.get_users():
-            if password is not None:  # try to authenticate the active user
-                if self.check_password(user_name, password):
-                    self.__set_authentication_status(True)
-                else:
-                    return -1, LOG.warning(
-                        "Wrong password provided for user %s" % user_name
-                    )
-            elif self.resume.get_property("user_dhash") == self.__hash_pass(
-                "{0}{1}".format(
-                    user_name, self.commons.users.get_property(user_name).get("pass")
-                )
-            ):
-                self.__set_authentication_status(True)
-            else:
-                self.__set_authentication_status(
-                    False
-                )  # make sure it is not authenticated if no password
-            self._active_user = user_name
-            self._guard.set_user(self._active_user)
-            if save_to_db:
-                self.resume.edit_property("user", self._active_user)
-                _d_hash = self.__hash_pass(
-                    "{0}{1}".format(
-                        self._active_user,
-                        self.commons.users.get_property(self._active_user).get("pass"),
-                    )
-                )
-                self.resume.edit_property("user_dhash", _d_hash)
-                self.resume.apply_settings()
-            if clear_db:
-                self.resume.edit_property("user", None)
-                self.resume.edit_property("user_dhash", None)
-                self.resume.apply_settings()
-            self.__set_permission_level(
-                self.commons.check_user_permission_level(user_name)
-            )
-            return user_name, "Success"
-        else:
+        if user_name not in self.commons.get_users():
             return -1, LOG.warning(
                 f"User {self._active_user} cannot set because "
                 f"it does not exist in commons database"
             )
+        if password is not None:  # try to authenticate the active user
+            if self.check_password(user_name, password):
+                self.__set_authentication_status(True)
+            else:
+                return -1, LOG.warning(
+                    "Wrong password provided for user %s" % user_name
+                )
+        elif self.resume.get_property("user_dhash") == self.__hash_pass(
+            "{0}{1}".format(
+                user_name, self.commons.users.get_property(user_name).get("pass")
+            )
+        ):
+            self.__set_authentication_status(True)
+        else:
+            self.__set_authentication_status(
+                False
+            )  # make sure it is not authenticated if no password
+        self._active_user = user_name
+        self._guard.set_user(self._active_user)
+        self.resume.edit_property("user", self._active_user)
+        if save_to_db:
+            _d_hash = self.__hash_pass(
+                "{0}{1}".format(
+                    self._active_user,
+                    self.commons.users.get_property(self._active_user).get("pass"),
+                )
+            )
+            self.resume.edit_property("user_dhash", _d_hash)
+        if clear_db:
+            self.resume.edit_property("user_dhash", None)
+        self.resume.apply_settings()
+        self.__set_permission_level(
+            self.commons.check_user_permission_level(user_name)
+        )
+        return user_name, "Success"
+
 
     def authenticate(self, password):
         """Authenticate the active user with the given password.

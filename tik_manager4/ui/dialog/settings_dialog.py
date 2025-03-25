@@ -5,6 +5,8 @@ import sys  # This is required for the 'frozen' attribute DO NOT REMOVE
 from pathlib import Path
 import logging
 
+from tik_manager4.core.constants import DataTypes
+
 from tik_manager4.ui.Qt import QtWidgets, QtCore
 from tik_manager4.ui.widgets.validated_string import ValidatedString
 from tik_manager4.ui.widgets.settings_widgets import (
@@ -132,7 +134,8 @@ class SettingsDialog(QtWidgets.QDialog):
             "commonFolder": {
                 "display_name": "Common Folder :",
                 "tooltip": "The folder where the common data for all projects is stored.",
-                "type": "pathBrowser",
+                # "type": "pathBrowser",
+                "type": DataTypes.PATHBROWSER.value,
                 "value": self.main_object.user.settings.get_property("commonFolder"),
             },
             "_separator_1": {
@@ -144,7 +147,7 @@ class SettingsDialog(QtWidgets.QDialog):
             "user_templates_directory": {
                 "display_name": "User Templates Directory :",
                 "tooltip": "The folder where all user template files stored for all Dccs. Supports flags.",
-                "type": "pathBrowser",
+                "type": DataTypes.PATHBROWSER.value,
                 "value": self.main_object.user.settings.get_property(
                     "user_templates_directory"
                 ),
@@ -152,13 +155,13 @@ class SettingsDialog(QtWidgets.QDialog):
             "_separator_2": {
                 "display_name": "",
                 "value": "--------------------------------------------------------",
-                "type": "info",
+                "type": DataTypes.INFO.value,
                 "font_size": 12,
             },
             "_separator_3": {
                 "display_name": "",
                 "value": "Executables",
-                "type": "info",
+                "type": DataTypes.INFO.value,
                 # "color": "white",
                 "font_size": 12,
                 "bold": True,
@@ -166,37 +169,37 @@ class SettingsDialog(QtWidgets.QDialog):
             "alembic_viewer": {
                 "display_name": "Alembic Viewer :",
                 "tooltip": "The path to the Alembic Viewer executable. Supports flags.",
-                "type": "fileBrowser",
+                "type": DataTypes.FILEBROWSER.value,
                 "value": self.main_object.user.settings.get_property("alembic_viewer"),
             },
             "usd_viewer": {
                 "display_name": "USD Viewer :",
                 "tooltip": "The path to the USD Viewer executable. Supports flags.",
-                "type": "fileBrowser",
+                "type": DataTypes.FILEBROWSER.value,
                 "value": self.main_object.user.settings.get_property("usd_viewer"),
             },
             "fbx_viewer": {
                 "display_name": "FBX Viewer :",
                 "tooltip": "The path to the FBX Viewer executable. Supports flags.",
-                "type": "fileBrowser",
+                "type": DataTypes.FILEBROWSER.value,
                 "value": self.main_object.user.settings.get_property("fbx_viewer"),
             },
             "image_viewer": {
                 "display_name": "Image Viewer :",
                 "tooltip": "The path to the Image Viewer executable. Supports flags.",
-                "type": "fileBrowser",
+                "type": DataTypes.FILEBROWSER.value,
                 "value": self.main_object.user.settings.get_property("image_viewer"),
             },
             "sequence_viewer": {
                 "display_name": "Sequence Viewer :",
                 "tooltip": "The path to the Sequence Viewer executable. Supports flags.",
-                "type": "fileBrowser",
+                "type": DataTypes.FILEBROWSER.value,
                 "value": self.main_object.user.settings.get_property("sequence_viewer"),
             },
             "video_player": {
                 "display_name": "Video Viewer :",
                 "tooltip": "The path to the Video Player executable. Supports flags.",
-                "type": "fileBrowser",
+                "type": DataTypes.FILEBROWSER.value,
                 "value": self.main_object.user.settings.get_property("video_player"),
             },
         }
@@ -218,25 +221,25 @@ class SettingsDialog(QtWidgets.QDialog):
         localization_ui_definition = {
             "enabled": {
                 "display_name": "Enabled",
-                "type": "boolean",
+                "type": DataTypes.BOOLEAN.value,
                 "value": self.main_object.user.localization.get_property("enabled", False),
                 "disables": [],
             },
             "local_cache_folder": {
                 "display_name": "Local Cache Folder",
                 "tooltip": "Local folder to store cache files.",
-                "type": "pathBrowser",
+                "type": DataTypes.PATHBROWSER.value,
                 "value": self.main_object.user.localization.get_property("local_cache_folder"),
             },
             "cache_works": {
                 "display_name": "Cache Work Files",
-                "type": "boolean",
+                "type": DataTypes.BOOLEAN.value,
                 "tooltip": "If enabled, work files will be stored in the cache folder and won't be accessible for other users until its synced.",
                 "value": self.main_object.user.localization.get_property("cache_works", True),
             },
             "cache_publishes": {
                 "display_name": "Cache Publish Files",
-                "type": "boolean",
+                "type": DataTypes.BOOLEAN.value,
                 "tooltip": "If enabled, publish files will be stored in the cache folder and won't be accessible for other users until its synced.",
                 "value": self.main_object.user.localization.get_property("cache_publishes", False),
             }

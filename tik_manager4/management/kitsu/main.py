@@ -10,6 +10,7 @@ from datetime import datetime
 
 from tik_manager4.core.cryptor import CryptorError
 from tik_manager4.core.cryptor import Cryptor
+from tik_manager4.core.constants import DataTypes
 from tik_manager4.core import utils
 from tik_manager4.management.management_core import ManagementCore
 from tik_manager4.management.enums import EventType
@@ -471,12 +472,12 @@ class ProductionPlatform(ManagementCore):
             "_kitsu_blank": {
                 "display_name": "",
                 "value": "--------------------------------------------------------",
-                "type": "info",
+                "type": DataTypes.INFO.value,
                 "font_size": 12,
             },
             "_kitsu": {
                 "display_name": "",
-                "type": "info",
+                "type": DataTypes.INFO.value,
                 "value": "Kitsu Settings",
                 "font_size": 14,
                 "bold": True,
@@ -484,13 +485,13 @@ class ProductionPlatform(ManagementCore):
             "kitsu_url": {
                 "display_name": "Kitsu Host URL",
                 "tooltip": "The URL of the Kitsu server to connect to.",
-                "type": "string",
+                "type": DataTypes.STRING.value,
                 "value": "",
             },
             "skip_empty_entity_names": {
                 "display_name": "Skip Blank Entities During Sync",
                 "tooltip": "If an Asset or Shot has an empty name, it will be skipped during initial project creation or sync. Otherwise, id will be used as the name.",
-                "type": "boolean",
+                "type": DataTypes.BOOLEAN.value,
                 "value": False,
             }
         }
