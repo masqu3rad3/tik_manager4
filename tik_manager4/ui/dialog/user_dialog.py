@@ -151,9 +151,10 @@ class NewUserDialog(QtWidgets.QDialog):
 class LoginDialog(QtWidgets.QDialog):
     """Dialog for setting and authorizing the user"""
 
-    def __init__(self, user_object, *args, **kwargs):
-        self.user_object = user_object
+    def __init__(self, user_object, authenticate_only=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.user_object = user_object
+        # self.authenticate_only = authenticate_only
 
         self.setWindowTitle("User Login")
         self.setMinimumSize(300, 150)
@@ -181,6 +182,7 @@ class LoginDialog(QtWidgets.QDialog):
         self.button_box.rejected.connect(self.reject)
 
         self.build_ui()
+        self.widgets.users_combo.setDisabled(authenticate_only)
 
     def build_ui(self):
         """Build the UI elements."""
