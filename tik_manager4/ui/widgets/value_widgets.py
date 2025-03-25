@@ -7,8 +7,10 @@ from tik_manager4.ui.widgets import signals
 
 
 class Boolean(QtWidgets.QCheckBox):
-    def __init__(self, name, object_name=None, value=False, disables=None, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+            self, name, object_name=None, value=False, disables=None, **kwargs
+    ):
+        super().__init__()
         self.com = signals.ValueChangeBool()
         self.value = value
         self.setObjectName(object_name or name)
@@ -25,7 +27,7 @@ class String(QtWidgets.QLineEdit):
     def __init__(
         self, name, object_name=None, value="", placeholder="", disables=None, **kwargs
     ):
-        super().__init__(**kwargs)
+        super().__init__()
         self.com = signals.ValueChangeStr()
         self.value = value
         self.setObjectName(object_name or name)
@@ -43,7 +45,7 @@ class Combo(QtWidgets.QComboBox):
     def __init__(
         self, name, object_name=None, value=None, items=None, disables=None, **kwargs
     ):
-        super().__init__(**kwargs)
+        super().__init__()
         self.com = signals.ValueChangeStr()
         self.value = value
         self.setObjectName(object_name or name)
@@ -74,7 +76,7 @@ class SpinnerInt(QtWidgets.QSpinBox):
         disables=None,
         **kwargs
     ):
-        super().__init__(**kwargs)
+        super().__init__()
         self.com = signals.ValueChangeInt()
         self.value = value
         self.setObjectName(object_name or name)
@@ -113,7 +115,7 @@ class SpinnerFloat(QtWidgets.QDoubleSpinBox):
         decimals=3,
         **kwargs
     ):
-        super().__init__(**kwargs)
+        super().__init__()
         self.setDecimals(decimals)
         self.com = signals.ValueChangeFloat()
         self.value = value
@@ -154,7 +156,7 @@ class _Vector(QtWidgets.QWidget):
         disables=None,
         **kwargs
     ):
-        super().__init__(**kwargs)
+        super().__init__()
         self.com = signals.ValueChangeList()
         self.value = value
         self.setObjectName(object_name or name)
@@ -247,7 +249,7 @@ class List(QtWidgets.QWidget):
         buttons_position="side",
         **kwargs
     ):
-        super().__init__(**kwargs)
+        super().__init__()
         self.com = signals.ValueChangeList()
         self.value = value or []
         self.setObjectName(object_name or name)
