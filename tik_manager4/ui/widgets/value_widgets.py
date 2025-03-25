@@ -7,8 +7,10 @@ from tik_manager4.ui.widgets import signals
 
 
 class Boolean(QtWidgets.QCheckBox):
-    def __init__(self, name, object_name=None, value=False, disables=None, **kwargs):
-        super(Boolean, self).__init__()
+    def __init__(
+            self, name, object_name=None, value=False, disables=None, **kwargs
+    ):
+        super().__init__()
         self.com = signals.ValueChangeBool()
         self.value = value
         self.setObjectName(object_name or name)
@@ -25,7 +27,7 @@ class String(QtWidgets.QLineEdit):
     def __init__(
         self, name, object_name=None, value="", placeholder="", disables=None, **kwargs
     ):
-        super(String, self).__init__()
+        super().__init__()
         self.com = signals.ValueChangeStr()
         self.value = value
         self.setObjectName(object_name or name)
@@ -39,25 +41,11 @@ class String(QtWidgets.QLineEdit):
         self.com.valueChangeEvent(e)
 
 
-# class Info(TikLabel):
-#     """Simple QLabel widget to display information.
-#     Mocked as a widget for consistency."""
-#     def __init__(self, name, object_name=None, value="", **kwargs):
-#         super(Info, self).__init__(**kwargs)
-#         self.com = signals.ValueChangeStr()
-#         self.value = value
-#         self.setObjectName(object_name or name)
-#         self.setText(value)
-#         self.disables = []
-#
-#     def value_change_event(self, e):
-#         pass
-
 class Combo(QtWidgets.QComboBox):
     def __init__(
         self, name, object_name=None, value=None, items=None, disables=None, **kwargs
     ):
-        super(Combo, self).__init__()
+        super().__init__()
         self.com = signals.ValueChangeStr()
         self.value = value
         self.setObjectName(object_name or name)
@@ -88,7 +76,7 @@ class SpinnerInt(QtWidgets.QSpinBox):
         disables=None,
         **kwargs
     ):
-        super(SpinnerInt, self).__init__()
+        super().__init__()
         self.com = signals.ValueChangeInt()
         self.value = value
         self.setObjectName(object_name or name)
@@ -106,12 +94,12 @@ class SpinnerInt(QtWidgets.QSpinBox):
     def wheelEvent(self, *args, **kwargs):  # pylint: disable=invalid-name
         """Override the wheel event to not the scroll if the widget is not focused"""
         if self.hasFocus():
-            super(SpinnerInt, self).wheelEvent(*args, **kwargs)
+            super().wheelEvent(*args, **kwargs)
 
 
 class Integer(SpinnerInt):
     def __init__(self, *args, **kwargs):
-        super(Integer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
 
@@ -124,9 +112,11 @@ class SpinnerFloat(QtWidgets.QDoubleSpinBox):
         minimum=-99999.9,
         maximum=99999.9,
         disables=None,
+        decimals=3,
         **kwargs
     ):
-        super(SpinnerFloat, self).__init__()
+        super().__init__()
+        self.setDecimals(decimals)
         self.com = signals.ValueChangeFloat()
         self.value = value
         self.setObjectName(object_name or name)
@@ -136,7 +126,6 @@ class SpinnerFloat(QtWidgets.QDoubleSpinBox):
         self.valueChanged.connect(self.value_change_event)
         self.disables = disables or []
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setDecimals(3)
 
     def value_change_event(self, e):
         self.value = e
@@ -150,7 +139,7 @@ class SpinnerFloat(QtWidgets.QDoubleSpinBox):
 
 class Float(SpinnerFloat):
     def __init__(self, *args, **kwargs):
-        super(Float, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
 
 
@@ -167,7 +156,7 @@ class _Vector(QtWidgets.QWidget):
         disables=None,
         **kwargs
     ):
-        super(_Vector, self).__init__()
+        super().__init__()
         self.com = signals.ValueChangeList()
         self.value = value
         self.setObjectName(object_name or name)
@@ -180,7 +169,7 @@ class _Vector(QtWidgets.QWidget):
 
 class Vector2Float(_Vector):
     def __init__(self, *args, **kwargs):
-        super(Vector2Float, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.x = Float("x", value=self.value[0])
         self.y = Float("y", value=self.value[1])
         self.layout.addWidget(self.x)
@@ -196,7 +185,7 @@ class Vector2Float(_Vector):
 
 class Vector3Float(_Vector):
     def __init__(self, *args, **kwargs):
-        super(Vector3Float, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.x = Float("x", value=self.value[0])
         self.y = Float("y", value=self.value[1])
         self.z = Float("z", value=self.value[2])
@@ -215,7 +204,7 @@ class Vector3Float(_Vector):
 
 class Vector2Int(_Vector):
     def __init__(self, *args, **kwargs):
-        super(Vector2Int, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.x = Integer("x", value=self.value[0])
         self.y = Integer("y", value=self.value[1])
         self.layout.addWidget(self.x)
@@ -231,7 +220,7 @@ class Vector2Int(_Vector):
 
 class Vector3Int(_Vector):
     def __init__(self, *args, **kwargs):
-        super(Vector3Int, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.x = Integer("x", value=self.value[0])
         self.y = Integer("y", value=self.value[1])
         self.z = Integer("z", value=self.value[2])
@@ -260,7 +249,7 @@ class List(QtWidgets.QWidget):
         buttons_position="side",
         **kwargs
     ):
-        super(List, self).__init__()
+        super().__init__()
         self.com = signals.ValueChangeList()
         self.value = value or []
         self.setObjectName(object_name or name)
@@ -364,7 +353,7 @@ class DropList(List):
     dropped = QtCore.Signal(str)
 
     def __init__(self, parent=None, **kwargs):
-        super(DropList, self).__init__(parent=parent, **kwargs)
+        super().__init__(parent=parent, **kwargs)
         self.setAcceptDrops(True)
 
     def dragEnterEvent(self, event):
