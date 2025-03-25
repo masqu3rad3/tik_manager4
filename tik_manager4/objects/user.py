@@ -8,11 +8,23 @@ from tik_manager4.core import utils
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.commons import Commons
 from tik_manager4.objects.guard import Guard
-from tik_manager4.ui.dialog import feedback
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
-FEED = feedback.Feedback()
+try:
+    from tik_manager4.ui.dialog import feedback
+    FEED = feedback.Feedback()
+except Exception as exc: # pylint: disable=broad-except
+    from tik_manager4.core import cli
+    FEED = cli.FeedbackCLI()
+
+class UserSettings(Settings):
+    """Customized settings for the User class."""
+    def apply_settings(self, force=False):
+        """Apply the settings to the file."""
+        if self._current_value.get("commonFolder", "") != self._original_value.get("commonFolder", ""):
+            FEED.pop_info(title="Restart Required", text="Changing the common folder requires a restart of the application.")
+        super().apply_settings(force=force)
 
 
 class User:
@@ -26,7 +38,7 @@ class User:
         self.bookmarks = Settings()
         self.resume = Settings()
         self.localization = Settings()
-        self.settings = Settings()
+        self.settings = UserSettings()
         self.user_directory = None
         self.common_directory = (
             common_directory  # this is only for programmatically set the commons
