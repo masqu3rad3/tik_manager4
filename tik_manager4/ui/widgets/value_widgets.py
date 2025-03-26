@@ -373,3 +373,26 @@ class DropList(List):
         raw_path = event.mimeData().text()
         path = raw_path.replace("file:///", "").splitlines()[0]
         self.dropped.emit(path)
+
+
+class Button(TikButton):
+    def __init__(
+            self,
+            name=None,
+            object_name=None,
+            display_name=None,
+            value=None,
+            function=None,
+            disables=None,
+            **kwargs
+    ):
+        super().__init__(display_name or name)
+        self.com = signals.ValueChangeObj()
+        self.setObjectName(object_name or name)
+        self.disables = disables or []
+        self.clicked.connect(self.value_change_event)
+        if function:
+            self.clicked.connect(function)
+
+    def value_change_event(self):
+        self.com.valueChangeEvent(True)

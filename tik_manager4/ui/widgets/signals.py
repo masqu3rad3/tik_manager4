@@ -3,6 +3,18 @@
 from tik_manager4.ui.Qt import QtCore
 
 
+class ValueChangeObj(QtCore.QObject):
+    """Simple QObject inheritance to pass the Signal and event to custom widgets"""
+
+    valueChanged = QtCore.Signal(object)
+
+    def __init__(self):
+        super(ValueChangeObj, self).__init__()
+
+    def valueChangeEvent(self, e):
+        self.valueChanged.emit(e)
+
+
 class ValueChangeStr(QtCore.QObject):
     """Simple QObject inheritance to pass the Signal and event to custom widgets"""
 

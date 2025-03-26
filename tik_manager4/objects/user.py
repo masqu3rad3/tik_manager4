@@ -718,3 +718,17 @@ class User:
     def get_recent_projects(self):
         """Return the list of recent projects."""
         return self.bookmarks.get_property("recentProjects")
+
+    def add_recent_commons(self, commons_path):
+        """Add the commons path to the recent commons list."""
+        commons_list = self.bookmarks.get_property("recentCommons")
+        if commons_path in commons_list:
+            commons_list.remove(commons_path)
+        commons_list.append(commons_path)
+        if len(commons_list) > 10:
+            commons_list.pop(0)
+        self.bookmarks.apply_settings(force=True)
+
+    def get_recent_commons(self):
+        """Return the list of recent commons."""
+        return self.bookmarks.get_property("recentCommons")
