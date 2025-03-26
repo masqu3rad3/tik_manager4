@@ -131,13 +131,33 @@ class SettingsDialog(QtWidgets.QDialog):
         user_settings_item = SwitchTreeItem(["User Settings"], permission_level=0)
         user_widget_item.addChild(user_settings_item)
         ui_definition = {
-            "commonFolder": {
+            "_multi_common": {
                 "display_name": "Common Folder :",
-                "tooltip": "The folder where the common data for all projects is stored.",
-                # "type": "pathBrowser",
-                "type": DataTypes.PATHBROWSER.value,
-                "value": self.main_object.user.settings.get_property("commonFolder"),
+                "type": "multi",
+                "value": {
+                    "commonFolder": {
+                        "display_name": "Common Folder",
+                        "tooltip": "The folder where the common data for all projects is stored.",
+                        "type": DataTypes.PATHBROWSER.value,
+                        "value": self.main_object.user.settings.get_property(
+                            "commonFolder"),
+                    },
+                    "recent_commons_button": {
+                        "display_name": "R",
+                        "type": DataTypes.BUTTON.value,
+                        "value": False,
+                        "function": lambda: print("Recent Common Folders"),
+                    }
+                }
+
             },
+            # "commonFolder": {
+            #     "display_name": "Common Folder :",
+            #     "tooltip": "The folder where the common data for all projects is stored.",
+            #     # "type": "pathBrowser",
+            #     "type": DataTypes.PATHBROWSER.value,
+            #     "value": self.main_object.user.settings.get_property("commonFolder"),
+            # },
             "_separator_1": {
                 "display_name": "",
                 "value": "--------------------------------------------------------",
@@ -209,6 +229,9 @@ class SettingsDialog(QtWidgets.QDialog):
             title="User Settings",
             ui_definition=ui_definition,
         )
+
+        # get the commonFolder pathbrowser widget
+
 
         user_password_item = SwitchTreeItem(["Change Password"], permission_level=0)
         user_widget_item.addChild(user_password_item)

@@ -53,3 +53,20 @@ class DataTypes(Enum):
     GROUP = "group"
     INFO = "info"
     SEPARATOR = "separator"
+    BUTTON = "button"
+
+    @property
+    def is_numeric(self):
+        return self in [DataTypes.INTEGER, DataTypes.FLOAT, DataTypes.SPINNERINT, DataTypes.SPINNERFLOAT]
+
+    @property
+    def is_storable(self):
+        """Return True if the data type is storable in the database."""
+        return self not in [DataTypes.INFO, DataTypes.SEPARATOR, DataTypes.BUTTON]
+
+    @staticmethod
+    def get_storable_types():
+        """Return a list of storable data types values."""
+        return [dt.value for dt in DataTypes if dt.is_storable]
+
+
