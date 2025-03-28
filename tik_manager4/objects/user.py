@@ -24,6 +24,8 @@ class UserSettings(Settings):
         """Apply the settings to the file."""
         if self._current_value.get("commonFolder", "") != self._original_value.get("commonFolder", ""):
             FEED.pop_info(title="Restart Required", text="Changing the common folder requires a restart of the application.")
+            # add it to the recents
+
         super().apply_settings(force=force)
 
 
@@ -707,7 +709,7 @@ class User:
         Returns:
             int: 1 if successful, -1 otherwise.
         """
-        recent_list = self.bookmarks.get_property("recentProjects")
+        recent_list = self.bookmarks.get_property("recentProjects", [])
         if path in recent_list:
             recent_list.remove(path)
         recent_list.append(path)
@@ -721,14 +723,15 @@ class User:
 
     def add_recent_commons(self, commons_path):
         """Add the commons path to the recent commons list."""
-        commons_list = self.bookmarks.get_property("recentCommons")
+        commons_list = self.bookmarks.get_property("recentCommons", [])
         if commons_path in commons_list:
             commons_list.remove(commons_path)
         commons_list.append(commons_path)
         if len(commons_list) > 10:
             commons_list.pop(0)
+        self.bookmarks.edit_property("recentCommons", commons_list)
         self.bookmarks.apply_settings(force=True)
 
     def get_recent_commons(self):
         """Return the list of recent commons."""
-        return self.bookmarks.get_property("recentCommons")
+        return self.bookmarks.get_property("recentCommons") or []
