@@ -7,7 +7,7 @@ import logging
 
 from tik_manager4.core.constants import DataTypes
 
-from tik_manager4.ui.Qt import QtWidgets, QtCore
+from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.widgets.validated_string import ValidatedString
 from tik_manager4.ui.widgets.settings_widgets import (
     UsersDefinitions,
@@ -108,10 +108,16 @@ class SettingsDialog(QtWidgets.QDialog):
         )
         # SIGNALS
         self.apply_button.clicked.connect(self.apply_settings)
-        cancel_button.clicked.connect(self.close)
+        cancel_button.clicked.connect(self.on_close)
         ok_button.clicked.connect(lambda: self.apply_settings(close_dialog=True))
 
         self.layouts.buttons_layout.addWidget(tik_button_box)
+
+    def on_close(self):
+        """Discard all changes and close the dialog."""
+        for settings_object in self.settings_list:
+            settings_object.reset_settings()
+        self.close()
 
     def create_content(self):
         """Create the content."""
@@ -131,33 +137,14 @@ class SettingsDialog(QtWidgets.QDialog):
         user_settings_item = SwitchTreeItem(["User Settings"], permission_level=0)
         user_widget_item.addChild(user_settings_item)
         ui_definition = {
-            "_multi_common": {
+            "commonFolder": {
                 "display_name": "Common Folder :",
-                "type": "multi",
-                "value": {
-                    "commonFolder": {
-                        "display_name": "Common Folder",
-                        "tooltip": "The folder where the common data for all projects is stored.",
-                        "type": DataTypes.PATHBROWSER.value,
-                        "value": self.main_object.user.settings.get_property(
-                            "commonFolder"),
-                    },
-                    "recent_commons_button": {
-                        "display_name": "R",
-                        "type": DataTypes.BUTTON.value,
-                        "value": False,
-                        "function": lambda: print("Recent Common Folders"),
-                    }
-                }
-
+                "tooltip": "The folder where the common data for all projects is stored.",
+                # "type": "pathBrowser",
+                "type": DataTypes.PATHBROWSER.value,
+                "items": reversed(self.main_object.user.get_recent_commons()),
+                "value": self.main_object.user.settings.get_property("commonFolder"),
             },
-            # "commonFolder": {
-            #     "display_name": "Common Folder :",
-            #     "tooltip": "The folder where the common data for all projects is stored.",
-            #     # "type": "pathBrowser",
-            #     "type": DataTypes.PATHBROWSER.value,
-            #     "value": self.main_object.user.settings.get_property("commonFolder"),
-            # },
             "_separator_1": {
                 "display_name": "",
                 "value": "--------------------------------------------------------",
@@ -224,13 +211,19 @@ class SettingsDialog(QtWidgets.QDialog):
             },
         }
 
-        user_settings_item.content = self.__create_generic_settings_layout(
+        user_settings_item.content, setting_layout = self.__create_generic_settings_layout(
             settings_data=self.main_object.user.settings,
             title="User Settings",
             ui_definition=ui_definition,
         )
 
         # get the commonFolder pathbrowser widget
+        common_folder_widget = setting_layout.find("commonFolder")
+        # if the common folder widget emits a signal, update the recent common folders
+        # common_folder_widget.com.valueChanged.connect(lambda test=folder_path:self.main_object.user.add_recent_commons(test))
+        # common_folder_widget.com.valueChanged.connect(self.main_object.user.add_recent_commons)
+        # widget is the QLineEdit. When its changed update the recent common folders
+        common_folder_widget.widget.textChanged.connect(self.main_object.user.add_recent_commons)
 
 
         user_password_item = SwitchTreeItem(["Change Password"], permission_level=0)
@@ -269,7 +262,7 @@ class SettingsDialog(QtWidgets.QDialog):
         }
 
         # fill the content
-        user_localization_item.content = self.__create_generic_settings_layout(
+        user_localization_item.content, _ = self.__create_generic_settings_layout(
             settings_data=self.main_object.user.localization,
             title="Localization",
             ui_definition=localization_ui_definition,
@@ -390,7 +383,7 @@ class SettingsDialog(QtWidgets.QDialog):
         # create sub-branches
         preview_settings_item = SwitchTreeItem(["Preview Settings"], permission_level=3)
         project_widget_item.addChild(preview_settings_item)
-        preview_settings_item.content = self.__create_generic_settings_layout(
+        preview_settings_item.content, _ = self.__create_generic_settings_layout(
             settings_data=self.main_object.project.preview_settings,
             title="Preview Settings",
         )
@@ -437,7 +430,7 @@ class SettingsDialog(QtWidgets.QDialog):
         # ui_definition = management.platforms["shotgrid"].get_settings_ui()
         platform_settings = SwitchTreeItem(["Platform Settings"], permission_level=3)
         common_widget_item.addChild(platform_settings)
-        platform_settings.content = self.__create_generic_settings_layout(
+        platform_settings.content, _ = self.__create_generic_settings_layout(
             settings_data=self.main_object.user.commons.management_settings,
             title="Platform Settings",
             ui_definition=ui_definition,
@@ -603,7 +596,7 @@ class SettingsDialog(QtWidgets.QDialog):
         settings_layout.modified.connect(self.check_changes)
 
         content_widget.setVisible(False)
-        return content_widget
+        return content_widget, settings_layout
 
     def _project_category_definitions_content(self):
         """Create the project category definitions."""
