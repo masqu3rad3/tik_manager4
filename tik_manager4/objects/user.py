@@ -22,11 +22,17 @@ class UserSettings(Settings):
     """Customized settings for the User class."""
     def apply_settings(self, force=False):
         """Apply the settings to the file."""
+        original_folder = self._original_value.get("commonFolder", "")
+        # if there is no original folder, it means that the user is not set yet
+        if not original_folder:
+            super().apply_settings(force=force)
+            return
         if self._current_value.get("commonFolder", "") != self._original_value.get("commonFolder", ""):
             FEED.pop_info(title="Restart Required", text="Changing the common folder requires a restart of the application.")
             # add it to the recents
 
         super().apply_settings(force=force)
+        return
 
 
 class User:
@@ -346,6 +352,7 @@ class User:
                 else:
                     raise Exception("Commons Directory does not exist. Exiting...")
         self.settings.edit_property("commonFolder", self.common_directory)
+        self.add_recent_commons(self.common_directory)
         self.settings.add_property(
             "user_templates_directory", self.user_directory, force=False
         )
