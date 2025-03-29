@@ -257,10 +257,13 @@ class TikCategoryView(QtWidgets.QTreeView):
     work_resurrected = QtCore.Signal()
     load_event = (
         QtCore.Signal()
-    )  # the signal for main UI importing the selected version of the selected work
+    )  # the signal for main UI loading the selected version of the selected work
     import_event = (
         QtCore.Signal()
     )  # the signal for main UI importing the selected version of the selected work
+    reference_event = (
+        QtCore.Signal()
+    )  # the signal for main UI referencing the selected version of the selected work
     save_new_work_event = QtCore.Signal()
     work_from_template_event = QtCore.Signal()
 
@@ -529,6 +532,8 @@ class TikCategoryView(QtWidgets.QTreeView):
             load_act.triggered.connect(self.load_event.emit)
             import_act = right_click_menu.addAction(self.tr("Import To the Scene"))
             import_act.triggered.connect(self.import_event.emit)
+            reference_act = right_click_menu.addAction(self.tr("Reference To the Scene"))
+            reference_act.triggered.connect(self.reference_event.emit)
             right_click_menu.addSeparator()
 
             revive_item_act = right_click_menu.addAction(

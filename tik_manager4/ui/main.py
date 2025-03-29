@@ -412,6 +412,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.import_event.connect(
             self.versions_mcv.on_import
         )
+        self.categories_mcv.work_tree_view.reference_event.connect(
+            self.versions_mcv.on_reference
+        )
         self.categories_mcv.work_tree_view.file_dropped.connect(self.on_save_any_file)
         self.categories_mcv.work_tree_view.work_resurrected.connect(self.refresh_project)
 
