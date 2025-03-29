@@ -18,8 +18,6 @@ class Callbacks:
         Args:
             node (hou.Node): The node to collect the values from.
         """
-        allowAllElements = node.parm("allowAllElements").eval()
-        self.allowAllElements = allowAllElements
         project = node.parm("project").eval()
         subproject = node.parm("subproject").eval()
         task = None
@@ -356,6 +354,7 @@ class Callbacks:
         return version_names
 
     def populate_elements(self, node, version_obj=None):
+        allow_all_elements = hou.pwd().parm("allowAllElements").eval()
         """Populate the elements.
 
         Args:
@@ -364,7 +363,7 @@ class Callbacks:
                 object.
         """
         if version_obj:
-            elements = [x for x in version_obj.element_types if x in self.valid_elements or self.allowAllElements]
+            elements = [x for x in version_obj.element_types if x in self.valid_elements or allow_all_elements]
             element_names = ";".join(elements)
             pass_value = elements[0] if elements else None
         else:
