@@ -119,6 +119,14 @@ class SettingsDialog(QtWidgets.QDialog):
             settings_object.reset_settings()
         self.close()
 
+    # override the closeEvent to discard changes
+    def closeEvent(self, event):
+        """Override the close event to discard changes."""
+        # if there are changes, ask the user if they want to discard them
+        for settings_object in self.settings_list:
+            settings_object.reset_settings()
+        super().closeEvent(event)
+
     def create_content(self):
         """Create the content."""
         self.menu_tree_widget.clear()
