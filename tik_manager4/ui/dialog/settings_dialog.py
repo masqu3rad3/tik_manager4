@@ -142,7 +142,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 "tooltip": "The folder where the common data for all projects is stored.",
                 # "type": "pathBrowser",
                 "type": DataTypes.PATHBROWSER.value,
-                "items": reversed(self.main_object.user.get_recent_commons()),
+                "items": list(reversed(self.main_object.user.get_recent_commons())),
                 "value": self.main_object.user.settings.get_property("commonFolder"),
             },
             "_separator_1": {

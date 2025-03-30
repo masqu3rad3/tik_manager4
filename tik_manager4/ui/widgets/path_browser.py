@@ -58,7 +58,7 @@ class PathBrowser(QtWidgets.QWidget):
     def items_pop_menu(self):
         """Pop menu for recent projects."""
 
-        zort_menu = QtWidgets.QMenu(self)
+        zort_menu = QtWidgets.QMenu(parent=self)
         for z_item in self._items:
             _temp_action = QtWidgets.QAction(z_item, self)
             zort_menu.addAction(_temp_action)
