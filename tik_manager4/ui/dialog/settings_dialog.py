@@ -7,7 +7,7 @@ import logging
 
 from tik_manager4.core.constants import DataTypes
 
-from tik_manager4.ui.Qt import QtWidgets, QtCore
+from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.widgets.validated_string import ValidatedString
 from tik_manager4.ui.widgets.settings_widgets import (
     UsersDefinitions,
@@ -108,10 +108,24 @@ class SettingsDialog(QtWidgets.QDialog):
         )
         # SIGNALS
         self.apply_button.clicked.connect(self.apply_settings)
-        cancel_button.clicked.connect(self.close)
+        cancel_button.clicked.connect(self.on_close)
         ok_button.clicked.connect(lambda: self.apply_settings(close_dialog=True))
 
         self.layouts.buttons_layout.addWidget(tik_button_box)
+
+    def on_close(self):
+        """Discard all changes and close the dialog."""
+        for settings_object in self.settings_list:
+            settings_object.reset_settings()
+        self.close()
+
+    # override the closeEvent to discard changes
+    def closeEvent(self, event):
+        """Override the close event to discard changes."""
+        # if there are changes, ask the user if they want to discard them
+        for settings_object in self.settings_list:
+            settings_object.reset_settings()
+        super().closeEvent(event)
 
     def create_content(self):
         """Create the content."""
@@ -136,6 +150,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 "tooltip": "The folder where the common data for all projects is stored.",
                 # "type": "pathBrowser",
                 "type": DataTypes.PATHBROWSER.value,
+                "items": list(reversed(self.main_object.user.get_recent_commons())),
                 "value": self.main_object.user.settings.get_property("commonFolder"),
             },
             "_separator_1": {
@@ -204,11 +219,20 @@ class SettingsDialog(QtWidgets.QDialog):
             },
         }
 
-        user_settings_item.content = self.__create_generic_settings_layout(
+        user_settings_item.content, setting_layout = self.__create_generic_settings_layout(
             settings_data=self.main_object.user.settings,
             title="User Settings",
             ui_definition=ui_definition,
         )
+
+        # get the commonFolder pathbrowser widget
+        common_folder_widget = setting_layout.find("commonFolder")
+        # if the common folder widget emits a signal, update the recent common folders
+        # common_folder_widget.com.valueChanged.connect(lambda test=folder_path:self.main_object.user.add_recent_commons(test))
+        # common_folder_widget.com.valueChanged.connect(self.main_object.user.add_recent_commons)
+        # widget is the QLineEdit. When its changed update the recent common folders
+        common_folder_widget.widget.textChanged.connect(self.main_object.user.add_recent_commons)
+
 
         user_password_item = SwitchTreeItem(["Change Password"], permission_level=0)
         user_widget_item.addChild(user_password_item)
@@ -246,7 +270,7 @@ class SettingsDialog(QtWidgets.QDialog):
         }
 
         # fill the content
-        user_localization_item.content = self.__create_generic_settings_layout(
+        user_localization_item.content, _ = self.__create_generic_settings_layout(
             settings_data=self.main_object.user.localization,
             title="Localization",
             ui_definition=localization_ui_definition,
@@ -367,7 +391,7 @@ class SettingsDialog(QtWidgets.QDialog):
         # create sub-branches
         preview_settings_item = SwitchTreeItem(["Preview Settings"], permission_level=3)
         project_widget_item.addChild(preview_settings_item)
-        preview_settings_item.content = self.__create_generic_settings_layout(
+        preview_settings_item.content, _ = self.__create_generic_settings_layout(
             settings_data=self.main_object.project.preview_settings,
             title="Preview Settings",
         )
@@ -414,7 +438,7 @@ class SettingsDialog(QtWidgets.QDialog):
         # ui_definition = management.platforms["shotgrid"].get_settings_ui()
         platform_settings = SwitchTreeItem(["Platform Settings"], permission_level=3)
         common_widget_item.addChild(platform_settings)
-        platform_settings.content = self.__create_generic_settings_layout(
+        platform_settings.content, _ = self.__create_generic_settings_layout(
             settings_data=self.main_object.user.commons.management_settings,
             title="Platform Settings",
             ui_definition=ui_definition,
@@ -580,7 +604,7 @@ class SettingsDialog(QtWidgets.QDialog):
         settings_layout.modified.connect(self.check_changes)
 
         content_widget.setVisible(False)
-        return content_widget
+        return content_widget, settings_layout
 
     def _project_category_definitions_content(self):
         """Create the project category definitions."""

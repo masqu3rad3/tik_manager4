@@ -129,25 +129,25 @@ class SettingsLayout(QtWidgets.QFormLayout):
     modified = QtCore.Signal(bool)
 
     widget_dict = {
-        "boolean": value_widgets.Boolean,
-        "string": value_widgets.String,
-        "combo": value_widgets.Combo,
-        "integer": value_widgets.Integer,
-        "float": value_widgets.Float,
-        "spinnerInt": value_widgets.SpinnerInt,
-        "spinnerFloat": value_widgets.SpinnerFloat,
-        "list": value_widgets.List,
-        "dropList": value_widgets.DropList,
-        "categoryList": CategoryList,
-        "validatedString": ValidatedString,
-        "vector2Int": value_widgets.Vector2Int,
-        "vector2Float": value_widgets.Vector2Float,
-        "vector3Int": value_widgets.Vector3Int,
-        "vector3Float": value_widgets.Vector3Float,
-        "pathBrowser": tik_manager4.ui.widgets.path_browser.PathBrowser,
-        "fileBrowser": tik_manager4.ui.widgets.path_browser.FileBrowser,
-        "subprojectBrowser": tik_manager4.ui.widgets.browser.SubprojectBrowser,
-        # "info": value_widgets.Info,
+        DataTypes.BOOLEAN.value: value_widgets.Boolean,
+        DataTypes.STRING.value: value_widgets.String,
+        DataTypes.COMBO.value: value_widgets.Combo,
+        DataTypes.INTEGER.value: value_widgets.Integer,
+        DataTypes.FLOAT.value: value_widgets.Float,
+        DataTypes.SPINNERINT.value: value_widgets.SpinnerInt,
+        DataTypes.SPINNERFLOAT.value: value_widgets.SpinnerFloat,
+        DataTypes.LIST.value: value_widgets.List,
+        DataTypes.DROPLIST.value: value_widgets.DropList,
+        DataTypes.CATEGORYLIST.value: CategoryList,
+        DataTypes.VALIDATEDSTRING.value: ValidatedString,
+        DataTypes.VECTOR2INT.value: value_widgets.Vector2Int,
+        DataTypes.VECTOR2FLOAT.value: value_widgets.Vector2Float,
+        DataTypes.VECTOR3INT.value: value_widgets.Vector3Int,
+        DataTypes.VECTOR3FLOAT.value: value_widgets.Vector3Float,
+        DataTypes.PATHBROWSER.value: tik_manager4.ui.widgets.path_browser.PathBrowser,
+        DataTypes.FILEBROWSER.value: tik_manager4.ui.widgets.path_browser.FileBrowser,
+        DataTypes.SUBPROJECTBROWSER.value: tik_manager4.ui.widgets.browser.SubprojectBrowser,
+        DataTypes.BUTTON.value: value_widgets.Button,
     }
 
     def __init__(self, ui_definition, settings_data=None, *args, **kwargs):
@@ -177,7 +177,8 @@ class SettingsLayout(QtWidgets.QFormLayout):
                     )
             elif data.get("value") is None:
                 continue # skip if the keys without value. (like separators)
-            elif data["type"] in [DataTypes.SEPARATOR.value, DataTypes.INFO.value]:
+            # elif data["type"] in [DataTypes.SEPARATOR.value, DataTypes.INFO.value]:
+            elif data["type"] not in DataTypes.get_storable_types():
                 continue # info and separator types are not stored in settings data
             else:
                 self.settings_data.add_property(
@@ -193,7 +194,6 @@ class SettingsLayout(QtWidgets.QFormLayout):
             _tooltip = properties.pop("tooltip", "")
             _label.setToolTip(_tooltip)
             _type = properties.pop("type", None)
-            # if _type == "multi":
             if _type == DataTypes.MULTI.value:
                 multi_properties = properties.get("value", {})
                 _layout = QtWidgets.QHBoxLayout()
@@ -202,13 +202,19 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 _layout.setAlignment(QtCore.Qt.AlignLeft)
                 for key, data in multi_properties.items():
                     _type = data.get("type", None)
-                    _widget_class = self.widget_dict.get(_type)
-                    if not _widget_class:
+                    _widget = self.__instanciate_widget(_type, key, data)
+                    if not _widget:
                         continue
-                    _widget = _widget_class(key, **data)
                     _layout.addWidget(_widget)
-                    _widget.com.valueChanged.connect(lambda x, k=key: self._setting_data_modified(k, x))
                     _widgets.append(_widget)
+                    # _type = data.get("type", None)
+                    # _widget_class = self.widget_dict.get(_type)
+                    # if not _widget_class:
+                    #     continue
+                    # _widget = _widget_class(key, **data)
+                    # _layout.addWidget(_widget)
+                    # _widget.com.valueChanged.connect(lambda x, k=key: self._setting_data_modified(k, x))
+                    # _widgets.append(_widget)
                 self.addRow(_label, _layout)
             # elif _type == "group":
             elif _type == DataTypes.GROUP.value:
@@ -235,7 +241,6 @@ class SettingsLayout(QtWidgets.QFormLayout):
                     _widget.com.valueChanged.connect(lambda x, k=key: self._setting_data_modified(k, x))
                     _widgets.append(_widget)
                 self.addRow(_label, _layout)
-            # elif _type in  ["info", "separator"]:
             elif _type in  [DataTypes.INFO.value, DataTypes.SEPARATOR.value]:
                 # first add a blank line
                 # if the type is separator, simply add a new row.
@@ -244,19 +249,33 @@ class SettingsLayout(QtWidgets.QFormLayout):
                 _widget.setStyleSheet("font-weight: bold; font-size: 14px;")
                 self.addRow(_label, _widget)
             else:
-                _widget_class = self.widget_dict.get(_type)
-                if not _widget_class:
+                _widget = self.__instanciate_widget(_type, name, properties)
+                if not _widget:
                     continue
-                # if the key is available in the settings data and if it has a value, use that one
-                if self.settings_data.get(name) is not None:
-                    properties["value"] = self.settings_data.get(name)
-                _widget = _widget_class(name, **properties)
-                _widget.com.valueChanged.connect(lambda x, n=name: self._setting_data_modified(n, x))
+                # _widget_class = self.widget_dict.get(_type)
+                # if not _widget_class:
+                #     continue
+                # # if the key is available in the settings data and if it has a value, use that one
+                # if self.settings_data.get(name) is not None:
+                #     properties["value"] = self.settings_data.get(name)
+                # _widget = _widget_class(name, **properties)
+                # _widget.com.valueChanged.connect(lambda x, n=name: self._setting_data_modified(n, x))
                 self.addRow(_label, _widget)
                 _widgets.append(_widget)
             _widget.label = _label
 
         return _widgets
+
+    def __instanciate_widget(self, widget_type, key, data):
+        widget_class = self.widget_dict.get(widget_type)
+        if not widget_class:
+            return None
+        if self.settings_data.get(key) is not None:
+            data["value"] = self.settings_data.get(key)
+        widget = widget_class(key, **data)
+        if widget_type in DataTypes.get_storable_types():
+            widget.com.valueChanged.connect(lambda x, k=key: self._setting_data_modified(k, x))
+        return widget
 
     def _setting_data_modified(self, key, value):
         self.settings_data.edit_property(key, value)
