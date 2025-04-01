@@ -529,6 +529,8 @@ class MainUI(QtWidgets.QMainWindow):
         file_menu.addAction(create_project)
         set_project = QtWidgets.QAction("&Set Project", self)
         file_menu.addAction(set_project)
+        set_project_template = QtWidgets.QAction("&Set Project Template", self)
+        file_menu.addAction(set_project_template)
         file_menu.addSeparator()
         new_user = QtWidgets.QAction(pick.icon("user"), "&Add New User", self)
         file_menu.addAction(new_user)
@@ -559,9 +561,6 @@ class MainUI(QtWidgets.QMainWindow):
             pick.icon("settings"), "&Settings                    ", self
         )
         file_menu.addAction(settings_item)
-        file_menu.addSeparator()
-        set_as_template = QtWidgets.QAction("&Set as Template", self)
-        file_menu.addAction(set_as_template)
         file_menu.addSeparator()
 
         user_login = QtWidgets.QAction(pick.icon("user"), "&User Login", self)
@@ -615,7 +614,7 @@ class MainUI(QtWidgets.QMainWindow):
         user_login.triggered.connect(self.on_login)
         settings_item.triggered.connect(self.on_settings)
         set_project.triggered.connect(self.project_mcv.set_project)
-        set_as_template.triggered.connect(self.on_set_project_as_template)
+        set_project_template.triggered.connect(self.on_set_project_as_template)
         exit_action.triggered.connect(self.close)
 
         save_new_work.triggered.connect(self.on_new_work)
