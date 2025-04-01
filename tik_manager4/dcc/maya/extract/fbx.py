@@ -44,6 +44,12 @@ class Fbx(ExtractCore):
                     "type": "boolean",
                     "value": False,
                 },
+                "animation_only": {
+                    "display_name": "Animation Only",
+                    "type": "boolean",
+                    "value": False,
+                    "tooltip": "Export only the animation data",
+                }
             },
             "Layout": {
                 "start_frame": {
@@ -56,6 +62,12 @@ class Fbx(ExtractCore):
                     "type": "integer",
                     "value": _ranges[3],
                 },
+                "animation_only": {
+                    "display_name": "Animation Only",
+                    "type": "boolean",
+                    "value": False,
+                    "tooltip": "Export only the animation data",
+                }
             },
             "Fx": {
                 "start_frame": {
@@ -138,7 +150,7 @@ class Fbx(ExtractCore):
             _file_path,
             selection_only=False,
             animation=True,
-            animation_only=True,
+            animation_only=settings.get("animation_only"),
             bake_animation=settings.get("bake_animation"),
             bake_start=settings.get("start_frame"),
             bake_end=settings.get("end_frame"),
@@ -155,7 +167,7 @@ class Fbx(ExtractCore):
             _file_path,
             selection_only=False,
             animation=True,
-            animation_only=True,
+            animation_only=settings.get("animation_only"),
             bake_animation=settings.get("bake_animation"),
             bake_start=settings.get("start_frame"),
             bake_end=settings.get("end_frame"),
