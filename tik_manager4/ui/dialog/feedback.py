@@ -2,8 +2,8 @@ from pathlib import Path
 from typing import Optional, List
 import sys
 
-from tik_manager4.core.utils import get_nice_name
 from tik_manager4.ui.Qt import QtWidgets
+from tik_manager4.ui import pick
 from tik_manager4.ui.widgets.common import TikMessageBox, TikButtonBox
 
 if __name__ == "__main__":
@@ -79,6 +79,9 @@ class Feedback:
     ) -> int:
         """Shows an informational dialog box."""
         msg = TikMessageBox(parent=self.parent)
+        if not self.parent:
+            _style_file = pick.style_file(file_name="tikManager.qss")
+            msg.setStyleSheet(str(_style_file.readAll(), "utf-8"))
         msg.setIcon(QtWidgets.QMessageBox.Critical if critical else QtWidgets.QMessageBox.Information)
         msg.setWindowTitle(title)
         msg.setModal(modal)
@@ -93,6 +96,10 @@ class Feedback:
         if on_close:
             on_close(result)
         return result
+
+    def pop_error(self, *args, **kwargs) -> int:
+        """Shows an error dialog box."""
+        return self.pop_info(*args, critical=True, **kwargs)
 
     def pop_question(
             self,
@@ -138,6 +145,9 @@ class Feedback:
             widgets.append(widget)
 
         q = TikMessageBox(parent=self.parent)
+        if not self.parent:
+            _style_file = pick.style_file(file_name="tikManager.qss")
+            q.setStyleSheet(str(_style_file.readAll(), "utf-8"))
         q.setIcon(QtWidgets.QMessageBox.Question)
         q.setWindowTitle(title)
         q.setModal(modal)
@@ -179,6 +189,9 @@ class Confirmation(QtWidgets.QDialog):
 
     def __init__(self, parent=None, confirmation_word=None):
         super().__init__(parent)
+        if not parent:
+            _style_file = pick.style_file(file_name="tikManager.qss")
+            self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
         self.setModal(True)  # Make it a modal dialog
         self.setWindowTitle("Confirmation")
 

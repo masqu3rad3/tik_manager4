@@ -86,7 +86,7 @@ class Publisher:
         category_props = category_definitions.properties.get(
             self._work_object.category, {})
 
-        extracts = [x.lower() for x in category_props.get("extracts", [])]
+        extracts = category_props.get("extracts", [])
         validations = category_definitions.properties.get(
             self._work_object.category, {}
         ).get("validations", [])
@@ -94,7 +94,7 @@ class Publisher:
         dcc_extracts = self._dcc_handler.extracts
 
         for extract, handler in dcc_extracts.items():
-            if extract.lower() in extracts:
+            if extract in extracts:
                 resolved = handler()
                 resolved.category = self._work_object.category
                 resolved.metadata = self._metadata
@@ -103,7 +103,7 @@ class Publisher:
         # Sort the extractors to match the order in category definitions
         self._resolved_extractors = dict(
             sorted(self._resolved_extractors.items(),
-                   key=lambda x: extracts.index(x[0].lower()))
+                   key=lambda x: extracts.index(x[0]))
         )
 
         for validation in validations:
@@ -115,7 +115,7 @@ class Publisher:
 
         self._resolved_validators = dict(
             sorted(self._resolved_validators.items(),
-                   key=lambda x: validations.index(x[0].lower()))
+                   key=lambda x: validations.index(x[0]))
         )
 
         latest_publish_version = self._work_object.publish.get_last_version()

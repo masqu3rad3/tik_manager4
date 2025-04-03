@@ -1,11 +1,11 @@
 [project]
 name = "tik_manager4"
-version = "4.3.6"
+version = "4.3.7"
 license = {file = "LICENSE"}
 authors =[{name="Arda Kutlu", email="ardakutlu@gmail.com"},]
 description="Multi Platform and Multi DCC Python based Pipeline Toolkit."
 readme = "README.md"
-requires-python = "> 3.9"
+requires-python = "> 3.10"
 classifiers = [
 "Development Status :: 3 - Production/Stable",
 "Programming Language :: Python :: 3",

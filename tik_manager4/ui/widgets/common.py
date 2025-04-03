@@ -277,10 +277,10 @@ class TikMessageBox(QtWidgets.QMessageBox):
 class TikLabel(QtWidgets.QLabel, StyleEditor):
     """Unified label class for the whole app."""
 
-    def __init__(self, *args, text="", font_size=10, color=(255, 255, 255), **kwargs):
+    def __init__(self, *args, text="", font_size=10, bold=False, color=(255, 255, 255), **kwargs):
         super(TikLabel, self).__init__(*args, **kwargs)
         self.color = color
-        self.set_font_size(font_size)
+        self.set_font_size(font_size, bold=bold)
         self.set_color(text_color=self.color, border_color=self.color)
 
     def set_font_size(self, font_size, bold=False):

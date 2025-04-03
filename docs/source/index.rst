@@ -60,6 +60,8 @@ Contents
 
    overview
    installation
+   quick_start_videos
    getting_started
    user_guide
+   faq
    developers_guide

@@ -119,12 +119,20 @@ def _format(value):
     return value
 
 
-def _set_fbx_settings(**kwargs):
+def _set_fbx_import_settings(**kwargs):
     """Build FBX import settings"""
     for key, value in kwargs.items():
         value = _format(value)
         if key in import_settings.keys():
             cmd = import_settings[key].format(value)
+            mel.eval(cmd)
+
+def _set_fbx_export_settings(**kwargs):
+    """Build FBX export settings"""
+    for key, value in kwargs.items():
+        value = _format(value)
+        if key in export_settings.keys():
+            cmd = export_settings[key].format(value)
             mel.eval(cmd)
 
 
@@ -279,7 +287,7 @@ def load(
             cmds.namespace(addNamespace=namespace)
         cmds.namespace(setNamespace=namespace)
 
-    _set_fbx_settings(**locals())
+    _set_fbx_import_settings(**locals())
 
     # file_path = file_path.replace("\\", "//")  ## for compatibility with mel syntax.
     # import_cmd = ('FBXImport -f "{0}" -t {1};'.format(file_path, take))
@@ -459,7 +467,7 @@ def save(
     settings_dict.pop("selection_only")
     settings_dict.pop("force")
 
-    _set_fbx_settings(**settings_dict)
+    _set_fbx_export_settings(**settings_dict)
 
     _export_fbx(file_path, selected=selection_only)
     return file_path

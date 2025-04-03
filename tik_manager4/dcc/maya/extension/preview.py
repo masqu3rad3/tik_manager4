@@ -13,7 +13,7 @@ class Preview(ExtensionCore):
         self.menu_item = None
 
     def execute(self):
-        """TEsting."""
+        """Execute the command on initialization."""
         self.add_main_menu()
 
     def add_main_menu(self):

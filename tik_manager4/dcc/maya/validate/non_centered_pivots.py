@@ -29,7 +29,7 @@ class NonCenteredPivots(ValidateCore):
             if pivot != [0, 0, 0]:
                 self.non_centered_pivots.append(node)
         if self.non_centered_pivots:
-            self.failed(msg=f"Forbidden nodes found: {self.non_centered_pivots}")
+            self.failed(msg=f"Objects with non-centered pivots found: {self.non_centered_pivots}")
         else:
             self.passed()
 

@@ -10,6 +10,8 @@ Therefore, it is important to define a folder that is accessible to all users.
 
 **Common Folder** can be changed at any time from `File Menu -> Settings -> User -> User Settings`.
 
+.. _adding_users:
+
 Adding Users
 ------------
 Users in Tik Manager4 are individuals who will be working on the project, such as artists, supervisors, and producers.
@@ -131,4 +133,4 @@ In the below example, we are publishing a version of a work with project-wide de
     See the :ref:`settings` section to learn more about how to define existing validators and extractors to categories.
 
 .. attention::
-    If you are a TD or developer, refer to :ref:`adding_validators` and :ref:`adding_extractors` sections to learn more about how to define custom validators and extractors.
+    If you are a TD or developer, refer to :ref:`developing_validators` and :ref:`developing_extractors` sections to learn more about how to define custom validators and extractors.

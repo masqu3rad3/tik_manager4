@@ -8,11 +8,31 @@ from tik_manager4.core import utils
 from tik_manager4.core.settings import Settings
 from tik_manager4.objects.commons import Commons
 from tik_manager4.objects.guard import Guard
-from tik_manager4.ui.dialog import feedback
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
-FEED = feedback.Feedback()
+try:
+    from tik_manager4.ui.dialog import feedback
+    FEED = feedback.Feedback()
+except Exception as exc: # pylint: disable=broad-except
+    from tik_manager4.core import cli
+    FEED = cli.FeedbackCLI()
+
+class UserSettings(Settings):
+    """Customized settings for the User class."""
+    def apply_settings(self, force=False):
+        """Apply the settings to the file."""
+        original_folder = self._original_value.get("commonFolder", "")
+        # if there is no original folder, it means that the user is not set yet
+        if not original_folder:
+            super().apply_settings(force=force)
+            return
+        if self._current_value.get("commonFolder", "") != self._original_value.get("commonFolder", ""):
+            FEED.pop_info(title="Restart Required", text="Changing the common folder requires a restart of the application.")
+            # add it to the recents
+
+        super().apply_settings(force=force)
+        return
 
 
 class User:
@@ -26,7 +46,7 @@ class User:
         self.bookmarks = Settings()
         self.resume = Settings()
         self.localization = Settings()
-        self.settings = Settings()
+        self.settings = UserSettings()
         self.user_directory = None
         self.common_directory = (
             common_directory  # this is only for programmatically set the commons
@@ -332,6 +352,7 @@ class User:
                 else:
                     raise Exception("Commons Directory does not exist. Exiting...")
         self.settings.edit_property("commonFolder", self.common_directory)
+        self.add_recent_commons(self.common_directory)
         self.settings.add_property(
             "user_templates_directory", self.user_directory, force=False
         )
@@ -400,49 +421,47 @@ class User:
             tuple: (1, "Success") if successful, (-1, LOG.warning) otherwise.
         """
         # check if the user exists in common database
-        if user_name in self.commons.get_users():
-            if password is not None:  # try to authenticate the active user
-                if self.check_password(user_name, password):
-                    self.__set_authentication_status(True)
-                else:
-                    return -1, LOG.warning(
-                        "Wrong password provided for user %s" % user_name
-                    )
-            elif self.resume.get_property("user_dhash") == self.__hash_pass(
-                "{0}{1}".format(
-                    user_name, self.commons.users.get_property(user_name).get("pass")
-                )
-            ):
-                self.__set_authentication_status(True)
-            else:
-                self.__set_authentication_status(
-                    False
-                )  # make sure it is not authenticated if no password
-            self._active_user = user_name
-            self._guard.set_user(self._active_user)
-            if save_to_db:
-                self.resume.edit_property("user", self._active_user)
-                _d_hash = self.__hash_pass(
-                    "{0}{1}".format(
-                        self._active_user,
-                        self.commons.users.get_property(self._active_user).get("pass"),
-                    )
-                )
-                self.resume.edit_property("user_dhash", _d_hash)
-                self.resume.apply_settings()
-            if clear_db:
-                self.resume.edit_property("user", None)
-                self.resume.edit_property("user_dhash", None)
-                self.resume.apply_settings()
-            self.__set_permission_level(
-                self.commons.check_user_permission_level(user_name)
-            )
-            return user_name, "Success"
-        else:
+        if user_name not in self.commons.get_users():
             return -1, LOG.warning(
                 f"User {self._active_user} cannot set because "
                 f"it does not exist in commons database"
             )
+        if password is not None:  # try to authenticate the active user
+            if self.check_password(user_name, password):
+                self.__set_authentication_status(True)
+            else:
+                return -1, LOG.warning(
+                    "Wrong password provided for user %s" % user_name
+                )
+        elif self.resume.get_property("user_dhash") == self.__hash_pass(
+            "{0}{1}".format(
+                user_name, self.commons.users.get_property(user_name).get("pass")
+            )
+        ):
+            self.__set_authentication_status(True)
+        else:
+            self.__set_authentication_status(
+                False
+            )  # make sure it is not authenticated if no password
+        self._active_user = user_name
+        self._guard.set_user(self._active_user)
+        self.resume.edit_property("user", self._active_user)
+        if save_to_db:
+            _d_hash = self.__hash_pass(
+                "{0}{1}".format(
+                    self._active_user,
+                    self.commons.users.get_property(self._active_user).get("pass"),
+                )
+            )
+            self.resume.edit_property("user_dhash", _d_hash)
+        if clear_db:
+            self.resume.edit_property("user_dhash", None)
+        self.resume.apply_settings()
+        self.__set_permission_level(
+            self.commons.check_user_permission_level(user_name)
+        )
+        return user_name, "Success"
+
 
     def authenticate(self, password):
         """Authenticate the active user with the given password.
@@ -697,7 +716,7 @@ class User:
         Returns:
             int: 1 if successful, -1 otherwise.
         """
-        recent_list = self.bookmarks.get_property("recentProjects")
+        recent_list = self.bookmarks.get_property("recentProjects", [])
         if path in recent_list:
             recent_list.remove(path)
         recent_list.append(path)
@@ -708,3 +727,18 @@ class User:
     def get_recent_projects(self):
         """Return the list of recent projects."""
         return self.bookmarks.get_property("recentProjects")
+
+    def add_recent_commons(self, commons_path):
+        """Add the commons path to the recent commons list."""
+        commons_list = self.bookmarks.get_property("recentCommons", [])
+        if commons_path in commons_list:
+            commons_list.remove(commons_path)
+        commons_list.append(commons_path)
+        if len(commons_list) > 10:
+            commons_list.pop(0)
+        self.bookmarks.edit_property("recentCommons", commons_list)
+        self.bookmarks.apply_settings(force=True)
+
+    def get_recent_commons(self):
+        """Return the list of recent commons."""
+        return self.bookmarks.get_property("recentCommons") or []

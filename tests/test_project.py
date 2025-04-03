@@ -120,8 +120,8 @@ class TestProject:
         test_project_path = self._new_asset_shot_project(project_path, tik)
         tik.project.__init__(path=test_project_path)
         # try to set a non-existing project
-        assert tik.set_project(test_project_path) == 1
-        assert tik.set_project("Burhan") == -1
+        assert tik.set_project(test_project_path)[0] == True
+        assert tik.set_project("Burhan")[0] == False
 
     def test_create_sub_project(self, project_path, tik):
         """Tests creating sub-projects with parent id and path"""
@@ -1107,6 +1107,9 @@ class TestProject:
             .scan_works()
         )
 
+        # scan and get all works using the property method
+        assert tik.project.subs["Assets"].subs["Characters"].subs["Soldier"].tasks["bizarro"].categories["Model"].all_works
+
     def test_deleting_works(self, project_manual_path, tik, monkeypatch):
         self.test_creating_works_and_versions(project_manual_path, tik, monkeypatch)
 
@@ -1123,6 +1126,7 @@ class TestProject:
         # try to delete a work without permissions
         tik.user.set("Generic", password="1234")
         assert target_work.destroy()[0] == -1
+        assert model_category.delete_works()[0] == False
 
         tik.user.set("Admin", password="1234")
         # delete the work
@@ -1253,3 +1257,22 @@ class TestProject:
             .delete_task("superboy")[0]
             == True
         )
+
+    def test_delete_works_failure(self, project_manual_path, tik, monkeypatch):
+        """Test delete_works method when work cannot be destroyed."""
+        sub, task, work = self._create_a_subproject_task_and_work(
+            project_manual_path, tik)
+        model_category = task.categories["Model"]
+
+        # Create a work
+        new_work = model_category.create_work("work_to_delete")
+
+        # Mock the destroy method to return False and a failure message
+        def mock_destroy():
+            return False, "Failed to delete work"
+
+        monkeypatch.setattr(new_work, "destroy", mock_destroy)
+
+        # Attempt to delete the work
+        result = new_work.destroy()
+        assert result == (False, "Failed to delete work")

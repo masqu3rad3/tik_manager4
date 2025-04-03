@@ -29,7 +29,7 @@ class UniqueNames(ValidateCore):
         self.collect()
         self._get_non_unique_names()
         if self.non_unique_nodes:
-            self.failed()
+            self.failed(f"Scene contains non-unique names: {self.non_unique_nodes}")
         else:
             self.passed()
 

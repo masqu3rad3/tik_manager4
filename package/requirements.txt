@@ -17,7 +17,7 @@ idna==3.7
 imagesize==1.4.1
 iniconfig==1.1.1
 isort==5.10.1
-Jinja2==3.1.5
+Jinja2>=3.1.6
 lazy-object-proxy==1.7.1
 MarkupSafe==2.1.5
 mccabe==0.7.0
@@ -37,14 +37,10 @@ pyinstaller==6.3.0
 pyinstaller-hooks-contrib==2023.10
 pylint==2.14.5
 pyparsing==3.0.7
-PyQt5==5.15.10
-PyQt5-Qt5==5.15.2
-PyQt5-sip==12.13.0
-PyQt5-stubs==5.15.6.0
-PyQt5Designer==5.14.1
+PySide2==5.15.2.1
 pytest==7.4.3
 pytest-qt==4.3.1
-pywin32==306
+pywin32==308
 pywin32-ctypes==0.2.2
 pywin32-stubs==1.0.7
 requests==2.32.0

@@ -2,6 +2,7 @@
 
 import os
 
+from tik_manager4.core.constants import ValidationState
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.widgets import path_browser
 from tik_manager4.ui.widgets.common import TikButton, TikButtonBox
@@ -163,9 +164,24 @@ class SetProjectDialog(QtWidgets.QDialog):
                 the folders or bookmarks and press 'Set'",
             )
             return
-        self.main_object.set_project(project_to_set)
+        validation = self.main_object.can_set_project(project_to_set)
+        if validation.state != ValidationState.SUCCESS:
+            if not validation.allow_proceed:
+                self.feedback.pop_error(
+                    title="Cannot set project",
+                    text=validation.message,
+                )
+                return
+            ret = self.feedback.pop_question(title="Warning",
+                                                 text=validation.message,
+                                                 buttons=["yes", "no"])
+            if ret == "no":
+                return
+        state, msg = self.main_object.set_project(project_to_set)
+        if not state:
+            self.feedback.pop_error(title="Cannot set project", text=msg)
+            return
         self.accept()
-        # self.close()
 
     def on_add_bookmark(self):
         """Called when the add bookmark button is clicked."""
@@ -230,7 +246,6 @@ class NewProjectDialog(EditSubprojectDialog):
             "project_root": {
                 "display_name": "Projects Root :",
                 "type": "pathBrowser",
-                # "type": "subprojectBrowser",
                 "project_object": self.tik_project,
                 "value": os.path.dirname(self.tik_project.absolute_path),
                 "tooltip": "Root for the projects",
@@ -248,6 +263,19 @@ class NewProjectDialog(EditSubprojectDialog):
                 "value": "Empty Project",
                 "tooltip": "Pick a template to start with",
             },
+            "locked_commons": {
+                "display_name": "Lock to Commons :",
+                "type": "boolean",
+                "value": True,
+                "tooltip": "The new project will be locked to the defined commons. The users set their commons to a different one won't be able to reach to this project.",
+                "disables": [[False, "common_to_lock"]],
+            },
+            "commons_to_lock": {
+                "display_name": "Current Commons :",
+                "type": "pathBrowser",
+                "value": self.main_object.user.commons.folder_path,
+                "tooltip": "The commons directory to be locked to",
+            }
         }
         return _primary_ui
 
@@ -320,6 +348,12 @@ class NewProjectDialog(EditSubprojectDialog):
 
     def _execute(self):
         """Create the project."""
+        locked_commons = self.primary_data.get_property("locked_commons")
+        if locked_commons:
+            commons_path = self.primary_data.get_property("commons_to_lock")
+            if self.main_object.user.commons.folder_path != commons_path:
+                self.main_object.user.__init__(commons_path)
+
         # build a new kwargs dictionary by filtering the settings_data
         path = os.path.join(
             self.primary_data.get_property("project_root"),
@@ -335,7 +369,82 @@ class NewProjectDialog(EditSubprojectDialog):
         # filtered_data.update_overridden_data(self.secondary_data)
         filtered_data.update_new_data(self.secondary_data)
 
-        self.main_object.create_project(path, **filtered_data)
+        self.main_object.create_project(path, locked_commons=locked_commons, **filtered_data)
         # close the dialog
         self.accept()
+
+
+class SetProjectAsTemplateDialog(QtWidgets.QDialog):
+    """Custom Dialog to set the current project as a template."""
+    def __init__(self, main_object, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.main_object = main_object
+        self.feedback = Feedback(parent=self)
+        self.setWindowTitle("Set Project as A Structure Template")
+        self.setModal(True)
+        self.master_lay = QtWidgets.QVBoxLayout(self)
+
+        self.name_le = None
+        self.build_ui()
+
+    def build_ui(self):
+        """Build the UI."""
+        # create a non-editable text field to give info
+        text_edit = QtWidgets.QTextEdit()
+        text_edit.setReadOnly(True)
+        text_edit.setPlainText(
+            "This will set the current project as a structure template. "
+            "The template will be available in the 'New Project' dialog."
+        )
+        # Set size policy to prevent excessive expansion
+        text_edit.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                QtWidgets.QSizePolicy.Minimum)
+
+        # Set a reasonable fixed height
+        text_edit.setFixedHeight(
+            text_edit.fontMetrics().lineSpacing() * 4)  # Adjust 4 if needed
+
+        self.master_lay.addWidget(text_edit)
+
+        name_lay = QtWidgets.QHBoxLayout()
+        self.master_lay.addLayout(name_lay)
+        name_lbl = QtWidgets.QLabel("Name:")
+        name_lay.addWidget(name_lbl)
+        self.name_le = QtWidgets.QLineEdit()
+        self.name_le.setPlaceholderText("Name of the template")
+        name_lay.addWidget(self.name_le)
+        button_box = TikButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
+        self.master_lay.addWidget(button_box)
+
+        # SIGNALS
+        button_box.accepted.connect(self.set_template)
+        button_box.rejected.connect(self.close)
+
+    def set_template(self):
+        """Set the current project as a template."""
+        name = self.name_le.text()
+        if not name:
+            self.feedback.pop_info(
+                title="No Name",
+                text="Please enter a name for the template",
+                critical=True
+            )
+            return
+
+        # check if the given template name already exists
+        if name in self.main_object.user.commons.structures.keys:
+            proceed = self.feedback.pop_question(
+                title="Template Exists",
+                text="A template with the same name already exists\n\n"
+                     "Do you want to overwrite it?",
+                buttons=["yes", "cancel"]
+            )
+            if proceed == "cancel":
+                return
+
+        self.main_object.add_project_as_structure_template(name)
+        self.accept()
+        self.close()
 

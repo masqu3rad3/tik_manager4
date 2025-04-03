@@ -1,5 +1,4 @@
 """UI Extension for Kitsu"""
-from logging import critical
 
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog.feedback import Feedback
@@ -46,8 +45,13 @@ class UiExtensions(ExtensionCore):
     def on_login(self):
         """Login to Kitsu."""
         handler = self.parent.management_connect("kitsu")
-        handler.authenticate()
+        if not handler:
+            return False
+        gazu, _msg = handler.authenticate()
+        if not gazu:
+            return False
         self.feedback.pop_info(title="Logged in", text="Logged in to Kitsu.")
+        return True
 
     def on_force_sync(self):
         """Force synchronize the project."""

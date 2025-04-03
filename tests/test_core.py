@@ -1,6 +1,7 @@
 """Tests for core modules."""
 import sys
 import time
+import os
 import pytest
 from unittest.mock import patch, MagicMock
 import platform
@@ -11,9 +12,16 @@ from tik_manager4.core import io
 from tik_manager4.core import settings
 from tik_manager4.core import utils
 from tik_manager4.external import fileseq
-from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.external.filelock import FileLock, Timeout
 from tik_manager4.core.cli import FeedbackCLI
+from tik_manager4.core.settings import Settings
+from tik_manager4.core.cryptor import Cryptor, CryptorError
+import base64
+import json
+
+@pytest.fixture
+def feedback():
+    return FeedbackCLI()
 
 
 def test_filelog(tmp_path: Path):
@@ -388,3 +396,243 @@ def test_pop_question_reprompts_on_invalid_input():
             buttons=["yes", "no"]
         )
         assert result == "yes"
+
+def test_pop_info_displays_message_and_exits_on_critical(feedback):
+    with patch("sys.exit") as mock_exit, patch("builtins.input", return_value=""):
+        result = feedback.pop_info(
+            title="Critical Info",
+            text="This is a critical message.",
+            critical=True
+        )
+        assert result == 1
+        mock_exit.assert_called_once_with(1)
+
+def test_pop_info_displays_message_and_returns_ok(feedback):
+    with patch("builtins.input", return_value=""):
+        result = feedback.pop_info(
+            title="Info",
+            text="This is an informational message."
+        )
+        assert result == 1
+
+def test_pop_question_displays_question_and_returns_user_selection(feedback):
+    with patch("builtins.input", return_value="yes"):
+        result = feedback.pop_question(
+            title="Question",
+            text="Do you want to proceed?",
+            buttons=["yes", "no"]
+        )
+        assert result == "yes"
+
+def test_pop_question_reprompts_on_invalid_input(feedback):
+    with patch("builtins.input", side_effect=["invalid", "yes"]):
+        result = feedback.pop_question(
+            title="Question",
+            text="Do you want to proceed?",
+            buttons=["yes", "no"]
+        )
+        assert result == "yes"
+
+def test_pop_question_with_default_buttons():
+    feedback = FeedbackCLI()
+    with patch("builtins.input", return_value="save"):
+        result = feedback.pop_question(
+            title="Question",
+            text="Do you want to save?",
+        )
+        assert result == "save"
+
+def test_pop_info_calls_on_close():
+    feedback = FeedbackCLI()
+    mock_on_close = MagicMock()
+    with patch("builtins.input", return_value=""):
+        feedback.pop_info(
+            title="Info",
+            text="This is an informational message.",
+            on_close=mock_on_close
+        )
+    mock_on_close.assert_called_once_with(1)
+
+
+def test_pop_question_with_default_buttons(feedback):
+    with patch("builtins.input", return_value="save"):
+        result = feedback.pop_question(
+            title="Question",
+            text="Do you want to save?",
+        )
+        assert result == "save"
+
+def test_pop_info_calls_on_close(feedback):
+    mock_on_close = MagicMock()
+    with patch("builtins.input", return_value=""):
+        feedback.pop_info(
+            title="Info",
+            text="This is an informational message.",
+            on_close=mock_on_close
+        )
+    mock_on_close.assert_called_once_with(1)
+
+def test_encrypt_returns_encrypted_text():
+    cryptor = Cryptor()
+    plain_text = "Hello, World!"
+    encrypted_text = cryptor.encrypt(plain_text)
+    assert encrypted_text != plain_text
+
+def test_decrypt_returns_original_text():
+    cryptor = Cryptor()
+    plain_text = "Hello, World!"
+    encrypted_text = cryptor.encrypt(plain_text)
+    decrypted_text = cryptor.decrypt(encrypted_text)
+    assert decrypted_text == plain_text
+
+def test_decrypt_raises_error_on_invalid_base64():
+    cryptor = Cryptor()
+    with pytest.raises(CryptorError, match="Decryption failed: invalid Base64 encoding."):
+        cryptor.decrypt("invalid_base64")
+
+def test_decrypt_raises_error_on_invalid_utf8():
+    cryptor = Cryptor()
+    invalid_utf8 = base64.b64encode(b'\xff').decode()
+    with pytest.raises(CryptorError, match="Decryption failed: invalid UTF-8 encoding."):
+        cryptor.decrypt(invalid_utf8)
+
+def test_decrypt_raises_error_on_invalid_format():
+    cryptor = Cryptor()
+    invalid_format = base64.b64encode("invalid_format".encode()).decode()
+    with pytest.raises(CryptorError, match="Decryption failed: invalid format or missing machine identifier."):
+        cryptor.decrypt(invalid_format)
+
+def test_decrypt_raises_error_on_machine_id_mismatch():
+    cryptor = Cryptor()
+    plain_text = "Hello, World!"
+    encrypted_text = cryptor.encrypt(plain_text)
+    cryptor.machine_id = 0  # Force a machine ID mismatch
+    with pytest.raises(CryptorError, match="Decryption failed: machine identifier mismatch."):
+        cryptor.decrypt(encrypted_text)
+
+def test_xor_with_key():
+    cryptor = Cryptor()
+    data = "test_data"
+    xor_result = cryptor._xor_with_key(data)
+    assert xor_result != data
+    assert cryptor._xor_with_key(xor_result) == data
+
+def test_get_mac_address_key():
+    key = Cryptor._get_mac_address_key()
+    assert isinstance(key, int)
+    assert 0 <= key <= 255
+
+def test_initialize_with_none():
+    settings = Settings()
+    settings.initialize(None)
+    assert settings.get_data() == {}
+
+def test_add_missing_keys():
+    settings = Settings()
+    settings.initialize({"key1": "value1"})
+    settings.add_missing_keys({"key2": "value2"})
+    assert settings.get_property("key2") == "value2"
+    assert settings.get_property("key1") == "value1"
+
+def test_delete_property():
+    settings = Settings()
+    settings.initialize({"key1": "value1"})
+    settings.delete_property("key1")
+    assert settings.get_property("key1") is None
+
+def test_set_fallback(tmp_path):
+    fallback_path = tmp_path / "fallback.json"
+    fallback_data = {"key1": "fallback_value"}
+    with open(fallback_path, "w") as f:
+        json.dump(fallback_data, f)
+
+    settings = Settings()
+    settings.set_fallback(str(fallback_path))
+    assert settings.get_property("key1") == "fallback_value"
+
+def test_use_fallback(tmp_path):
+    fallback_path = tmp_path / "fallback.json"
+    fallback_data = {"key1": "fallback_value"}
+    with open(fallback_path, "w") as f:
+        json.dump(fallback_data, f)
+
+    settings = Settings()
+    settings._fallback = str(fallback_path)
+    settings.use_fallback()
+    assert settings.get_property("key1") == "fallback_value"
+
+def test_reload(tmp_path):
+    settings_path = tmp_path / "settings.json"
+    settings_data = {"key1": "value1"}
+    with open(settings_path, "w") as f:
+        json.dump(settings_data, f)
+
+    settings = Settings(file_path=str(settings_path))
+    settings.edit_property("key1", "new_value")
+    settings.reload()
+    assert settings.get_property("key1") == "value1"
+
+def test_sanitize_text():
+    """Test sanitize_text function."""
+    assert utils.sanitize_text("Hello World!") == "Hello_World"
+    assert utils.sanitize_text("Hello World!", allow_spaces=True) == "Hello World"
+    assert utils.sanitize_text("Héllo Wörld!") == "Hello_World"
+    assert utils.sanitize_text("Héllo Wörld!", allow_spaces=True) == "Hello World"
+
+def test_move(tmp_path):
+    """Test move function."""
+    source = tmp_path / "source.txt"
+    target = tmp_path / "target.txt"
+    source.write_text("test")
+    assert utils.move(source, target) == (True, f"{source} moved to {target}.")
+    assert target.exists()
+    assert not source.exists()
+
+def test_delete(tmp_path):
+    """Test delete function."""
+    file = tmp_path / "file.txt"
+    file.write_text("test")
+    assert utils.delete(file) == (True, f"{file} deleted.")
+    assert not file.exists()
+
+def test_write_protect(tmp_path):
+    """Test write_protect function."""
+    file = tmp_path / "file.txt"
+    file.write_text("test")
+    assert utils.write_protect(file) == (True, "Write protection applied.")
+    assert not os.access(file, os.W_OK)
+
+def test_write_unprotect(tmp_path):
+    """Test write_unprotect function."""
+    file = tmp_path / "file.txt"
+    file.write_text("test")
+    utils.write_protect(file)
+    assert utils.write_unprotect(file) == (True, "Write protection removed.")
+    assert os.access(file, os.W_OK)
+
+def test_get_nice_name():
+    """Test get_nice_name function."""
+    assert utils.get_nice_name("camelCase") == "Camel Case"
+    assert utils.get_nice_name("snake_case") == "Snake Case"
+
+def test_import_from_path(tmp_path):
+    """Test import_from_path function."""
+    module_file = tmp_path / "test_module.py"
+    module_file.write_text("value = 42")
+    module = utils.import_from_path("test_module", str(module_file))
+    assert module.value == 42
+
+def test_copy_data():
+    """Test the copy_data function."""
+    settings = Settings()
+    original_data = {"key1": "value1", "key2": {"subkey": "subvalue"}}
+    settings.initialize(original_data)
+
+    copied_data = settings.copy_data()
+
+    # Ensure the copied data is the same as the original
+    assert copied_data == original_data
+
+    # Ensure the copied data is a deep copy (modifying it should not affect the original)
+    copied_data["key2"]["subkey"] = "new_subvalue"
+    assert settings.get_property("key2")["subkey"] == "subvalue"

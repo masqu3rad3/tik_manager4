@@ -1,4 +1,6 @@
 """Convenince widgets for settings UI."""
+
+from tik_manager4.core.constants import DataTypes
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.widgets import value_widgets
 from tik_manager4.ui.widgets.validated_string import ValidatedString
@@ -193,15 +195,15 @@ class MetadataDefinitions(QtWidgets.QWidget):
     """Widget for metadata definitions management."""
 
     value_widgets = {
-        "boolean": value_widgets.Boolean,
-        "string": value_widgets.String,
-        "integer": value_widgets.Integer,
-        "float": value_widgets.Float,
-        "vector2Int": value_widgets.Vector2Int,
-        "vector2Float": value_widgets.Vector2Float,
-        "vector3Int": value_widgets.Vector3Int,
-        "vector3Float": value_widgets.Vector3Float,
-        "combo": value_widgets.Combo,
+        DataTypes.BOOLEAN.value: value_widgets.Boolean,
+        DataTypes.STRING.value: value_widgets.String,
+        DataTypes.COMBO.value: value_widgets.Combo,
+        DataTypes.INTEGER.value: value_widgets.Integer,
+        DataTypes.FLOAT.value: value_widgets.Float,
+        DataTypes.VECTOR2INT.value: value_widgets.Vector2Int,
+        DataTypes.VECTOR2FLOAT.value: value_widgets.Vector2Float,
+        DataTypes.VECTOR3INT.value: value_widgets.Vector3Int,
+        DataTypes.VECTOR3FLOAT.value: value_widgets.Vector3Float,
     }
 
     modified = QtCore.Signal(bool)
@@ -309,29 +311,29 @@ class MetadataDefinitions(QtWidgets.QWidget):
     def _prepare_default_data(data_type):
         """Convenience method to prepare the default data for the given data type."""
 
-        if data_type == "boolean":
+        if data_type == DataTypes.BOOLEAN.value:
             _default_object_type: bool = False
-        elif data_type == "string":
+        elif data_type == DataTypes.STRING.value:
             _default_object_type: str = ""
-        elif data_type == "integer":
+        elif data_type == DataTypes.INTEGER.value:
             _default_object_type: int = 0
-        elif data_type == "float":
+        elif data_type == DataTypes.FLOAT.value:
             _default_object_type: float = 0.0
-        elif data_type == "vector2Int":
+        elif data_type == DataTypes.VECTOR2INT.value:
             _default_object_type: list = [0, 0]
-        elif data_type == "vector2Float":
+        elif data_type == DataTypes.VECTOR2FLOAT.value:
             _default_object_type: list = [0.0, 0.0]
-        elif data_type == "vector3Int":
+        elif data_type == DataTypes.VECTOR3INT.value:
             _default_object_type: list = [0, 0, 0]
-        elif data_type == "vector3Float":
+        elif data_type == DataTypes.VECTOR3FLOAT.value:
             _default_object_type: list = [0.0, 0.0, 0.0]
-        elif data_type == "combo":
+        elif data_type == DataTypes.COMBO.value:
             _default_object_type: str = ""
         else:
             _default_object_type: str = ""
         default_data = {"default": _default_object_type, "type": data_type}
         # enum lists are only for combo boxes
-        if data_type == "combo":
+        if data_type == DataTypes.COMBO.value:
             default_data["enum"] = []
         return default_data
 
@@ -397,7 +399,7 @@ class MetadataDefinitions(QtWidgets.QWidget):
         )
 
         # create an additional list widget for combo items
-        if data_type == "combo":
+        if data_type == DataTypes.COMBO.value:
             combo_items_label = QtWidgets.QLabel("Combo Items: ")
             combo_items_widget = value_widgets.List(name="enum", value=data["enum"])
             default_value_widget.addItems(data["enum"])
@@ -632,12 +634,6 @@ class CategoryDefinitions(QtWidgets.QWidget):
         add_item_dialog.setWindowTitle("Add Item")
         dialog_layout = QtWidgets.QVBoxLayout(add_item_dialog)
         list_widget = QtWidgets.QListWidget()
-        print("----------------")
-        print("model", model)
-        print("list_data", list_data)
-        print("list_type", list_type)
-        print("self.availability_dict", self.availability_dict)
-        print("----------------")
         checklist = self.availability_dict[f"all_{list_type}"]
         available_items = [
             x for x in checklist if x not in list_data

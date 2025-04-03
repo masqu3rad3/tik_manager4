@@ -79,7 +79,7 @@ class Project(Subproject):
         self.create_folders(root=self.absolute_path)
         self.structure.apply_settings()
 
-    def _set(self, absolute_path):
+    def _set(self, absolute_path, commons_id=None):
         """Set the project path and initialize the project structure."""
         self.__init__()
         _absolute_path_obj = Path(absolute_path)
@@ -98,7 +98,10 @@ class Project(Subproject):
         self.guard.set_database_root(self.database_path)
         # get project settings
         self.settings.settings_file = str(_database_path_obj / "project_settings.json")
-        self.settings.set_fallback(self.guard.commons.project_settings.settings_file)
+        project_commons_id = self.settings.get_property("commons_id", None)
+        project_commons_name = self.settings.get_property("commons_name", "")
+        if project_commons_id and project_commons_id != commons_id:
+            return False, f"Commons ID Mismatch\n\nThis project is linked to a different commons:\nID: {project_commons_id}\nName: {project_commons_name}\n\nTo access this project, you need to switch to the corresponding commons."
         self.guard.set_project_settings(self.settings)
         # get preview settings
         self.preview_settings.settings_file = str(
@@ -126,6 +129,7 @@ class Project(Subproject):
         )
 
         self.guard.set_metadata_definitions(self.metadata_definitions)
+        return True, "Success"
 
     def delete_sub_project(self, uid=None, path=None):
         """Delete a subproject and all its children.

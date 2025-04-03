@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from copy import deepcopy
 from tik_manager4.core import utils
+from tik_manager4.core.constants import DataTypes
 from tik_manager4.management.management_core import ManagementCore
 from tik_manager4.management.exceptions import SyncError
 
@@ -802,20 +803,29 @@ class ProductionPlatform(ManagementCore):
         """Return the settings UI for the Shotgrid platform."""
         # Make sure the keys are unique accross all other platforms
         return {
+            "_shotgrid_blank": {
+                "display_name": "",
+                "value": "--------------------------------------------------------",
+                "type": DataTypes.INFO.value,
+                "font_size": 12,
+            },
             "_shotgrid": {
-                "type": "separator",
-                "display_name": "Autodesk Flow Production Settings",
+                "display_name": "",
+                "type": DataTypes.INFO.value,
+                "value": "Autodesk Flow Production Settings",
+                "font_size": 14,
+                "bold": True,
             },
             "sg_url": {
                 "display_name": "ShotGrid URL",
                 "tooltip": "The URL of the ShotGrid server to connect to.",
-                "type": "string",
+                "type": DataTypes.STRING.value,
                 "value": "",
             },
             "sg_authentication_method": {
                 "display_name": "Authentication Method",
                 "tooltip": "Select the authentication method to use when connecting to ShotGrid.",
-                "type": "combo",
+                "type": DataTypes.COMBO.value,
                 "items": ["User", "Script"],
                 "value": "User",
                 "disables": [["User", "sg_script_name"], ["User", "sg_api_key"]],
@@ -823,13 +833,13 @@ class ProductionPlatform(ManagementCore):
             "sg_script_name": {
                 "display_name": "Script Name",
                 "tooltip": "The name of the script to use when connecting to ShotGrid.",
-                "type": "string",
+                "type": DataTypes.STRING.value,
                 "value": "",
             },
             "sg_api_key": {
                 "display_name": "API Key",
                 "tooltip": "The API key to use when connecting to ShotGrid.",
-                "type": "string",
+                "type": DataTypes.STRING.value,
                 "value": "",
             },
         }

@@ -1,5 +1,20 @@
 # Release Notes
 
+## v4.3.8
+- FBX bug with Maya fixed which was preventing animation baking. Additionally, 'animation only' option exposed to the fbx publishing ui.
+- [224] Reference to scene option added to the work items right click menu.
+- [TIK-170] Adding recent button to switch between common folders easily.
+- [TIK-171] User will be notified when the common folder is changed. The user will be asked to restart the application to apply the changes.
+- [TIK-173] Spinner precision issues fixed with UI definitions. Now users can pass the spinner precision values with "decimals" key in the UI definition.
+- [TIK-169] Various improvements and fixes with user logins.
+- [TIK-159] New workflow for commons-project integration. Now projects will be locked to certain commons. Users won't be able to set a particular project if they are not in the correct commons designated for that project. There is an option to set the project unrestricted (default unchecked) while creating a new project. All previous projects before this update will behave as unrestricted.
+- [TIK-163] Methodology to create custom project templates. Users can set the existing project as a new template. The function can be reached from the File menu.
+- [TIK-90] After publish, if there are warnings, publish dialog won't be destroyed giving a chance to the user to see the messages. If publish cancelled due to a failed extraction by user, the reserved stalk will be discarded.
+- Bug fixed auto-capturing the thumbnail when user cancels selecting a file from the browser.
+- [TIK-160] Users now can put their custom extractors, validators, ingestors or ui_extensions under the respective folders in <common folder>/plugins/<DCC>/
+- [213] Regional Screen Capture functionality where the user can select a specific region of the screen to capture. This functionality can be reached from the right click menu of the thumbnail section of the main UI.
+- [211] Handling kitsu related user login bug where the user gets an error when cancelling login.
+
 ## v4.3.7
 - [206] Kitsu integration improvements.
 - Minor fix for some missing icons.

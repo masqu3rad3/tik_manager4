@@ -70,7 +70,7 @@ class SwitchTreeWidget(QtWidgets.QTreeWidget):
         # check if the user is authenticated
         if self._user_object:
             if not self._user_object.is_authenticated:
-                dialog = LoginDialog(self._user_object, parent=self)
+                dialog = LoginDialog(self._user_object, authenticate_only=True, parent=self)
                 dialog.setWindowTitle("User Needs to be Authenticated")
                 state = dialog.exec_()
                 if not state:

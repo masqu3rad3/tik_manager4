@@ -5,7 +5,9 @@ import sys  # This is required for the 'frozen' attribute DO NOT REMOVE
 from pathlib import Path
 import logging
 
-from tik_manager4.ui.Qt import QtWidgets, QtCore
+from tik_manager4.core.constants import DataTypes
+
+from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.widgets.validated_string import ValidatedString
 from tik_manager4.ui.widgets.settings_widgets import (
     UsersDefinitions,
@@ -106,10 +108,24 @@ class SettingsDialog(QtWidgets.QDialog):
         )
         # SIGNALS
         self.apply_button.clicked.connect(self.apply_settings)
-        cancel_button.clicked.connect(self.close)
+        cancel_button.clicked.connect(self.on_close)
         ok_button.clicked.connect(lambda: self.apply_settings(close_dialog=True))
 
         self.layouts.buttons_layout.addWidget(tik_button_box)
+
+    def on_close(self):
+        """Discard all changes and close the dialog."""
+        for settings_object in self.settings_list:
+            settings_object.reset_settings()
+        self.close()
+
+    # override the closeEvent to discard changes
+    def closeEvent(self, event):
+        """Override the close event to discard changes."""
+        # if there are changes, ask the user if they want to discard them
+        for settings_object in self.settings_list:
+            settings_object.reset_settings()
+        super().closeEvent(event)
 
     def create_content(self):
         """Create the content."""
@@ -130,62 +146,93 @@ class SettingsDialog(QtWidgets.QDialog):
         user_widget_item.addChild(user_settings_item)
         ui_definition = {
             "commonFolder": {
-                "display_name": "Common Folder",
+                "display_name": "Common Folder :",
                 "tooltip": "The folder where the common data for all projects is stored.",
-                "type": "pathBrowser",
+                # "type": "pathBrowser",
+                "type": DataTypes.PATHBROWSER.value,
+                "items": list(reversed(self.main_object.user.get_recent_commons())),
                 "value": self.main_object.user.settings.get_property("commonFolder"),
             },
+            "_separator_1": {
+                "display_name": "",
+                "value": "--------------------------------------------------------",
+                "type": "info",
+                "font_size": 12,
+            },
             "user_templates_directory": {
-                "display_name": "User Templates Directory",
+                "display_name": "User Templates Directory :",
                 "tooltip": "The folder where all user template files stored for all Dccs. Supports flags.",
-                "type": "pathBrowser",
+                "type": DataTypes.PATHBROWSER.value,
                 "value": self.main_object.user.settings.get_property(
                     "user_templates_directory"
                 ),
             },
+            "_separator_2": {
+                "display_name": "",
+                "value": "--------------------------------------------------------",
+                "type": DataTypes.INFO.value,
+                "font_size": 12,
+            },
+            "_separator_3": {
+                "display_name": "",
+                "value": "Executables",
+                "type": DataTypes.INFO.value,
+                # "color": "white",
+                "font_size": 12,
+                "bold": True,
+            },
             "alembic_viewer": {
-                "display_name": "Alembic Viewer",
+                "display_name": "Alembic Viewer :",
                 "tooltip": "The path to the Alembic Viewer executable. Supports flags.",
-                "type": "fileBrowser",
+                "type": DataTypes.FILEBROWSER.value,
                 "value": self.main_object.user.settings.get_property("alembic_viewer"),
             },
             "usd_viewer": {
-                "display_name": "USD Viewer",
+                "display_name": "USD Viewer :",
                 "tooltip": "The path to the USD Viewer executable. Supports flags.",
-                "type": "fileBrowser",
+                "type": DataTypes.FILEBROWSER.value,
                 "value": self.main_object.user.settings.get_property("usd_viewer"),
             },
             "fbx_viewer": {
-                "display_name": "FBX Viewer",
+                "display_name": "FBX Viewer :",
                 "tooltip": "The path to the FBX Viewer executable. Supports flags.",
-                "type": "fileBrowser",
+                "type": DataTypes.FILEBROWSER.value,
                 "value": self.main_object.user.settings.get_property("fbx_viewer"),
             },
             "image_viewer": {
-                "display_name": "Image Viewer",
+                "display_name": "Image Viewer :",
                 "tooltip": "The path to the Image Viewer executable. Supports flags.",
-                "type": "fileBrowser",
+                "type": DataTypes.FILEBROWSER.value,
                 "value": self.main_object.user.settings.get_property("image_viewer"),
             },
             "sequence_viewer": {
-                "display_name": "Sequence Viewer",
+                "display_name": "Sequence Viewer :",
                 "tooltip": "The path to the Sequence Viewer executable. Supports flags.",
-                "type": "fileBrowser",
+                "type": DataTypes.FILEBROWSER.value,
                 "value": self.main_object.user.settings.get_property("sequence_viewer"),
             },
             "video_player": {
-                "display_name": "Video Viewer",
+                "display_name": "Video Viewer :",
                 "tooltip": "The path to the Video Player executable. Supports flags.",
-                "type": "fileBrowser",
+                "type": DataTypes.FILEBROWSER.value,
                 "value": self.main_object.user.settings.get_property("video_player"),
             },
         }
 
-        user_settings_item.content = self.__create_generic_settings_layout(
+        user_settings_item.content, setting_layout = self.__create_generic_settings_layout(
             settings_data=self.main_object.user.settings,
             title="User Settings",
             ui_definition=ui_definition,
         )
+
+        # get the commonFolder pathbrowser widget
+        common_folder_widget = setting_layout.find("commonFolder")
+        # if the common folder widget emits a signal, update the recent common folders
+        # common_folder_widget.com.valueChanged.connect(lambda test=folder_path:self.main_object.user.add_recent_commons(test))
+        # common_folder_widget.com.valueChanged.connect(self.main_object.user.add_recent_commons)
+        # widget is the QLineEdit. When its changed update the recent common folders
+        common_folder_widget.widget.textChanged.connect(self.main_object.user.add_recent_commons)
+
 
         user_password_item = SwitchTreeItem(["Change Password"], permission_level=0)
         user_widget_item.addChild(user_password_item)
@@ -198,32 +245,32 @@ class SettingsDialog(QtWidgets.QDialog):
         localization_ui_definition = {
             "enabled": {
                 "display_name": "Enabled",
-                "type": "boolean",
+                "type": DataTypes.BOOLEAN.value,
                 "value": self.main_object.user.localization.get_property("enabled", False),
                 "disables": [],
             },
             "local_cache_folder": {
                 "display_name": "Local Cache Folder",
                 "tooltip": "Local folder to store cache files.",
-                "type": "pathBrowser",
+                "type": DataTypes.PATHBROWSER.value,
                 "value": self.main_object.user.localization.get_property("local_cache_folder"),
             },
             "cache_works": {
                 "display_name": "Cache Work Files",
-                "type": "boolean",
+                "type": DataTypes.BOOLEAN.value,
                 "tooltip": "If enabled, work files will be stored in the cache folder and won't be accessible for other users until its synced.",
                 "value": self.main_object.user.localization.get_property("cache_works", True),
             },
             "cache_publishes": {
                 "display_name": "Cache Publish Files",
-                "type": "boolean",
+                "type": DataTypes.BOOLEAN.value,
                 "tooltip": "If enabled, publish files will be stored in the cache folder and won't be accessible for other users until its synced.",
                 "value": self.main_object.user.localization.get_property("cache_publishes", False),
             }
         }
 
         # fill the content
-        user_localization_item.content = self.__create_generic_settings_layout(
+        user_localization_item.content, _ = self.__create_generic_settings_layout(
             settings_data=self.main_object.user.localization,
             title="Localization",
             ui_definition=localization_ui_definition,
@@ -344,7 +391,7 @@ class SettingsDialog(QtWidgets.QDialog):
         # create sub-branches
         preview_settings_item = SwitchTreeItem(["Preview Settings"], permission_level=3)
         project_widget_item.addChild(preview_settings_item)
-        preview_settings_item.content = self.__create_generic_settings_layout(
+        preview_settings_item.content, _ = self.__create_generic_settings_layout(
             settings_data=self.main_object.project.preview_settings,
             title="Preview Settings",
         )
@@ -387,12 +434,11 @@ class SettingsDialog(QtWidgets.QDialog):
             settings_data = convert_to_settings_data(settings_ui)
             self.main_object.user.commons.management_settings.add_missing_keys(settings_data)
             ui_definition.update(settings_ui)
-        print(ui_definition)
 
         # ui_definition = management.platforms["shotgrid"].get_settings_ui()
         platform_settings = SwitchTreeItem(["Platform Settings"], permission_level=3)
         common_widget_item.addChild(platform_settings)
-        platform_settings.content = self.__create_generic_settings_layout(
+        platform_settings.content, _ = self.__create_generic_settings_layout(
             settings_data=self.main_object.user.commons.management_settings,
             title="Platform Settings",
             ui_definition=ui_definition,
@@ -481,6 +527,9 @@ class SettingsDialog(QtWidgets.QDialog):
         # collect all 'extract' and 'validate' folders under _dcc_folder recursively
         extract_folders = list(_dcc_folder.glob("**/extract"))
         validate_folders = list(_dcc_folder.glob("**/validate"))
+        # get the extracts and validates in the <common>/plugins folder
+        extract_folders.extend(list((Path(self.main_object.user.commons.folder_path) / "plugins").glob("**/extract")))
+        validate_folders.extend(list((Path(self.main_object.user.commons.folder_path) / "plugins").glob("**/validation")))
 
         # collect all extractors
         for _extract_folder in extract_folders:
@@ -493,6 +542,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 ]
             # update or create the dcc name in the dictionary
 
+            # get the extracts in the common folder
             self._validations_and_extracts["dcc_extracts"][dcc_name] = dcc_extracts
             extracts.extend(dcc_extracts)
 
@@ -554,7 +604,7 @@ class SettingsDialog(QtWidgets.QDialog):
         settings_layout.modified.connect(self.check_changes)
 
         content_widget.setVisible(False)
-        return content_widget
+        return content_widget, settings_layout
 
     def _project_category_definitions_content(self):
         """Create the project category definitions."""

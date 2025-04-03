@@ -3,7 +3,10 @@
 import http.client
 import json
 from pathlib import Path
+import uuid
+
 from tik_manager4.core import filelog, settings, utils
+from tik_manager4.core.constants import ValidationState, ValidationResult
 from tik_manager4.objects import user, project, purgatory
 from tik_manager4 import dcc
 from tik_manager4 import management
@@ -52,6 +55,8 @@ class Main:
         self.set_project(str(_project))
 
         self.globalize_management_platform()
+
+        self.dcc.collect_common_plugins()
 
     def fallback_to_default_project(self):
         """Fallback to the default project."""
@@ -109,6 +114,7 @@ class Main:
         structure_template="empty",
         structure_data=None,
         set_after_creation=True,
+        locked_commons=True,
         **kwargs
     ):
         """Create a new project.
@@ -121,6 +127,8 @@ class Main:
                     the common database.
             set_after_creation (bool): If True, the project
                 will be set after creation.
+            locked_commons (bool): If True, the project will be locked to the
+                current commons.
 
         Returns:
             int: 1 if successful, -1 if not.
@@ -147,7 +155,8 @@ class Main:
 
         # if the structure data is still not defined use a default empty structure
         if not structure_data:
-            self.log.warning("Structure template %s is not defined. Creating empty project")
+            self.log.warning(f"Structure template {structure_template} is "
+                             f"not defined. Creating empty project")
             structure_data = {
                 "name": project_name,
                 "path": "",
@@ -172,11 +181,44 @@ class Main:
         categories = list(project_obj.guard.category_definitions.properties.keys())
         _main_task = project_obj.add_task("main", categories=categories)
 
+        if locked_commons:
+            # first make sure that the commons have an id.
+            if not self.user.commons.id:
+                self.user.commons.management_settings.add_property(
+                    "commons_id", str(uuid.uuid1().hex))
+                self.user.commons.management_settings.apply_settings()
+            project_obj.settings.add_property("commons_id", self.user.commons.id)
+            project_obj.settings.add_property("commons_name", self.user.commons.name)
+            project_obj.settings.apply_settings(force=True)
+
         self.globalize_management_platform()
 
         if set_after_creation:
             self.set_project(path_obj.as_posix())
         return 1
+
+    def can_set_project(self, absolute_path) -> ValidationResult:
+        """Check if the project is valid.
+
+        Args:
+            absolute_path (str): The absolute path to the project.
+
+        Returns:
+            object: ValidationResult object.
+        """
+        if not Path(absolute_path).exists():
+            msg = "Project Path does not exist. Aborting"
+            self.log.error(msg)
+            return ValidationResult(ValidationState.ERROR, msg, allow_proceed=False)
+        if not Path(absolute_path, "tikDatabase", "project_structure.json").exists():
+            if self.user.permission_level < 3:
+                msg = "The selected folder is not a Tik Manager project, and you do not have the necessary privileges to set it as one. Action cannot be completed."
+                self.log.error(msg)
+                return ValidationResult(ValidationState.ERROR, msg, allow_proceed=False)
+            msg = "The selected folder is not currently defined as a Tik Manager project. If you proceed, the necessary database files and folder structure will be created, and this folder will be designated as a Tik Manager project.\n\nDo you want to continue?"
+            self.log.warning(msg)
+            return ValidationResult(ValidationState.WARNING, msg, allow_proceed=True)
+        return ValidationResult(ValidationState.SUCCESS, "Success")
 
     def set_project(self, absolute_path):
         """Set the current project.
@@ -188,17 +230,39 @@ class Main:
             int: 1 if successful, -1 if not.
         """
         # pylint: disable=protected-access
-        if not Path(absolute_path).exists():
-            self.log.error("Project Path does not exist. Aborting")
-            return -1
-        self.project._set(absolute_path) # pylint: disable=protected-access
+        validation: ValidationResult = self.can_set_project(absolute_path)
+        if validation.state != ValidationState.SUCCESS and not validation.allow_proceed:
+            return False, validation.message
+
+        state, msg = self.project._set(absolute_path, commons_id=self.user.commons.id) # pylint: disable=protected-access
+        if not state:
+            self.fallback_to_default_project()
+            self.log.error(msg)
+            return False, msg
 
         # add to recent projects
         self.user.add_recent_project(absolute_path)
         self.user.last_project = absolute_path
         self.dcc.set_project(absolute_path)
         self.globalize_management_platform()
-        return 1
+        return True, "Success"
+
+    def add_project_as_structure_template(self, template_name=None):
+        """Add the current project as a new structure template."""
+        # check for the permission level
+        if self.user.permission_level < 3:
+            self.log.warning("This user does not have rights to perform this action")
+            return False
+
+        current_structure = self.project.structure.copy_data()
+        # go through the structure and remove the ids
+        filtered_structure = utils.remove_key(current_structure, "id")
+        filtered_structure["name"] = template_name
+
+        self.user.commons.structures.add_property(template_name, filtered_structure)
+        self.user.commons.structures.apply_settings()
+
+        return True
 
     def collect_template_paths(self):
         """Collect all template files from common, project and user folders.

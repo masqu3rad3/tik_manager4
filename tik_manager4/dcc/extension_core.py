@@ -1,5 +1,6 @@
 """Base class for additional DCC tools, utils or anything will be
 integrated to the main ui."""
+from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui.dialog.feedback import Feedback
 
 class ExtensionCore:
@@ -9,10 +10,20 @@ class ExtensionCore:
         self.parent = main_window
         self.tik = main_window.tik
         self.feedback = Feedback(parent=self.parent)
+        self.menu_item = None
 
     def execute(self):
         """Mandatory method to execute the extension."""
         raise NotImplementedError("Method 'execute' must be implemented.")
+
+    def add_function_to_main_menu(self, function, name):
+        """Add a function to the main menu."""
+        if not self.menu_item:
+            raise ValueError("Menu item is not set.")
+
+        action = QtWidgets.QAction(name, self.parent)
+        self.menu_item.addAction(action)
+        action.triggered.connect(lambda: function())
 
     def get_work_and_version(self):
         """Get the work and version objects from the scene file."""

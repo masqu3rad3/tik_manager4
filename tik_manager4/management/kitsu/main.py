@@ -10,13 +10,13 @@ from datetime import datetime
 
 from tik_manager4.core.cryptor import CryptorError
 from tik_manager4.core.cryptor import Cryptor
+from tik_manager4.core.constants import DataTypes
 from tik_manager4.core import utils
 from tik_manager4.management.management_core import ManagementCore
 from tik_manager4.management.enums import EventType
 from tik_manager4.management.exceptions import AuthenticationError, SyncError
 
 from tik_manager4.management.kitsu.ui import login
-
 
 external_folder = Path(__file__).parents[2] / "external"
 
@@ -94,7 +94,11 @@ class ProductionPlatform(ManagementCore):
             except ConnectionError as exc:
                 return None, f"Connection Error: {exc}"
 
-        self.is_authenticated = self.gazu.user.is_authenticated()
+        try:
+            self.is_authenticated = self.gazu.user.is_authenticated()
+        except ConnectionError as exc:
+            return None, f"Connection Error: {exc}"
+
         if not self.is_authenticated:
             return None, "Authentication Failed."
 
@@ -465,20 +469,29 @@ class ProductionPlatform(ManagementCore):
         """Return the settings UI for the Shotgrid platform."""
         # Make sure the keys are unique accross all other platforms
         return {
+            "_kitsu_blank": {
+                "display_name": "",
+                "value": "--------------------------------------------------------",
+                "type": DataTypes.INFO.value,
+                "font_size": 12,
+            },
             "_kitsu": {
-                "type": "separator",
-                "display_name": "Kitsu Settings",
+                "display_name": "",
+                "type": DataTypes.INFO.value,
+                "value": "Kitsu Settings",
+                "font_size": 14,
+                "bold": True,
             },
             "kitsu_url": {
                 "display_name": "Kitsu Host URL",
                 "tooltip": "The URL of the Kitsu server to connect to.",
-                "type": "string",
+                "type": DataTypes.STRING.value,
                 "value": "",
             },
             "skip_empty_entity_names": {
                 "display_name": "Skip Blank Entities During Sync",
                 "tooltip": "If an Asset or Shot has an empty name, it will be skipped during initial project creation or sync. Otherwise, id will be used as the name.",
-                "type": "boolean",
+                "type": DataTypes.BOOLEAN.value,
                 "value": False,
             }
         }

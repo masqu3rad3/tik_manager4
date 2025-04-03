@@ -1,22 +1,23 @@
-import os
-import glob
+from pathlib import Path
 import importlib
 import inspect
+# from tik_manager4.objects import guard
 from tik_manager4.dcc.extract_core import ExtractCore
 
+# guard_obj = guard.Guard()
 classes = {}
-modules = glob.glob(os.path.join(os.path.dirname(__file__), "*.py"))
+modules = list(Path(__file__).parent.glob("*.py"))
+# common_modules = guard_obj.commons.collect_common_modules("maya", "extract")
 
 exceptions = ["__init__.py"]
 
+# for mod in modules + common_modules:
 for mod in modules:
-    file_name = os.path.basename(mod)
+    file_name = mod.name
     if file_name not in exceptions and not file_name.startswith("_"):
-        module_name = file_name[:-3]
-        module_path = os.path.join(os.path.dirname(__file__), module_name)
+        module_name = mod.stem
         module = importlib.import_module(f"{__name__}.{module_name}")
 
         for name, obj in inspect.getmembers(module):
             if inspect.isclass(obj) and issubclass(obj, ExtractCore) and obj != ExtractCore:
                 classes[module_name] = obj
-
