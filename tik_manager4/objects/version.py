@@ -10,6 +10,7 @@ from tik_manager4.core import filelog
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
+
 class PublishVersion(Settings, LocalizeMixin):
     """PublishVersion object class.
 
@@ -119,6 +120,11 @@ class PublishVersion(Settings, LocalizeMixin):
         return self._version
 
     @property
+    def nice_name(self):
+        """Return the nice name of the publish version."""
+        return str(self.version)
+
+    @property
     def notes(self):
         """Notes of the publish version."""
         return self._notes
@@ -192,6 +198,12 @@ class PublishVersion(Settings, LocalizeMixin):
         """The deleted status of the publish version."""
         return self._deleted
 
+    def _get_live_folder(self):
+        """Return the PATH object of the LIVE folder."""
+        # resolve the LIVE folder
+        live_folder = Path(self.get_abs_project_path()).parent / "LIVE"
+        return live_folder
+
     def is_promoted(self):
         """Return if the publish is promoted or not.
 
@@ -202,12 +214,47 @@ class PublishVersion(Settings, LocalizeMixin):
         return _id == self._publish_id
 
     def promote(self):
-        """Promote the publish editing the promoted.json"""
+        """Promote the publish editing the promoted.json.
+
+        This will also copy (and overwrite) the LIVE folder with the elements.
+        """
+        # resolve the LIVE folder
+        # live_folder = Path(self.get_abs_project_path()).parent / "LIVE"
+        live_folder = self._get_live_folder()
+        live_folder.mkdir(parents=True, exist_ok=True)
+
         _data = {
             "publish_id": self._publish_id,
             "name": self._name,
-            "path": self._relative_path,
+            "path": live_folder.relative_to(self.guard.project_root).as_posix(),
+            "version_number": self._version,
+            "elements": []
         }
+
+        for element_data in self.elements:
+            element_type = element_data["type"]
+            publish_path = Path(self.get_element_path(element_type, relative=False))
+            # construct the name of the LIVE element from the data
+            live_element_name = f"{element_type.upper()}_{self._name}{publish_path.suffix}"
+
+            # copy the element to the LIVE folder
+            live_path = live_folder / live_element_name
+            utils.copy(publish_path.as_posix(), live_path.as_posix())
+            # get the relative path against the project path
+
+            # relative_path = Path(self.guard.project_root).relative_to(live_path.parent)
+            relative_path = live_path.relative_to(live_folder)
+
+            # add the element to the promoted data
+            _data["elements"].append({
+                "name": element_data["name"],
+                "type": element_type,
+                "suffix": element_data["suffix"],
+                "path": relative_path.as_posix(),
+                "bundled": element_data["bundled"],
+                "bundle_info": element_data["bundle_info"],
+                "bundle_match_id": element_data["bundle_match_id"],
+            })
         self._promoted_object.set_data(_data)
         self._promoted_object.apply_settings()
 
@@ -316,6 +363,36 @@ class PublishVersion(Settings, LocalizeMixin):
         self.apply_settings(force=True)
         return True, "Success"
 
+class LiveVersion(PublishVersion):
+    """Customized PublishVersion object class."""
+    object_type = ObjectType.PUBLISH_VERSION
+
+    def is_promoted(self):
+        """Override the is_promoted method to always return False.
+
+        This is to prevent doubling the promoted publish version.
+        """
+        return False
+
+    def promote(self):
+        """Override the promote method to do nothing."""
+        pass
+
+    @property
+    def nice_name(self):
+        """Override the nice_name property to return the name of the publish version."""
+        return "LIVE"
+
+    @property
+    def version(self):
+        """Override the version property to return 0."""
+        return 0
+
+    def get_resolved_path(self, *args):
+        """Override the get_resolved_path method to return the path."""
+        live_folder = self._get_live_folder()
+        return Path(live_folder, *args).as_posix()
+
 
 class WorkVersion(LocalizeMixin):
     """WorkVersion object class.
@@ -400,6 +477,11 @@ class WorkVersion(LocalizeMixin):
     def version(self):
         """The version number of the work version."""
         return self._version_number
+
+    @property
+    def nice_name(self):
+        """Return the nice name of the work version."""
+        return str(self.version)
 
     @property
     def workstation(self):

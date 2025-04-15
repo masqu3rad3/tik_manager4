@@ -30,7 +30,7 @@ class VersionComboBoxModel(QtCore.QAbstractListModel):
             return None
         if role == QtCore.Qt.DisplayRole:
             # Display only the 'content' key's value
-            return str(self.items[index.row()].version)
+            return self.items[index.row()].nice_name
         return None
 
     def get_item(self, index):

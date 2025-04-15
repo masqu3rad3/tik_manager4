@@ -33,9 +33,11 @@ class ExtractCore:
 
         self._extension: str = ""
         self._extract_folder: str = ""
+        # self._live_folder: str = ""
         self._category: str = ""
         self._state = "idle"
-        self._extract_name = ""
+        self._extract_name: str = ""
+        self._version_string: str = ""
         self._enabled: bool = True
         self._message: str = ""
         # self._bundled: bool = False # if bundled, the extract will be a folder
@@ -50,6 +52,8 @@ class ExtractCore:
             _settings = Settings()
             _settings.set_data(value)
             self.settings[key] = _settings
+
+        self.live_status = False
 
     def process_settings(self):
         """Using the UI definitions exposed and global exposed settings, create the data dictionaries.
@@ -97,6 +101,16 @@ class ExtractCore:
     def extract_name(self, name):
         """Set the name of the extracted file."""
         self._extract_name = name
+
+    @property
+    def version_string(self):
+        """Return the version string of the extracted file."""
+        return self._version_string
+
+    @version_string.setter
+    def version_string(self, value):
+        """Set the version string of the extracted file."""
+        self._version_string = value
 
     @property
     def extension(self):
@@ -190,6 +204,7 @@ class ExtractCore:
         func = self.category_functions.get(self.category, self._extract_default)
         try:
             func()
+            # self.update_live_branch()
             self._state = "success"
             if self.bundled and not self._bundle_info:
                 self._collect_bundle_info()
@@ -209,12 +224,12 @@ class ExtractCore:
         """Resolve the output path."""
         if self.bundled:
             output_path = (
-                Path(self.extract_folder) / f"{self.name.upper()}_{self._extract_name}"
+                Path(self.extract_folder) / f"{self.name.upper()}_{self._extract_name}_{self.version_string}"
             )
         else:
             output_path = (
                 Path(self.extract_folder)
-                / f"{self.name.upper()}_{self._extract_name}{self.extension}"
+                / f"{self.name.upper()}_{self._extract_name}_{self.version_string}{self.extension}"
             )
         return output_path.as_posix()
 
@@ -230,8 +245,6 @@ class ExtractCore:
         _path = self.resolve_output()
 
         # get everything in the path as fileseq
-        # f_handler = fileseq.FileSequence("")
-        # found_seqs = f_handler.findSequencesOnDisk(_path)
         found_seqs = fileseq.findSequencesOnDisk(_path)
 
         for seq in found_seqs:

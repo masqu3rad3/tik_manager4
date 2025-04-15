@@ -207,7 +207,8 @@ class Publisher:
         publish_path = Path(self._published_object.get_output_path(self._work_object.name))
         extract_object.category = self._work_object.category  # define the category
         extract_object.extract_folder = publish_path.as_posix()  # define the extract folder
-        extract_object.extract_name = f"{self._work_object.name}_v{self._publish_version:03d}"  # define the extract name
+        extract_object.extract_name = f"{self._work_object.name}"  # define the extract name
+        extract_object.version_string = f"v{self._publish_version:03d}"  # define the version string
         extract_object.extract()
         self.write_protect(extract_object.resolve_output())
 
@@ -308,8 +309,8 @@ class Publisher:
                 self.warnings.append(msg)
                 LOG.error(f"Publish to {management_platform} failed: {e}")
 
-
         self._published_object.apply_settings(force=True)
+        self._published_object.promote()
 
         # hook for post publish can be defined in per dcc handler.
         message_callback("Performing post publish operations")
