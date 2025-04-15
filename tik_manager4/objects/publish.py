@@ -4,7 +4,7 @@
 
 from pathlib import Path
 from tik_manager4.core.constants import ObjectType
-from tik_manager4.objects.version import PublishVersion
+from tik_manager4.objects.version import PublishVersion, LiveVersion
 from tik_manager4.mixins.localize import LocalizeMixin
 from tik_manager4.core import filelog
 
@@ -29,6 +29,8 @@ class Publish(LocalizeMixin):
         self.work_object = work_object
 
         self._publish_versions = {}
+
+        self._promoted_version = None
 
     @property
     def name(self):
@@ -89,6 +91,11 @@ class Publish(LocalizeMixin):
         # if there are no non-deleted versions, the publish is considered deleted
         return not bool(self.versions)
 
+    @property
+    def promoted_version(self):
+        """Return the promoted version."""
+        return self._promoted_version
+
     def reload(self):
         """Reload the publish object."""
         self.work_object.reload()
@@ -120,6 +127,12 @@ class Publish(LocalizeMixin):
         """Return the publish scene folder."""
         return self.work_object.get_abs_project_path("publish", self.work_object.name)
 
+    def get_promoted_version(self):
+        """Get the promoted version among the published versions."""
+        for version in reversed(self._publish_versions.values()):
+            if version.is_promoted():
+                return version
+
     def scan_publish_versions(self):
         """Return the publish versions in the publish folder."""
         # search directory is resolved from the work object
@@ -139,6 +152,15 @@ class Publish(LocalizeMixin):
             else:
                 if existing_publish.is_modified():
                     existing_publish.reload()
+
+        self._promoted_version = self.get_promoted_version()
+        if self._promoted_version:
+            # Create a LIVE version merging the promoted version with promoted data
+            # This is a temporary version and not saved to disk.
+            live_version = LiveVersion(self._promoted_version.settings_file)
+            live_version._version = "LIVE"
+            live_version._elements = live_version._promoted_object.get("elements")
+            self._publish_versions["live"] = live_version
 
         return self._publish_versions
 
@@ -250,6 +272,8 @@ class Publish(LocalizeMixin):
             ingestor = self._dcc_handler.ingests.get(element_type, None)
         version_obj = self.get_version(version_number)
         if version_obj:
+            # import pdb
+            # pdb.set_trace()
             relative_path = version_obj.get_element_path(element_type)
             abs_path = version_obj.get_resolved_path(relative_path)
             _func = self._dcc_handler.ingests.get(ingestor, None)
