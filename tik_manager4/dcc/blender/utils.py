@@ -179,3 +179,24 @@ def get_override_context(context=None):
                 return context
 
     return context
+
+def get_usd_export_kwargs(file_path):
+    kwargs = {
+        'filepath': file_path,
+        'export_animation': False,
+        'export_uvmaps': True,
+        'export_hair': True,
+        'export_materials': True,
+        'export_mesh_colors': True,
+        'export_textures': True
+    }
+
+    # Additional export options available in Blender 4.2 LTS and later
+    # These options improve orientation handling and global axis alignment
+    if bpy.app.version >= (4, 2, 0):
+        kwargs.update({
+            'convert_orientation': True,
+            'export_global_up_selection': 'Y'
+        })
+
+    return kwargs
