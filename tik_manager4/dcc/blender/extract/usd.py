@@ -83,14 +83,7 @@ class Usd(ExtractCore):
         """Extract method for model category"""
         file_path = self.resolve_output()
         with bpy.context.temp_override(**utils.get_override_context()):
-            bpy.ops.wm.usd_export(filepath=file_path,
-                                  export_animation=False,
-                                  export_uvmaps=True,
-                                  export_hair=True,
-                                  export_materials=True,
-                                  export_mesh_colors=True,
-                                  export_textures=True
-                                  )
+            bpy.ops.wm.usd_export(**utils.get_usd_export_kwargs(file_path))
 
     def _extract_animation(self):
         """Extract method for animation category"""
@@ -102,14 +95,7 @@ class Usd(ExtractCore):
 
         file_path = self.resolve_output()
         with bpy.context.temp_override(**utils.get_override_context()):
-            bpy.ops.wm.usd_export(filepath=file_path,
-                                  export_animation=True,
-                                  export_uvmaps=True,
-                                  export_hair=True,
-                                  export_materials=True,
-                                  export_mesh_colors=True,
-                                  export_textures=True
-                                  )
+            bpy.ops.wm.usd_export(**utils.get_usd_export_kwargs(file_path))
 
         utils.set_ranges(backup_ranges)
 
