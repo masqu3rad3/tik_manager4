@@ -181,6 +181,18 @@ def get_override_context(context=None):
     return context
 
 def get_usd_export_kwargs(file_path):
+    """Generates arguments settings for exporting a USD file.
+
+        Includes options for exporting materials, textures, UV maps,
+        animation, hair, mesh colors.
+        Adds extra settings for Blender version 4.2 or newer.
+
+        Args:
+            file_path (str): The output path for the USD file.
+
+        Returns:
+            dict: A dictionary of export options.
+    """
     kwargs = {
         'filepath': file_path,
         'export_animation': False,
