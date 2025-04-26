@@ -130,6 +130,27 @@ class UsersDefinitions(QtWidgets.QWidget):
             return
         self.reinit()
 
+    def on_reset_password(self):
+        """Reset the user's password"""
+        selected_item = self.switch_tree_widget.currentItem()
+        if selected_item is None:
+            return
+        name = selected_item.text(0)
+        are_you_sure = self.feedback.pop_question(
+            title="Reset Password",
+            text=f"Are you sure you want to reset the '{name}'s password? "
+                 f"This action cannot be undone.",
+            buttons=["yes", "cancel"],
+        )
+        if are_you_sure == "cancel":
+            return
+
+        self.user_object.reset_user_password("1234", name)
+        self.feedback.pop_info(
+            title="Password Reset",
+            text="Success",
+        )
+
     def _delete_value_widget(self, widget_item):
         """Deletes the value widget and removes it from the layout."""
         widget_item.content.deleteLater()
@@ -170,6 +191,12 @@ class UsersDefinitions(QtWidgets.QWidget):
             permission_widget.setEnabled(False)
 
         form_layout.addRow("Permission Level: ", permission_widget)
+
+        reset_password_button = TikButton(text="Reset Password", parent=self)
+        form_layout.addRow(reset_password_button)
+
+        reset_password_button.clicked.connect(self.on_reset_password)
+
         permission_widget.currentIndexChanged.connect(
             lambda value: data.update({"permissionLevel": value})
         )

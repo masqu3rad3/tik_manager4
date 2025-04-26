@@ -640,6 +640,20 @@ class User:
         else:
             return -1, LOG.error("Old password for %s does not match" % user_name)
 
+    def reset_user_password(self, new_password, user_name):
+        """Reset the password for the specified user.
+
+        This operation can only be performed by users with admin privileges.
+
+        Args:
+            new_password (str): The new password to assign to the user.
+            user_name (str): The user name.
+        """
+        self.commons.users.get_property(user_name)["pass"] = self.__hash_pass(
+            new_password
+        )
+        self.commons.users.apply_settings()
+
     def check_password(self, user_name, password):
         """Check the given password against the hashed password.
 
