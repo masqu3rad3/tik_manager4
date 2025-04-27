@@ -3,6 +3,8 @@
 
 
 from pathlib import Path
+
+from tik_manager4.objects.version import PromotedVersion
 from tik_manager4.core.constants import ObjectType
 from tik_manager4.objects.version import PublishVersion, LiveVersion
 from tik_manager4.mixins.localize import LocalizeMixin
@@ -30,6 +32,7 @@ class Publish(LocalizeMixin):
 
         self._publish_versions = {}
 
+        self._live_version = None
         self._promoted_version = None
 
     @property
@@ -92,9 +95,18 @@ class Publish(LocalizeMixin):
         return not bool(self.versions)
 
     @property
+    def live_version(self):
+        """Return the live version."""
+        if self._live_version:
+            return self._live_version
+        return self.get_live_version()
+
+    @property
     def promoted_version(self):
         """Return the promoted version."""
-        return self._promoted_version
+        if self._promoted_version:
+            return self._promoted_version
+        return self.get_promoted_version()
 
     def reload(self):
         """Reload the publish object."""
@@ -127,6 +139,13 @@ class Publish(LocalizeMixin):
         """Return the publish scene folder."""
         return self.work_object.get_abs_project_path("publish", self.work_object.name)
 
+    def get_live_version(self):
+        """Get the live version among the published versions."""
+        for version in reversed(self._publish_versions.values()):
+            if version.is_live():
+                return version
+        return None
+
     def get_promoted_version(self):
         """Get the promoted version among the published versions."""
         for version in reversed(self._publish_versions.values()):
@@ -153,14 +172,24 @@ class Publish(LocalizeMixin):
                 if existing_publish.is_modified():
                     existing_publish.reload()
 
+        self._live_version = self.get_live_version()
         self._promoted_version = self.get_promoted_version()
-        if self._promoted_version:
-            # Create a LIVE version merging the promoted version with promoted data
-            # This is a temporary version and not saved to disk.
-            live_version = LiveVersion(self._promoted_version.settings_file)
-            live_version._version = "LIVE"
-            live_version._elements = live_version._promoted_object.get("elements")
-            self._publish_versions["live"] = live_version
+
+        # check the project settings for the active branches.
+        if self.guard.project_settings.get("active_branches", True):
+            if self._live_version:
+                # Create a LIVE version merging the live version with live data
+                # This is a temporary version and not saved to disk.
+                live_version = LiveVersion(self._live_version.settings_file)
+                live_version._elements = live_version._live_object.get("elements")
+                self._publish_versions["live"] = live_version
+
+            if self._promoted_version:
+                # Create a PROMOTED version merging the promoted version with promoted data
+                # This is a temporary version and not saved to disk.
+                promoted_version = PromotedVersion(self._promoted_version.settings_file)
+                promoted_version._elements = promoted_version._live_object.get("elements")
+                self._publish_versions["promoted"] = promoted_version
 
         return self._publish_versions
 
@@ -272,8 +301,6 @@ class Publish(LocalizeMixin):
             ingestor = self._dcc_handler.ingests.get(element_type, None)
         version_obj = self.get_version(version_number)
         if version_obj:
-            # import pdb
-            # pdb.set_trace()
             relative_path = version_obj.get_element_path(element_type)
             abs_path = version_obj.get_resolved_path(relative_path)
             _func = self._dcc_handler.ingests.get(ingestor, None)

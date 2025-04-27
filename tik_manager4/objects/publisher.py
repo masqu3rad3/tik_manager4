@@ -310,7 +310,7 @@ class Publisher:
                 LOG.error(f"Publish to {management_platform} failed: {e}")
 
         self._published_object.apply_settings(force=True)
-        self._published_object.promote()
+        self._published_object.make_live()
 
         # hook for post publish can be defined in per dcc handler.
         message_callback("Performing post publish operations")

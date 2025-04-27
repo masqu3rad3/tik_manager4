@@ -405,6 +405,30 @@ class SettingsDialog(QtWidgets.QDialog):
         project_widget_item.addChild(metadata)
         metadata.content = self._metadata_content()
 
+        # Project settings
+        project_settings_item = SwitchTreeItem(["Project Settings"], permission_level=3)
+        project_widget_item.addChild(project_settings_item)
+
+        project_settings_ui_definition = {
+            "active_branches": {
+                "display_name": "Active Branches",
+                "type": DataTypes.BOOLEAN.value,
+                "value": self.main_object.project.settings.get_property(
+                    "active_branches", True),
+                "tooltip": "The method to use for ingesting published files.\n"
+                           "Active branches are overwritten duplicates of specific published versions.\n"
+                           "There are LIVE and PROMOTED branches. LIVE branch gets automatically updated with each publish. It is copy of the latest version.\n"
+                           "PROMOTED branch is a admin/supervisor controlled version. It is not updated automatically.\n",
+            }
+        }
+
+        # fill the content
+        project_settings_item.content, _ = self.__create_generic_settings_layout(
+            settings_data=self.main_object.project.settings,
+            title="Project Settings",
+            ui_definition=project_settings_ui_definition,
+        )
+
     def common_title(self):
         """Create the common settings."""
         # create the menu items
