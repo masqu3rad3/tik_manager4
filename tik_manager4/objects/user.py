@@ -657,7 +657,7 @@ class User:
 
         msg = f"Are you sure you want to reset the '{user_name}'s password? " \
               f"This action cannot be undone."
-        return ValidationResult(ValidationState.SUCCESS, msg,
+        return ValidationResult(ValidationState.WARNING, msg,
                                 allow_proceed=True)
 
     def reset_user_password(self, new_password, user_name):
