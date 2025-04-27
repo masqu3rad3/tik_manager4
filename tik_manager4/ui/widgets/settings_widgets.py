@@ -1,6 +1,6 @@
 """Convenince widgets for settings UI."""
 
-from tik_manager4.core.constants import DataTypes
+from tik_manager4.core.constants import DataTypes, ValidationState
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.widgets import value_widgets
 from tik_manager4.ui.widgets.validated_string import ValidatedString
@@ -136,16 +136,27 @@ class UsersDefinitions(QtWidgets.QWidget):
         if selected_item is None:
             return
         name = selected_item.text(0)
-        are_you_sure = self.feedback.pop_question(
+
+        validation = self.user_object.can_reset_password(name)
+
+        if validation.state != ValidationState.SUCCESS:
+            if not validation.allow_proceed:
+                self.feedback.pop_error(
+                    title="Cannot reset password",
+                    text=validation.message,
+                )
+                return
+
+        dialog_result = self.feedback.pop_question(
             title="Reset Password",
-            text=f"Are you sure you want to reset the '{name}'s password? "
-                 f"This action cannot be undone.",
-            buttons=["yes", "cancel"],
+            text=validation.message,
+            buttons=["yes", "cancel"]
         )
-        if are_you_sure == "cancel":
+        if dialog_result == "cancel":
             return
 
         self.user_object.reset_user_password("1234", name)
+
         self.feedback.pop_info(
             title="Password Reset",
             text="Success",
