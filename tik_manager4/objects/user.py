@@ -669,6 +669,11 @@ class User:
             new_password (str): The new password to assign to the user.
             user_name (str): The user name.
         """
+        validation = self.can_reset_password(user_name)
+
+        if validation.state != ValidationState.SUCCESS:
+            if not validation.allow_proceed:
+                return
 
         self.commons.users.get_property(user_name)["pass"] = self.__hash_pass(
             new_password
