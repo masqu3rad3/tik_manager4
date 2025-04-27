@@ -137,7 +137,16 @@ class UsersDefinitions(QtWidgets.QWidget):
             return
         name = selected_item.text(0)
 
-        validation = self.user_object.can_reset_password(name)
+        dialog_result = self.feedback.pop_question(
+            title="Reset Password",
+            text=f"Are you sure you want to reset the '{name}'s password? "
+                 f"This action cannot be undone.",
+            buttons=["yes", "cancel"]
+        )
+        if dialog_result == "cancel":
+            return
+
+        validation = self.user_object.reset_user_password("1234", name)
 
         if validation.state != ValidationState.SUCCESS:
             if not validation.allow_proceed:
@@ -147,19 +156,9 @@ class UsersDefinitions(QtWidgets.QWidget):
                 )
                 return
 
-        dialog_result = self.feedback.pop_question(
-            title="Reset Password",
-            text=validation.message,
-            buttons=["yes", "cancel"]
-        )
-        if dialog_result == "cancel":
-            return
-
-        self.user_object.reset_user_password("1234", name)
-
         self.feedback.pop_info(
             title="Password Reset",
-            text="Success",
+            text=validation.message,
         )
 
     def _delete_value_widget(self, widget_item):

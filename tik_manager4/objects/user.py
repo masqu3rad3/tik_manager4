@@ -640,11 +640,14 @@ class User:
         else:
             return -1, LOG.error("Old password for %s does not match" % user_name)
 
-    def can_reset_password(self, user_name) -> ValidationResult:
-        """Check if the active user can reset password.
+    def reset_user_password(self, new_password, user_name) -> ValidationResult:
+        """Reset the password for the specified user.
+
+        This operation can only be performed by users with admin privileges.
 
         Args:
-            user_name (str): The user name whose password is to be reset.
+            new_password (str): The new password to assign to the user.
+            user_name (str): The user name.
         Returns:
             object: ValidationResult object.
         """
@@ -654,31 +657,12 @@ class User:
             LOG.error(msg)
             return ValidationResult(ValidationState.ERROR, msg,
                                     allow_proceed=False)
-
-        msg = f"Are you sure you want to reset the '{user_name}'s password? " \
-              f"This action cannot be undone."
-        return ValidationResult(ValidationState.WARNING, msg,
-                                allow_proceed=True)
-
-    def reset_user_password(self, new_password, user_name):
-        """Reset the password for the specified user.
-
-        This operation can only be performed by users with admin privileges.
-
-        Args:
-            new_password (str): The new password to assign to the user.
-            user_name (str): The user name.
-        """
-        validation = self.can_reset_password(user_name)
-
-        if validation.state != ValidationState.SUCCESS:
-            if not validation.allow_proceed:
-                return
-
         self.commons.users.get_property(user_name)["pass"] = self.__hash_pass(
             new_password
         )
         self.commons.users.apply_settings()
+
+        return ValidationResult(ValidationState.SUCCESS, "Success")
 
     def check_password(self, user_name, password):
         """Check the given password against the hashed password.
