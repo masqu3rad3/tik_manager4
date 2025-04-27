@@ -3,6 +3,16 @@
 from dataclasses import dataclass
 from enum import Enum
 
+class ColorCodes(Enum):
+    """Enumeration of color codes."""
+    DELETED = "#FF0000"  # Red
+    # bright green
+    PROMOTED = "#00FF00"  # Green
+    # bright purple
+    LIVE = "#CA75FF"  # Purple
+    # regular white
+    NORMAL = "#FFFFFF"  # White
+
 class ObjectType(Enum):
     """Enumeration of object types."""
     ENTITY = "entity"
@@ -68,5 +78,16 @@ class DataTypes(Enum):
     def get_storable_types():
         """Return a list of storable data types values."""
         return [dt.value for dt in DataTypes if dt.is_storable]
+
+# class PublishIngestMethods(Enum):
+#     """Enumeration of publish ingest methods."""
+#     NONE = "None"
+#     ACTIVEBRANCH = "Active Branching"
+#
+#     @staticmethod
+#     def get_publish_ingest_methods():
+#         """Return a list of publish ingest methods values."""
+#         return [method.value for method in PublishIngestMethods]
+
 
 

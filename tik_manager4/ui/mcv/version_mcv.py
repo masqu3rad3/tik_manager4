@@ -15,6 +15,7 @@ LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class VersionComboBoxModel(QtCore.QAbstractListModel):
     """Model for the version combo box."""
+
     def __init__(self, items, parent=None):
         super().__init__(parent)
         self.items = items
@@ -31,6 +32,10 @@ class VersionComboBoxModel(QtCore.QAbstractListModel):
         if role == QtCore.Qt.DisplayRole:
             # Display only the 'content' key's value
             return self.items[index.row()].nice_name
+        if role == QtCore.Qt.ForegroundRole:
+            # Set color based on item state
+            item = self.items[index.row()]
+            return QtGui.QBrush(QtGui.QColor(item.get_display_color()))
         return None
 
     def get_item(self, index):
@@ -42,6 +47,7 @@ class VersionComboBoxModel(QtCore.QAbstractListModel):
 
 class VersionComboBox(QtWidgets.QComboBox):
     """Custom combo box for version selection."""
+
     def __init__(self, items=None, parent=None):
         """Initialize the VersionComboBox."""
         super().__init__(parent)
@@ -56,6 +62,7 @@ class VersionComboBox(QtWidgets.QComboBox):
 
     def get_item(self, index):
         """Get the item at the given index."""
+        # print(self.model.get_item(index).publish_id)
         return self.model.get_item(index)
 
     def get_current_item(self):
@@ -68,6 +75,38 @@ class VersionComboBox(QtWidgets.QComboBox):
             self.model.items = []  # Clear the items in the model
             self.model.layoutChanged.emit()  # Notify views of the change
         super().clear()  # Clear any additional internal state in QComboBox
+
+    def paintEvent(self, event):
+        """Override paintEvent to apply the color of the selected item."""
+        painter = QtGui.QPainter(self)
+        rect = self.rect()
+
+        # Draw the combo box frame
+        opt = QtWidgets.QStyleOptionComboBox()
+        self.initStyleOption(opt)
+        self.style().drawComplexControl(QtWidgets.QStyle.CC_ComboBox, opt, painter, self)
+
+        # Get the current item and its color
+        current_index = self.currentIndex()
+        if current_index >= 0 and self.model:
+            item = self.model.get_item(current_index)
+            if item:
+                # Determine the color based on the item's state
+                _color = item.get_display_color()
+                if _color:
+                    color = QtGui.QColor(_color)
+                else:
+                    color = self.palette().color(QtGui.QPalette.Text)
+
+                # Draw the text with the appropriate color
+                painter.setPen(color)
+                text = item.nice_name
+                text_rect = self.style().subControlRect(
+                    QtWidgets.QStyle.CC_ComboBox, opt, QtWidgets.QStyle.SC_ComboBoxEditField, self
+                )
+                painter.drawText(text_rect, QtCore.Qt.AlignVCenter | QtCore.Qt.TextSingleLine, text)
+
+        painter.end()
 
 
 @dataclass
@@ -82,6 +121,7 @@ class VersionWidgets:
     sync_btn: TikButton
     lbl: QtWidgets.QLabel
     combo: VersionComboBox
+    promote_btn: TikIconButton
     preview_btn: TikIconButton
     owner_lbl: QtWidgets.QLabel
 
@@ -140,6 +180,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             sync_btn=TikButton(text="Sync"),
             lbl=QtWidgets.QLabel(text="Version: "),
             combo=VersionComboBox(),
+            promote_btn=TikIconButton(icon_name="star.png", circle=False, size=30),
             preview_btn=TikIconButton(icon_name="player.png", circle=False, size=30),
             owner_lbl=QtWidgets.QLabel("Owner: ")
         )
@@ -212,6 +253,12 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.version.combo.setMinimumSize(QtCore.QSize(10, 30))
         version_layout.addWidget(self.version.combo)
 
+        self.version.promote_btn.setMinimumSize(QtCore.QSize(30, 30))
+        self.version.promote_btn.setEnabled(False)
+        self.version.promote_btn.setHidden(True)
+        self.version.promote_btn.setToolTip("Promote the selected publish version to Production.")
+        version_layout.addWidget(self.version.promote_btn)
+
         self.version.preview_btn.setMinimumSize(QtCore.QSize(30, 30))
         self.version.preview_btn.setEnabled(False)
         version_layout.addWidget(self.version.preview_btn)
@@ -277,6 +324,40 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.header.refresh_btn.clicked.connect(self.refresh)
         self.version.sync_btn.clicked.connect(self.on_sync_to_origin)
         self.info.notes_editor.notes_updated.connect(self.__apply_to_base)
+        self.version.promote_btn.clicked.connect(self.on_promote)
+
+    def on_promote(self):
+        """Execute the promote action."""
+        if not self.base:
+            self.feedback.pop_info(
+                title="No publish version selected.",
+                text="Please select a publish version to promote.",
+                critical=True,
+            )
+            return
+
+        if not self.base.object_type == ObjectType.PUBLISH:
+            return
+
+        _version = self.version.combo.get_current_item()
+        # if the version is already promoted, ask the user if they want to force it again
+        if _version.is_promoted():
+            question = self.feedback.pop_question(
+                title="Version already promoted",
+                text="The selected version is already promoted.\n\nDo you want to force the promotion again?",
+                buttons=["yes", "cancel"],
+            )
+            if question == "cancel":
+                return
+
+        _version.promote()
+        # store the selected version in the combo box
+
+        # refresh the version list
+        _index = self.version.combo.currentIndex()
+        self.populate_versions(self.base)
+        self.version.combo.setCurrentIndex(_index)
+
 
     def on_sync_to_origin(self):
         """Sync the version to the origin."""
@@ -628,17 +709,12 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.toggle_sync_state(state=state, critical=critical)
 
         _index = self.version.combo.currentIndex()
-        item = self.version.combo.get_item(_index)
-
-        # adjust the css properties
-        self.version.combo.setProperty("deleted", item.deleted)
-        self.version.combo.setProperty("preVersion",
-                                       _index != self.version.combo.count() - 1)
-        self.version.combo.setStyleSheet("")
 
         self.element.element_combo.clear()
         self.element_mapping.clear()
         if self.base.object_type == ObjectType.PUBLISH:
+            self.version.promote_btn.setHidden(False)
+            self.version.promote_btn.setEnabled(_version.can_promote())
             self.version.preview_btn.setEnabled(bool(_version.previews))
             self.element.element_combo.setEnabled(True)
             self.element.element_view_btn.setEnabled(True)
@@ -649,6 +725,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.element_type_changed(self.element.element_combo.currentText())
             owner = _version.creator
         else:  # WORK
+            self.version.promote_btn.setHidden(True)
             self.element.element_combo.setEnabled(False)
             self.element.element_view_btn.setEnabled(False)
             self.element.ingest_with_combo.setEnabled(False)

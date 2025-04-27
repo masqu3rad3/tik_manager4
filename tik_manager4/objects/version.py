@@ -3,13 +3,12 @@
 from pathlib import Path
 
 from tik_manager4.core import utils
-from tik_manager4.core.constants import ObjectType
+from tik_manager4.core.constants import ObjectType, ColorCodes
 from tik_manager4.core.settings import Settings
 from tik_manager4.mixins.localize import LocalizeMixin
 from tik_manager4.core import filelog
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
-
 
 class PublishVersion(Settings, LocalizeMixin):
     """PublishVersion object class.
@@ -60,6 +59,8 @@ class PublishVersion(Settings, LocalizeMixin):
 
         # get the current folder path
         _folder = Path(self.settings_file).parent
+        live_file = _folder / "live.json"
+        self._live_object = Settings(live_file)
         promoted_file = _folder / "promoted.json"
         self._promoted_object = Settings(promoted_file)
 
@@ -204,20 +205,24 @@ class PublishVersion(Settings, LocalizeMixin):
         live_folder = Path(self.get_abs_project_path()).parent / "LIVE"
         return live_folder
 
-    def is_promoted(self):
-        """Return if the publish is promoted or not.
+    def _get_promoted_folder(self):
+        """Return the PATH object of the PROMOTED folder."""
+        # resolve the LIVE folder
+        promoted_folder = Path(self.get_abs_project_path()).parent / "PROMOTED"
+        return promoted_folder
 
-        This method checks the 'promoted' file in the publish folder.
-        If the content is matching with the publish id, return True
-        """
-        _id = self._promoted_object.get_property("publish_id", default=None)
+    def is_deleted(self):
+        """Convenience method to check if the publish version is deleted."""
+        return self._deleted
+
+    def is_live(self):
+        """Check if the publish version is a live version."""
+
+        _id = self._live_object.get_property("publish_id", default=None)
         return _id == self._publish_id
 
-    def promote(self):
-        """Promote the publish editing the promoted.json.
-
-        This will also copy (and overwrite) the LIVE folder with the elements.
-        """
+    def _make_live_with_active_branching(self):
+        """Make the publish version a live version with active branching."""
         # resolve the LIVE folder
         # live_folder = Path(self.get_abs_project_path()).parent / "LIVE"
         live_folder = self._get_live_folder()
@@ -255,8 +260,101 @@ class PublishVersion(Settings, LocalizeMixin):
                 "bundle_info": element_data["bundle_info"],
                 "bundle_match_id": element_data["bundle_match_id"],
             })
+        self._live_object.set_data(_data)
+        self._live_object.apply_settings(force=True)
+
+    def make_live(self):
+        """"Make the publish version a live version."""
+
+        # if the active branch method is selected, use it
+        if self.guard.project_settings.get("active_branching", True):
+            self._make_live_with_active_branching()
+            return
+        # otherwise, use the default method
+        _data = {
+            "publish_id": self._publish_id,
+            "name": self._name,
+            "path": self._relative_path,
+            "version_number": self.version,
+            "elements": self._elements
+        }
+        self._live_object.set_data(_data)
+        self._live_object.apply_settings(force=True)
+
+
+    def is_promoted(self):
+        """Return if the publish is promoted or not.
+
+        This method checks the 'promoted' file in the publish folder.
+        If the content is matching with the publish id, return True
+        """
+        self._promoted_object.reload()
+        _id = self._promoted_object.get_property("publish_id", default=None)
+        return _id == self._publish_id
+
+    def can_promote(self):
+        """Check if the publish version can be promoted."""
+        return not self.is_promoted()
+
+    def _promote_with_active_branching(self):
+        """Promoting with the active branch method."""
+        # promoted_folder = Path(self.get_abs_project_path()).parent / "LIVE"
+        promoted_folder = self._get_promoted_folder()
+        promoted_folder.mkdir(parents=True, exist_ok=True)
+
+        _data = {
+            "publish_id": self._publish_id,
+            "name": self._name,
+            "path": promoted_folder.relative_to(self.guard.project_root).as_posix(),
+            # "version_number": self._version,
+            "version_number": self.version,
+            "elements": []
+        }
+
+        for element_data in self.elements:
+            element_type = element_data["type"]
+            publish_path = Path(self.get_element_path(element_type, relative=False))
+            # construct the name of the LIVE element from the data
+            promoted_element_name = f"{element_type.upper()}_{self._name}{publish_path.suffix}"
+
+            # copy the element to the LIVE folder
+            promoted_path = promoted_folder / promoted_element_name
+            utils.copy(publish_path.as_posix(), promoted_path.as_posix())
+            # get the relative path against the project path
+
+            relative_path = promoted_path.relative_to(promoted_folder)
+
+            # add the element to the promoted data
+            _data["elements"].append({
+                "name": element_data["name"],
+                "type": element_type,
+                "suffix": element_data["suffix"],
+                "path": relative_path.as_posix(),
+                "bundled": element_data["bundled"],
+                "bundle_info": element_data["bundle_info"],
+                "bundle_match_id": element_data["bundle_match_id"],
+            })
         self._promoted_object.set_data(_data)
-        self._promoted_object.apply_settings()
+        self._promoted_object.apply_settings(force=True)
+
+    def promote(self):
+        """Promote the publish editing the promoted.json."""
+
+        # if the active branch method is selected, use it
+        if self.guard.project_settings.get("active_branching", True):
+            self._promote_with_active_branching()
+            return
+
+        # otherwise, use the default method
+        _data = {
+            "publish_id": self._publish_id,
+            "name": self._name,
+            "path": self._relative_path,
+            "version_number": self.version,
+            "elements": self._elements
+        }
+        self._promoted_object.set_data(_data)
+        self._promoted_object.apply_settings(force=True)
 
     def get_element_by_type(self, element_type):
         """Return the element by the given type.
@@ -363,6 +461,20 @@ class PublishVersion(Settings, LocalizeMixin):
         self.apply_settings(force=True)
         return True, "Success"
 
+    def get_display_color(self):
+        """Return the display color of the version.
+
+        Returns:
+            str: The display color of the publish version.
+        """
+        if self.deleted:
+            return ColorCodes.DELETED.value
+        if self.is_promoted():
+            return ColorCodes.PROMOTED.value
+        if self.is_live():
+            return ColorCodes.LIVE.value
+        return ColorCodes.NORMAL.value
+
 class LiveVersion(PublishVersion):
     """Customized PublishVersion object class."""
     object_type = ObjectType.PUBLISH_VERSION
@@ -374,9 +486,17 @@ class LiveVersion(PublishVersion):
         """
         return False
 
-    def promote(self):
-        """Override the promote method to do nothing."""
-        pass
+    def is_live(self):
+        """Override the is_live method to always return True."""
+        return True
+
+    def can_promote(self):
+        """Override the can_promote method to always return False."""
+        return True
+
+    # def promote(self):
+    #     """Override the promote method to do nothing."""
+    #     pass
 
     @property
     def nice_name(self):
@@ -386,13 +506,68 @@ class LiveVersion(PublishVersion):
     @property
     def version(self):
         """Override the version property to return 0."""
-        return 0
+
+        # get the version_number from the database file, which is the stamped version.
+        return self.get_property("version_number", 0)
 
     def get_resolved_path(self, *args):
         """Override the get_resolved_path method to return the path."""
         live_folder = self._get_live_folder()
         return Path(live_folder, *args).as_posix()
 
+    def get_display_color(self):
+        """Return the display color of the version.
+
+        Returns:
+            str: The display color of the publish version.
+        """
+        return ColorCodes.LIVE.value
+
+class PromotedVersion(PublishVersion):
+    """Customized PublishVersion object class."""
+    object_type = ObjectType.PUBLISH_VERSION
+
+    def is_promoted(self):
+        """Override the is_promoted method to always return False.
+
+        This is to prevent doubling the promoted publish version.
+        """
+        return False
+
+    def is_live(self):
+        """Override the is_live method to always return False."""
+        return False
+
+    def can_promote(self):
+        """Override the can_promote method to always return False."""
+        return False
+
+    def promote(self):
+        """Override the promote method to do nothing."""
+        pass
+
+    @property
+    def nice_name(self):
+        """Override the nice_name property to return the name of the publish version."""
+        return "PRO"
+
+    @property
+    def version(self):
+        """Override the version property to return 0."""
+        return 0
+
+    def get_resolved_path(self, *args):
+        """Override the get_resolved_path method to return the path."""
+        promoted_folder = self._get_promoted_folder()
+        return Path(promoted_folder, *args).as_posix()
+
+    def get_display_color(self):
+        """Return the display color of the version.
+
+        Returns:
+            str: The display color of the publish version.
+        """
+        return ColorCodes.PROMOTED.value
 
 class WorkVersion(LocalizeMixin):
     """WorkVersion object class.
@@ -544,6 +719,21 @@ class WorkVersion(LocalizeMixin):
         self._deleted = False
         self.parent_work.apply_settings()
         return True, f"{source_abs_path} moved to {target_abs_path}."
+
+    def get_display_color(self):
+        """Return the display color of the version.
+
+        Returns:
+            str: The display color of the publish version.
+        """
+        return ColorCodes.NORMAL.value
+
+        # if self.deleted:
+        #     return ColorCodes.DELETED.value
+        # if self.is_promoted():
+        #     return ColorCodes.PROMOTED.value
+        # if self.is_live():
+        #     return ColorCodes.LIVE.value
 
     def __str__(self):
         """Return the type of the class and the current data."""
