@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from tik_manager4.core import utils
-from tik_manager4.core.constants import ObjectType, ColorCodes
+from tik_manager4.core.constants import ObjectType, ColorCodes, ValidationResult, ValidationState
 from tik_manager4.core.settings import Settings
 from tik_manager4.mixins.localize import LocalizeMixin
 from tik_manager4.core import filelog
@@ -294,7 +294,12 @@ class PublishVersion(Settings, LocalizeMixin):
 
     def can_promote(self):
         """Check if the publish version can be promoted."""
-        return not self.is_promoted()
+        # check the user permission level
+        # if not self.check_permissions(level=3):
+        #     return False
+        return True
+
+        # return not self.is_promoted()
 
     def _promote_with_active_branching(self):
         """Promoting with the active branch method."""
@@ -339,11 +344,13 @@ class PublishVersion(Settings, LocalizeMixin):
 
     def promote(self):
         """Promote the publish editing the promoted.json."""
+        if self.check_permissions(level=3) == -1:
+            return ValidationResult(ValidationState.ERROR, f"{self.guard.user} doesn't have the permissions to promote publish versions.", False)
 
         # if the active branch method is selected, use it
         if self.guard.project_settings.get("active_branching", True):
             self._promote_with_active_branching()
-            return
+            return ValidationResult(ValidationState.SUCCESS, "Success")
 
         # otherwise, use the default method
         _data = {
@@ -355,6 +362,7 @@ class PublishVersion(Settings, LocalizeMixin):
         }
         self._promoted_object.set_data(_data)
         self._promoted_object.apply_settings(force=True)
+        return ValidationResult(ValidationState.SUCCESS, "Success")
 
     def get_element_by_type(self, element_type):
         """Return the element by the given type.
@@ -490,9 +498,9 @@ class LiveVersion(PublishVersion):
         """Override the is_live method to always return True."""
         return True
 
-    def can_promote(self):
-        """Override the can_promote method to always return False."""
-        return True
+    # def can_promote(self):
+    #     """Override the can_promote method to always return True."""
+    #     return True
 
     # def promote(self):
     #     """Override the promote method to do nothing."""

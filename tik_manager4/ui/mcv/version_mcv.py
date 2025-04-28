@@ -2,7 +2,9 @@
 import tempfile
 from pathlib import Path
 from dataclasses import dataclass
-from tik_manager4.core.constants import ObjectType
+
+from core.constants import ValidationResult
+from tik_manager4.core.constants import ObjectType, ValidationResult, ValidationState
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator, TikIconButton
@@ -350,14 +352,18 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             if question == "cancel":
                 return
 
-        _version.promote()
-        # store the selected version in the combo box
-
+        validation: ValidationResult = _version.promote()
+        if validation.state != ValidationState.SUCCESS:
+            self.feedback.pop_info(
+                title="Promotion failed",
+                text=validation.message,
+                critical=True,
+            )
+            return
         # refresh the version list
         _index = self.version.combo.currentIndex()
         self.populate_versions(self.base)
         self.version.combo.setCurrentIndex(_index)
-
 
     def on_sync_to_origin(self):
         """Sync the version to the origin."""
