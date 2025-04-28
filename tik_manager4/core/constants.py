@@ -79,15 +79,3 @@ class DataTypes(Enum):
         """Return a list of storable data types values."""
         return [dt.value for dt in DataTypes if dt.is_storable]
 
-# class PublishIngestMethods(Enum):
-#     """Enumeration of publish ingest methods."""
-#     NONE = "None"
-#     ACTIVEBRANCH = "Active Branching"
-#
-#     @staticmethod
-#     def get_publish_ingest_methods():
-#         """Return a list of publish ingest methods values."""
-#         return [method.value for method in PublishIngestMethods]
-
-
-
