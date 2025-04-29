@@ -461,9 +461,6 @@ class PublishVersion(Settings, LocalizeMixin):
         if errors:
             return False, "\n".join(errors)
 
-        # make sure hiearchy is resurrected (or not deleted)
-        # TODO we need the parent work to resurrect upstream
-
         self._deleted = False
         self.edit_property("deleted", False)
         self.apply_settings(force=True)
@@ -483,6 +480,43 @@ class PublishVersion(Settings, LocalizeMixin):
             return ColorCodes.LIVE.value
         return ColorCodes.NORMAL.value
 
+    def to_dict(self):
+        """Convert the WorkVersion object to a dictionary."""
+        return {
+            "category": self._category,
+            "creator": self._creator,
+            "dcc": self._dcc,
+            "dcc_version": self._dcc_version,
+            "elements": self._elements,
+            "name": self._name,
+            "notes": self._notes,
+            "publish_id": self._publish_id,
+            "relative_path": self._relative_path,
+            "task_id": self._task_id,
+            "task_name": self._task_name,
+            "thumbnail": self._thumbnail,
+            "version_number": self._version,
+            "work_version": self._work_version,
+            "localized": self._localized,
+            "localized_path": self._localized_path,
+            "deleted": self._deleted,
+        }
+
+        # return {
+        #     "version_number": self._version,
+        #     "creator": self._creator,
+        #     "scene_path": self._scene_path,
+        #     "file_format": self._file_format,
+        #     "notes": self._notes,
+        #     "dcc_version": self._dcc_version,
+        #     "localized": self._localized,
+        #     "localized_path": self._localized_path,
+        #     "previews": self._previews,
+        #     "thumbnail": self._thumbnail,
+        #     "workstation": self._workstation,
+        #     "deleted": self._deleted
+        # }
+
 class LiveVersion(PublishVersion):
     """Customized PublishVersion object class."""
     object_type = ObjectType.PUBLISH_VERSION
@@ -497,14 +531,6 @@ class LiveVersion(PublishVersion):
     def is_live(self):
         """Override the is_live method to always return True."""
         return True
-
-    # def can_promote(self):
-    #     """Override the can_promote method to always return True."""
-    #     return True
-
-    # def promote(self):
-    #     """Override the promote method to do nothing."""
-    #     pass
 
     @property
     def nice_name(self):
@@ -686,16 +712,16 @@ class WorkVersion(LocalizeMixin):
     def to_dict(self):
         """Convert the WorkVersion object to a dictionary."""
         return {
-            "dcc_version": self._dcc_version,
+            "version_number": self._version_number,
+            "user": self._user,
+            "scene_path": self._scene_path,
             "file_format": self._file_format,
+            "notes": self._notes,
+            "dcc_version": self._dcc_version,
             "localized": self._localized,
             "localized_path": self._localized_path,
-            "notes": self._notes,
             "previews": self._previews,
-            "scene_path": self._scene_path,
             "thumbnail": self._thumbnail,
-            "user": self._user,
-            "version_number": self._version_number,
             "workstation": self._workstation,
             "deleted": self._deleted
         }

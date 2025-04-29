@@ -3,7 +3,6 @@ import tempfile
 from pathlib import Path
 from dataclasses import dataclass
 
-from core.constants import ValidationResult
 from tik_manager4.core.constants import ObjectType, ValidationResult, ValidationState
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
@@ -11,6 +10,7 @@ from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator, TikIc
 from tik_manager4.ui.widgets.screenshot import take_screen_area
 from tik_manager4.ui.widgets.info import ImageWidget, NotesEditor
 from tik_manager4.ui.dialog.bunde_ingest_dialog import BundleIngestDialog
+from tik_manager4.ui.dialog.info_dialog import InfoDialog
 from tik_manager4.core import filelog
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
@@ -69,6 +69,9 @@ class VersionComboBox(QtWidgets.QComboBox):
 
     def get_current_item(self):
         """Get the current selected item."""
+        current_index = self.currentIndex()
+        if current_index < 0:
+            return None
         return self.model.get_item(self.currentIndex())
 
     def clear(self):
@@ -126,6 +129,7 @@ class VersionWidgets:
     promote_btn: TikIconButton
     preview_btn: TikIconButton
     owner_lbl: QtWidgets.QLabel
+    info_btn: TikIconButton
 
 
 @dataclass
@@ -184,7 +188,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             combo=VersionComboBox(),
             promote_btn=TikIconButton(icon_name="star.png", circle=False, size=30),
             preview_btn=TikIconButton(icon_name="player.png", circle=False, size=30),
-            owner_lbl=QtWidgets.QLabel("Owner: ")
+            owner_lbl=QtWidgets.QLabel("Owner: "),
+            info_btn=TikIconButton(icon_name="info.png", circle=False, size=30)
         )
 
         self.element = ElementWidgets(
@@ -267,10 +272,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         user_layout = QtWidgets.QHBoxLayout()
         self.addLayout(user_layout)
-        self.version.owner_lbl = QtWidgets.QLabel("Owner: ")
-        self.version.owner_lbl.setFont(QtGui.QFont("Arial", 10))
         user_layout.addStretch()
+        # self.version.owner_lbl = QtWidgets.QLabel("Owner: ")
+        self.version.owner_lbl.setFont(QtGui.QFont("Arial", 10))
         user_layout.addWidget(self.version.owner_lbl)
+
+        user_layout.addWidget(self.version.info_btn)
+
 
         element_layout = QtWidgets.QVBoxLayout()
         self.addLayout(element_layout)
@@ -327,6 +335,32 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.version.sync_btn.clicked.connect(self.on_sync_to_origin)
         self.info.notes_editor.notes_updated.connect(self.__apply_to_base)
         self.version.promote_btn.clicked.connect(self.on_promote)
+        self.version.info_btn.clicked.connect(self.on_info)
+
+    def on_info(self):
+        """Pop-up a dialog with the version information."""
+        _version = self.version.combo.get_current_item()
+        if not _version:
+            return
+        # TODO : add a dialog to show the version information
+        example_data = {
+            "name": "asdf_Model",
+            "version_number": 1,
+            "owner": "Arda Kutlu",
+            "category": "Model",
+            "localized": False,
+            "localized_path": "",
+            "dcc_version": "2024",
+            "scene_path": "asdf_Model/asdf_Model_v001.ma",
+            "thumbnail": "thumbnails/asdf_Model_v001_thumbnail.jpg",
+            "workstation": "arda-3060",
+            "deleted": False,
+            "a_very_long_key_name_for_testing": "This is a rather long value to see if the text wrapping works correctly within the label.",
+            "description": "This is the primary model asset for the 'asdf' project sequence.",
+            "creation_date": "2025-04-29",
+            "last_modified": "2025-04-29T10:30:00Z"
+        }
+        InfoDialog.show_info(data=_version.to_dict(), title="Version Details", parent=self.parent)
 
     def on_promote(self):
         """Execute the promote action."""
