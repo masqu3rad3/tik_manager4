@@ -335,9 +335,9 @@ class PublishVersion(Settings, LocalizeMixin):
                 "type": element_type,
                 "suffix": element_data["suffix"],
                 "path": relative_path.as_posix(),
-                "bundled": element_data["bundled"],
-                "bundle_info": element_data["bundle_info"],
-                "bundle_match_id": element_data["bundle_match_id"],
+                "bundled": element_data.get("bundled", False),
+                "bundle_info": element_data.get("bundle_info", {}),
+                "bundle_match_id": element_data.get("bundle_match_id", 0),
             })
         self._promoted_object.set_data(_data)
         self._promoted_object.apply_settings(force=True)
