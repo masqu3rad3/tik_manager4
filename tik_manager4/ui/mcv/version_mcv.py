@@ -64,7 +64,6 @@ class VersionComboBox(QtWidgets.QComboBox):
 
     def get_item(self, index):
         """Get the item at the given index."""
-        # print(self.model.get_item(index).publish_id)
         return self.model.get_item(index)
 
     def get_current_item(self):
@@ -272,6 +271,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         user_layout = QtWidgets.QHBoxLayout()
         self.addLayout(user_layout)
+        self.version.owner_lbl.setFont(QtGui.QFont("Arial", 10))
         user_layout.addStretch()
         # self.version.owner_lbl = QtWidgets.QLabel("Owner: ")
         self.version.owner_lbl.setFont(QtGui.QFont("Arial", 10))
