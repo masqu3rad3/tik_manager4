@@ -1049,12 +1049,20 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         """Publish a snapshot of the current work."""
         if not self.base.object_type == ObjectType.WORK:
             LOG.warning("Publish snapshot is only available for work objects.")
-            return -1
+            return ValidationResult(ValidationState.ERROR, "Publish snapshot is only available for work objects.")
         self.project.snapshot_publisher.work_object = self.base
         self.project.snapshot_publisher.work_version = self.get_selected_version_number()
         self.project.snapshot_publisher.resolve()
         self.project.snapshot_publisher.reserve()
-        self.project.snapshot_publisher.extract()
+        extracts = self.project.snapshot_publisher.extract()
+        for extract in extracts:
+            if extract.state == "failed":
+                self.feedback.pop_info(
+                    title="Snapshot Publish Failed",
+                    text=f"Snapshot publish failed.\n{extract.message}",
+                    critical=True,
+                )
+                return ValidationResult(ValidationState.ERROR, extract.message)
         published_object = self.project.snapshot_publisher.publish()
         if published_object:
             self.feedback.pop_info(
@@ -1062,6 +1070,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 text=f"Snapshot published.\nName: {published_object.name}\nPath: {published_object.path}",
                 critical=False,
             )
+            return ValidationResult(ValidationState.SUCCESS, "Snapshot published successfully.")
+        else:
+            return ValidationResult(ValidationState.ERROR, "Snapshot publish failed. See Logs for details.")
+
 
     def __apply_to_base(self):
         """Apply the changes to the base object and persistent database."""

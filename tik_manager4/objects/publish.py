@@ -158,7 +158,7 @@ class Publish(LocalizeMixin):
         _search_dir = Path(self.get_publish_data_folder())
         if not _search_dir.exists():
             return {}
-        _publish_version_paths = _search_dir.glob("*.tpub")
+        _publish_version_paths = list(_search_dir.glob("*.tpub"))
 
         for _p_path, _p_data in dict(self._publish_versions).items():
             if _p_path not in _publish_version_paths:

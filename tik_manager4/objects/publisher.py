@@ -221,6 +221,7 @@ class Publisher:
         self._dcc_handler.save_scene()
         for _extract_type_name, extract_object in self._resolved_extractors.items():
             self.extract_single(extract_object)
+            yield extract_object
 
     def publish(self,
                 notes=None,
