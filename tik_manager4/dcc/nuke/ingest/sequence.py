@@ -24,8 +24,13 @@ class Sequence(IngestCore):
     def _bring_in_default(self):
         """Import the sequence."""
         seq = fileseq.FileSequence(self.ingest_path)
+
         nuke.tprint("Bringing in Sequence")
         read_node = nuke.createNode("Read")
+        # get the file path of the first frame
+
+        padding_count = len(str(seq.frameSet()).split("-")[0])
+        seq.setPadding("#" * padding_count)
         read_node["file"].fromUserText(
             seq.format(template="{dirname}{basename}{padding}{extension}")
         )
