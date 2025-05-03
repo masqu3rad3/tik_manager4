@@ -126,6 +126,9 @@ class PublishSceneDialog(QtWidgets.QDialog):
         self.horizontal_splitter.setSizes([500, 500])
         self.vertical_splitter.setSizes([600, 400])
 
+        self.publish_finished = False
+
+
     def check_eligibility(self):
         """Checks if the current scene is eligible for publishing."""
         if not self.project.publisher.work_object:
@@ -570,6 +573,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
 
     def publish(self):
         """Command to publish the scene."""
+        self.publish_finished = False
         pop = WaitDialog(message="Publishing...", parent=self)
         pop.display()
         self.reset_validators()  # only resets if the scene is modified
@@ -640,6 +644,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
         warnings.extend(self.project.publisher.warnings)
         # prepare publish report and feedback
         pop.kill()
+        self.publish_finished = True
         if warnings:
             msg = f"Publish finished with following warnings:\n\n{warnings}"
             # if there are warnings, lets not close the dialog. Let the user see the warnings

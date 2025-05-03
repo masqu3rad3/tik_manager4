@@ -215,12 +215,3 @@ class TestUI:
         qtbot.addWidget(_widget)
         assert utils.apply_stylesheet(str(_stylesheet), _widget) == True
         assert utils.apply_stylesheet(str(tmp_path / "test_stylesheet.NA"), _widget) == False
-
-    # def test_standard_item_model(self, qtmodeltester):
-    #     model = QtGui.QStandardItemModel()
-    #     items = [QtGui.QStandardItem(str(i)) for i in range(4)]
-    #     model.setItem(0, 0, items[0])
-    #     model.setItem(0, 1, items[1])
-    #     model.setItem(1, 0, items[2])
-    #     model.setItem(1, 1, items[3])
-    #     qtmodeltester.check(model)

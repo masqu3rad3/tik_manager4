@@ -26,6 +26,7 @@ import webbrowser
 
 import tik_manager4
 import tik_manager4._version as version
+from tik_manager4.core.constants import ValidationResult, ValidationState
 from tik_manager4 import management
 from tik_manager4.core import utils
 from tik_manager4.management.exceptions import SyncError
@@ -782,7 +783,12 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
         publish_dialog = PublishSceneDialog(self.tik.project, parent=self)
-        publish_dialog.show()
+        # publish_dialog.show()
+        publish_dialog.exec_()
+        if publish_dialog.publish_finished:
+            self.set_last_state()
+            self.refresh_versions()
+            self.resume_last_state()
 
     def on_publish_snapshot(self):
         """Immediately snapshot publish the selected version of the work item."""
@@ -797,8 +803,9 @@ class MainUI(QtWidgets.QMainWindow):
                 critical=True,
             )
             return
-
+        self.set_last_state()
         self.versions_mcv.publish_snapshot()
+        self.resume_last_state()
 
     def on_ingest_version(self):
         """Iterate a version over the selected work in the ui."""

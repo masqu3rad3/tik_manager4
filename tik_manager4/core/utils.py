@@ -103,6 +103,38 @@ def sanitize_text(text, allow_spaces=False):
 
     return sanitized_text
 
+def copy(source, target, force=True, raise_error=False):
+    """"Copy the source file or folder to the target location."""
+    source = Path(source)
+    if not source.exists():
+        if raise_error:
+            raise FileNotFoundError(f"Source file or folder does not exist: {source}")
+        return False, f"Source file or folder does not exist: {source}"
+    target = Path(target)
+
+    # If force is True and the target exists, remove it
+    if force and target.exists():
+        ret, msg = delete(target)
+        if not ret:
+            return False, f"Error deleting target: {msg}"
+
+    # Ensure the target's parent directory exists
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    # Perform the copy operation
+    if source.is_file() or source.is_symlink():
+        shutil.copy2(str(source), str(target))
+    elif source.is_dir():
+        # Use copytree with dirs_exist_ok=True for Python 3.8+
+        # For older versions, use shutil.copytree and handle existing directories
+        if hasattr(shutil, "copytree") and hasattr(shutil.copytree, "dirs_exist_ok"):
+            shutil.copytree(str(source), str(target), dirs_exist_ok=True)
+        else:
+            if target.exists():
+                shutil.rmtree(target)
+            shutil.copytree(str(source), str(target))
+    return True, f"{source} copied to {target}."
+
 def move(source, target, force=True, raise_error=False):
     """Move the source file or folder to the target location.
 
