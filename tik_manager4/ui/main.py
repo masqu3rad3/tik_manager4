@@ -803,19 +803,9 @@ class MainUI(QtWidgets.QMainWindow):
                 critical=True,
             )
             return
-
-        validation: ValidationResult = self.versions_mcv.publish_snapshot()
-        if not validation.state == ValidationState.ERROR:
-            self.feedback.pop_info(
-                title="Publish Failed",
-                text=validation.message,
-                critical=True,
-            )
-            return
-        else:
-            self.set_last_state()
-            self.refresh_versions()
-            self.resume_last_state()
+        self.set_last_state()
+        self.versions_mcv.publish_snapshot()
+        self.resume_last_state()
 
     def on_ingest_version(self):
         """Iterate a version over the selected work in the ui."""

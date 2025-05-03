@@ -1070,10 +1070,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 text=f"Snapshot published.\nName: {published_object.name}\nPath: {published_object.path}",
                 critical=False,
             )
+            # refresh the version list
+            self.refresh()
             return ValidationResult(ValidationState.SUCCESS, "Snapshot published successfully.")
-        else:
-            return ValidationResult(ValidationState.ERROR, "Snapshot publish failed. See Logs for details.")
-
+        return ValidationResult(ValidationState.ERROR, "Snapshot publish failed. See Logs for details.")
 
     def __apply_to_base(self):
         """Apply the changes to the base object and persistent database."""
