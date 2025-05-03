@@ -1054,8 +1054,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.project.snapshot_publisher.work_version = self.get_selected_version_number()
         self.project.snapshot_publisher.resolve()
         self.project.snapshot_publisher.reserve()
-        extracts = self.project.snapshot_publisher.extract()
-        for extract in extracts:
+        self.project.snapshot_publisher.extract()
+        for _extract_type_name, extract in self.project.snapshot_publisher._resolved_extractors.items():
             if extract.state == "failed":
                 self.feedback.pop_info(
                     title="Snapshot Publish Failed",
