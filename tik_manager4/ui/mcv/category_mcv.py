@@ -266,6 +266,7 @@ class TikCategoryView(QtWidgets.QTreeView):
     )  # the signal for main UI referencing the selected version of the selected work
     save_new_work_event = QtCore.Signal()
     work_from_template_event = QtCore.Signal()
+    export_selection_event = QtCore.Signal()
 
     def __init__(self, parent=None):
         """Initialize the view.
@@ -486,8 +487,10 @@ class TikCategoryView(QtWidgets.QTreeView):
 
         save_work_act = right_click_menu.addAction(self.tr("Save New Work"))
         work_from_template_act = right_click_menu.addAction(self.tr("Create Work From Template"))
+        export_selection_act = right_click_menu.addAction(self.tr("Export Selection as Work"))
         save_work_act.triggered.connect(self.save_new_work_event.emit)
         work_from_template_act.triggered.connect(self.work_from_template_event.emit)
+        export_selection_act.triggered.connect(self.export_selection_event.emit)
         right_click_menu.exec_(self.sender().viewport().mapToGlobal(position))
 
 

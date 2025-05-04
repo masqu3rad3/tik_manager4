@@ -566,6 +566,26 @@ class SaveAnyFileDialog(NewWorkDialog):
         return _primary_ui
 
 
+class WorkFromSelectionDialog(NewWorkDialog):
+    """Dialog to create a work file from a selection."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setWindowTitle("Export Selection as Work")
+        self.widgets.header_lbl.setText("Export Selection as Work")
+        self.widgets.header_lbl.set_color("cyan")
+
+    def on_create_work(self):
+        """Create the work file."""
+        name = self.primary_data.get_property("name")
+        file_format = self.primary_data.get_property("file_format")
+        notes = self.widgets.notes_te.toPlainText()
+
+        self.category.create_work(name, file_format=file_format,
+                                  notes=notes, from_selection=True)
+        self.accept()
+
+
 # test this dialog
 if __name__ == "__main__":
     import sys
