@@ -24,6 +24,7 @@ class Dcc(MainCore):
     extracts = extract.classes
     ingests = ingest.classes
     extensions = extension.classes
+    save_selection_enabled = True
 
     @staticmethod
     def get_main_window():
@@ -48,6 +49,12 @@ class Dcc(MainCore):
 
         """
         rt.saveMaxFile(file_path)
+        return file_path
+
+    @staticmethod
+    def save_selection(file_path):
+        """Save (Export) the current selection to the given file path."""
+        rt.saveNodes(rt.selection, file_path)
         return file_path
 
     @staticmethod

@@ -262,7 +262,7 @@ class Work(Settings, LocalizeMixin):
                            [version.to_dict() for version in self._versions])
         super(Work, self).apply_settings(force=force)
 
-    def new_version(self, file_format=None, notes="", ignore_checks=True):
+    def new_version(self, file_format=None, notes="", ignore_checks=True, from_selection=False):
         """Create a new version of the work.
 
         Args:
@@ -306,7 +306,10 @@ class Work(Settings, LocalizeMixin):
         output_path = self.get_output_path(self.name, version_name)
         if not output_path:
             return -1
-        returned_output_path = self._dcc_handler.save_as(output_path)
+        if from_selection:
+            returned_output_path = self._dcc_handler.save_selection(output_path)
+        else:
+            returned_output_path = self._dcc_handler.save_as(output_path)
 
         # on some occasions the save as method may return a different path.
         # for example, if the file cannot be saved with specified file format,

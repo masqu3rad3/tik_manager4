@@ -34,6 +34,7 @@ class Dcc(MainCore):
     ingests = ingest.classes
     extensions = extension.classes
     custom_launcher = True
+    save_selection_enabled = True
 
     @staticmethod
     def get_main_window():
@@ -65,6 +66,14 @@ class Dcc(MainCore):
         file_format = "mayaAscii" if extension == ".ma" else "mayaBinary"
         cmds.file(rename=file_path)
         cmds.file(save=True, type=file_format)
+        return file_path
+
+    @staticmethod
+    def save_selection(file_path):
+        """Save the current selection as a new file."""
+        extension = Path(file_path).suffix
+        file_format = "mayaAscii" if extension == ".ma" else "mayaBinary"
+        cmds.file(file_path, force=True, options="v=0;", type=file_format, exportSelected=True)
         return file_path
 
     @staticmethod
