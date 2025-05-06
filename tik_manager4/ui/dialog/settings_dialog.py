@@ -5,9 +5,9 @@ import sys  # This is required for the 'frozen' attribute DO NOT REMOVE
 from pathlib import Path
 import logging
 
-from tik_manager4.core.constants import DataTypes
+from tik_manager4.core.constants import DataTypes, BranchingModes
 
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+from tik_manager4.ui.Qt import QtWidgets, QtCore
 from tik_manager4.ui.widgets.validated_string import ValidatedString
 from tik_manager4.ui.widgets.settings_widgets import (
     UsersDefinitions,
@@ -410,15 +410,15 @@ class SettingsDialog(QtWidgets.QDialog):
         project_widget_item.addChild(project_settings_item)
 
         project_settings_ui_definition = {
-            "active_branches": {
-                "display_name": "Active Branches",
-                "type": DataTypes.BOOLEAN.value,
-                "value": self.main_object.project.settings.get_property(
-                    "active_branches", True),
-                "tooltip": "The method to use for ingesting published files.\n"
+            "branching_mode": {
+                "display_name": "Branching Mode",
+                "type": DataTypes.COMBO.value,
+                "items": [BranchingModes.ACTIVE.value, BranchingModes.PASSIVE.value],
+                "value": self.main_object.project.settings.get_property("branching_mode", BranchingModes.ACTIVE.value),
+                "tooltip": "The method to control LIVE and PRO branches.\n"
                            "Active branches are overwritten duplicates of specific published versions.\n"
-                           "There are LIVE and PROMOTED branches. LIVE branch gets automatically updated with each publish. It is copy of the latest version.\n"
-                           "PROMOTED branch is a admin/supervisor controlled version. It is not updated automatically.\n",
+                           "Passive branches method won't overwrite the branch but still keep\n"
+                           "track of the versions that the branches are originated from.\n",
             }
         }
 

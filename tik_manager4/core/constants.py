@@ -79,3 +79,7 @@ class DataTypes(Enum):
         """Return a list of storable data types values."""
         return [dt.value for dt in DataTypes if dt.is_storable]
 
+class BranchingModes(Enum):
+    """Enumeration of branching modes."""
+    ACTIVE = "Active Branches"
+    PASSIVE = "Passive Branches"

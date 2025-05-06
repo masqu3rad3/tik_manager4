@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from tik_manager4.core import utils
-from tik_manager4.core.constants import ObjectType, ColorCodes, ValidationResult, ValidationState
+from tik_manager4.core.constants import ObjectType, ColorCodes, ValidationResult, ValidationState, BranchingModes
 from tik_manager4.core.settings import Settings
 from tik_manager4.mixins.localize import LocalizeMixin
 from tik_manager4.core import filelog
@@ -267,7 +267,7 @@ class PublishVersion(Settings, LocalizeMixin):
         """"Make the publish version a live version."""
 
         # if the active branch method is selected, use it
-        if self.guard.project_settings.get("active_branching", True):
+        if self.guard.project_settings.get("branching_mode", BranchingModes.ACTIVE.value):
             self._make_live_with_active_branching()
             return
         # otherwise, use the default method
@@ -348,7 +348,7 @@ class PublishVersion(Settings, LocalizeMixin):
             return ValidationResult(ValidationState.ERROR, f"{self.guard.user} doesn't have the permissions to promote publish versions.", False)
 
         # if the active branch method is selected, use it
-        if self.guard.project_settings.get("active_branching", True):
+        if self.guard.project_settings.get("branching_mode", BranchingModes.ACTIVE.value):
             self._promote_with_active_branching()
             return ValidationResult(ValidationState.SUCCESS, "Success")
 
