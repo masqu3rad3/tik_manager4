@@ -5,7 +5,7 @@
 from pathlib import Path
 
 from tik_manager4.objects.version import PromotedVersion
-from tik_manager4.core.constants import ObjectType
+from tik_manager4.core.constants import ObjectType, BranchingModes
 from tik_manager4.objects.version import PublishVersion, LiveVersion
 from tik_manager4.mixins.localize import LocalizeMixin
 from tik_manager4.core import filelog
@@ -176,7 +176,7 @@ class Publish(LocalizeMixin):
         self._promoted_version = self.get_promoted_version()
 
         # check the project settings for the active branches.
-        if self.guard.project_settings.get("active_branches", True):
+        if self.guard.project_settings.get("branching_mode", BranchingModes.ACTIVE.value):
             if self._live_version:
                 # Create a LIVE version merging the live version with live data
                 # This is a temporary version and not saved to disk.
