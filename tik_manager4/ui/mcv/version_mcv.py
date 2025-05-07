@@ -822,6 +822,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             return None
         return selected_version.version
 
+    def get_selected_version(self):
+        """Return the current version object."""
+        selected_version = self.version.combo.get_current_item()
+        if not selected_version:
+            return None
+        return selected_version
+
     def get_selected_element_type(self):
         """Return the current element."""
         if self.element.element_combo.isEnabled():
