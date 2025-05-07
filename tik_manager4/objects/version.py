@@ -502,21 +502,6 @@ class PublishVersion(Settings, LocalizeMixin):
             "deleted": self._deleted,
         }
 
-        # return {
-        #     "version_number": self._version,
-        #     "creator": self._creator,
-        #     "scene_path": self._scene_path,
-        #     "file_format": self._file_format,
-        #     "notes": self._notes,
-        #     "dcc_version": self._dcc_version,
-        #     "localized": self._localized,
-        #     "localized_path": self._localized_path,
-        #     "previews": self._previews,
-        #     "thumbnail": self._thumbnail,
-        #     "workstation": self._workstation,
-        #     "deleted": self._deleted
-        # }
-
 class LiveVersion(PublishVersion):
     """Customized PublishVersion object class."""
     object_type = ObjectType.PUBLISH_VERSION
@@ -540,9 +525,7 @@ class LiveVersion(PublishVersion):
     @property
     def version(self):
         """Override the version property to return 0."""
-
-        # get the version_number from the database file, which is the stamped version.
-        return self.get_property("version_number", 0)
+        return -1 # -1 means the version is live, not a number.
 
     def get_resolved_path(self, *args):
         """Override the get_resolved_path method to return the path."""
