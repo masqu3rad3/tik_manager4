@@ -6,7 +6,10 @@ from tik_manager4.ui.dialog.subproject_dialog import SelectSubprojectDialog
 
 
 class Callbacks:
-    # valid_elements = ["alembic", "usd", "usd_lop"]
+    version_exceptions = {
+        "LIVE": -1,
+        "PRO": 0
+    }
 
     def __init__(self):
         self.valid_elements = ["alembic", "usd", "usd_lop"]
@@ -148,18 +151,15 @@ class Callbacks:
         Args:
             kwargs (dict): The keyword arguments.
         """
-        exceptions = {
-            "LIVE": -1,
-            "PRO": 0
-        }
+
         node = kwargs["node"]
         parameters = self._collect_parameter_values(node)
         # override the published work with new value
         parameters["version"] = kwargs["script_value"]
         published_work = self.get_published_work(parameters)
-        if parameters["version"] in exceptions.keys():
+        if parameters["version"] in self.version_exceptions.keys():
             # set the version to the exception value
-            version_number = exceptions[parameters["version"]]
+            version_number = self.version_exceptions[parameters["version"]]
         else:
             version_number = int(parameters["version"])
         self.populate_elements(
@@ -236,7 +236,12 @@ class Callbacks:
             parameters (dict): The parameters dictionary.
         """
         published_work = self.get_published_work(parameters)
-        return published_work.get_version(int(parameters["version"]))
+        if parameters["version"] in self.version_exceptions.keys():
+            # set the version to the exception value
+            version_number = self.version_exceptions[parameters["version"]]
+        else:
+            version_number = int(parameters["version"])
+        return published_work.get_version(version_number)
 
     def populate_project(self, node, active_project):
         """ Populate the project.
