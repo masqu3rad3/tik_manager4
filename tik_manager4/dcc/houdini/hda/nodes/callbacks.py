@@ -1,9 +1,9 @@
 import hou
 
+import tik_manager4
 from tik_manager4.ui.dialog.project_dialog import SetProjectDialog
 from tik_manager4.ui.dialog.subproject_dialog import SelectSubprojectDialog
 
-import tik_manager4
 
 class Callbacks:
     # valid_elements = ["alembic", "usd", "usd_lop"]
@@ -148,13 +148,22 @@ class Callbacks:
         Args:
             kwargs (dict): The keyword arguments.
         """
+        exceptions = {
+            "LIVE": -1,
+            "PRO": 0
+        }
         node = kwargs["node"]
         parameters = self._collect_parameter_values(node)
         # override the published work with new value
         parameters["version"] = kwargs["script_value"]
         published_work = self.get_published_work(parameters)
+        if parameters["version"] in exceptions.keys():
+            # set the version to the exception value
+            version_number = exceptions[parameters["version"]]
+        else:
+            version_number = int(parameters["version"])
         self.populate_elements(
-            node, published_work.get_version(int(parameters["version"]))
+            node, published_work.get_version(version_number)
         )
         return
 
@@ -338,7 +347,7 @@ class Callbacks:
         """
         if publish_obj:
             versions = publish_obj.versions
-            version_names = ";".join([str(x.version) for x in versions])
+            version_names = ";".join([x.nice_name for x in versions])
             pass_value = versions[-1] if versions else None
             last_version = publish_obj.get_last_version()
         else:
@@ -354,7 +363,6 @@ class Callbacks:
         return version_names
 
     def populate_elements(self, node, version_obj=None):
-        allow_all_elements = hou.pwd().parm("allowAllElements").eval()
         """Populate the elements.
 
         Args:
@@ -362,8 +370,10 @@ class Callbacks:
             version_obj (tik_manager4.core.version.Version): The version
                 object.
         """
+        allow_all_elements = hou.pwd().parm("allowAllElements").eval()
         if version_obj:
-            elements = [x for x in version_obj.element_types if x in self.valid_elements or allow_all_elements]
+            elements = [x for x in version_obj.element_types if x
+                        in self.valid_elements or allow_all_elements]
             element_names = ";".join(elements)
             pass_value = elements[0] if elements else None
         else:
