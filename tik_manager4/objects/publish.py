@@ -188,7 +188,7 @@ class Publish(LocalizeMixin):
                 # Create a PROMOTED version merging the promoted version with promoted data
                 # This is a temporary version and not saved to disk.
                 promoted_version = PromotedVersion(self._promoted_version.settings_file)
-                promoted_version._elements = promoted_version._live_object.get("elements")
+                promoted_version._elements = promoted_version._promoted_object.get("elements")
                 self._publish_versions["promoted"] = promoted_version
 
         return self._publish_versions
