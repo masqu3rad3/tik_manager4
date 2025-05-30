@@ -168,14 +168,14 @@ class Publish(LocalizeMixin):
 
     def get_live_version(self):
         """Get the live version among the published versions."""
-        for version in reversed(self._publish_versions.values()):
+        for version in reversed(list(self._publish_versions.values())):
             if version.is_live():
                 return version
         return None
 
     def get_promoted_version(self):
         """Get the promoted version among the published versions."""
-        for version in reversed(self._publish_versions.values()):
+        for version in reversed(list(self._publish_versions.values())):
             if version.is_promoted():
                 return version
 
