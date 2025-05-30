@@ -172,7 +172,13 @@ def delete(file_or_folder):
         ret, msg = write_unprotect(file_or_folder)
         if not ret:
             return False, f"Error removing write protection: {file_or_folder}"
-        delete(file_or_folder)
+        try:
+            if Path(file_or_folder).is_file() or Path(file_or_folder).is_symlink():
+                Path(file_or_folder).unlink()
+            elif Path(file_or_folder).is_dir():
+                shutil.rmtree(file_or_folder)
+        except PermissionError as e:
+            return False, f"Permission denied: {e}"
     return True, f"{file_or_folder} deleted."
 
 def write_protect(file_or_folder):

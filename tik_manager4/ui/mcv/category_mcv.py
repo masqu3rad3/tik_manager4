@@ -960,6 +960,7 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
             self.category_tab_widget.currentIndex()
         )
 
+
     def on_category_change(self, index):
         """Update works and publishes when category changed.
         Args:
@@ -983,6 +984,11 @@ class TikCategoryLayout(QtWidgets.QVBoxLayout):
 
     def _collect_publishes(self, works):
         """Collect the publishes from the works."""
+        works_objects = works.values()
+        if not works_objects:
+            return []
+        for work_obj in works_objects:
+            work_obj.publish.scan_publish_versions()
         if self._purgatory_mode:
             return [
                 work_obj.publish

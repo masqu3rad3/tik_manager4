@@ -54,11 +54,10 @@ class Work(Settings, LocalizeMixin):
         self._state = "working"
 
         self.modified_time = None  # to compare and update if necessary
-        self.publish = Publish(
-            self
-        )  # publish object does not have a settings file, the publish versions do
-
+        self.publish = None
         self.init_properties()
+        self.init_publish()
+
 
     def init_properties(self):
         """Initialize the properties of the work from the inherited dictionary."""
@@ -75,6 +74,11 @@ class Work(Settings, LocalizeMixin):
         self._software_version = self.get_property("softwareVersion")
         self._state = self.get_property("state", self._state)
         # keeping the 'working' state for backward compatibility.
+
+    def init_publish(self):
+        self.publish = Publish(
+            self
+        )
         if self._state == "active" or self._state == "working":
             if self.publish.versions:
                 self._state = "published"

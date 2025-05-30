@@ -4,6 +4,7 @@
 
 from pathlib import Path
 
+from tik_manager4.core.settings import Settings
 from tik_manager4.objects.version import PromotedVersion
 from tik_manager4.core.constants import ObjectType, BranchingModes
 from tik_manager4.objects.version import PublishVersion, LiveVersion
@@ -31,6 +32,22 @@ class Publish(LocalizeMixin):
         self.work_object = work_object
 
         self._publish_versions = {}
+
+        # _folder = Path(self.settings_file).parent
+        self._live_object = None
+        self._promoted_object = None
+        _folder = Path(self.work_object.get_abs_database_path("publish", self.work_object.name))
+        live_file = _folder / "live.json"
+        print("live_file: ",live_file)
+        if live_file.exists():
+            print("Live file exists, loading it.")
+            self._live_object = Settings(live_file)
+
+        promoted_file = _folder / "promoted.json"
+        print("promoted_file: ", promoted_file)
+        if promoted_file.exists():
+            print("Promoted file exists, loading it.")
+            self._promoted_object = Settings(promoted_file)
 
         self._live_version = None
         self._promoted_version = None
@@ -69,8 +86,18 @@ class Publish(LocalizeMixin):
     @property
     def all_versions(self):
         """All versions of the publish, including the deleted ones."""
-        self.scan_publish_versions()
+        # self.scan_publish_versions()
         return list(self._publish_versions.values())
+
+    def get_versions(self):
+        """Convenience method to get the versions with a forced scan."""
+        self.scan_publish_versions()
+        return self.versions
+
+    def get_all_versions(self):
+        """Convenience method to get all versions with a forced scan."""
+        self.scan_publish_versions()
+        return self.all_versions
 
     @property
     def version_count(self):
@@ -154,6 +181,8 @@ class Publish(LocalizeMixin):
 
     def scan_publish_versions(self):
         """Return the publish versions in the publish folder."""
+        from time import time
+        start = time()
         # search directory is resolved from the work object
         _search_dir = Path(self.get_publish_data_folder())
         if not _search_dir.exists():
@@ -163,17 +192,27 @@ class Publish(LocalizeMixin):
         for _p_path, _p_data in dict(self._publish_versions).items():
             if _p_path not in _publish_version_paths:
                 self._publish_versions.pop(_p_path)
+
         for _publish_version_path in _publish_version_paths:
             existing_publish = self._publish_versions.get(_publish_version_path, None)
             if not existing_publish:
-                _publish = PublishVersion(_publish_version_path)
+                _publish = PublishVersion(
+                    _publish_version_path,
+                    live_object=self._live_object,
+                    promoted_object=self._promoted_object
+                )
                 self._publish_versions[_publish_version_path] = _publish
             else:
                 if existing_publish.is_modified():
                     existing_publish.reload()
 
+        # make a similar caching for live and promoted versions. The process is costly
+        # and we don't want to do it every time.
+
+        print("---------", self.name)
         self._live_version = self.get_live_version()
         self._promoted_version = self.get_promoted_version()
+        print("Live and Promoted versions loaded in: ", time() - start)
 
         # check the project settings for the active branches.
         if self.guard.project_settings.get("branching_mode", BranchingModes.ACTIVE.value):
@@ -181,16 +220,21 @@ class Publish(LocalizeMixin):
                 # Create a LIVE version merging the live version with live data
                 # This is a temporary version and not saved to disk.
                 live_version = LiveVersion(self._live_version.settings_file)
-                live_version._elements = live_version._live_object.get("elements")
+                # live_version._elements = live_version._live_object.get("elements")
+                live_version._elements = self._live_object.get("elements")
                 self._publish_versions["live"] = live_version
+                pass
 
             if self._promoted_version:
                 # Create a PROMOTED version merging the promoted version with promoted data
                 # This is a temporary version and not saved to disk.
                 promoted_version = PromotedVersion(self._promoted_version.settings_file)
-                promoted_version._elements = promoted_version._promoted_object.get("elements")
+                # promoted_version._elements = promoted_version._promoted_object.get("elements")
+                promoted_version._elements = self._promoted_object.get("elements")
                 self._publish_versions["promoted"] = promoted_version
+                pass
 
+        print("Total Scan Time: ", time() - start)
         return self._publish_versions
 
     def get_version(self, version_number):
