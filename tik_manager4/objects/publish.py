@@ -38,15 +38,11 @@ class Publish(LocalizeMixin):
         self._promoted_object = None
         _folder = Path(self.work_object.get_abs_database_path("publish", self.work_object.name))
         live_file = _folder / "live.json"
-        print("live_file: ",live_file)
         if live_file.exists():
-            print("Live file exists, loading it.")
             self._live_object = Settings(live_file)
 
         promoted_file = _folder / "promoted.json"
-        print("promoted_file: ", promoted_file)
         if promoted_file.exists():
-            print("Promoted file exists, loading it.")
             self._promoted_object = Settings(promoted_file)
 
         self._live_version = None
@@ -138,6 +134,7 @@ class Publish(LocalizeMixin):
     def reload(self):
         """Reload the publish object."""
         self.work_object.reload()
+        self.__init__(self.work_object)
         self.scan_publish_versions()
 
     def omit(self):
@@ -181,8 +178,6 @@ class Publish(LocalizeMixin):
 
     def scan_publish_versions(self):
         """Return the publish versions in the publish folder."""
-        from time import time
-        start = time()
         # search directory is resolved from the work object
         _search_dir = Path(self.get_publish_data_folder())
         if not _search_dir.exists():
@@ -209,32 +204,27 @@ class Publish(LocalizeMixin):
         # make a similar caching for live and promoted versions. The process is costly
         # and we don't want to do it every time.
 
-        print("---------", self.name)
         self._live_version = self.get_live_version()
         self._promoted_version = self.get_promoted_version()
-        print("Live and Promoted versions loaded in: ", time() - start)
 
         # check the project settings for the active branches.
         if self.guard.project_settings.get("branching_mode", BranchingModes.ACTIVE.value):
-            if self._live_version:
+            if self._live_version and self._live_object:
                 # Create a LIVE version merging the live version with live data
                 # This is a temporary version and not saved to disk.
                 live_version = LiveVersion(self._live_version.settings_file)
                 # live_version._elements = live_version._live_object.get("elements")
                 live_version._elements = self._live_object.get("elements")
                 self._publish_versions["live"] = live_version
-                pass
 
-            if self._promoted_version:
+            if self._promoted_version and self._promoted_object:
                 # Create a PROMOTED version merging the promoted version with promoted data
                 # This is a temporary version and not saved to disk.
                 promoted_version = PromotedVersion(self._promoted_version.settings_file)
                 # promoted_version._elements = promoted_version._promoted_object.get("elements")
                 promoted_version._elements = self._promoted_object.get("elements")
                 self._publish_versions["promoted"] = promoted_version
-                pass
 
-        print("Total Scan Time: ", time() - start)
         return self._publish_versions
 
     def get_version(self, version_number):

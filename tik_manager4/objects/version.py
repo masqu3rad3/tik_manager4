@@ -57,12 +57,10 @@ class PublishVersion(Settings, LocalizeMixin):
 
         self.init_properties()
 
-        # # get the current folder path
+        # In case the live and promoted objects are not provided,
         _folder = Path(self.settings_file).parent
         live_file = _folder / "live.json"
-        # self._live_object = Settings(live_file)
         promoted_file = _folder / "promoted.json"
-        # self._promoted_object = Settings(promoted_file)
 
         self._live_object = live_object or Settings(live_file)
         self._promoted_object = promoted_object or Settings(promoted_file)
@@ -363,19 +361,6 @@ class PublishVersion(Settings, LocalizeMixin):
 
         # if the active branch method is selected, use it
         if self.guard.project_settings.get("branching_mode", BranchingModes.ACTIVE.value):
-            print("*********")
-            print("*********")
-            print("*********")
-            print("*********")
-            print("*********")
-            print("*********")
-            print("DEBUG")
-            print("*********")
-            print("*********")
-            print("*********")
-            print("*********")
-            print("*********")
-            print("*********")
             result: ValidationResult = self._promote_with_active_branching()
 
 

@@ -123,12 +123,6 @@ def copy(source, target, force=True, raise_error=False):
             if not ret:
                 return False, f"Error removing write protection: {msg}"
 
-    # If force is True and the target exists, remove it
-    # if force and target.exists():
-    #     ret, msg = delete(target)
-    #     if not ret:
-    #         return False, f"Error deleting target: {msg}"
-
     # Ensure the target's parent directory exists
     target.parent.mkdir(parents=True, exist_ok=True)
 
@@ -136,7 +130,28 @@ def copy(source, target, force=True, raise_error=False):
     if source.is_file() or source.is_symlink():
         # make sure the parent of the target exists
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(str(source), str(target))
+        # first check if there is a temporary lock file. If so, remove it.
+        temp_lock_file = target.with_suffix(target.suffix + ".lock_tik_temp")
+        if target.exists():
+            if temp_lock_file.exists():
+                try:
+                    temp_lock_file.unlink()
+                except OSError as exc:
+                    LOG.warning(exc, exc_info=True)
+            # rename the target to a temporary file to avoid overwriting issues
+            os.rename(str(target), temp_lock_file)
+        try:
+            shutil.copy2(str(source), str(target))
+        except OSError as exc:
+            if raise_error:
+                raise OSError(f"Error copying file: {exc}")
+            return False, f"Error copying file: {exc}"
+        # if the copy was successful, try to remove the temporary lock file
+        if temp_lock_file.exists():
+            try:
+                temp_lock_file.unlink()
+            except OSError as exc:
+                LOG.warning(f"Error removing temporary lock file: {exc}", exc_info=True)
     elif source.is_dir():
         # Use copytree with dirs_exist_ok=True for Python 3.8+
         # For older versions, use shutil.copytree and handle existing directories

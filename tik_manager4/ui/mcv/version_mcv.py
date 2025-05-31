@@ -395,6 +395,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             )
             return
         # refresh the version list
+        # self.base.scan_publish_versions()
+        self.base.reload()
         _index = self.version.combo.currentIndex()
         self.populate_versions(self.base)
         self.version.combo.setCurrentIndex(_index)
