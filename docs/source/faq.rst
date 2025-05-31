@@ -102,3 +102,12 @@ Dccs can be installed manually by following the instructions in the documentatio
    The correct path should be:
    `/home/user/tik_manager4-4.3.0/tik_manager4``
       
+What are these LIVE and PRO versions?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+LIVE and PRO versions are two long living branches linked to the publishes.
+If the `Active Branches` mode activated for the project LIVE and PRO versions will appear on publish drop down menus.
+LIVE is the version that is currently being worked on. It is usually the latest version of the asset and automatically created with each publish.
+PRO is the version that is considered stable and ready for production. Users with admin privileges can promote a version to PRO using the star icon next to the version dropdown menu.
+
+.. seealso:: 
+   :doc:`Project Settings </settings/project>` :ref:`(Branching Mode) <branching_mode>`
