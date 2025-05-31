@@ -97,6 +97,16 @@ def test_query_users(tik):
     user_list = tik.user.commons.get_users()
     assert user_list
 
+def test_query_email(tik):
+    """Tests getting the email list from commons database"""
+    tik.project.__init__()
+    tik.user.__init__()
+    # change the e-mail of the user
+    tik.user.commons.users.edit_sub_property(["Generic", "email"], "test@test.com")
+    tik.user.commons.users.apply_settings(force=True)
+    email = tik.user.commons.get_user_email("Generic")
+    tik.__init__()
+    assert email == tik.project.guard.email
 
 def test_query_structures(tik):
     """Tests if preset structures can be returned"""
@@ -104,7 +114,6 @@ def test_query_structures(tik):
     tik.user.__init__()
     structures = tik.user.commons.get_project_structures()
     assert structures
-
 
 def test_get_active_user(tik):
     """Tests getting the currently active user from user database"""

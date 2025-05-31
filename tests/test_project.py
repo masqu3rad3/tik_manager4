@@ -4,8 +4,10 @@ import time
 from pathlib import Path
 import shutil
 from pprint import pprint
-from unittest.mock import patch
+from unittest.mock import patch, PropertyMock
+from tik_manager4.core.constants import ValidationResult, ValidationState # Make sure these are importable
 import pytest
+from jedi.common import monkeypatch
 
 import tik_manager4
 from tik_manager4.core import settings
@@ -115,6 +117,55 @@ class TestProject:
             == 1
         )
         # return project_path
+
+    def test_create_new_project_without_commons_id(self, project_path, tik,
+                                                   monkeypatch):
+        tik.user.set("Admin",
+                     "1234")  # Assuming this sets up tik.user and tik.user.commons
+
+        # Get the actual commons object and its class
+        commons_object = tik.user.commons
+        if commons_object is None:
+            # Handle case where commons might not be initialized if that's possible
+            # For this example, we'll assume it's initialized by tik.user.set()
+            assert False, "tik.user.commons is None after tik.user.set()"
+
+        commons_class = type(commons_object)
+
+        # Create a PropertyMock that will return None when 'id' is accessed
+        mock_id_as_property = PropertyMock(return_value=None)
+
+        # Patch the 'id' property on the class of tik.user.commons
+        # This replaces the property descriptor on the class itself.
+        monkeypatch.setattr(commons_class, "id", mock_id_as_property)
+
+        # The rest of your test logic
+        tik.create_project(project_path, structure_template="asset_shot",
+                           locked_commons=True)
+
+        # Add assertions here to verify the behavior
+        # For example, if the code is expected to create an ID:
+        # mock_management_settings = tik.user.commons.management_settings
+        # mock_management_settings.add_property.assert_called_with("commons_id", unittest.mock.ANY)
+        # mock_management_settings.apply_settings.assert_called_once()
+
+    def test_set_project_where_it_fails(self, project_path, tik, monkeypatch):
+        """ Tests setting a project where it fails to set."""
+        test_project_path = self._new_empty_project(project_path, tik)
+
+        commons_object = tik.user.commons
+        if commons_object is None:
+            # Handle case where commons might not be initialized if that's possible
+            # For this example, we'll assume it's initialized by tik.user.set()
+            assert False, "tik.user.commons is None after tik.user.set()"
+
+        commons_class = type(commons_object)
+
+        mock_id_as_property = PropertyMock(return_value=None)
+        monkeypatch.setattr(commons_class, "id", mock_id_as_property)
+
+        state, msg = tik.set_project(test_project_path)
+        assert state == False
 
     def test_set_project_with_arguments(self, project_path, tik):
         test_project_path = self._new_asset_shot_project(project_path, tik)
@@ -291,36 +342,6 @@ class TestProject:
 
         # delete with path
         assert tik.project.delete_sub_project(path=sub.path) == 1
-
-    # def test_deleting_sub_projects(self, project_manual_path, tik):
-    #     """Tests deleting the sub-projects"""
-    #     test_project_path = self.test_create_a_shot_asset_project_structure(
-    #         project_manual_path, tik, print_results=False
-    #     )
-    #     tik.set_project(test_project_path)
-    #     tik.user.set("Generic")
-    #     assert tik.project.delete_sub_project(path="Assets/Props") == -1
-    #
-    #     tik.user.set("Admin", 1234)
-    #     # wrong arguments
-    #     assert tik.project.delete_sub_project(path=None, uid=None) == -1
-    #     # path methods
-    #
-    #     # non existing path
-    #     assert tik.project.delete_sub_project(path="Burhan/Altintop") == -1
-    #
-    #     # by path
-    #     assert tik.project.delete_sub_project(path="Assets/Props") == 1
-    #
-    #     # uid methods
-    #     uid = tik.project.get_uid_by_path(path="Assets/Characters")
-    #
-    #     # non existing uid
-    #     assert tik.project.delete_sub_project(uid=123123123123123123) == -1
-    #     assert tik.project.delete_sub_project(uid=uid) == 1
-    #
-    #     # delete a sub-project on root
-    #     assert tik.project.delete_sub_project(path="Assets") == 1
 
     def test_find_subs_by_path(self, project_manual_path, tik):
         test_project_path = self._new_asset_shot_project(project_manual_path, tik)
@@ -1276,3 +1297,87 @@ class TestProject:
         # Attempt to delete the work
         result = new_work.destroy()
         assert result == (False, "Failed to delete work")
+
+    def test_fallback_to_default_project_when_exists(self, project_default_path, tik):
+        with patch("pathlib.Path.exists", return_value=True), \
+             patch("tik_manager4.objects.main.Main._create_default_project") as mock_create, \
+             patch("tik_manager4.objects.main.Main.set_project") as mock_set:
+            tik.fallback_to_default_project()
+            mock_create.assert_not_called()
+            mock_set.assert_called_once_with(tik.default_project.as_posix())
+
+    def test_fallback_to_default_project_when_missing(self, project_default_path, tik):
+        with patch("pathlib.Path.exists", return_value=False), \
+             patch("tik_manager4.objects.main.Main._create_default_project") as mock_create, \
+             patch("tik_manager4.objects.main.Main.set_project") as mock_set:
+            tik.fallback_to_default_project()
+            mock_create.assert_called_once()
+            mock_set.assert_called_once_with(tik.default_project.as_posix())
+
+    def test_globalize_management_platform_sets_handler(self, project_path,
+                                                        tik, monkeypatch):
+        """Test that a valid 'management_platform' sets the management handler."""
+        import tik_manager4.management
+        tik.set_project(project_path)
+        tik.project.settings.initialize(
+            {"management_platform": "some_platform"})
+
+        # Ensure the 'platforms' dictionary exists on the management module.
+        # This step is important if 'platforms' might not be initialized or could be None.
+        if not hasattr(tik_manager4.management,
+                       'platforms') or tik_manager4.management.platforms is None:
+            tik_manager4.management.platforms = {}
+
+        # Patch the item "some_platform" in the 'management.platforms' dictionary.
+        # The value will be a lambda function that takes one argument (the 'tik' instance)
+        # and returns True.
+        monkeypatch.setitem(tik_manager4.management.platforms, "some_platform",
+                            lambda tik_instance: True)
+
+        with patch.object(tik.project.guard,
+                          "set_management_handler") as mock_handler:
+            tik.globalize_management_platform()
+            mock_handler.assert_called_once()
+            # Verify that set_management_handler was called with True
+            args, _ = mock_handler.call_args
+            assert args[
+                       0] is True, "set_management_handler should have been called with True"
+
+    def test_globalize_management_platform_unsets_handler(self, project_path, tik):
+        """Test that no 'management_platform' unsets the management handler."""
+        tik.set_project(project_path)
+        tik.project.settings.initialize({"another_setting": "irrelevant"})
+        with patch.object(tik.project.guard, "set_management_handler") as mock_handler:
+            tik.globalize_management_platform()
+            mock_handler.assert_called_once_with(None)
+
+    def test_can_set_project(self, project_path, tik):
+        """Test the can_set_project method."""
+        # where path doesn't exist
+        state = tik.can_set_project(project_path)
+        assert state.state == ValidationState.ERROR
+
+        # where project exists
+        existing_project_path = self._new_asset_shot_project(project_path, tik)
+        state = tik.can_set_project(existing_project_path)
+        assert state.state == ValidationState.SUCCESS
+
+    @pytest.mark.parametrize(
+        "user, expected_validation_state",
+        [
+            ("Admin", ValidationState.WARNING),
+            ("Experienced", ValidationState.ERROR),
+            ("Generic", ValidationState.ERROR),
+            ("Observer", ValidationState.ERROR),
+        ],
+    )
+    def test_can_set_project_where_the_project_doesnt_exist(self, project_path, tik, user, expected_validation_state):
+        """Test the can_set_project method with different permission levels."""
+        # generic user
+        empty_project_path = self._new_empty_project(project_path, tik)
+        # delete the project_structure.json file to simulate a non-existing project
+        structure_file = Path(project_path, "tikDatabase", "project_structure.json")
+        structure_file.unlink()
+        tik.user.set(user, password="1234")
+        state = tik.can_set_project(empty_project_path)
+        assert state.state == expected_validation_state
