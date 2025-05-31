@@ -208,7 +208,8 @@ class Publish(LocalizeMixin):
         self._promoted_version = self.get_promoted_version()
 
         # check the project settings for the active branches.
-        if self.guard.project_settings.get("branching_mode", BranchingModes.ACTIVE.value):
+        branching_mode = self.guard.project_settings.get("branching_mode", BranchingModes.ACTIVE.value)
+        if branching_mode == BranchingModes.ACTIVE.value:
             if self._live_version and self._live_object:
                 # Create a LIVE version merging the live version with live data
                 # This is a temporary version and not saved to disk.
