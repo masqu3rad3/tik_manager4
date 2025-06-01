@@ -151,7 +151,6 @@ class Callbacks:
         Args:
             kwargs (dict): The keyword arguments.
         """
-
         node = kwargs["node"]
         parameters = self._collect_parameter_values(node)
         # override the published work with new value
@@ -162,6 +161,8 @@ class Callbacks:
             version_number = self.version_exceptions[parameters["version"]]
         else:
             version_number = int(parameters["version"])
+        # we need to explicitly scan the versions.
+        published_work.scan_publish_versions()
         self.populate_elements(
             node, published_work.get_version(version_number)
         )
@@ -186,7 +187,6 @@ class Callbacks:
         Args:
             parameters (dict): The parameters dictionary.
         """
-        # print(parameters)
         self.tik_m.set_project(parameters["project"])
         return self.tik_m.project
 
@@ -236,6 +236,8 @@ class Callbacks:
             parameters (dict): The parameters dictionary.
         """
         published_work = self.get_published_work(parameters)
+        # we need to explicitly scan the versions.
+        published_work.scan_publish_versions()
         if parameters["version"] in self.version_exceptions.keys():
             # set the version to the exception value
             version_number = self.version_exceptions[parameters["version"]]
@@ -325,6 +327,8 @@ class Callbacks:
 
         if category_obj:
             works = category_obj.works
+            for work_obj in works.values():
+                work_obj.publish.scan_publish_versions()
             publishes = [
                 work_obj.publish
                 for work_obj in works.values()
@@ -351,7 +355,7 @@ class Callbacks:
                 object.
         """
         if publish_obj:
-            versions = publish_obj.versions
+            versions = publish_obj.get_versions()
             version_names = ";".join([x.nice_name for x in versions])
             pass_value = versions[-1] if versions else None
             last_version = publish_obj.get_last_version()

@@ -20,7 +20,7 @@ class PublishVersion(Settings, LocalizeMixin):
     """
     object_type = ObjectType.PUBLISH_VERSION
 
-    def __init__(self, absolute_path, name=None, path=None):
+    def __init__(self, absolute_path, name=None, path=None, live_object=None, promoted_object=None):
         """Initialize the publish version object.
 
         Args:
@@ -57,12 +57,13 @@ class PublishVersion(Settings, LocalizeMixin):
 
         self.init_properties()
 
-        # get the current folder path
+        # In case the live and promoted objects are not provided,
         _folder = Path(self.settings_file).parent
         live_file = _folder / "live.json"
-        self._live_object = Settings(live_file)
         promoted_file = _folder / "promoted.json"
-        self._promoted_object = Settings(promoted_file)
+
+        self._live_object = live_object or Settings(live_file)
+        self._promoted_object = promoted_object or Settings(promoted_file)
 
     def init_properties(self):
         """Initialize the properties of the publish."""
@@ -217,7 +218,8 @@ class PublishVersion(Settings, LocalizeMixin):
 
     def is_live(self):
         """Check if the publish version is a live version."""
-
+        if not self._live_object:
+            return False
         _id = self._live_object.get_property("publish_id", default=None)
         return _id == self._publish_id
 
@@ -244,7 +246,11 @@ class PublishVersion(Settings, LocalizeMixin):
 
             # copy the element to the LIVE folder
             live_path = live_folder / live_element_name
-            utils.copy(publish_path.as_posix(), live_path.as_posix())
+            state, msg = utils.copy(publish_path.as_posix(), live_path.as_posix())
+            if not state:
+                # TODO: FIX - TEST - STREAMLINE
+                LOG.error(f"Error copying {publish_path} to {live_path}: {msg}")
+                return ValidationResult(ValidationState.ERROR, msg, False)
             # get the relative path against the project path
 
             # relative_path = Path(self.guard.project_root).relative_to(live_path.parent)
@@ -288,18 +294,15 @@ class PublishVersion(Settings, LocalizeMixin):
         This method checks the 'promoted' file in the publish folder.
         If the content is matching with the publish id, return True
         """
-        self._promoted_object.reload()
+        if not self._promoted_object:
+            return False
+        # self._promoted_object.reload()
         _id = self._promoted_object.get_property("publish_id", default=None)
         return _id == self._publish_id
 
     def can_promote(self):
         """Check if the publish version can be promoted."""
-        # check the user permission level
-        # if not self.check_permissions(level=3):
-        #     return False
         return True
-
-        # return not self.is_promoted()
 
     def _promote_with_active_branching(self):
         """Promoting with the active branch method."""
@@ -311,7 +314,6 @@ class PublishVersion(Settings, LocalizeMixin):
             "publish_id": self._publish_id,
             "name": self._name,
             "path": promoted_folder.relative_to(self.guard.project_root).as_posix(),
-            # "version_number": self._version,
             "version_number": self.version,
             "elements": []
         }
@@ -324,7 +326,10 @@ class PublishVersion(Settings, LocalizeMixin):
 
             # copy the element to the LIVE folder
             promoted_path = promoted_folder / promoted_element_name
-            utils.copy(publish_path.as_posix(), promoted_path.as_posix())
+            state, msg = utils.copy(publish_path.as_posix(), promoted_path.as_posix())
+            if not state:
+                LOG.error(f"Error copying {publish_path} to {promoted_path}: {msg}")
+                return ValidationResult(ValidationState.ERROR, msg, False)
             # get the relative path against the project path
 
             relative_path = promoted_path.relative_to(promoted_folder)
@@ -341,6 +346,7 @@ class PublishVersion(Settings, LocalizeMixin):
             })
         self._promoted_object.set_data(_data)
         self._promoted_object.apply_settings(force=True)
+        return ValidationResult(ValidationState.SUCCESS, "Success", False)
 
     def promote(self):
         """Promote the publish editing the promoted.json."""
@@ -349,7 +355,12 @@ class PublishVersion(Settings, LocalizeMixin):
 
         # if the active branch method is selected, use it
         if self.guard.project_settings.get("branching_mode", BranchingModes.ACTIVE.value):
-            self._promote_with_active_branching()
+            result: ValidationResult = self._promote_with_active_branching()
+
+
+
+            if result.state != ValidationState.SUCCESS:
+                return result
             return ValidationResult(ValidationState.SUCCESS, "Success")
 
         # otherwise, use the default method
