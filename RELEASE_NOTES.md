@@ -1,5 +1,15 @@
 # Release Notes
 
+## v4.4.0
+- [TIK-176] Active Branching feature added. When the active branching is enabled (default on), users can reach dynamically updated LIVE and PRO branches. LIVE branch gets updated with each new publish. PRO branch can be promoted by admins at any time.
+- [TIK-177] Fixed object orientation issue when exporting USD in Blender.
+- [TIK-178] User password reset functionality added for admin roles which can be accessed from the settings.
+- [TIK-176] Info dialog button added to the version layout. This button will pop-up a dialog with all version information for the selected version.
+- [HOTFIX] Nuke sequence importers padding issue fixed.
+- [TIK-179] Ability to save selections as work. This function is subject to availability of the DCC. Currently, it is available for Maya, 3dsMax, Nuke and Katana. The function can be accessed from main UI File menu.
+- [TIK-174] Houdini LOP and SOP import HDAs updates. Added the 'Allow All Elements' checkbox to make the process of using custom extractors smoother.
+- [TIK-181] Speed and memory optimizations. Now publish versions are only gets loaded when its needed.
+
 ## v4.3.8
 - FBX bug with Maya fixed which was preventing animation baking. Additionally, 'animation only' option exposed to the fbx publishing ui.
 - [224] Reference to scene option added to the work items right click menu.
