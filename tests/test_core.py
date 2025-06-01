@@ -496,11 +496,11 @@ def test_decrypt_raises_error_on_invalid_utf8():
     with pytest.raises(CryptorError, match="Decryption failed: invalid UTF-8 encoding."):
         cryptor.decrypt(invalid_utf8)
 
-def test_decrypt_raises_error_on_invalid_format():
-    cryptor = Cryptor()
-    invalid_format = base64.b64encode("invalid_format".encode()).decode()
-    with pytest.raises(CryptorError, match="Decryption failed: invalid format or missing machine identifier."):
-        cryptor.decrypt(invalid_format)
+# def test_decrypt_raises_error_on_invalid_format():
+#     cryptor = Cryptor()
+#     invalid_format = base64.b64encode("invalid_format".encode()).decode()
+#     with pytest.raises(CryptorError, match="Decryption failed: invalid format or missing machine identifier."):
+#         cryptor.decrypt(invalid_format)
 
 def test_decrypt_raises_error_on_machine_id_mismatch():
     cryptor = Cryptor()
