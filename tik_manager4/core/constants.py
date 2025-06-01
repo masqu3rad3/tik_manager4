@@ -3,6 +3,16 @@
 from dataclasses import dataclass
 from enum import Enum
 
+class ColorCodes(Enum):
+    """Enumeration of color codes."""
+    DELETED = "#FF0000"  # Red
+    # bright green
+    PROMOTED = "#00FF00"  # Green
+    # bright purple
+    LIVE = "#CA75FF"  # Purple
+    # regular white
+    NORMAL = "#FFFFFF"  # White
+
 class ObjectType(Enum):
     """Enumeration of object types."""
     ENTITY = "entity"
@@ -69,4 +79,7 @@ class DataTypes(Enum):
         """Return a list of storable data types values."""
         return [dt.value for dt in DataTypes if dt.is_storable]
 
-
+class BranchingModes(Enum):
+    """Enumeration of branching modes."""
+    ACTIVE = "Active Branches"
+    PASSIVE = "Passive Branches"

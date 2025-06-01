@@ -28,6 +28,7 @@ class Dcc(MainCore):
     extracts = extract.classes
     ingests = ingest.classes
     extensions = extension.classes
+    save_selection_enabled = True
 
     @staticmethod
     def get_main_window():
@@ -57,6 +58,12 @@ class Dcc(MainCore):
         if nuke.env.get("nc"):
             file_path = str(Path(file_path).with_suffix(".nknc"))
         nuke.scriptSaveAs(file_path)
+        return file_path
+
+    @staticmethod
+    def save_selection(file_path):
+        """Save (Export) the current selection to the given file path."""
+        nuke.nodeCopy(file_path)
         return file_path
 
     @staticmethod

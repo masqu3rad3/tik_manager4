@@ -103,6 +103,66 @@ def sanitize_text(text, allow_spaces=False):
 
     return sanitized_text
 
+def copy(source, target, force=True, raise_error=False):
+    """"Copy the source file or folder to the target location."""
+    source = Path(source)
+    if not source.exists():
+        if raise_error:
+            raise FileNotFoundError(f"Source file or folder does not exist: {source}")
+        return False, f"Source file or folder does not exist: {source}"
+    target = Path(target)
+
+    if not force and target.exists():
+        if raise_error:
+            raise FileExistsError(f"Target file or folder already exists: {target}")
+        return False, f"Target file or folder already exists: {target}"
+    else:
+        # unlock the target if it exists
+        if target.exists():
+            ret, msg = write_unprotect(target)
+            if not ret:
+                return False, f"Error removing write protection: {msg}"
+
+    # Ensure the target's parent directory exists
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    # Perform the copy operation
+    if source.is_file() or source.is_symlink():
+        # make sure the parent of the target exists
+        target.parent.mkdir(parents=True, exist_ok=True)
+        # first check if there is a temporary lock file. If so, remove it.
+        temp_lock_file = target.with_suffix(target.suffix + ".lock_tik_temp")
+        if target.exists():
+            if temp_lock_file.exists():
+                try:
+                    temp_lock_file.unlink()
+                except OSError as exc:
+                    LOG.warning(exc, exc_info=True)
+            # rename the target to a temporary file to avoid overwriting issues
+            os.rename(str(target), temp_lock_file)
+        try:
+            shutil.copy2(str(source), str(target))
+        except OSError as exc:
+            if raise_error:
+                raise OSError(f"Error copying file: {exc}")
+            return False, f"Error copying file: {exc}"
+        # if the copy was successful, try to remove the temporary lock file
+        if temp_lock_file.exists():
+            try:
+                temp_lock_file.unlink()
+            except OSError as exc:
+                LOG.warning(f"Error removing temporary lock file: {exc}", exc_info=True)
+    elif source.is_dir():
+        # Use copytree with dirs_exist_ok=True for Python 3.8+
+        # For older versions, use shutil.copytree and handle existing directories
+        if hasattr(shutil, "copytree") and hasattr(shutil.copytree, "dirs_exist_ok"):
+            shutil.copytree(str(source), str(target), dirs_exist_ok=True)
+        else:
+            if target.exists():
+                shutil.rmtree(target)
+            shutil.copytree(str(source), str(target))
+    return True, f"{source} copied to {target}."
+
 def move(source, target, force=True, raise_error=False):
     """Move the source file or folder to the target location.
 
@@ -140,7 +200,13 @@ def delete(file_or_folder):
         ret, msg = write_unprotect(file_or_folder)
         if not ret:
             return False, f"Error removing write protection: {file_or_folder}"
-        delete(file_or_folder)
+        try:
+            if Path(file_or_folder).is_file() or Path(file_or_folder).is_symlink():
+                Path(file_or_folder).unlink()
+            elif Path(file_or_folder).is_dir():
+                shutil.rmtree(file_or_folder)
+        except PermissionError as e:
+            return False, f"Permission denied: {e}"
     return True, f"{file_or_folder} deleted."
 
 def write_protect(file_or_folder):

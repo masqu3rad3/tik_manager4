@@ -1,7 +1,7 @@
 .. _projects_settings:
 
-Project Settings
-================
+Project
+=======
 
 Project section contains settings that are specific to the currently set project.
 This area is only accessible to users with **Admin** permission level.
@@ -91,3 +91,52 @@ After creating the metadata, it is possible to assign a default value to it from
     for checking the animation ranges can use the `start_frame` and `end_frame` metadatas to determine the range.
 
 .. image:: ../images/settings_metadata.gif
+
+Project Settings
+~~~~~~~~~~~~~~~~
+
+.. attention:: 
+    New in v4.4.0
+
+    All other project specific settings are available in the Project Settings section.
+
+.. _branching_mode:
+
+Branching Mode
+##############
+This setting defines the branching mode for the project. It can be set to either **Active Branches** or **Passive Branches**.
+
+Passive Branches
+-----------------
+    Passive Branching is the classic way of managing versions in a project. Each version is a separate entity, and artists need to manually switch between versions when referencing assets in their scenes. Alternatively, if studio-specific tools are used, they may automate this process.
+
+Active Branches
+---------------
+    Active Branching introduces two always-updated, long-living versions of your assets: LIVE and PRO. These branches act as continuously evolving points that artists can rely on without needing to manually switch versions or use studio-specific tools.
+
+    .. image:: ../images/active_branches.gif
+
+.. attention:: 
+
+    Active Branches are designed to simplify the workflow by providing a clear distinction between ongoing development (LIVE) and production-ready assets (PRO). This allows artists to focus on their work without worrying about version management.
+
+How Active Branches Work:
+-------------------------
+    - All usual publish versions are still there. Nothing changes if the classic workflow preferred.
+    - LIVE is updated automatically every time new version published. No extra steps.
+    - PRO is for production-approved versions only. It’s updated only when a supervisor (or admin) promotes a version.
+    - Both LIVE and PRO are tracked, with their own internal databases, so you always know exactly which version they’re based on.
+    - When artists reference a LIVE or PRO branch in their scenes, they automatically stay up-to-date — no version switching, no re-referencing.
+
+Sample Active Branches Workflow:
+--------------------------------
+
+Let’s say you’re a rigger working on a character:
+    - You publish your first version of the rig. It becomes the LIVE branch automatically.
+    - Since this is the initial release, you (or your supervisor) promote it to PRO right away.
+    - You create a test scene and reference the LIVE version to continue iterating.
+    - An animator references the PRO version into a shot.
+    - You make updates to the rig, publish again — LIVE is instantly updated.
+    - You test your changes in your test scene (which always references LIVE).
+    - Once you’re happy, your supervisor promotes the new version — and now PRO is updated too.
+    - Animator’s scene will instantly get the latest approved rig, with zero manual steps.

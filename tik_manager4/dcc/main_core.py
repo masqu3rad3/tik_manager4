@@ -14,16 +14,13 @@ class MainCore():
     name = ""
     formats = []
     preview_enabled = True
+    save_selection_enabled = False
     validations = {}
     extracts = {}
     ingests = {}
     extensions = {}
     custom_launcher = False
     guard = guard.Guard()
-
-    # def __init__(self):
-    #     """Initialize the class."""
-    #
 
     @classmethod
     def add_validation(cls, key, value):
@@ -96,11 +93,6 @@ class MainCore():
         Saves the file to the given path
         Args:
             file_path: (String) File path that will be written
-            file_format: (String) File format
-            **extra_arguments: Compatibility arguments
-
-        Returns:
-
         """
         pass
 
@@ -108,6 +100,16 @@ class MainCore():
     def save_prompt():
         """Pop up the save prompt."""
         pass
+
+    @staticmethod
+    def save_selection(file_path):
+        """Saves the current selection to the given path.
+
+        Args:
+            file_path: (String) File path that will be written.
+        """
+        # by default this will raise an exception to indicate that the function is not implemented
+        raise NotImplementedError("This function is not implemented in this DCC.")
 
     @staticmethod
     def open(file_path, force=True, **extra_arguments):

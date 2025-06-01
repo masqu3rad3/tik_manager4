@@ -120,9 +120,10 @@ class Dcc(MainCore):
     def text_to_image(text, save_path, width, height, color="orange", scale=0.5):
         """Convert text to an image."""
 
-        # app = QtWidgets.QApplication(sys.argv)
         app = QtWidgets.QApplication.instance()
-
+        if not app:
+            LOG.warning("No QApplication instance found. Cannot generate thumbnail in a non-GUI environment.")
+            return None
 
         # Create a QLabel to render the text
         label = QtWidgets.QLabel()
@@ -168,6 +169,5 @@ class Dcc(MainCore):
 
         # Cleanup
         painter.end()
-        # app.quit()
 
         return save_path

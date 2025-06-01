@@ -3,8 +3,11 @@
 
 
 from pathlib import Path
-from tik_manager4.core.constants import ObjectType
-from tik_manager4.objects.version import PublishVersion
+
+from tik_manager4.core.settings import Settings
+from tik_manager4.objects.version import PromotedVersion
+from tik_manager4.core.constants import ObjectType, BranchingModes
+from tik_manager4.objects.version import PublishVersion, LiveVersion
 from tik_manager4.mixins.localize import LocalizeMixin
 from tik_manager4.core import filelog
 
@@ -29,6 +32,21 @@ class Publish(LocalizeMixin):
         self.work_object = work_object
 
         self._publish_versions = {}
+
+        # _folder = Path(self.settings_file).parent
+        self._live_object = None
+        self._promoted_object = None
+        _folder = Path(self.work_object.get_abs_database_path("publish", self.work_object.name))
+        live_file = _folder / "live.json"
+        if live_file.exists():
+            self._live_object = Settings(live_file)
+
+        promoted_file = _folder / "promoted.json"
+        if promoted_file.exists():
+            self._promoted_object = Settings(promoted_file)
+
+        self._live_version = None
+        self._promoted_version = None
 
     @property
     def name(self):
@@ -64,8 +82,18 @@ class Publish(LocalizeMixin):
     @property
     def all_versions(self):
         """All versions of the publish, including the deleted ones."""
-        self.scan_publish_versions()
+        # self.scan_publish_versions()
         return list(self._publish_versions.values())
+
+    def get_versions(self):
+        """Convenience method to get the versions with a forced scan."""
+        self.scan_publish_versions()
+        return self.versions
+
+    def get_all_versions(self):
+        """Convenience method to get all versions with a forced scan."""
+        self.scan_publish_versions()
+        return self.all_versions
 
     @property
     def version_count(self):
@@ -89,9 +117,24 @@ class Publish(LocalizeMixin):
         # if there are no non-deleted versions, the publish is considered deleted
         return not bool(self.versions)
 
+    @property
+    def live_version(self):
+        """Return the live version."""
+        if self._live_version:
+            return self._live_version
+        return self.get_live_version()
+
+    @property
+    def promoted_version(self):
+        """Return the promoted version."""
+        if self._promoted_version:
+            return self._promoted_version
+        return self.get_promoted_version()
+
     def reload(self):
         """Reload the publish object."""
         self.work_object.reload()
+        self.__init__(self.work_object)
         self.scan_publish_versions()
 
     def omit(self):
@@ -120,25 +163,68 @@ class Publish(LocalizeMixin):
         """Return the publish scene folder."""
         return self.work_object.get_abs_project_path("publish", self.work_object.name)
 
+    def get_live_version(self):
+        """Get the live version among the published versions."""
+        for version in reversed(list(self._publish_versions.values())):
+            if version.is_live():
+                return version
+        return None
+
+    def get_promoted_version(self):
+        """Get the promoted version among the published versions."""
+        for version in reversed(list(self._publish_versions.values())):
+            if version.is_promoted():
+                return version
+
     def scan_publish_versions(self):
         """Return the publish versions in the publish folder."""
         # search directory is resolved from the work object
         _search_dir = Path(self.get_publish_data_folder())
         if not _search_dir.exists():
             return {}
-        _publish_version_paths = _search_dir.glob("*.tpub")
+        _publish_version_paths = list(_search_dir.glob("*.tpub"))
 
         for _p_path, _p_data in dict(self._publish_versions).items():
             if _p_path not in _publish_version_paths:
                 self._publish_versions.pop(_p_path)
+
         for _publish_version_path in _publish_version_paths:
             existing_publish = self._publish_versions.get(_publish_version_path, None)
             if not existing_publish:
-                _publish = PublishVersion(_publish_version_path)
+                _publish = PublishVersion(
+                    _publish_version_path,
+                    live_object=self._live_object,
+                    promoted_object=self._promoted_object
+                )
                 self._publish_versions[_publish_version_path] = _publish
             else:
                 if existing_publish.is_modified():
                     existing_publish.reload()
+
+        # make a similar caching for live and promoted versions. The process is costly
+        # and we don't want to do it every time.
+
+        self._live_version = self.get_live_version()
+        self._promoted_version = self.get_promoted_version()
+
+        # check the project settings for the active branches.
+        branching_mode = self.guard.project_settings.get("branching_mode", BranchingModes.ACTIVE.value)
+        if branching_mode == BranchingModes.ACTIVE.value:
+            if self._live_version and self._live_object:
+                # Create a LIVE version merging the live version with live data
+                # This is a temporary version and not saved to disk.
+                live_version = LiveVersion(self._live_version.settings_file)
+                # live_version._elements = live_version._live_object.get("elements")
+                live_version._elements = self._live_object.get("elements")
+                self._publish_versions["live"] = live_version
+
+            if self._promoted_version and self._promoted_object:
+                # Create a PROMOTED version merging the promoted version with promoted data
+                # This is a temporary version and not saved to disk.
+                promoted_version = PromotedVersion(self._promoted_version.settings_file)
+                # promoted_version._elements = promoted_version._promoted_object.get("elements")
+                promoted_version._elements = self._promoted_object.get("elements")
+                self._publish_versions["promoted"] = promoted_version
 
         return self._publish_versions
 

@@ -54,11 +54,10 @@ class Work(Settings, LocalizeMixin):
         self._state = "working"
 
         self.modified_time = None  # to compare and update if necessary
-        self.publish = Publish(
-            self
-        )  # publish object does not have a settings file, the publish versions do
-
+        self.publish = None
         self.init_properties()
+        self.init_publish()
+
 
     def init_properties(self):
         """Initialize the properties of the work from the inherited dictionary."""
@@ -75,6 +74,11 @@ class Work(Settings, LocalizeMixin):
         self._software_version = self.get_property("softwareVersion")
         self._state = self.get_property("state", self._state)
         # keeping the 'working' state for backward compatibility.
+
+    def init_publish(self):
+        self.publish = Publish(
+            self
+        )
         if self._state == "active" or self._state == "working":
             if self.publish.versions:
                 self._state = "published"
@@ -262,7 +266,7 @@ class Work(Settings, LocalizeMixin):
                            [version.to_dict() for version in self._versions])
         super(Work, self).apply_settings(force=force)
 
-    def new_version(self, file_format=None, notes="", ignore_checks=True):
+    def new_version(self, file_format=None, notes="", ignore_checks=True, from_selection=False):
         """Create a new version of the work.
 
         Args:
@@ -306,7 +310,10 @@ class Work(Settings, LocalizeMixin):
         output_path = self.get_output_path(self.name, version_name)
         if not output_path:
             return -1
-        returned_output_path = self._dcc_handler.save_as(output_path)
+        if from_selection:
+            returned_output_path = self._dcc_handler.save_selection(output_path)
+        else:
+            returned_output_path = self._dcc_handler.save_as(output_path)
 
         # on some occasions the save as method may return a different path.
         # for example, if the file cannot be saved with specified file format,

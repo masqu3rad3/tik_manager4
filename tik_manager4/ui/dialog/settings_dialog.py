@@ -5,9 +5,9 @@ import sys  # This is required for the 'frozen' attribute DO NOT REMOVE
 from pathlib import Path
 import logging
 
-from tik_manager4.core.constants import DataTypes
+from tik_manager4.core.constants import DataTypes, BranchingModes
 
-from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
+from tik_manager4.ui.Qt import QtWidgets, QtCore
 from tik_manager4.ui.widgets.validated_string import ValidatedString
 from tik_manager4.ui.widgets.settings_widgets import (
     UsersDefinitions,
@@ -404,6 +404,30 @@ class SettingsDialog(QtWidgets.QDialog):
         metadata = SwitchTreeItem(["Metadata"], permission_level=3)
         project_widget_item.addChild(metadata)
         metadata.content = self._metadata_content()
+
+        # Project settings
+        project_settings_item = SwitchTreeItem(["Project Settings"], permission_level=3)
+        project_widget_item.addChild(project_settings_item)
+
+        project_settings_ui_definition = {
+            "branching_mode": {
+                "display_name": "Branching Mode",
+                "type": DataTypes.COMBO.value,
+                "items": [BranchingModes.ACTIVE.value, BranchingModes.PASSIVE.value],
+                "value": self.main_object.project.settings.get_property("branching_mode", BranchingModes.ACTIVE.value),
+                "tooltip": "The method to control LIVE and PRO branches.\n"
+                           "Active branches are overwritten duplicates of specific published versions.\n"
+                           "Passive branches method won't overwrite the branch but still keep\n"
+                           "track of the versions that the branches are originated from.\n",
+            }
+        }
+
+        # fill the content
+        project_settings_item.content, _ = self.__create_generic_settings_layout(
+            settings_data=self.main_object.project.settings,
+            title="Project Settings",
+            ui_definition=project_settings_ui_definition,
+        )
 
     def common_title(self):
         """Create the common settings."""

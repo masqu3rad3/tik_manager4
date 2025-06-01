@@ -27,6 +27,7 @@ class Dcc(MainCore):
     extracts = extract.classes
     ingests = ingest.classes
     extensions = extension.classes
+    save_selection_enabled = True
 
     # Override the applicable methods from the MainCore class
 
@@ -59,6 +60,13 @@ class Dcc(MainCore):
             (str) The file path that the scene was saved to.
         """
         KatanaFile.Save(file_path)
+        return file_path
+
+    @staticmethod
+    def save_selection(file_path):
+        """Save the current selection as a new file."""
+        selected_nodes = NodegraphAPI.GetAllSelectedNodes()
+        KatanaFile.Export(file_path, selected_nodes)
         return file_path
 
     @staticmethod

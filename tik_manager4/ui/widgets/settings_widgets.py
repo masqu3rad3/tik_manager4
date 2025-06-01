@@ -1,6 +1,6 @@
 """Convenince widgets for settings UI."""
 
-from tik_manager4.core.constants import DataTypes
+from tik_manager4.core.constants import DataTypes, ValidationState
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.widgets import value_widgets
 from tik_manager4.ui.widgets.validated_string import ValidatedString
@@ -130,6 +130,37 @@ class UsersDefinitions(QtWidgets.QWidget):
             return
         self.reinit()
 
+    def on_reset_password(self):
+        """Reset the user's password"""
+        selected_item = self.switch_tree_widget.currentItem()
+        if selected_item is None:
+            return
+        name = selected_item.text(0)
+
+        dialog_result = self.feedback.pop_question(
+            title="Reset Password",
+            text=f"Are you sure you want to reset the '{name}'s password? "
+                 f"This action cannot be undone.",
+            buttons=["yes", "cancel"]
+        )
+        if dialog_result == "cancel":
+            return
+
+        validation = self.user_object.reset_user_password("1234", name)
+
+        if validation.state != ValidationState.SUCCESS:
+            if not validation.allow_proceed:
+                self.feedback.pop_error(
+                    title="Cannot reset password",
+                    text=validation.message,
+                )
+                return
+
+        self.feedback.pop_info(
+            title="Password Reset",
+            text=validation.message,
+        )
+
     def _delete_value_widget(self, widget_item):
         """Deletes the value widget and removes it from the layout."""
         widget_item.content.deleteLater()
@@ -170,6 +201,12 @@ class UsersDefinitions(QtWidgets.QWidget):
             permission_widget.setEnabled(False)
 
         form_layout.addRow("Permission Level: ", permission_widget)
+
+        reset_password_button = TikButton(text="Reset Password", parent=self)
+        form_layout.addRow(reset_password_button)
+
+        reset_password_button.clicked.connect(self.on_reset_password)
+
         permission_widget.currentIndexChanged.connect(
             lambda value: data.update({"permissionLevel": value})
         )

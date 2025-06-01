@@ -169,7 +169,7 @@ class Category(Entity):
         work.new_version_from_path(file_path=template_file, notes=notes)
         return work
 
-    def create_work(self, name, file_format=None, notes="", ignore_checks=True):
+    def create_work(self, name, file_format=None, notes="", ignore_checks=True, from_selection=False):
         """Create a work under the category.
 
         Args:
@@ -193,7 +193,7 @@ class Category(Entity):
         if Path(abs_path).exists():
             # in that case instantiate the work and iterate the version.
             work = Work(absolute_path=abs_path, parent_task=self.parent_task)
-            work.new_version(file_format=file_format, notes=notes, ignore_checks=ignore_checks)
+            work.new_version(file_format=file_format, notes=notes, ignore_checks=ignore_checks, from_selection=from_selection)
             return work
 
         relative_path = self.get_relative_work_path()
@@ -208,7 +208,7 @@ class Category(Entity):
                 return -1
 
         self.__add_work_properties(work, constructed_name, self.guard.dcc, work._dcc_handler.get_dcc_version(), relative_path)
-        work.new_version(file_format=file_format, notes=notes, ignore_checks=ignore_checks)
+        work.new_version(file_format=file_format, notes=notes, ignore_checks=ignore_checks, from_selection=from_selection)
         return work
 
     def get_relative_work_path(self, override_dcc=None):

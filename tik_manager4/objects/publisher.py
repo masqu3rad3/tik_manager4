@@ -8,6 +8,7 @@ import logging
 from pathlib import Path
 
 from tik_manager4.core import filelog
+from tik_manager4.core import utils
 
 from tik_manager4.objects.preview import Preview
 from tik_manager4.dcc.standalone import main as standalone
@@ -76,6 +77,8 @@ class Publisher:
         if not self._work_object:
             LOG.warning("No work object found. Aborting.")
             return False
+        # scan the existing publishes
+        self._work_object.publish.scan_publish_versions()
 
         self._resolved_extractors = {}
         self._resolved_validators = {}
@@ -118,6 +121,8 @@ class Publisher:
                    key=lambda x: validations.index(x[0]))
         )
 
+        # explicitly scan the publishes to get the latest version
+        self._work_object.publish.scan_publish_versions()
         latest_publish_version = self._work_object.publish.get_last_version()
 
         self._abs_publish_data_folder = (
@@ -179,25 +184,6 @@ class Publisher:
         for _val_name, val_object in self._resolved_validators.items():
             val_object.validate()
 
-    def write_protect(self, file_or_folder_path):
-        """Protect the given file or folder making it read-only.
-
-        Args:
-            file_or_folder_path (str): The path to the file or folder.
-        """
-        path = Path(file_or_folder_path)
-        file_list = []
-        if path.is_file():
-            file_list.append(path)
-        elif path.is_dir():
-            for _file in path.rglob("*"):
-                file_list.append(_file)
-        for _file in file_list:
-            try:
-                _file.chmod(0o444)
-            except Exception as e:  # pylint: disable=broad-except
-                LOG.warning(f"File protection failed: {_file}")
-
     def extract_single(self, extract_object):
         """Extract only from the given extract object.
 
@@ -207,9 +193,10 @@ class Publisher:
         publish_path = Path(self._published_object.get_output_path(self._work_object.name))
         extract_object.category = self._work_object.category  # define the category
         extract_object.extract_folder = publish_path.as_posix()  # define the extract folder
-        extract_object.extract_name = f"{self._work_object.name}_v{self._publish_version:03d}"  # define the extract name
+        extract_object.extract_name = f"{self._work_object.name}"  # define the extract name
+        extract_object.version_string = f"v{self._publish_version:03d}"  # define the version string
         extract_object.extract()
-        self.write_protect(extract_object.resolve_output())
+        utils.write_protect(extract_object.resolve_output())
 
     def extract(self):
         """Extract the elements.
@@ -308,8 +295,8 @@ class Publisher:
                 self.warnings.append(msg)
                 LOG.error(f"Publish to {management_platform} failed: {e}")
 
-
         self._published_object.apply_settings(force=True)
+        self._published_object.make_live()
 
         # hook for post publish can be defined in per dcc handler.
         message_callback("Performing post publish operations")
@@ -530,6 +517,8 @@ class SnapshotPublisher(Publisher):
         self._resolved_extractors = {"snapshot": snapshot_extractor}
         self._resolved_validators = {}
 
+        # we need to explicityly scan the publishes.
+        self._work_object.publish.scan_publish_versions()
         latest_publish_version = self._work_object.publish.get_last_version()
 
         self._abs_publish_data_folder = (

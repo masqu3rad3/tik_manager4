@@ -2,7 +2,7 @@
 
 import hashlib
 from pathlib import Path
-from tik_manager4.core.constants import ObjectType
+from tik_manager4.core.constants import ObjectType, ValidationState, ValidationResult
 from tik_manager4.core import filelog
 from tik_manager4.core import utils
 from tik_manager4.core.settings import Settings
@@ -639,6 +639,30 @@ class User:
             return 1, "Success"
         else:
             return -1, LOG.error("Old password for %s does not match" % user_name)
+
+    def reset_user_password(self, new_password, user_name) -> ValidationResult:
+        """Reset the password for the specified user.
+
+        This operation can only be performed by users with admin privileges.
+
+        Args:
+            new_password (str): The new password to assign to the user.
+            user_name (str): The user name.
+        Returns:
+            object: ValidationResult object.
+        """
+        if self.permission_level < 3:
+            msg = f"User {self._active_user} has no permission to reset " \
+                  f"password"
+            LOG.error(msg)
+            return ValidationResult(ValidationState.ERROR, msg,
+                                    allow_proceed=False)
+        self.commons.users.get_property(user_name)["pass"] = self.__hash_pass(
+            new_password
+        )
+        self.commons.users.apply_settings()
+
+        return ValidationResult(ValidationState.SUCCESS, "Success")
 
     def check_password(self, user_name, password):
         """Check the given password against the hashed password.

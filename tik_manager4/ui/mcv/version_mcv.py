@@ -2,19 +2,22 @@
 import tempfile
 from pathlib import Path
 from dataclasses import dataclass
-from tik_manager4.core.constants import ObjectType
+
+from tik_manager4.core.constants import ObjectType, ValidationResult, ValidationState
 from tik_manager4.ui.Qt import QtWidgets, QtCore, QtGui
 from tik_manager4.ui.dialog.feedback import Feedback
 from tik_manager4.ui.widgets.common import TikButton, HorizontalSeparator, TikIconButton
 from tik_manager4.ui.widgets.screenshot import take_screen_area
 from tik_manager4.ui.widgets.info import ImageWidget, NotesEditor
 from tik_manager4.ui.dialog.bunde_ingest_dialog import BundleIngestDialog
+from tik_manager4.ui.dialog.info_dialog import InfoDialog
 from tik_manager4.core import filelog
 
 LOG = filelog.Filelog(logname=__name__, filename="tik_manager4")
 
 class VersionComboBoxModel(QtCore.QAbstractListModel):
     """Model for the version combo box."""
+
     def __init__(self, items, parent=None):
         super().__init__(parent)
         self.items = items
@@ -30,7 +33,11 @@ class VersionComboBoxModel(QtCore.QAbstractListModel):
             return None
         if role == QtCore.Qt.DisplayRole:
             # Display only the 'content' key's value
-            return str(self.items[index.row()].version)
+            return self.items[index.row()].nice_name
+        if role == QtCore.Qt.ForegroundRole:
+            # Set color based on item state
+            item = self.items[index.row()]
+            return QtGui.QBrush(QtGui.QColor(item.get_display_color()))
         return None
 
     def get_item(self, index):
@@ -42,6 +49,7 @@ class VersionComboBoxModel(QtCore.QAbstractListModel):
 
 class VersionComboBox(QtWidgets.QComboBox):
     """Custom combo box for version selection."""
+
     def __init__(self, items=None, parent=None):
         """Initialize the VersionComboBox."""
         super().__init__(parent)
@@ -60,6 +68,9 @@ class VersionComboBox(QtWidgets.QComboBox):
 
     def get_current_item(self):
         """Get the current selected item."""
+        current_index = self.currentIndex()
+        if current_index < 0:
+            return None
         return self.model.get_item(self.currentIndex())
 
     def clear(self):
@@ -68,6 +79,38 @@ class VersionComboBox(QtWidgets.QComboBox):
             self.model.items = []  # Clear the items in the model
             self.model.layoutChanged.emit()  # Notify views of the change
         super().clear()  # Clear any additional internal state in QComboBox
+
+    def paintEvent(self, event):
+        """Override paintEvent to apply the color of the selected item."""
+        painter = QtGui.QPainter(self)
+        rect = self.rect()
+
+        # Draw the combo box frame
+        opt = QtWidgets.QStyleOptionComboBox()
+        self.initStyleOption(opt)
+        self.style().drawComplexControl(QtWidgets.QStyle.CC_ComboBox, opt, painter, self)
+
+        # Get the current item and its color
+        current_index = self.currentIndex()
+        if current_index >= 0 and self.model:
+            item = self.model.get_item(current_index)
+            if item:
+                # Determine the color based on the item's state
+                _color = item.get_display_color()
+                if _color:
+                    color = QtGui.QColor(_color)
+                else:
+                    color = self.palette().color(QtGui.QPalette.Text)
+
+                # Draw the text with the appropriate color
+                painter.setPen(color)
+                text = item.nice_name
+                text_rect = self.style().subControlRect(
+                    QtWidgets.QStyle.CC_ComboBox, opt, QtWidgets.QStyle.SC_ComboBoxEditField, self
+                )
+                painter.drawText(text_rect, QtCore.Qt.AlignVCenter | QtCore.Qt.TextSingleLine, text)
+
+        painter.end()
 
 
 @dataclass
@@ -82,8 +125,10 @@ class VersionWidgets:
     sync_btn: TikButton
     lbl: QtWidgets.QLabel
     combo: VersionComboBox
+    promote_btn: TikIconButton
     preview_btn: TikIconButton
     owner_lbl: QtWidgets.QLabel
+    info_btn: TikIconButton
 
 
 @dataclass
@@ -140,8 +185,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             sync_btn=TikButton(text="Sync"),
             lbl=QtWidgets.QLabel(text="Version: "),
             combo=VersionComboBox(),
+            promote_btn=TikIconButton(icon_name="star.png", circle=False, size=30),
             preview_btn=TikIconButton(icon_name="player.png", circle=False, size=30),
-            owner_lbl=QtWidgets.QLabel("Owner: ")
+            owner_lbl=QtWidgets.QLabel("Owner: "),
+            info_btn=TikIconButton(icon_name="info.png", circle=False, size=30)
         )
 
         self.element = ElementWidgets(
@@ -212,16 +259,26 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.version.combo.setMinimumSize(QtCore.QSize(10, 30))
         version_layout.addWidget(self.version.combo)
 
+        self.version.promote_btn.setMinimumSize(QtCore.QSize(30, 30))
+        self.version.promote_btn.setEnabled(False)
+        self.version.promote_btn.setHidden(True)
+        self.version.promote_btn.setToolTip("Promote the selected publish version to Production.")
+        version_layout.addWidget(self.version.promote_btn)
+
         self.version.preview_btn.setMinimumSize(QtCore.QSize(30, 30))
         self.version.preview_btn.setEnabled(False)
         version_layout.addWidget(self.version.preview_btn)
 
         user_layout = QtWidgets.QHBoxLayout()
         self.addLayout(user_layout)
-        self.version.owner_lbl = QtWidgets.QLabel("Owner: ")
         self.version.owner_lbl.setFont(QtGui.QFont("Arial", 10))
         user_layout.addStretch()
+        # self.version.owner_lbl = QtWidgets.QLabel("Owner: ")
+        self.version.owner_lbl.setFont(QtGui.QFont("Arial", 10))
         user_layout.addWidget(self.version.owner_lbl)
+
+        user_layout.addWidget(self.version.info_btn)
+
 
         element_layout = QtWidgets.QVBoxLayout()
         self.addLayout(element_layout)
@@ -277,6 +334,72 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.header.refresh_btn.clicked.connect(self.refresh)
         self.version.sync_btn.clicked.connect(self.on_sync_to_origin)
         self.info.notes_editor.notes_updated.connect(self.__apply_to_base)
+        self.version.promote_btn.clicked.connect(self.on_promote)
+        self.version.info_btn.clicked.connect(self.on_info)
+
+    def on_info(self):
+        """Pop-up a dialog with the version information."""
+        _version = self.version.combo.get_current_item()
+        if not _version:
+            return
+        # TODO : add a dialog to show the version information
+        example_data = {
+            "name": "asdf_Model",
+            "version_number": 1,
+            "owner": "Arda Kutlu",
+            "category": "Model",
+            "localized": False,
+            "localized_path": "",
+            "dcc_version": "2024",
+            "scene_path": "asdf_Model/asdf_Model_v001.ma",
+            "thumbnail": "thumbnails/asdf_Model_v001_thumbnail.jpg",
+            "workstation": "arda-3060",
+            "deleted": False,
+            "a_very_long_key_name_for_testing": "This is a rather long value to see if the text wrapping works correctly within the label.",
+            "description": "This is the primary model asset for the 'asdf' project sequence.",
+            "creation_date": "2025-04-29",
+            "last_modified": "2025-04-29T10:30:00Z"
+        }
+        InfoDialog.show_info(data=_version.to_dict(), title="Version Details", parent=self.parent)
+
+    def on_promote(self):
+        """Execute the promote action."""
+        if not self.base:
+            self.feedback.pop_info(
+                title="No publish version selected.",
+                text="Please select a publish version to promote.",
+                critical=True,
+            )
+            return
+
+        if not self.base.object_type == ObjectType.PUBLISH:
+            return
+
+        _version = self.version.combo.get_current_item()
+        # if the version is already promoted, ask the user if they want to force it again
+        if _version.is_promoted():
+            question = self.feedback.pop_question(
+                title="Version already promoted",
+                text="The selected version is already promoted.\n\nDo you want to force the promotion again?",
+                buttons=["yes", "cancel"],
+            )
+            if question == "cancel":
+                return
+
+        validation: ValidationResult = _version.promote()
+        if validation.state != ValidationState.SUCCESS:
+            self.feedback.pop_info(
+                title="Promotion failed",
+                text=validation.message,
+                critical=True,
+            )
+            return
+        # refresh the version list
+        # self.base.scan_publish_versions()
+        self.base.reload()
+        _index = self.version.combo.currentIndex()
+        self.populate_versions(self.base)
+        self.version.combo.setCurrentIndex(_index)
 
     def on_sync_to_origin(self):
         """Sync the version to the origin."""
@@ -628,17 +751,12 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.toggle_sync_state(state=state, critical=critical)
 
         _index = self.version.combo.currentIndex()
-        item = self.version.combo.get_item(_index)
-
-        # adjust the css properties
-        self.version.combo.setProperty("deleted", item.deleted)
-        self.version.combo.setProperty("preVersion",
-                                       _index != self.version.combo.count() - 1)
-        self.version.combo.setStyleSheet("")
 
         self.element.element_combo.clear()
         self.element_mapping.clear()
         if self.base.object_type == ObjectType.PUBLISH:
+            self.version.promote_btn.setHidden(False)
+            self.version.promote_btn.setEnabled(_version.can_promote())
             self.version.preview_btn.setEnabled(bool(_version.previews))
             self.element.element_combo.setEnabled(True)
             self.element.element_view_btn.setEnabled(True)
@@ -649,6 +767,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.element_type_changed(self.element.element_combo.currentText())
             owner = _version.creator
         else:  # WORK
+            self.version.promote_btn.setHidden(True)
             self.element.element_combo.setEnabled(False)
             self.element.element_view_btn.setEnabled(False)
             self.element.ingest_with_combo.setEnabled(False)
@@ -704,6 +823,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         if not selected_version:
             return None
         return selected_version.version
+
+    def get_selected_version(self):
+        """Return the current version object."""
+        selected_version = self.version.combo.get_current_item()
+        if not selected_version:
+            return None
+        return selected_version
 
     def get_selected_element_type(self):
         """Return the current element."""
@@ -932,12 +1058,20 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         """Publish a snapshot of the current work."""
         if not self.base.object_type == ObjectType.WORK:
             LOG.warning("Publish snapshot is only available for work objects.")
-            return -1
+            return ValidationResult(ValidationState.ERROR, "Publish snapshot is only available for work objects.")
         self.project.snapshot_publisher.work_object = self.base
         self.project.snapshot_publisher.work_version = self.get_selected_version_number()
         self.project.snapshot_publisher.resolve()
         self.project.snapshot_publisher.reserve()
         self.project.snapshot_publisher.extract()
+        for _extract_type_name, extract in self.project.snapshot_publisher._resolved_extractors.items():
+            if extract.state == "failed":
+                self.feedback.pop_info(
+                    title="Snapshot Publish Failed",
+                    text=f"Snapshot publish failed.\n{extract.message}",
+                    critical=True,
+                )
+                return ValidationResult(ValidationState.ERROR, extract.message)
         published_object = self.project.snapshot_publisher.publish()
         if published_object:
             self.feedback.pop_info(
@@ -945,6 +1079,10 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
                 text=f"Snapshot published.\nName: {published_object.name}\nPath: {published_object.path}",
                 critical=False,
             )
+            # refresh the version list
+            self.refresh()
+            return ValidationResult(ValidationState.SUCCESS, "Snapshot published successfully.")
+        return ValidationResult(ValidationState.ERROR, "Snapshot publish failed. See Logs for details.")
 
     def __apply_to_base(self):
         """Apply the changes to the base object and persistent database."""

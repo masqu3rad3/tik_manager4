@@ -35,34 +35,59 @@ class TestStress:
                                 pixel_aspect_ratio=1.0,
                                 pre_roll=30,
                                 post_roll=2,
-                                sub_steps=1
+                                sub_steps=1,
+                                locked_commons = False
                                 )
 
 
         # ASSETS
-        iteration = 10
+        total_publishes = 0
+        subproject_iteration = 3
+        task_iteration = 2
+        work_iteration = 2
+        publish_iteration = 4
         parent_paths = ["Assets/Characters", "Assets/Props", "Assets/Environment", "Assets/Vehicles"]
         for sub_asset in parent_paths:
-            random_int_list = [random.randint(0, 9999) for x in range(iteration)]
+            random_int_list = [random.randint(0, 9999) for x in range(subproject_iteration)]
             for x in random_int_list:
                 word = WORDS[x].decode("utf-8")
                 sub = tik.project.create_sub_project(word, parent_path=sub_asset)
                 # create 5 task for each sub
                 if sub == -1:
                     continue
-                for x in range(1, 6):
+                for x in range(1, task_iteration+1):
                     task = tik.project.create_task("{0}_Task_{1}".format(word, x), categories=["Model", "Rig", "LookDev"], parent_path=sub.path)
                     # for each category, create 10 works
                     for _, category in task.categories.items():
-                        for y in range(1, 6):
+                        for y in range(1, work_iteration+1):
+                        # y = 1
                             work = category.create_work("{0}_{1}_Work_{2}".format(task.name, category.name, y))
-                            # for each work, create 10 publishes
+                            # for each work, create 6 publishes
+                            for z in range(1, publish_iteration+1):
+                                tik.project.snapshot_publisher.work_object = work
+                                tik.project.snapshot_publisher.work_version = 1
+                                tik.project.snapshot_publisher.resolve()
+                                tik.project.snapshot_publisher.reserve()
+                                tik.project.snapshot_publisher.extract()
+                                tik.project.snapshot_publisher.publish(
+                                    notes="Stress Test Publish {0}".format(z),
+                                )
+                                total_publishes += 1
+                            # get all publishes for the work
+                            published_versions = work.publish.get_versions() # this one both scans and returns the versions
+                            # promote a random version
+                            if published_versions:
+                                random_version = random.choice(published_versions)
+                                random_version.promote()
+                            else:
+                                log.warning("No published versions found for work: {}".format(work.name))
+
 
 
         # SEQUENCES AND SHOTS
         for x in range (1, 5):
             seq = tik.project.create_sub_project("Sequence_{}".format(x), parent_path="Sequences")
-            for y in range (1, iteration):
+            for y in range (1, subproject_iteration):
                 shot = tik.project.create_sub_project("Shot_{}".format(y), parent_path=seq.path)
 
 
@@ -87,3 +112,5 @@ class TestStress:
 
         # set the project
         tik.set_project(str(test_stress_project_path))
+
+        print("\n\nTotal Publishes Created: {}".format(total_publishes))

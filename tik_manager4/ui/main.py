@@ -26,6 +26,7 @@ import webbrowser
 
 import tik_manager4
 import tik_manager4._version as version
+from tik_manager4.core.constants import ValidationResult, ValidationState
 from tik_manager4 import management
 from tik_manager4.core import utils
 from tik_manager4.management.exceptions import SyncError
@@ -40,6 +41,7 @@ from tik_manager4.ui.dialog.update_dialog import UpdateDialog
 from tik_manager4.ui.dialog.user_dialog import LoginDialog, NewUserDialog
 from tik_manager4.ui.dialog.work_dialog import (
     NewWorkDialog,
+    WorkFromSelectionDialog,
     NewVersionDialog,
     SaveAnyFileDialog,
     WorkFromTemplateDialog,
@@ -62,14 +64,12 @@ def launch(dcc="Standalone", dont_show=False):
     window_name = f"Tik Manager {version.__version__} - {dcc}"
     all_widgets = QtWidgets.QApplication.allWidgets()
     tik = tik_manager4.initialize(dcc)
-    # if tik.dcc.custom_launcher and not dont_show: # This is only for main ui.
     if tik.dcc.custom_launcher:
         return tik.dcc.launch(tik, window_name=window_name, dont_show=dont_show)
     parent = tik.dcc.get_main_window()
     for entry in all_widgets:
         try:
             if entry.objectName() == window_name:
-            # if entry.objectName().startswith("Tik Manager"):
                 entry.close()
                 entry.deleteLater()
         except (AttributeError, TypeError):
@@ -102,7 +102,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         # set style
-        # _style_file = pick.style_file(file_name="purgatory.css")
         _style_file = pick.style_file(file_name="tikManager.qss")
         self.setStyleSheet(str(_style_file.readAll(), "utf-8"))
 
@@ -300,9 +299,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.tik.user.last_subproject = _subproject_item.subproject.id
             _task_item = self.tasks_mcv.task_view.get_selected_item()
             if _task_item:
-                # self.tik.user.last_task = _task_item.task.reference_id
                 self.tik.user.last_task = _task_item.task.id
-                # Do we care?
                 _category_index = self.categories_mcv.get_category_index()
                 # we can always safely write the category index
                 self.tik.user.last_category = _category_index
@@ -433,6 +430,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.work_from_template_event.connect(
             self.on_work_from_template
         )
+        self.categories_mcv.work_tree_view.export_selection_event.connect(
+            lambda: self.on_new_work(from_selection=True)
+        )
 
     def closeEvent(self, event):  # pylint: disable=invalid-name
         """Override the close event to save the window state."""
@@ -539,6 +539,9 @@ class MainUI(QtWidgets.QMainWindow):
         file_menu.addAction(save_file_as_work)
         save_folder_as_work = QtWidgets.QAction("&Save Folder as Work    ", self)
         file_menu.addAction(save_folder_as_work)
+        save_selection_as_work = QtWidgets.QAction("&Export Selection as Work    ", self)
+        file_menu.addAction(save_selection_as_work)
+        save_selection_as_work.setEnabled(self.tik.dcc.save_selection_enabled)
         file_menu.addSeparator()
         save_new_work = QtWidgets.QAction(pick.icon("save"), "&Save New Work", self)
         file_menu.addAction(save_new_work)
@@ -623,6 +626,7 @@ class MainUI(QtWidgets.QMainWindow):
         save_folder_as_work.triggered.connect(
             lambda: self.on_save_any_file(folder=True)
         )
+        save_selection_as_work.triggered.connect(lambda: self.on_new_work(from_selection=True))
         increment_version.triggered.connect(self.on_new_version)
         ingest_version.triggered.connect(self.on_ingest_version)
         publish_scene.triggered.connect(self.on_publish_scene)
@@ -782,7 +786,12 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
         publish_dialog = PublishSceneDialog(self.tik.project, parent=self)
-        publish_dialog.show()
+        # publish_dialog.show()
+        publish_dialog.exec_()
+        if publish_dialog.publish_finished:
+            self.set_last_state()
+            self.refresh_versions()
+            self.resume_last_state()
 
     def on_publish_snapshot(self):
         """Immediately snapshot publish the selected version of the work item."""
@@ -797,8 +806,9 @@ class MainUI(QtWidgets.QMainWindow):
                 critical=True,
             )
             return
-
+        self.set_last_state()
         self.versions_mcv.publish_snapshot()
+        self.resume_last_state()
 
     def on_ingest_version(self):
         """Iterate a version over the selected work in the ui."""
@@ -938,7 +948,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.status_bar.showMessage("New work created successfully.", 5000)
             self.resume_last_state()
 
-    def on_new_work(self):
+    def on_new_work(self, from_selection=False):
         """Create a new work."""
         if not self._pre_check(level=1):
             return
@@ -977,7 +987,8 @@ class MainUI(QtWidgets.QMainWindow):
             if question == "cancel":
                 return
 
-        dialog = NewWorkDialog(
+        WorkDialog = WorkFromSelectionDialog if from_selection else NewWorkDialog
+        dialog = WorkDialog(
             self.tik,
             parent=self,
             subproject=subproject,
