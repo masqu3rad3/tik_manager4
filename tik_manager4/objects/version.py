@@ -302,12 +302,7 @@ class PublishVersion(Settings, LocalizeMixin):
 
     def can_promote(self):
         """Check if the publish version can be promoted."""
-        # check the user permission level
-        # if not self.check_permissions(level=3):
-        #     return False
         return True
-
-        # return not self.is_promoted()
 
     def _promote_with_active_branching(self):
         """Promoting with the active branch method."""
@@ -319,7 +314,6 @@ class PublishVersion(Settings, LocalizeMixin):
             "publish_id": self._publish_id,
             "name": self._name,
             "path": promoted_folder.relative_to(self.guard.project_root).as_posix(),
-            # "version_number": self._version,
             "version_number": self.version,
             "elements": []
         }

@@ -4,10 +4,9 @@ import time
 from pathlib import Path
 import shutil
 from pprint import pprint
-from unittest.mock import patch, PropertyMock
+from unittest.mock import patch, PropertyMock, MagicMock
 from tik_manager4.core.constants import ValidationResult, ValidationState # Make sure these are importable
 import pytest
-from jedi.common import monkeypatch
 
 import tik_manager4
 from tik_manager4.core import settings
@@ -1381,3 +1380,21 @@ class TestProject:
         tik.user.set(user, password="1234")
         state = tik.can_set_project(empty_project_path)
         assert state.state == expected_validation_state
+
+    def test_adding_project_as_structure_template(self, project_path, tik):
+        """Test adding a project as a structure template."""
+        # create a new project
+        test_project_path = self._new_asset_shot_project(project_path, tik)
+        tik.set_project(test_project_path)
+
+        # no permission
+        tik.user.set("Generic", password="1234")
+        assert tik.add_project_as_structure_template(template_name="TestProject") == False
+
+        tik.user.set("Admin", password="1234")
+        # add the project as a structure template
+        assert tik.add_project_as_structure_template(template_name="TestProject") == True
+
+        # check if the project is added to the templates
+        assert "TestProject" in tik.user.commons.get_project_structures()
+

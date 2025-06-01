@@ -121,6 +121,8 @@ class Publisher:
                    key=lambda x: validations.index(x[0]))
         )
 
+        # explicitly scan the publishes to get the latest version
+        self._work_object.publish.scan_publish_versions()
         latest_publish_version = self._work_object.publish.get_last_version()
 
         self._abs_publish_data_folder = (
@@ -515,6 +517,8 @@ class SnapshotPublisher(Publisher):
         self._resolved_extractors = {"snapshot": snapshot_extractor}
         self._resolved_validators = {}
 
+        # we need to explicityly scan the publishes.
+        self._work_object.publish.scan_publish_versions()
         latest_publish_version = self._work_object.publish.get_last_version()
 
         self._abs_publish_data_folder = (
