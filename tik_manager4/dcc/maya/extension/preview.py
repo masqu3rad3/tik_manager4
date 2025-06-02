@@ -1,5 +1,5 @@
 
-from tik_manager4.ui.Qt import QtWidgets
+from tik_manager4.ui.Qt import QtWidgets, QtCore
 from tik_manager4.dcc.extension_core import ExtensionCore
 from tik_manager4.ui.dialog.preview_dialog import PreviewDialog
 from tik_manager4.ui import pick
@@ -23,7 +23,7 @@ class Preview(ExtensionCore):
             raise ValueError("Menu item is not set.")
 
         preview_action = QtWidgets.QAction(
-                pick.icon("camera"), "&Create Preview", self.parent
+                pick.icon("camera.png"), "Create Preview", self.parent
             )
         self.menu_item.addAction(preview_action)
 
