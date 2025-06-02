@@ -8,7 +8,7 @@ from maya import cmds
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.dcc.extension_core import ExtensionCore
 from tik_manager4.ui.dialog.feedback import Feedback
-from tik_manager4.dcc.maya import utils
+from tik_manager4.ui import pick
 
 LOG = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class ReloadReferences(ExtensionCore):
         if not self.menu_item:
             raise ValueError("Menu item is not set.")
 
-        reload_references_action = QtWidgets.QAction("&Reload All References", self.parent)
+        reload_references_action = QtWidgets.QAction(pick.icon("reload"), "&Reload All References  ", self.parent)
         self.menu_item.addAction(reload_references_action)
 
         reload_references_action.triggered.connect(lambda: self.on_reload_references())
