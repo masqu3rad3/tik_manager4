@@ -97,12 +97,6 @@ jobs:
         wait-for-completion: true
         output-artifact-directory: package/build
 
-    - name: Replace original with signed version
-      run: |
-        Remove-Item "package/build/TikManager4_v${{ env.VERSION }}.exe"
-        Rename-Item -Path "package/build/signed.exe" -NewName "TikManager4_v${{ env.VERSION }}.exe"
-      shell: pwsh
-
     - name: Read Sanitized Release Notes
       id: read_release_notes
       run: |
