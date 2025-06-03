@@ -78,17 +78,12 @@ jobs:
         if not exist "package\build\TikManager4_v${{ env.VERSION }}.exe" exit 1
       shell: cmd
 
-    - name: Package for SignPath
-      run: |
-        Compress-Archive -Path "package/build/TikManager4_v${{ env.VERSION }}.exe" -DestinationPath "package/build/artifact.zip"
-      shell: pwsh
-
-    - name: Upload ZIP artifact for SignPath
-      id: upload_unsigned
+    - name: Upload EXE artifact for SignPath
+      id: upload-unsigned-artifact
       uses: actions/upload-artifact@v4
       with:
         name: TikManager4-ZIP
-        path: package/build/artifact.zip
+        path: package/build/TikManager4_v${{ env.VERSION }}.exe
 
     - name: Request signing from SignPath
       uses: signpath/github-action-submit-signing-request@v1
