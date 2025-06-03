@@ -93,7 +93,7 @@ jobs:
         project-slug: 'tik_manager4'
         signing-policy-slug: 'test-signing'
         artifact-configuration-slug: 'zip-pe-signing'
-        github-artifact-id: ${{ steps.upload_unsigned.outputs.artifact-id }}
+        github-artifact-id: '${{ steps.upload-unsigned-artifact.outputs.artifact-id }}'
         wait-for-completion: true
         output-artifact-directory: package/build
 
