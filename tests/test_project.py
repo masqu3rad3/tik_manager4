@@ -252,7 +252,7 @@ class TestProject:
         # test when the parent sub cannot be found
         tik.project.edit_sub_project(path="burhan") == -1
 
-    def test_create_a_shot_asset_project_structure(
+    def _create_a_shot_asset_project_structure(
         self, project_manual_path, tik, print_results=False
     ):
         tik.user.set("Admin", password="1234")
@@ -298,7 +298,7 @@ class TestProject:
 
     def test_validating_existing_project(self, project_manual_path, tik):
         """Tests reading an existing project structure and compares it to the created one on-the-fly"""
-        test_project_path = self.test_create_a_shot_asset_project_structure(
+        test_project_path = self._create_a_shot_asset_project_structure(
             project_manual_path, tik
         )
         current_subtree = tik.project.get_sub_tree()
@@ -358,7 +358,7 @@ class TestProject:
         assert tik.project.find_sub_by_id(-999) == -1
 
     def test_find_subs_by_wildcard(self, project_manual_path, tik):
-        test_project_path = self.test_create_a_shot_asset_project_structure(
+        test_project_path = self._create_a_shot_asset_project_structure(
             project_manual_path, tik, print_results=False
         )
         tik.set_project(test_project_path)
@@ -379,7 +379,7 @@ class TestProject:
         assert tik.project.get_path_by_uid(123123123123123123123) == -1
 
     def test_creating_and_adding_new_tasks(self, project_manual_path, tik):
-        test_project_path = self.test_create_a_shot_asset_project_structure(
+        test_project_path = self._create_a_shot_asset_project_structure(
             project_manual_path, tik, print_results=False
         )
         tik.set_project(test_project_path)
@@ -451,7 +451,7 @@ class TestProject:
         tik.user.set("Admin", password="1234")
 
     def test_edit_task(self, project_manual_path, tik):
-        test_project_path = self.test_create_a_shot_asset_project_structure(
+        test_project_path = self._create_a_shot_asset_project_structure(
             project_manual_path, tik, print_results=False
         )
         tik.set_project(test_project_path)

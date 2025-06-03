@@ -78,6 +78,36 @@ jobs:
         if not exist "package\build\TikManager4_v${{ env.VERSION }}.exe" exit 1
       shell: cmd
 
+    - name: Package for SignPath
+      run: |
+        Compress-Archive -Path "package/build/TikManager4_v${{ env.VERSION }}.exe" -DestinationPath "package/build/artifact.zip"
+      shell: pwsh
+
+    - name: Upload ZIP artifact for SignPath
+      id: upload_unsigned
+      uses: actions/upload-artifact@v4
+      with:
+        name: TikManager4-ZIP
+        path: package/build/artifact.zip
+
+    - name: Request signing from SignPath
+      uses: signpath/github-action-submit-signing-request@v1
+      with:
+        api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+        organization-id: 'eedf1c9a-7798-4d2d-8513-007fc99b87a0'
+        project-slug: 'tik_manager4'
+        signing-policy-slug: 'test-signing'
+        artifact-configuration-slug: 'zip-pe-signing'
+        github-artifact-id: ${{ steps.upload_unsigned.outputs.artifact-id }}
+        wait-for-completion: true
+        output-artifact-directory: package/build
+
+    - name: Replace original with signed version
+      run: |
+        Remove-Item "package/build/TikManager4_v${{ env.VERSION }}.exe"
+        Rename-Item -Path "package/build/signed.exe" -NewName "TikManager4_v${{ env.VERSION }}.exe"
+      shell: pwsh
+
     - name: Read Sanitized Release Notes
       id: read_release_notes
       run: |
