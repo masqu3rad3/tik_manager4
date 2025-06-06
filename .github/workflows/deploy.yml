@@ -69,7 +69,12 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: TikManager4_individuals-ZIP
-        path: tik_manager4/dist/tik4
+        path: |
+          tik_manager4/dist/tik4/install_dccs.exe
+          tik_manager4/dist/tik4/tik4_photoshop.exe
+          tik_manager4/dist/tik4/tik4_ps_new_version.exe
+          tik_manager4/dist/tik4/tik4_ps_publish.exe
+          tik_manager4/dist/tik4/tik4_standalone.exe
 
     - name: Request signing request for individual EXEs
       uses: signpath/github-action-submit-signing-request@v1
@@ -82,6 +87,18 @@ jobs:
         github-artifact-id: '${{ steps.upload-unsigned-individuals.outputs.artifact-id }}'
         wait-for-completion: true
         output-artifact-directory: tik_manager4/dist/tik4
+
+#    - name: Request signing request for individual EXEs
+#      uses: signpath/github-action-submit-signing-request@v1
+#      with:
+#        api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+#        organization-id: 'eedf1c9a-7798-4d2d-8513-007fc99b87a0'
+#        project-slug: 'tik_manager4'
+#        signing-policy-slug: 'test-signing'
+#        artifact-configuration-slug: 'zip-pe-signing'
+#        path: tik_manager4/dist/tik4
+#        wait-for-completion: true
+#        output-artifact-directory: tik_manager4/dist/tik4
 
     - name: Build and Package
       run: |
