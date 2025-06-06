@@ -65,7 +65,7 @@ jobs:
       shell: bash
 
     - name: Upload individual EXEs for SignPath
-      id: upload-unsigned-artifact
+      id: upload-unsigned-individuals
       uses: actions/upload-artifact@v4
       with:
         name: TikManager4_individuals-ZIP
@@ -79,7 +79,7 @@ jobs:
         project-slug: 'tik_manager4'
         signing-policy-slug: 'test-signing'
         artifact-configuration-slug: 'zip-pe-signing'
-        github-artifact-id: '${{ steps.upload-unsigned-artifact.outputs.artifact-id }}'
+        github-artifact-id: '${{ steps.upload-unsigned-individuals.outputs.artifact-id }}'
         wait-for-completion: true
         output-artifact-directory: tik_manager4/dist/tik4
 
@@ -98,7 +98,7 @@ jobs:
       shell: cmd
 
     - name: Upload EXE artifact for SignPath
-      id: upload-unsigned-artifact
+      id: upload-installer-artifact
       uses: actions/upload-artifact@v4
       with:
         name: TikManager4-ZIP
@@ -112,7 +112,7 @@ jobs:
         project-slug: 'tik_manager4'
         signing-policy-slug: 'test-signing'
         artifact-configuration-slug: 'zip-pe-signing'
-        github-artifact-id: '${{ steps.upload-unsigned-artifact.outputs.artifact-id }}'
+        github-artifact-id: '${{ steps.upload-installer-artifact.outputs.artifact-id }}'
         wait-for-completion: true
         output-artifact-directory: package/build
 
