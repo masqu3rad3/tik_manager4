@@ -64,6 +64,11 @@ jobs:
         fi
       shell: bash
 
+    - name: Build
+      run: |
+        cd package
+        ./make build
+
     - name: Upload individual EXEs for SignPath
       id: upload-unsigned-individuals
       uses: actions/upload-artifact@v4
@@ -88,22 +93,10 @@ jobs:
         wait-for-completion: true
         output-artifact-directory: tik_manager4/dist/tik4
 
-#    - name: Request signing request for individual EXEs
-#      uses: signpath/github-action-submit-signing-request@v1
-#      with:
-#        api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
-#        organization-id: 'eedf1c9a-7798-4d2d-8513-007fc99b87a0'
-#        project-slug: 'tik_manager4'
-#        signing-policy-slug: 'test-signing'
-#        artifact-configuration-slug: 'zip-pe-signing'
-#        path: tik_manager4/dist/tik4
-#        wait-for-completion: true
-#        output-artifact-directory: tik_manager4/dist/tik4
-
-    - name: Build and Package
+    - name: Package
       run: |
         cd package
-        ./make release
+        ./make package
 
     - name: List Build Directory
       run: dir package\build

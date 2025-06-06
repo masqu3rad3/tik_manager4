@@ -1,11 +1,7 @@
 @echo off
 
-REM Set the QT_PREFERRED_BINDING_JSON environment variable to '{"tik_manager4.ui.Qt": ["PyQt5"], "default":["PyQt5"]}'
-REM This will force the use of PyQt5 for the Qt binding
+REM Set the QT_PREFERRED_BINDING_JSON environment variable
 set "QT_PREFERRED_BINDING_JSON={"tik_manager4.ui.Qt": ["PySide2"], "default":["PySide2"]}"
-
-
-REM This batch file will execute release_package.py with specified arguments.
 
 REM Get the directory of make.bat
 SET "SCRIPT_DIR=%~dp0"
@@ -27,6 +23,10 @@ IF "%ARG%"=="release" (
     python release_package.py --testrelease
 ) ELSE IF "%ARG%"=="debug" (
     python release_package.py --debug
+) ELSE IF "%ARG%"=="build" (
+    python release_package.py --build
+) ELSE IF "%ARG%"=="package" (
+    python release_package.py --package
 ) ELSE IF "%ARG%"=="clean" (
     REM Remove the build folder
     rmdir /s /q build
@@ -36,9 +36,11 @@ IF "%ARG%"=="release" (
     echo - release: Create the executable file
     echo - testrelease: To hand out the executable to testers
     echo - debug: Create the executables with debug specs
+    echo - build: Freeze and generate sanitized release notes (pre-signing step)
+    echo - package: Package the signed EXEs into installer
     echo - clean: Remove the build folder
     echo - help: Display this help message
 ) ELSE (
     REM Invalid argument, display error message
-    echo Invalid argument. Use 'release', 'debug', 'clean', or 'help'.
+    echo Invalid argument. Use 'release', 'debug', 'testrelease', 'build', 'package', 'clean', or 'help'.
 )

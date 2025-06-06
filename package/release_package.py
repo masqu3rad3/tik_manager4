@@ -92,15 +92,32 @@ class ReleaseUtility:
 
 if __name__ == "__main__":
     # get the arguments from sys
-    opts, args = getopt.getopt(sys.argv[1:], ["d", "t"], ["debug", "testrelease"])
-    # if there is a debug flag, set the debug mode to True
-    _debug_mode = any([opt in ("-d", "--debug") for opt, _ in opts])
-    _testrelease_mode = any([opt in ("-t", "--testrelease") for opt, _ in opts])
+    opts, args = getopt.getopt(
+        sys.argv[1:], "dt", ["debug", "testrelease", "build", "package"]
+    )
+
+    _debug_mode = any(opt in ("-d", "--debug") for opt, _ in opts)
+    _testrelease_mode = any(opt in ("-t", "--testrelease") for opt, _ in opts)
+    _build_only = any(opt == "--build" for opt, _ in opts)
+    _package_only = any(opt == "--package" for opt, _ in opts)
+
     release_utility = ReleaseUtility(debug_mode=_debug_mode)
+
     if _debug_mode:
         release_utility.release_version = f"{_version.__version__}-debug"
     if _testrelease_mode:
         release_utility.release_version = f"{_version.__version__}-alpha"
+
+    if _build_only:
+        release_utility.freeze()
+        release_utility.extract_and_sanitize_release_notes()
+        sys.exit(0)
+
+    if _package_only:
+        release_utility.inno_setup()
+        sys.exit(0)
+
+    # Default full release flow (if no --build or --package specified)
     release_utility.freeze()
     if not _testrelease_mode or _debug_mode:
         release_utility.extract_and_sanitize_release_notes()
