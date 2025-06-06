@@ -1,8 +1,5 @@
 # Release Notes
 
-## vTEST RELEASE
-- TEST RELEASE
-
 ## v4.4.0
 - [TIK-176] Active Branching feature added. When the active branching is enabled (default on), users can reach dynamically updated LIVE and PRO branches. LIVE branch gets updated with each new publish. PRO branch can be promoted by admins at any time.
 - [TIK-177] Fixed object orientation issue when exporting USD in Blender.
