@@ -82,3 +82,33 @@ def keepselection(func):
             cmds.select(original_selection)
 
     return _keepfunc
+
+def unique_name(name, return_counter=False, suffix=None):
+    """
+    Searches the scene for match and returns a unique name for given name
+    Args:
+        name: (String) Name to query
+        return_counter: (Bool) If true, returns the next available number instead of the object name
+        suffix: (String) If defined and if name ends with this suffix, the increment numbers will be put before the.
+
+    Returns: (String) uniquename
+
+    """
+    search_name = name
+    base_name = name
+    if suffix and name.endswith(suffix):
+        base_name = name.replace(suffix, "")
+    else:
+        suffix = ""
+    id_counter = 0
+    while cmds.objExists(search_name):
+        search_name = "{0}{1}{2}".format(base_name, str(id_counter + 1), suffix)
+        id_counter = id_counter + 1
+    if return_counter:
+        return id_counter
+    else:
+        if id_counter:
+            result_name = "{0}{1}{2}".format(base_name, str(id_counter), suffix)
+        else:
+            result_name = name
+        return result_name

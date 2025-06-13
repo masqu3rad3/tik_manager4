@@ -40,6 +40,9 @@ class ReloadReferences(ExtensionCore):
     def on_reload_references(self):
         """Reload all references in the current scene."""
         # Get all references in the scene
+
+        # first reload gpu caches
+        cmds.gpuCache(cmds.ls(type="gpuCache"), e=True, refresh=True)
         references = cmds.file(query=True, reference=True)
 
         # Reload each reference
@@ -49,8 +52,6 @@ class ReloadReferences(ExtensionCore):
                 cmds.inViewMessage(
                     assistMessage='<span style="color: #FE7E00;">All References Reloaded</span>',
                     position='topCenter', backColor=0x00000000  ,fade=True)
-
-                # cmds.inViewMessage(amg='Reload complete.', pos='topCenter', fade=True)
 
             except Exception as e:
                 LOG.error(f"Failed to reload {ref}: {e}")
