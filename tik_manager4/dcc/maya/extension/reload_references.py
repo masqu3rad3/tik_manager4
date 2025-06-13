@@ -42,7 +42,9 @@ class ReloadReferences(ExtensionCore):
         # Get all references in the scene
 
         # first reload gpu caches
-        cmds.gpuCache(cmds.ls(type="gpuCache"), e=True, refresh=True)
+        gpu_caches = cmds.ls(type="gpuCache")
+        if gpu_caches:
+            cmds.gpuCache(gpu_caches, e=True, refresh=True)
         references = cmds.file(query=True, reference=True)
 
         # Reload each reference
