@@ -66,10 +66,14 @@ class Alembic(IngestCore):
 
         # this method will be used for all categories
         # Create Cache Node
-        namespace = self.namespace or Path(self.ingest_path).stem
-        cache_node = cmds.createNode("gpuCache", name=f"{namespace}Cache")
+        nicename = self.namespace or Path(self.ingest_path).stem
+        counter = 1
+        while cmds.namespace(exists=f"{nicename}_{str(counter).zfill(3)}"):
+            counter += 1
+        namespace = f"{nicename}_{str(counter).zfill(3)}"
+        cache_node = cmds.createNode("gpuCache", name=f"{nicename}Cache")
         cache_parent = cmds.listRelatives(cache_node, parent=True, path=True)
-        cache_parent = cmds.rename(cache_parent, namespace)
+        cache_parent = cmds.rename(cache_parent, nicename)
         # Set Cache Path
         cmds.setAttr(f"{cache_node}.cacheFileName", self.ingest_path, type="string")
         # Namespace
