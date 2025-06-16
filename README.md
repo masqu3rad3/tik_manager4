@@ -65,3 +65,9 @@ By enforcing standards and best practices, Tik Manager helps mitigate risks asso
 
 Tik Manager is open-source, meaning it's free to use and can be customized to suit individual requirements. The community can contribute to its development, and it can be adapted to meet the specific needs of different projects.
 
+### Signed Releases for Windows
+
+Windows binaries are using free code signing provided by
+[SignPath.io](https://signpath.io),
+and a free code signing certificate by the
+[SignPath Foundation](https://signpath.org/terms).

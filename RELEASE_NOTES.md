@@ -1,5 +1,10 @@
 # Release Notes
 
+## v4.4.1
+- [TIK-184] New Maya extension added to easily reload all references and gpu caches in the scene.
+- [TIK-185] Fix for Katana 8 incompatibility issues
+- Code singing for Windows binaries.
+
 ## v4.4.0
 - [TIK-176] Active Branching feature added. When the active branching is enabled (default on), users can reach dynamically updated LIVE and PRO branches. LIVE branch gets updated with each new publish. PRO branch can be promoted by admins at any time.
 - [TIK-177] Fixed object orientation issue when exporting USD in Blender.
