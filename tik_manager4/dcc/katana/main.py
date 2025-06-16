@@ -154,11 +154,17 @@ class Dcc(MainCore):
         QtWidgets.QApplication.processEvents()
 
         main_ui = self.get_main_window()
-        # focus to the main applications ui
         main_ui.activateWindow()
-        QtWidgets.QApplication.processEvents()
 
-        screenshot = QtWidgets.QApplication.primaryScreen().grabWindow(QtWidgets.QApplication.desktop().winId())
+        main_ui = self.get_main_window()
+        if main_ui:
+            screen = QtWidgets.QApplication.screenAt(
+                main_ui.frameGeometry().center())
+        else:
+            screen = QtWidgets.QApplication.primaryScreen()
+
+        screenshot = screen.grabWindow(0)  # Full screen
+
         ratio = width / height
         new_height = int(width / ratio)
 
@@ -171,7 +177,6 @@ class Dcc(MainCore):
         if tik_main_ui:
             tik_main_ui.setVisible(True)
             tik_main_ui.setWindowState(QtCore.Qt.WindowNoState)
-            # tik_main_ui.activateWindow()
         for dialog in tik_dialogs:
             dialog.setVisible(True)
             dialog.showNormal()

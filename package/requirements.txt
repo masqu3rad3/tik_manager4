@@ -43,7 +43,7 @@ pytest-qt==4.3.1
 pywin32==308
 pywin32-ctypes==0.2.2
 pywin32-stubs==1.0.7
-requests==2.32.0
+requests==2.32.4
 shiboken2==5.15.2.1
 snowballstemmer==2.2.0
 Sphinx==7.2.6
