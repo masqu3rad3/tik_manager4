@@ -786,7 +786,8 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
         publish_dialog = PublishSceneDialog(self.tik.project, parent=self)
-        # publish_dialog.show()
+        if not publish_dialog.scene_eligibility:
+            return # the feedback regarding to that is already handled in the dialog
         publish_dialog.exec_()
         if publish_dialog.publish_finished:
             self.set_last_state()
