@@ -242,15 +242,30 @@ class PublishVersion(Settings, LocalizeMixin):
             element_type = element_data["type"]
             publish_path = Path(self.get_element_path(element_type, relative=False))
             # construct the name of the LIVE element from the data
-            live_element_name = f"{element_type.upper()}_{self._name}{publish_path.suffix}"
-
-            # copy the element to the LIVE folder
-            live_path = live_folder / live_element_name
-            state, msg = utils.copy(publish_path.as_posix(), live_path.as_posix())
-            if not state:
-                # TODO: FIX - TEST - STREAMLINE
-                LOG.error(f"Error copying {publish_path} to {live_path}: {msg}")
-                return ValidationResult(ValidationState.ERROR, msg, False)
+            # if it's a usd
+            if publish_path.suffix.startswith(".usd"):
+                live_element_name = f"{element_type.upper()}_{self._name}.usda"
+                live_path = live_folder / live_element_name
+                if publish_path.suffix.startswith(".usd"):
+                    utils.write_unprotect(live_path)
+                    with open(live_path, "w") as f:
+                        f.write(f"""#usda 1.0
+(
+    subLayers = [
+            @{str(publish_path).replace(str(Path(self.get_abs_project_path()).parent), "../")}@
+    ]
+)
+                                    """)
+                    utils.write_protect(live_path)
+            # if it's any other file type (not usd)
+            else:
+                live_element_name = f"{element_type.upper()}_{self._name}{publish_path.suffix}"
+                live_path = live_folder / live_element_name
+                state, msg = utils.copy(publish_path.as_posix(), live_path.as_posix())
+                if not state:
+                    # TODO: FIX - TEST - STREAMLINE
+                    LOG.error(f"Error copying {publish_path} to {live_path}: {msg}")
+                    return ValidationResult(ValidationState.ERROR, msg, False)
             # get the relative path against the project path
 
             # relative_path = Path(self.guard.project_root).relative_to(live_path.parent)
@@ -270,7 +285,7 @@ class PublishVersion(Settings, LocalizeMixin):
         self._live_object.apply_settings(force=True)
 
     def make_live(self):
-        """"Make the publish version a live version."""
+        """Make the publish version a live version."""
 
         # if the active branch method is selected, use it
         if self.guard.project_settings.get("branching_mode", BranchingModes.ACTIVE.value):
@@ -322,14 +337,29 @@ class PublishVersion(Settings, LocalizeMixin):
             element_type = element_data["type"]
             publish_path = Path(self.get_element_path(element_type, relative=False))
             # construct the name of the LIVE element from the data
-            promoted_element_name = f"{element_type.upper()}_{self._name}{publish_path.suffix}"
-
-            # copy the element to the LIVE folder
-            promoted_path = promoted_folder / promoted_element_name
-            state, msg = utils.copy(publish_path.as_posix(), promoted_path.as_posix())
-            if not state:
-                LOG.error(f"Error copying {publish_path} to {promoted_path}: {msg}")
-                return ValidationResult(ValidationState.ERROR, msg, False)
+            # if it's a usd
+            if publish_path.suffix.startswith(".usd"):
+                promoted_element_name = f"{element_type.upper()}_{self._name}.usda"
+                promoted_path = promoted_folder / promoted_element_name
+                if publish_path.suffix.startswith(".usd"):
+                    utils.write_unprotect(publish_path)
+                    with open(promoted_path, "w") as f:
+                        f.write(f"""#usda 1.0
+(
+    subLayers = [
+            @{str(publish_path).replace(str(Path(self.get_abs_project_path()).parent), "../")}@
+    ]
+)
+                                                """)
+                    utils.write_protect(promoted_path)
+            # if it's any other file type (not usd)
+            else:
+                promoted_element_name = f"{element_type.upper()}_{self._name}{publish_path.suffix}"
+                promoted_path = promoted_folder / promoted_element_name
+                state, msg = utils.copy(publish_path.as_posix(), promoted_path.as_posix())
+                if not state:
+                    LOG.error(f"Error copying {publish_path} to {promoted_path}: {msg}")
+                    return ValidationResult(ValidationState.ERROR, msg, False)
             # get the relative path against the project path
 
             relative_path = promoted_path.relative_to(promoted_folder)
@@ -740,7 +770,7 @@ class WorkVersion(LocalizeMixin):
         if not result:
             LOG.error(msg)
             return False, msg
-        # make sure hiearchy is resurrected (or not deleted)
+        # make sure hierarchy is resurrected (or not deleted)
         if self.parent_work.deleted:
             self.parent_work.resurrect(dont_resurrect_versions=True)
 
