@@ -342,7 +342,7 @@ class PublishVersion(Settings, LocalizeMixin):
                 promoted_element_name = f"{element_type.upper()}_{self._name}.usda"
                 promoted_path = promoted_folder / promoted_element_name
                 if publish_path.suffix.startswith(".usd"):
-                    utils.write_unprotect(publish_path)
+                    utils.write_unprotect(promoted_path)
                     with open(promoted_path, "w") as f:
                         f.write(f"""#usda 1.0
 (
