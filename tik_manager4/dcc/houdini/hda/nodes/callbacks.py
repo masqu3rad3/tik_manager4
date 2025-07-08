@@ -73,7 +73,6 @@ class Callbacks:
         node = kwargs["node"]
         path = kwargs["script_value0"]
         self.tik_m.set_project(path)
-        self.populate_project(node, path)
 
     def set_subproject(self, kwargs):
         """Set the sub-project line in Houdini parameters.
