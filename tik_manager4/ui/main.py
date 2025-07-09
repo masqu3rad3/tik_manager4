@@ -849,8 +849,8 @@ class MainUI(QtWidgets.QMainWindow):
         available_templates = self.tik.get_template_names()
         if not available_templates:
             self.feedback.pop_info(
-                title="No Templates",
-                text="There are no templates available. Please create one.",
+                title="No templates found.",
+                text="There are no templates available. You can create a template by placing a file in a folder called \"_templates\", inside your commons folder.",
                 critical=True,
             )
             return
