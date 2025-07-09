@@ -850,7 +850,7 @@ class MainUI(QtWidgets.QMainWindow):
         if not available_templates:
             self.feedback.pop_info(
                 title="No templates found.",
-                text="There are no templates available. You can create a template by placing a file in a folder called \"_templates\", inside your commons folder.",
+                text="There are no templates available. You can create a template by placing a scene file in a folder called \"_templates\", inside your commons folder.",
                 critical=True,
             )
             return
