@@ -74,6 +74,8 @@ def launch(dcc="Standalone", dont_show=False):
                 entry.deleteLater()
         except (AttributeError, TypeError):
             pass
+    app = QtWidgets.QApplication.instance()
+    app.setAttribute(QtCore.Qt.AA_DontUseNativeMenuBar)
     main_ui_obj = MainUI(tik, parent=parent, window_name=window_name)
     if not dont_show:
         main_ui_obj.show()
