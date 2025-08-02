@@ -26,47 +26,33 @@ class Dcc(MainCore):
     def __init__(self):
         super().__init__()
 
-        self.com_link = Dispatch("Photoshop.Application")
-        # self.com_link = self.get_dispatch("Photoshop.Application")
-
-    def get_dispatch(self, key_prefix="Photoshop.Application"):
-        """Get the Photoshop dispatch object."""
-        # first try only the prefix
-        try:
-            com_link = Dispatch(key_prefix)
-            return com_link
-        except: # pylint: disable=bare-except
-            pass
-
-        keys = self.get_photoshop_registry_keys(prefix=key_prefix)
-
-        for key in keys:
-            try:
-                com_link = Dispatch(key)
-                return com_link
-            except: # pylint: disable=bare-except
-                pass
+        self.com_link = self.get_photoshop_app()
 
     @staticmethod
-    def get_photoshop_registry_keys(prefix):
-        # prefix = "Photoshop.Application"
-        keys = []
-        hive = winreg.HKEY_CLASSES_ROOT
-        subkey = ""
-
+    def find_photoshop_prog_ids():
+        """Find all Photoshop ProgIDs in the registry."""
+        prog_ids = []
         try:
-            with winreg.OpenKey(hive, subkey) as key:
-                idx = 0
-                while True:
-                    subkey_name = winreg.EnumKey(key, idx)
-                    if subkey_name.startswith(prefix):
-                        keys.append(subkey_name)
-                    idx += 1
-        except FileNotFoundError:
-            pass  # Handle the case where the registry key doesn't exist
-        except Exception as e:
+            key = winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, "")
+            i = 0
+            while True:
+                subkey = winreg.EnumKey(key, i)
+                if subkey.startswith("Photoshop.Application"):
+                    prog_ids.append(subkey)
+                i += 1
+        except OSError:
             pass
-        return keys
+        return sorted(prog_ids, reverse=True)  # Prefer newest
+
+    def get_photoshop_app(self):
+        """Get the Photoshop application object."""
+        for prog_id in self.find_photoshop_prog_ids():
+            try:
+                return Dispatch(prog_id)
+            except Exception:
+                continue
+        raise RuntimeError(
+            "No compatible version of Photoshop COM interface found.")
 
     def save_as(self, file_path):
         """Save the current scene as a new file.
