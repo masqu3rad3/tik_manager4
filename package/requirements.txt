@@ -58,5 +58,5 @@ sphinxcontrib-serializinghtml==1.1.10
 tomli==2.0.1
 tomlkit==0.11.1
 typing_extensions==4.9.0
-urllib3==2.2.2
+urllib3==2.5.0
 wrapt==1.14.1
