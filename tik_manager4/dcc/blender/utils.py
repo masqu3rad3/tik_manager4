@@ -161,7 +161,7 @@ def get_override_context(context=None):
 
         if context:
             for area in screen.areas:
-                if area.type == context:
+                if area.type == "VIEW_3D" or area.type == "IMAGE_EDITOR":
                     context["area"] = area
                     for region in area.regions:
                         if region.type == "WINDOW":
