@@ -22,8 +22,8 @@ class LopImportCallbacks(callbacks.Callbacks):
             return
 
         abs_path = version_obj.get_element_path(element_type, relative=False)
-
-        reference_node.parm("filepath1").set(abs_path)
-        sublayer_node.parm("filepath1").set(abs_path)
-        hda_node.parm("resolvedPathDisplay").set(abs_path)
+        abs_path = abs_path.replace(hda_node.parm("project").eval().replace("\\", "/"), hda_node.parm("project").rawValue(), 1)
+        reference_node.parm("filepath1").set(abs_path, follow_parm_reference=False)
+        sublayer_node.parm("filepath1").set(abs_path, follow_parm_reference=False)
+        hda_node.parm("resolvedPathDisplay").set(abs_path, follow_parm_reference=False)
         parm.lock(True)

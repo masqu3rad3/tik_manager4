@@ -74,6 +74,8 @@ def launch(dcc="Standalone", dont_show=False):
                 entry.deleteLater()
         except (AttributeError, TypeError):
             pass
+    app = QtWidgets.QApplication.instance()
+    app.setAttribute(QtCore.Qt.AA_DontUseNativeMenuBar)
     main_ui_obj = MainUI(tik, parent=parent, window_name=window_name)
     if not dont_show:
         main_ui_obj.show()
@@ -786,7 +788,8 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
         publish_dialog = PublishSceneDialog(self.tik.project, parent=self)
-        # publish_dialog.show()
+        if not publish_dialog.scene_eligibility:
+            return # the feedback regarding to that is already handled in the dialog
         publish_dialog.exec_()
         if publish_dialog.publish_finished:
             self.set_last_state()
@@ -848,8 +851,8 @@ class MainUI(QtWidgets.QMainWindow):
         available_templates = self.tik.get_template_names()
         if not available_templates:
             self.feedback.pop_info(
-                title="No Templates",
-                text="There are no templates available. Please create one.",
+                title="No templates found.",
+                text="There are no templates available. You can create a template by placing a scene file in a folder called \"_templates\", inside your commons folder.",
                 critical=True,
             )
             return

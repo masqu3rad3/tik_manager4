@@ -85,7 +85,7 @@ class PublishSceneDialog(QtWidgets.QDialog):
         self.project = project_object
         self.project.publisher.resolve()
 
-        self.check_eligibility()
+        self.scene_eligibility = self.check_eligibility()
 
         self.setWindowTitle("Publish Scene")
 
@@ -140,7 +140,8 @@ class PublishSceneDialog(QtWidgets.QDialog):
             self.close()
             self.deleteLater()
             # raise Exception("Current Scene does not belong to a 'Work'. It is required to save scenes as a 'Work' before publishing.")
-            return
+            return False
+        return True
 
     def build_ui(self):
         """Build the layouts."""

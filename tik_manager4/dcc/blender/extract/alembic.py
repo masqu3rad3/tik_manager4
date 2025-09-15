@@ -139,5 +139,9 @@ class Alembic(ExtractCore):
 
     def _extract_default(self):
         """Extract for any non-specified category."""
+        file_path = self.resolve_output()
         with bpy.context.temp_override(**utils.get_override_context()):
-            bpy.ops.wm.usd_export(filepath=self.resolve_output())
+            bpy.ops.wm.alembic_export(filepath=file_path,
+                                      uvs=True,
+                                      normals=True,
+                                      )
