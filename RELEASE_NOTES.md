@@ -1,5 +1,12 @@
 # Release Notes
 
+## v4.4.2
+- [TIK-188] handling of non-work scenes improved when trying to accidentally publish them.
+- Security updates for urllib3 and requests dependencies.
+- [TIK-193] When publishing USD, live and pro now references the sublayer instead of creating a copy.
+- [TIK-194] Explicityly declaring to Qt not tus use the native menu bar.
+- [TIK-196] Bug fix for blender work publishing.
+
 ## v4.4.1
 - [TIK-184] New Maya extension added to easily reload all references and gpu caches in the scene.
 - [TIK-185] Fix for Katana 8 incompatibility issues

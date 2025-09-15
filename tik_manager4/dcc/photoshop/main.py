@@ -134,4 +134,5 @@ class Dcc(MainCore):
 
     def get_dcc_version(self):
         """Get the version of the DCC."""
-        return str(self.com_link.Version)
+        # return str(self.com_link.Version)
+        return "NA"
