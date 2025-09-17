@@ -77,6 +77,13 @@ By enforcing standards and best practices, Tik Manager helps mitigate risks asso
 
 Tik Manager is open-source, meaning it's free to use and can be customized to suit individual requirements. The community can contribute to its development, and it can be adapted to meet the specific needs of different projects.
 
+License
+-------
+
+Repository license: GPL-3.0
+
+Commercial option: For studios needing non-GPL terms (keep modifications private and allow proprietary integration), see: https://tikworks.gumroad.com/l/tik-manager
+
 ### Signed Releases for Windows
 
 Windows binaries are using free code signing provided by
