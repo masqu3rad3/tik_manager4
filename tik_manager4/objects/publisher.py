@@ -464,6 +464,7 @@ class SnapshotPublisher(Publisher):
         # this overrides the dcc handler which resolved on inherited
         # class to standalone
         self._dcc_handler = standalone.Dcc()
+        self._source_path = None # optionally can be overriden
 
     @property
     def work_object(self):
@@ -493,6 +494,20 @@ class SnapshotPublisher(Publisher):
         """
         self._work_version = value
 
+    @property
+    def source_path(self):
+        """Source path to publish."""
+        return self._source_path
+
+    @source_path.setter
+    def source_path(self, value):
+        """Set the source path to publish.
+
+        Args:
+            value (str): The source path.
+        """
+        self._source_path = value
+
     def resolve(self):
         """Resolve the file name for the snapshot.
 
@@ -502,7 +517,7 @@ class SnapshotPublisher(Publisher):
 
         version_object = self._work_object.get_version(self._work_version)
         relative_path = version_object.scene_path
-        abs_path = self._work_object.get_abs_project_path(relative_path)
+        abs_path = self.source_path or self._work_object.get_abs_project_path(relative_path)
 
         # get either the snapshot or snapshot_bundle depending if its a folder or file
         if Path(abs_path).is_dir():
