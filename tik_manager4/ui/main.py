@@ -399,6 +399,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.tasks_mcv.task_view.refresh_requested.connect(
             self.subprojects_mcv.sub_view.get_tasks
         )
+        self.tasks_mcv.task_view.new_task_requested.connect(self.subprojects_mcv.sub_view.new_task)
+
         self.categories_mcv.work_tree_view.item_selected.connect(
             self.versions_mcv.set_base
         )
@@ -435,6 +437,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.categories_mcv.work_tree_view.export_selection_event.connect(
             lambda: self.on_new_work(from_selection=True)
         )
+
+        # refresh the tasks
+        self.tasks_mcv.task_view.refresh()
 
     def closeEvent(self, event):  # pylint: disable=invalid-name
         """Override the close event to save the window state."""

@@ -96,10 +96,12 @@ class TikTaskModel(QtGui.QStandardItemModel):
 
     def clear(self):
         """Clear the model"""
+        self._tasks = []
         self.setRowCount(0)
 
     def append_task(self, task_obj):
         """Append a task to the model"""
+        self._tasks.append(task_obj)
         _task_item = TikTaskItem(task_obj)
         pid = TikTaskColumnItem(str(task_obj.id))
         path = TikTaskColumnItem(task_obj.path)
@@ -124,11 +126,19 @@ class TikTaskModel(QtGui.QStandardItemModel):
                 if x.task.id == unique_id:
                     return x
 
+    def is_multi_subproject(self):
+        """Return True if the tasks in the model belong to multiple subprojects."""
+        sub_ids = list(set([task.parent_sub.id for task in self._tasks]))
+        print(sub_ids)
+        if len(sub_ids) == 1:
+            return False
+        else: return True
 
 class TikTaskView(QtWidgets.QTreeView):
     item_selected = QtCore.Signal(object)
     refresh_requested = QtCore.Signal()
     task_resurrected = QtCore.Signal()
+    new_task_requested = QtCore.Signal()
 
     def __init__(self):
         """Initialize the view"""
@@ -302,11 +312,26 @@ class TikTaskView(QtWidgets.QTreeView):
 
         menu.exec_(self.mapToGlobal(position))
 
+    def _right_click_on_blank(self, menu, position):
+        act_refresh = menu.addAction(self.tr("Refresh"))
+        act_refresh.triggered.connect(self.refresh)
+        act_create_task = menu.addAction(self.tr("New Task"))
+        act_create_task.setEnabled(not self.is_management_locked)
+        # if the tasks are coming from multiple subprojects, disable the action
+        if self.model.is_multi_subproject():
+            act_create_task.setEnabled(False)
+            act_create_task.setToolTip("Cannot create task when multiple subprojects are shown.")
+
+        # when clicked, emit the new_task_requested signal
+        act_create_task.triggered.connect(lambda _=None: self.new_task_requested.emit())
+        menu.exec_(self.sender().viewport().mapToGlobal(position))
+
     def right_click_menu(self, position):
         indexes = self.sender().selectedIndexes()
         index_under_pointer = self.indexAt(position)
         right_click_menu = QtWidgets.QMenu(self)
         if not index_under_pointer.isValid():
+            self._right_click_on_blank(right_click_menu, position)
             return
         # make sure the idx is pointing to the first column
         index_under_pointer = index_under_pointer.sibling(index_under_pointer.row(), 0)
