@@ -1,6 +1,7 @@
 """UI Layout for work and publish objects."""
 import tempfile
 from pathlib import Path
+from datetime import datetime
 from dataclasses import dataclass
 
 from tik_manager4.core.constants import ObjectType, ValidationResult, ValidationState
@@ -127,6 +128,7 @@ class VersionWidgets:
     combo: VersionComboBox
     promote_btn: TikIconButton
     preview_btn: TikIconButton
+    last_modified_lbl: QtWidgets.QLabel
     owner_lbl: QtWidgets.QLabel
     info_btn: TikIconButton
 
@@ -187,6 +189,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             combo=VersionComboBox(),
             promote_btn=TikIconButton(icon_name="star.png", circle=False, size=30),
             preview_btn=TikIconButton(icon_name="player.png", circle=False, size=30),
+            last_modified_lbl = QtWidgets.QLabel("---"),
             owner_lbl=QtWidgets.QLabel("Owner: "),
             info_btn=TikIconButton(icon_name="info.png", circle=False, size=30)
         )
@@ -201,7 +204,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
 
         self.info = InfoWidgets(
             notes_lbl=QtWidgets.QLabel("Notes: "),
-            # notes_editor=QtWidgets.QPlainTextEdit(),
             notes_editor=NotesEditor(),
             thumbnail=ImageWidget()
         )
@@ -245,6 +247,7 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.addWidget(HorizontalSeparator(color=(255, 180, 60)))
 
         version_layout = QtWidgets.QHBoxLayout()
+        version_layout.setContentsMargins(0, 0, 0, 0)
         self.version.border.setLayout(version_layout)
         self.addWidget(self.version.border)
 
@@ -269,12 +272,20 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.version.preview_btn.setEnabled(False)
         version_layout.addWidget(self.version.preview_btn)
 
+        date_layout = QtWidgets.QHBoxLayout()
+        date_layout.setContentsMargins(0, 0, 0, 0)
+        self.addLayout(date_layout)
+        self.version.last_modified_lbl.setFont(QtGui.QFont("Roboto", 8))
+        # make the color grey
+        self.version.last_modified_lbl.setStyleSheet("color: grey;")
+        date_layout.addStretch()
+        date_layout.addWidget(self.version.last_modified_lbl)
+
         user_layout = QtWidgets.QHBoxLayout()
+        user_layout.setContentsMargins(0, 0, 0, 0)
         self.addLayout(user_layout)
-        self.version.owner_lbl.setFont(QtGui.QFont("Arial", 10))
+        self.version.owner_lbl.setFont(QtGui.QFont("Roboto", 10))
         user_layout.addStretch()
-        # self.version.owner_lbl = QtWidgets.QLabel("Owner: ")
-        self.version.owner_lbl.setFont(QtGui.QFont("Arial", 10))
         user_layout.addWidget(self.version.owner_lbl)
 
         user_layout.addWidget(self.version.info_btn)
@@ -290,13 +301,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         element_hlay.addWidget(self.element.element_view_btn)
         element_layout.addLayout(element_hlay)
 
-        self.element.ingest_with_lbl.setFont(QtGui.QFont("Arial", 10))
+        self.element.ingest_with_lbl.setFont(QtGui.QFont("Roboto", 10))
         element_layout.addWidget(self.element.ingest_with_lbl)
         element_layout.addWidget(self.element.ingest_with_combo)
 
         notes_layout = QtWidgets.QVBoxLayout()
         self.addLayout(notes_layout)
-        self.info.notes_lbl.setFont(QtGui.QFont("Arial", 10))
+        self.info.notes_lbl.setFont(QtGui.QFont("Roboto", 10))
         notes_layout.addWidget(self.info.notes_lbl)
         notes_layout.addWidget(self.info.notes_editor)
 
@@ -342,25 +353,12 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         _version = self.version.combo.get_current_item()
         if not _version:
             return
-        # TODO : add a dialog to show the version information
-        example_data = {
-            "name": "asdf_Model",
-            "version_number": 1,
-            "owner": "Arda Kutlu",
-            "category": "Model",
-            "localized": False,
-            "localized_path": "",
-            "dcc_version": "2024",
-            "scene_path": "asdf_Model/asdf_Model_v001.ma",
-            "thumbnail": "thumbnails/asdf_Model_v001_thumbnail.jpg",
-            "workstation": "arda-3060",
-            "deleted": False,
-            "a_very_long_key_name_for_testing": "This is a rather long value to see if the text wrapping works correctly within the label.",
-            "description": "This is the primary model asset for the 'asdf' project sequence.",
-            "creation_date": "2025-04-29",
-            "last_modified": "2025-04-29T10:30:00Z"
-        }
-        InfoDialog.show_info(data=_version.to_dict(), title="Version Details", parent=self.parent)
+        info_dict = _version.to_dict()
+        info_dict.update({"Absolute Path": _version.get_resolved_path(),
+                     "Creation Date": _version.get_creation_date(),
+                     "Last Modified": _version.get_modified_date()
+                     })
+        InfoDialog.show_info(data=info_dict, title="Version Details", parent=self.parent)
 
     def on_promote(self):
         """Execute the promote action."""
@@ -679,17 +677,18 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             self.version.combo.setEnabled(False)
             self.element.element_combo.clear()
             self.element.element_view_btn.setEnabled(False)
-            self.info.notes_editor.clear()
+            self.clear_version_info()
             self.info.notes_editor.setEnabled(False)
-            self.info.thumbnail.clear()
             self.info.thumbnail.setEnabled(False)
             self.version.preview_btn.setEnabled(False)
+            self.version.info_btn.setEnabled(False)
             self.toggle_sync_state(False)
             return
         self.version.combo.setEnabled(True)
         self.info.notes_editor.setEnabled(True)
         self.info.thumbnail.setEnabled(True)
         self.version.preview_btn.setEnabled(True)
+        self.version.info_btn.setEnabled(True)
         self.base = base
         self.populate_versions(base)
         self.version.combo.blockSignals(False)
@@ -739,7 +738,6 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         _version = self.version.combo.get_current_item()
         if not _version:
             return
-
         # set the state of the path warning
         state = False
         critical = False
@@ -774,6 +772,8 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
             # enable the show preview button if there are previews
             self.version.preview_btn.setEnabled(bool(_version.previews))
             owner = _version.user
+
+        self.version.last_modified_lbl.setText(_version.get_modified_date())
         self.version.owner_lbl.setText(f"Owner: {owner}")
         self.info.thumbnail.clear()
         self.info.notes_editor.set_version(_version)
@@ -781,6 +781,13 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.info.thumbnail.set_media(_thumbnail_path)
         self.element.element_combo.blockSignals(False)
         self.element.ingest_with_combo.blockSignals(False)
+
+    def clear_version_info(self):
+        """Clear the version info widgets."""
+        self.version.last_modified_lbl.setText("---")
+        self.version.owner_lbl.setText("Owner: ")
+        self.info.notes_editor.clear()
+        self.info.thumbnail.clear()
 
     def __is_element_bundled(self, element_type):
         """Check if the element type is bundled."""
