@@ -130,7 +130,7 @@ class TikTaskModel(QtGui.QStandardItemModel):
         """Return True if the tasks in the model belong to multiple subprojects."""
         sub_ids = list(set([task.parent_sub.id for task in self._tasks]))
         print(sub_ids)
-        if len(sub_ids) == 1:
+        if len(sub_ids) <= 1:
             return False
         else: return True
 
