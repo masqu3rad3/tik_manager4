@@ -60,7 +60,7 @@ class USD(IngestCore):
 
     def _bring_in_animation(self):
         """Import USD File."""
-        cmds.mayaUSDImport(file=self.ingest_path, readAnimData=1, useAsAnimationCache=True, primPath="/")
+        cmds.mayaUSDImport(file=self.ingest_path, readAnimData=1, useAsAnimationCache=True, primPath="/", useCustomFrameRange=0, startTime=0, endTime=0)
 
     def _bring_in_fx(self):
         """Import USD File."""
