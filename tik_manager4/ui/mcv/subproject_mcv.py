@@ -217,6 +217,11 @@ class TikSubView(QtWidgets.QTreeView):
         # allow multiple selection but only with ctrl
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
+    def edit(self, index, trigger, event):
+        # Prevent editing (like renaming) on double-click
+        # All the three arguments are needed to avoid a "TypeError" on runtime
+        return False
+
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Control:
             self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
