@@ -180,7 +180,17 @@ def get_override_context(context=None):
 
     return context
 
-def get_usd_export_kwargs(file_path):
+def get_usd_export_kwargs(
+        file_path,
+        animation=False,
+        uvmaps=True,
+        hair=True,
+        materials=True,
+        mesh_colors=True,
+        textures=True,
+        convert_orientation=True,
+        global_up_selection='Y'
+):
     """Generates arguments settings for exporting a USD file.
 
         Includes options for exporting materials, textures, UV maps,
@@ -188,27 +198,35 @@ def get_usd_export_kwargs(file_path):
         Adds extra settings for Blender version 4.2 or newer.
 
         Args:
-            file_path (str): The output path for the USD file.
+            file_path (str): File path to write USD file
+            animation (bool): Export animated data
+            uvmaps (bool): Export UVs
+            hair (bool): Export hair particle systems as curves
+            materials (bool): Export material data
+            mesh_colors (bool): Export color attributes
+            textures (bool): Reference external texture files in generated USD
+            convert_orientation (bool): Transform scene from Blender coordinate system to USD
+            global_up_selection (str): Which axis in Blender will map to +Y in USD (+Y, +Z, -Y, -Z)
 
         Returns:
             dict: A dictionary of export options.
     """
     kwargs = {
         'filepath': file_path,
-        'export_animation': False,
-        'export_uvmaps': True,
-        'export_hair': True,
-        'export_materials': True,
-        'export_mesh_colors': True,
-        'export_textures': True
+        'export_animation': animation,
+        'export_uvmaps': uvmaps,
+        'export_hair': hair,
+        'export_materials': materials,
+        'export_mesh_colors': mesh_colors,
+        'export_textures': textures
     }
 
     # Additional export options available in Blender 4.2 LTS and later
     # These options improve orientation handling and global axis alignment
     if bpy.app.version >= (4, 2, 0):
         kwargs.update({
-            'convert_orientation': True,
-            'export_global_up_selection': 'Y'
+            'convert_orientation': convert_orientation,
+            'export_global_up_selection': global_up_selection
         })
 
     return kwargs
