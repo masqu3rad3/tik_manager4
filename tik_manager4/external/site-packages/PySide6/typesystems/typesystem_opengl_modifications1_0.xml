@@ -1,0 +1,13 @@
+<!--
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<modify-function signature="^glGetStringi?\(.*$">
+    <modify-argument index="return">
+        <replace-type modified-type="QString"/>
+    </modify-argument>
+    <inject-code class="target" position="end" file="../glue/qtgui.cpp" snippet="glgetstring-return"/>
+</modify-function>
+<modify-function signature="^glTexParameterI?u?[fi]v\(.*$">
+   <modify-argument index="3"><array/></modify-argument>
+</modify-function>

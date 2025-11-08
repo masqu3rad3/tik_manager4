@@ -1,0 +1,36 @@
+<modify-function signature="glGetBooleanv(GLenum,GLboolean*)">
+    <modify-argument index="return" pyi-type="Union[bool,numpy.ndarray]">
+        <replace-type modified-type="PyObject"/>
+    </modify-argument>
+    <modify-argument index="2">
+        <remove-argument/>
+    </modify-argument>
+    <inject-code class="target" position="beginning" file="../glue/qtgui.cpp" snippet="qopenglfunctions-glgetbooleanv"/>
+</modify-function>
+<modify-function signature="glGetDoublev(GLenum,GLdouble*)">
+    <modify-argument index="return" pyi-type="Union[float,numpy.ndarray]">
+        <replace-type modified-type="PyObject"/>
+    </modify-argument>
+    <modify-argument index="2">
+        <remove-argument/>
+    </modify-argument>
+    <inject-code class="target" position="beginning" file="../glue/qtgui.cpp" snippet="qopenglfunctions-glgetdoublev"/>
+</modify-function>
+<modify-function signature="glGetFloatv(GLenum,GLfloat*)">
+    <modify-argument index="return" pyi-type="Union[float,numpy.ndarray]">
+        <replace-type modified-type="PyObject"/>
+    </modify-argument>
+    <modify-argument index="2">
+        <remove-argument/>
+    </modify-argument>
+    <inject-code class="target" position="beginning" file="../glue/qtgui.cpp" snippet="qopenglfunctions-glgetfloatv"/>
+</modify-function>
+<modify-function signature="glGetIntegerv(GLenum,GLint*)">
+    <modify-argument index="return" pyi-type="Union[int,numpy.ndarray]">
+        <replace-type modified-type="PyObject"/>
+    </modify-argument>
+    <modify-argument index="2">
+        <remove-argument/>
+    </modify-argument>
+    <inject-code class="target" position="beginning" file="../glue/qtgui.cpp" snippet="qopenglfunctions-glgetintegerv"/>
+</modify-function>

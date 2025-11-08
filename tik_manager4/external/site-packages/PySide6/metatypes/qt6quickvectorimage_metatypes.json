@@ -1,0 +1,123 @@
+[
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "QML.Element",
+                        "value": "VectorImage"
+                    }
+                ],
+                "className": "QQuickVectorImage",
+                "enums": [
+                    {
+                        "isClass": false,
+                        "isFlag": false,
+                        "name": "FillMode",
+                        "values": [
+                            "NoResize",
+                            "PreserveAspectFit",
+                            "PreserveAspectCrop",
+                            "Stretch"
+                        ]
+                    },
+                    {
+                        "isClass": false,
+                        "isFlag": false,
+                        "name": "RendererType",
+                        "values": [
+                            "GeometryRenderer",
+                            "CurveRenderer"
+                        ]
+                    }
+                ],
+                "lineNumber": 25,
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 0,
+                        "name": "source",
+                        "notify": "sourceChanged",
+                        "read": "source",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QUrl",
+                        "user": false,
+                        "write": "setSource"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 1,
+                        "name": "fillMode",
+                        "notify": "fillModeChanged",
+                        "read": "fillMode",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "FillMode",
+                        "user": false,
+                        "write": "setFillMode"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 2,
+                        "name": "preferredRendererType",
+                        "notify": "preferredRendererTypeChanged",
+                        "read": "preferredRendererType",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "RendererType",
+                        "user": false,
+                        "write": "setPreferredRendererType"
+                    }
+                ],
+                "qualifiedClassName": "QQuickVectorImage",
+                "signals": [
+                    {
+                        "access": "public",
+                        "index": 0,
+                        "name": "sourceChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 1,
+                        "name": "fillModeChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 2,
+                        "name": "preferredRendererTypeChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "slots": [
+                    {
+                        "access": "private",
+                        "index": 3,
+                        "name": "updateSvgItemScale",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QQuickItem"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qquickvectorimage_p.h",
+        "outputRevision": 69
+    }
+]

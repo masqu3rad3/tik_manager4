@@ -1,0 +1,584 @@
+[
+    {
+        "classes": [
+            {
+                "className": "QQmlLocaleEnums",
+                "gadget": true,
+                "lineNumber": 30,
+                "qualifiedClassName": "QQmlLocaleEnums",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QQmlLocale"
+                    }
+                ]
+            },
+            {
+                "classInfos": [
+                    {
+                        "name": "QML.Element",
+                        "value": "Locale"
+                    },
+                    {
+                        "name": "QML.AddedInVersion",
+                        "value": "514"
+                    },
+                    {
+                        "name": "QML.Foreign",
+                        "value": "QQmlLocaleEnums"
+                    },
+                    {
+                        "name": "QML.ForeignIsNamespace",
+                        "value": "true"
+                    }
+                ],
+                "className": "QQmlLocaleEnumsForeign",
+                "lineNumber": 37,
+                "namespace": true,
+                "qualifiedClassName": "QQmlLocaleEnumsForeign"
+            }
+        ],
+        "inputFile": "qqmllocaleenums_p.h",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "QML.Element",
+                        "value": "Binding"
+                    },
+                    {
+                        "name": "QML.AddedInVersion",
+                        "value": "512"
+                    },
+                    {
+                        "name": "ImmediatePropertyNames",
+                        "value": "objectName,target,property,value,when,delayed,restoreMode"
+                    }
+                ],
+                "className": "QQmlBind",
+                "enums": [
+                    {
+                        "isClass": false,
+                        "isFlag": false,
+                        "name": "RestorationMode",
+                        "values": [
+                            "RestoreNone",
+                            "RestoreBinding",
+                            "RestoreValue",
+                            "RestoreBindingOrValue"
+                        ]
+                    }
+                ],
+                "interfaces": [
+                    [
+                        {
+                            "className": "QQmlParserStatus",
+                            "id": "\"org.qt-project.Qt.QQmlParserStatus\""
+                        }
+                    ],
+                    [
+                        {
+                            "className": "QQmlPropertyValueSource",
+                            "id": "\"org.qt-project.Qt.QQmlPropertyValueSource\""
+                        }
+                    ]
+                ],
+                "lineNumber": 26,
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 0,
+                        "name": "target",
+                        "read": "object",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QObject*",
+                        "user": false,
+                        "write": "setObject"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 1,
+                        "name": "property",
+                        "read": "property",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QString",
+                        "user": false,
+                        "write": "setProperty"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 2,
+                        "name": "value",
+                        "read": "value",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QVariant",
+                        "user": false,
+                        "write": "setValue"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 3,
+                        "name": "when",
+                        "read": "when",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false,
+                        "write": "setWhen"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 4,
+                        "name": "delayed",
+                        "read": "delayed",
+                        "required": false,
+                        "revision": 520,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false,
+                        "write": "setDelayed"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 5,
+                        "name": "restoreMode",
+                        "notify": "restoreModeChanged",
+                        "read": "restoreMode",
+                        "required": false,
+                        "revision": 526,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "RestorationMode",
+                        "user": false,
+                        "write": "setRestoreMode"
+                    }
+                ],
+                "qualifiedClassName": "QQmlBind",
+                "signals": [
+                    {
+                        "access": "public",
+                        "index": 0,
+                        "name": "restoreModeChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "slots": [
+                    {
+                        "access": "private",
+                        "index": 1,
+                        "name": "targetValueChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    },
+                    {
+                        "access": "public",
+                        "name": "QQmlPropertyValueSource"
+                    },
+                    {
+                        "access": "public",
+                        "name": "QQmlParserStatus"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmlbind_p.h",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "QML.Element",
+                        "value": "Connections"
+                    },
+                    {
+                        "name": "QML.AddedInVersion",
+                        "value": "512"
+                    },
+                    {
+                        "name": "QML.HasCustomParser",
+                        "value": "true"
+                    }
+                ],
+                "className": "QQmlConnections",
+                "interfaces": [
+                    [
+                        {
+                            "className": "QQmlParserStatus",
+                            "id": "\"org.qt-project.Qt.QQmlParserStatus\""
+                        }
+                    ]
+                ],
+                "lineNumber": 31,
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 0,
+                        "name": "target",
+                        "notify": "targetChanged",
+                        "read": "target",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QObject*",
+                        "user": false,
+                        "write": "setTarget"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 1,
+                        "name": "enabled",
+                        "notify": "enabledChanged",
+                        "read": "isEnabled",
+                        "required": false,
+                        "revision": 515,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false,
+                        "write": "setEnabled"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 2,
+                        "name": "ignoreUnknownSignals",
+                        "read": "ignoreUnknownSignals",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false,
+                        "write": "setIgnoreUnknownSignals"
+                    }
+                ],
+                "qualifiedClassName": "QQmlConnections",
+                "signals": [
+                    {
+                        "access": "public",
+                        "index": 0,
+                        "name": "targetChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 1,
+                        "name": "enabledChanged",
+                        "returnType": "void",
+                        "revision": 515
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    },
+                    {
+                        "access": "public",
+                        "name": "QQmlParserStatus"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmlconnections_p.h",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "QML.Element",
+                        "value": "LoggingCategory"
+                    },
+                    {
+                        "name": "QML.AddedInVersion",
+                        "value": "520"
+                    }
+                ],
+                "className": "QQmlLoggingCategory",
+                "enums": [
+                    {
+                        "isClass": false,
+                        "isFlag": false,
+                        "name": "DefaultLogLevel",
+                        "values": [
+                            "Debug",
+                            "Info",
+                            "Warning",
+                            "Critical",
+                            "Fatal"
+                        ]
+                    }
+                ],
+                "interfaces": [
+                    [
+                        {
+                            "className": "QQmlParserStatus",
+                            "id": "\"org.qt-project.Qt.QQmlParserStatus\""
+                        }
+                    ]
+                ],
+                "lineNumber": 32,
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 0,
+                        "name": "name",
+                        "read": "name",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QString",
+                        "user": false,
+                        "write": "setName"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 1,
+                        "name": "defaultLogLevel",
+                        "read": "defaultLogLevel",
+                        "required": false,
+                        "revision": 524,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "DefaultLogLevel",
+                        "user": false,
+                        "write": "setDefaultLogLevel"
+                    }
+                ],
+                "qualifiedClassName": "QQmlLoggingCategory",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QQmlLoggingCategoryBase"
+                    },
+                    {
+                        "access": "public",
+                        "name": "QQmlParserStatus"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmlloggingcategory_p.h",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "ParentProperty",
+                        "value": "parent"
+                    },
+                    {
+                        "name": "QML.Element",
+                        "value": "Timer"
+                    },
+                    {
+                        "name": "QML.AddedInVersion",
+                        "value": "512"
+                    }
+                ],
+                "className": "QQmlTimer",
+                "interfaces": [
+                    [
+                        {
+                            "className": "QQmlParserStatus",
+                            "id": "\"org.qt-project.Qt.QQmlParserStatus\""
+                        }
+                    ]
+                ],
+                "lineNumber": 29,
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 0,
+                        "name": "interval",
+                        "notify": "intervalChanged",
+                        "read": "interval",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false,
+                        "write": "setInterval"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 1,
+                        "name": "running",
+                        "notify": "runningChanged",
+                        "read": "isRunning",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false,
+                        "write": "setRunning"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 2,
+                        "name": "repeat",
+                        "notify": "repeatChanged",
+                        "read": "isRepeating",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false,
+                        "write": "setRepeating"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 3,
+                        "name": "triggeredOnStart",
+                        "notify": "triggeredOnStartChanged",
+                        "read": "triggeredOnStart",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false,
+                        "write": "setTriggeredOnStart"
+                    },
+                    {
+                        "constant": true,
+                        "designable": true,
+                        "final": false,
+                        "index": 4,
+                        "name": "parent",
+                        "read": "parent",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QObject*",
+                        "user": false
+                    }
+                ],
+                "qualifiedClassName": "QQmlTimer",
+                "signals": [
+                    {
+                        "access": "public",
+                        "index": 0,
+                        "name": "triggered",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 1,
+                        "name": "runningChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 2,
+                        "name": "intervalChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 3,
+                        "name": "repeatChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 4,
+                        "name": "triggeredOnStartChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "slots": [
+                    {
+                        "access": "public",
+                        "index": 5,
+                        "name": "start",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 6,
+                        "name": "stop",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 7,
+                        "name": "restart",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "index": 8,
+                        "name": "ticked",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    },
+                    {
+                        "access": "public",
+                        "name": "QQmlParserStatus"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmltimer_p.h",
+        "outputRevision": 69
+    }
+]

@@ -1,0 +1,8 @@
+module QtQuick.VirtualKeyboard.Core
+linktarget Qt6::VirtualKeyboardplugin
+optional plugin virtualkeyboardplugin
+classname QtQuick_VirtualKeyboard_CorePlugin
+typeinfo plugins.qmltypes
+prefer :/qt-project.org/imports/QtQuick/VirtualKeyboard/Core/
+depends QtQuick
+

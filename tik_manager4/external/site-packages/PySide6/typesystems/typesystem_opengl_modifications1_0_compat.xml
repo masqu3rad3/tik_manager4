@@ -1,0 +1,67 @@
+<!--
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<modify-function signature="^glBitmap\(.*$" remove="all"/>
+<modify-function signature="^glColor[34][a-z]{1,2}v\(.*$">
+    <modify-argument index="1"><array/></modify-argument>
+</modify-function>
+<modify-function signature="glClipPlane(GLenum,const GLdouble*)">
+    <modify-argument index="2"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glEvalCoord\d[a-z]{1,2}v\(.*$">
+    <modify-argument index="1"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glFog[fi]v\(.*$">
+    <modify-argument index="2"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glIndex[a-z]v\(.*$">
+    <modify-argument index="1"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glLoadMatrix[df]\(.*$">
+    <modify-argument index="1"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glLight[fi]v\(.*$">
+    <modify-argument index="3"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glLightModel[fi]v\(.*$">
+    <modify-argument index="2"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glMap1[df]\(.*$">
+    <modify-argument index="6"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glMap2[df]\(.*$">
+    <modify-argument index="10"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glMaterial[fi]v\(.*$">
+    <modify-argument index="3"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glMultMatrix[df]\(.*$">
+    <modify-argument index="1"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glNormal3.v\(.*$">
+    <modify-argument index="1"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glPixelMap[a-z]{1,2}v\(.*$">
+    <modify-argument index="3"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glPolygonStipple\(.*$" remove="all"/>
+<modify-function signature="^glRasterPos\d[a-z]v\(.*$">
+    <modify-argument index="1"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glRect[dfis]v\(.*$">
+    <modify-argument index="1"><array/></modify-argument>
+    <modify-argument index="2"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glTexCoord\d[dfis]v\(.*$">
+    <modify-argument index="1"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glTexEnv[fi]v\(.*$">
+    <modify-argument index="3"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glTexGen[dfi]v\(.*$">
+    <modify-argument index="3"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glVertex\d[dfis]v\(.*$">
+    <modify-argument index="1"><array/></modify-argument>
+</modify-function>

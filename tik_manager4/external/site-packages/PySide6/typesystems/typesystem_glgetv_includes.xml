@@ -1,0 +1,5 @@
+<extra-includes>
+    <include file-name="QtCore/QVarLengthArray" location="global"/>
+    <include file-name="sbkcpptonumpy.h" location="global"/>
+</extra-includes>
+<inject-code class="native" position="beginning" file="../glue/qtopengl.cpp" snippet="glgetvreturnsize_declaration"/>

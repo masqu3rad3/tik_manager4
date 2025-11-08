@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+
+<typesystem package="PySide6.QtUiTools"
+            namespace-begin="QT_BEGIN_NAMESPACE" namespace-end="QT_END_NAMESPACE">
+    <load-typesystem name="typesystem_widgets.xml" generate="no"/>
+
+    <object-type name="QUiLoader">
+      <extra-includes>
+        <include file-name="glue/plugins.h" location="local"/>
+      </extra-includes>
+      <inject-code class="native" position="beginning" file="../glue/qtuitools.cpp" snippet="uitools-loadui"/>
+      <inject-code file="../glue/qtuitools.cpp" snippet="quiloader"/>
+      <add-function signature="registerCustomWidget(PyObject*@customWidgetType@)" return-type="void">
+         <inject-documentation format="target" mode="append" file="../doc/qtuitools.rst"
+                               snippet="quiloader-registercustomwidget"/>
+         <inject-code class="target" position="beginning" file="../glue/qtuitools.cpp"
+                      snippet="quiloader-registercustomwidget"/>
+      </add-function>
+      <modify-function signature="createAction(QObject*,const QString&amp;)">
+        <modify-argument index="return">
+          <parent index="1" action="add"/>
+          <define-ownership class="native" owner="c++"/>
+          <define-ownership class="target" owner="default"/>
+        </modify-argument>
+      </modify-function>
+
+      <modify-function signature="createActionGroup(QObject*,const QString&amp;)">
+        <modify-argument index="return">
+          <parent index="1" action="add"/>
+          <define-ownership class="native" owner="c++"/>
+          <define-ownership class="target" owner="default"/>
+        </modify-argument>
+      </modify-function>
+
+      <modify-function signature="createLayout(const QString&amp;,QObject*,const QString&amp;)">
+        <modify-argument index="return">
+          <parent index="2" action="add"/>
+          <define-ownership class="native" owner="c++"/>
+          <define-ownership class="target" owner="default"/>
+        </modify-argument>
+      </modify-function>
+
+      <modify-function signature="createWidget(const QString&amp;,QWidget*,const QString&amp;)">
+        <modify-argument index="return">
+            <parent index="2" action="add"/>
+            <define-ownership class="native" owner="c++"/>
+            <define-ownership class="target" owner="default"/>
+        </modify-argument>
+      </modify-function>
+
+      <modify-function signature="load(QIODevice*,QWidget*)">
+        <modify-argument index="2">
+          <replace-default-expression with="0"/>
+          <rename to="parentWidget"/>
+        </modify-argument>
+        <modify-argument index="return">
+           <define-ownership class="target" owner="target"/>
+        </modify-argument>
+        <inject-code file="../glue/qtuitools.cpp" snippet="quiloader-load-1"/>
+     </modify-function>
+
+      <!-- Syntax sugar -->
+      <add-function signature="load(PyPathLike,QWidget*@parentWidget@=nullptr)" return-type="QWidget*">
+        <modify-argument index="return">
+          <define-ownership class="target" owner="target"/>
+        </modify-argument>
+        <inject-code file="../glue/qtuitools.cpp" snippet="quiloader-load-2"/>
+      </add-function>
+    </object-type>
+
+    <!--
+    After the removal of the 'pysideuic' Python module, many users were unable to generate and
+    load UI classes dynamically.
+    This function was created to provide an equivalent solution to the 'loadUiType' function from
+    Riverbank's PyQt.
+    -->
+    <add-function signature="loadUiType(const QString&amp; @uifile@)" return-type="PyObject*">
+      <inject-code file="../glue/qtuitools.cpp" snippet="loaduitype"/>
+      <inject-documentation format="target" mode="append" file="../doc/qtuitools.rst"
+                            snippet="loaduitype"/>
+    </add-function>
+
+
+</typesystem>

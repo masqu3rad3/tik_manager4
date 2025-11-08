@@ -1,0 +1,943 @@
+[
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "QML.Foreign",
+                        "value": "QQmlDelegateChooser"
+                    },
+                    {
+                        "name": "QML.Element",
+                        "value": "DelegateChooser"
+                    },
+                    {
+                        "name": "QML.AddedInVersion",
+                        "value": "256"
+                    }
+                ],
+                "className": "QQmlDelegateChooserForeign",
+                "gadget": true,
+                "lineNumber": 28,
+                "qualifiedClassName": "QQmlDelegateChooserForeign"
+            }
+        ],
+        "inputFile": "qqmldelegatechooser_p.h",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "DefaultProperty",
+                        "value": "columns"
+                    },
+                    {
+                        "name": "QML.Element",
+                        "value": "TableModel"
+                    },
+                    {
+                        "name": "QML.AddedInVersion",
+                        "value": "256"
+                    }
+                ],
+                "className": "QQmlTableModel",
+                "interfaces": [
+                    [
+                        {
+                            "className": "QQmlParserStatus",
+                            "id": "\"org.qt-project.Qt.QQmlParserStatus\""
+                        }
+                    ]
+                ],
+                "lineNumber": 33,
+                "methods": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "row",
+                                "type": "QVariant"
+                            }
+                        ],
+                        "index": 3,
+                        "name": "appendRow",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 4,
+                        "name": "clear",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "rowIndex",
+                                "type": "int"
+                            }
+                        ],
+                        "index": 5,
+                        "name": "getRow",
+                        "returnType": "QVariant"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "rowIndex",
+                                "type": "int"
+                            },
+                            {
+                                "name": "row",
+                                "type": "QVariant"
+                            }
+                        ],
+                        "index": 6,
+                        "name": "insertRow",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "fromRowIndex",
+                                "type": "int"
+                            },
+                            {
+                                "name": "toRowIndex",
+                                "type": "int"
+                            },
+                            {
+                                "name": "rows",
+                                "type": "int"
+                            }
+                        ],
+                        "index": 7,
+                        "name": "moveRow",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "fromRowIndex",
+                                "type": "int"
+                            },
+                            {
+                                "name": "toRowIndex",
+                                "type": "int"
+                            }
+                        ],
+                        "index": 8,
+                        "isCloned": true,
+                        "name": "moveRow",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "rowIndex",
+                                "type": "int"
+                            },
+                            {
+                                "name": "rows",
+                                "type": "int"
+                            }
+                        ],
+                        "index": 9,
+                        "name": "removeRow",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "rowIndex",
+                                "type": "int"
+                            }
+                        ],
+                        "index": 10,
+                        "isCloned": true,
+                        "name": "removeRow",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "rowIndex",
+                                "type": "int"
+                            },
+                            {
+                                "name": "row",
+                                "type": "QVariant"
+                            }
+                        ],
+                        "index": 11,
+                        "name": "setRow",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "QModelIndex"
+                            },
+                            {
+                                "name": "role",
+                                "type": "QString"
+                            }
+                        ],
+                        "index": 12,
+                        "isConst": true,
+                        "name": "data",
+                        "returnType": "QVariant"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "QModelIndex"
+                            },
+                            {
+                                "name": "role",
+                                "type": "QString"
+                            },
+                            {
+                                "name": "value",
+                                "type": "QVariant"
+                            }
+                        ],
+                        "index": 13,
+                        "name": "setData",
+                        "returnType": "bool"
+                    }
+                ],
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 0,
+                        "name": "columnCount",
+                        "notify": "columnCountChanged",
+                        "read": "columnCount",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 1,
+                        "name": "rowCount",
+                        "notify": "rowCountChanged",
+                        "read": "rowCount",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 2,
+                        "name": "rows",
+                        "notify": "rowsChanged",
+                        "read": "rows",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QVariant",
+                        "user": false,
+                        "write": "setRows"
+                    },
+                    {
+                        "constant": true,
+                        "designable": true,
+                        "final": true,
+                        "index": 3,
+                        "name": "columns",
+                        "read": "columns",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QQmlListProperty<QQmlTableModelColumn>",
+                        "user": false
+                    }
+                ],
+                "qualifiedClassName": "QQmlTableModel",
+                "signals": [
+                    {
+                        "access": "public",
+                        "index": 0,
+                        "name": "columnCountChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 1,
+                        "name": "rowCountChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 2,
+                        "name": "rowsChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QAbstractTableModel"
+                    },
+                    {
+                        "access": "public",
+                        "name": "QQmlParserStatus"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmltablemodel_p.h",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "QML.Element",
+                        "value": "TableModelColumn"
+                    },
+                    {
+                        "name": "QML.AddedInVersion",
+                        "value": "256"
+                    }
+                ],
+                "className": "QQmlTableModelColumn",
+                "lineNumber": 30,
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 0,
+                        "name": "display",
+                        "notify": "displayChanged",
+                        "read": "display",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setDisplay"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 1,
+                        "name": "setDisplay",
+                        "notify": "setDisplayChanged",
+                        "read": "getSetDisplay",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSetDisplay"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 2,
+                        "name": "decoration",
+                        "notify": "decorationChanged",
+                        "read": "decoration",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setDecoration"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 3,
+                        "name": "setDecoration",
+                        "notify": "setDecorationChanged",
+                        "read": "getSetDecoration",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSetDecoration"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 4,
+                        "name": "edit",
+                        "notify": "editChanged",
+                        "read": "edit",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setEdit"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 5,
+                        "name": "setEdit",
+                        "notify": "setEditChanged",
+                        "read": "getSetEdit",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSetEdit"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 6,
+                        "name": "toolTip",
+                        "notify": "toolTipChanged",
+                        "read": "toolTip",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setToolTip"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 7,
+                        "name": "setToolTip",
+                        "notify": "setToolTipChanged",
+                        "read": "getSetToolTip",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSetToolTip"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 8,
+                        "name": "statusTip",
+                        "notify": "statusTipChanged",
+                        "read": "statusTip",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setStatusTip"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 9,
+                        "name": "setStatusTip",
+                        "notify": "setStatusTipChanged",
+                        "read": "getSetStatusTip",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSetStatusTip"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 10,
+                        "name": "whatsThis",
+                        "notify": "whatsThisChanged",
+                        "read": "whatsThis",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setWhatsThis"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 11,
+                        "name": "setWhatsThis",
+                        "notify": "setWhatsThisChanged",
+                        "read": "getSetWhatsThis",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSetWhatsThis"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 12,
+                        "name": "font",
+                        "notify": "fontChanged",
+                        "read": "font",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setFont"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 13,
+                        "name": "setFont",
+                        "notify": "setFontChanged",
+                        "read": "getSetFont",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSetFont"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 14,
+                        "name": "textAlignment",
+                        "notify": "textAlignmentChanged",
+                        "read": "textAlignment",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setTextAlignment"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 15,
+                        "name": "setTextAlignment",
+                        "notify": "setTextAlignmentChanged",
+                        "read": "getSetTextAlignment",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSetTextAlignment"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 16,
+                        "name": "background",
+                        "notify": "backgroundChanged",
+                        "read": "background",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setBackground"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 17,
+                        "name": "setBackground",
+                        "notify": "setBackgroundChanged",
+                        "read": "getSetBackground",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSetBackground"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 18,
+                        "name": "foreground",
+                        "notify": "foregroundChanged",
+                        "read": "foreground",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setForeground"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 19,
+                        "name": "setForeground",
+                        "notify": "setForegroundChanged",
+                        "read": "getSetForeground",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSetForeground"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 20,
+                        "name": "checkState",
+                        "notify": "checkStateChanged",
+                        "read": "checkState",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setCheckState"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 21,
+                        "name": "setCheckState",
+                        "notify": "setCheckStateChanged",
+                        "read": "getSetCheckState",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSetCheckState"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 22,
+                        "name": "accessibleText",
+                        "notify": "accessibleTextChanged",
+                        "read": "accessibleText",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setAccessibleText"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 23,
+                        "name": "setAccessibleText",
+                        "notify": "setAccessibleTextChanged",
+                        "read": "getSetAccessibleText",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSetAccessibleText"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 24,
+                        "name": "accessibleDescription",
+                        "notify": "accessibleDescriptionChanged",
+                        "read": "accessibleDescription",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setAccessibleDescription"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 25,
+                        "name": "setAccessibleDescription",
+                        "notify": "setAccessibleDescriptionChanged",
+                        "read": "getSetAccessibleDescription",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSetAccessibleDescription"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 26,
+                        "name": "sizeHint",
+                        "notify": "sizeHintChanged",
+                        "read": "sizeHint",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSizeHint"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": true,
+                        "index": 27,
+                        "name": "setSizeHint",
+                        "notify": "setSizeHintChanged",
+                        "read": "getSetSizeHint",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QJSValue",
+                        "user": false,
+                        "write": "setSetSizeHint"
+                    }
+                ],
+                "qualifiedClassName": "QQmlTableModelColumn",
+                "signals": [
+                    {
+                        "access": "public",
+                        "index": 0,
+                        "name": "indexChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 1,
+                        "name": "displayChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 2,
+                        "name": "setDisplayChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 3,
+                        "name": "decorationChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 4,
+                        "name": "setDecorationChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 5,
+                        "name": "editChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 6,
+                        "name": "setEditChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 7,
+                        "name": "toolTipChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 8,
+                        "name": "setToolTipChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 9,
+                        "name": "statusTipChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 10,
+                        "name": "setStatusTipChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 11,
+                        "name": "whatsThisChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 12,
+                        "name": "setWhatsThisChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 13,
+                        "name": "fontChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 14,
+                        "name": "setFontChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 15,
+                        "name": "textAlignmentChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 16,
+                        "name": "setTextAlignmentChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 17,
+                        "name": "backgroundChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 18,
+                        "name": "setBackgroundChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 19,
+                        "name": "foregroundChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 20,
+                        "name": "setForegroundChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 21,
+                        "name": "checkStateChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 22,
+                        "name": "setCheckStateChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 23,
+                        "name": "accessibleTextChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 24,
+                        "name": "setAccessibleTextChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 25,
+                        "name": "accessibleDescriptionChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 26,
+                        "name": "setAccessibleDescriptionChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 27,
+                        "name": "sizeHintChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 28,
+                        "name": "setSizeHintChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmltablemodelcolumn_p.h",
+        "outputRevision": 69
+    }
+]

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtQuickTest"
+            namespace-begin="QT_BEGIN_NAMESPACE" namespace-end="QT_END_NAMESPACE">
+    <load-typesystem name="typesystem_core.xml" generate="no"/>
+
+    <extra-includes>
+        <include file-name="QtQuickTest/quicktest.h" location="global"/>
+        <include file-name="QtCore/QDir" location="global"/>
+        <include file-name="pysideqobject.h" location="global"/>
+        <include file-name="vector" location="global"/>
+    </extra-includes>
+    <inject-code class="native" position="beginning"
+                 file="../glue/qtquicktest.cpp" snippet="call-quick-test-main"/>
+
+    <add-function signature="QUICK_TEST_MAIN(QString@name@,QStringList@argv@={},QString@dir@={})"
+                  return-type="int">
+        <inject-code file="../glue/qtquicktest.cpp" snippet="quick-test-main"/>
+        <inject-documentation format="target" mode="append"
+                              file="../doc/qtquicktest.rst"
+                              snippet="quick_test_main_documentation"/>
+    </add-function>
+    <add-function signature="QUICK_TEST_MAIN_WITH_SETUP(QString@name@,PyTypeObject*@setup@,QStringList@argv@={},QString@dir@={})"
+                  return-type="int">
+        <inject-code file="../glue/qtquicktest.cpp" snippet="quick-test-main_with_setup"/>
+        <inject-documentation format="target" mode="append"
+                              file="../doc/qtquicktest.rst"
+                              snippet="quick_test_main_with_setup_documentation"/>
+    </add-function>
+</typesystem>

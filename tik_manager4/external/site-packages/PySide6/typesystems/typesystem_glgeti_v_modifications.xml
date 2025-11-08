@@ -1,0 +1,18 @@
+<modify-function signature="glGetBooleani_v(GLenum,GLuint,GLboolean*)">
+    <modify-argument index="return" pyi-type="Union[bool,numpy.ndarray]">
+        <replace-type modified-type="PyObject"/>
+    </modify-argument>
+    <modify-argument index="3">
+        <remove-argument/>
+    </modify-argument>
+    <inject-code class="target" position="beginning" file="../glue/qtgui.cpp" snippet="qopenglextrafunctions-glgetbooleani-v"/>
+</modify-function>
+<modify-function signature="glGetIntegeri_v(GLenum,GLuint,GLint*)">
+    <modify-argument index="return" pyi-type="Union[int,numpy.ndarray]">
+        <replace-type modified-type="PyObject"/>
+    </modify-argument>
+    <modify-argument index="3">
+        <remove-argument/>
+    </modify-argument>
+    <inject-code class="target" position="beginning" file="../glue/qtgui.cpp" snippet="qopenglextrafunctions-glgetintegeri-v"/>
+</modify-function>

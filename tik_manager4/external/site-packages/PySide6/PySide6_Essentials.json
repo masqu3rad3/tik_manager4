@@ -1,0 +1,56 @@
+{
+    "Core": [],
+    "Gui": [
+        "accessiblebridge",
+        "platforms",
+        "platforms/darwin",
+        "xcbglintegrations",
+        "platformthemes",
+        "platforminputcontexts",
+        "generic",
+        "iconengines",
+        "imageformats",
+        "egldeviceintegrations"
+    ],
+    "Widgets": [
+        "styles"
+    ],
+    "Help": [],
+    "Network": [
+        "networkaccess",
+        "networkinformation",
+        "tls"
+    ],
+    "Concurrent": [],
+    "DBus": [],
+    "Designer": [
+        "designer"
+    ],
+    "OpenGL": [],
+    "OpenGLWidgets": [],
+    "PrintSupport": [
+        "printsupport"
+    ],
+    "Qml": [
+        "qmltooling",
+        "qmllint"
+    ],
+    "Quick": [
+        "scenegraph"
+    ],
+    "QuickControls2": [],
+    "QuickTest": [],
+    "QuickWidgets": [],
+    "Xml": [],
+    "Test": [],
+    "Sql": [
+        "sqldrivers"
+    ],
+    "Svg": [],
+    "SvgWidgets": [],
+    "UiTools": [],
+    "ExampleIcons": [],
+    "Wayland": [],
+    "LanguageServer": [],
+    "JsonRpc": []
+}

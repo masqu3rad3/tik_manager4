@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtDBus"
+            namespace-begin="QT_BEGIN_NAMESPACE" namespace-end="QT_END_NAMESPACE">
+    <load-typesystem name="typesystem_core.xml" generate="no"/>
+
+    <namespace-type name="QDBus">
+        <enum-type name="CallMode"/>
+    </namespace-type>
+
+    <object-type name="QDBusAbstractAdaptor"/>
+    <object-type name="QDBusAbstractInterfaceBase"/>
+    <object-type name="QDBusAbstractInterface">
+      <!-- Those are template argument lists (see also  callWithArgumentList() -->
+      <declare-function signature="call(const QString&amp;,const QVariant&amp;)"
+                        return-type="QDBusMessage"/>
+      <declare-function signature="call(const QString&amp;,const QVariant&amp;,const QVariant&amp;)"
+                        return-type="QDBusMessage"/>
+      <declare-function signature="call(const QString&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;)"
+                        return-type="QDBusMessage"/>
+      <declare-function signature="call(const QString&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;)"
+                        return-type="QDBusMessage"/>
+      <declare-function signature="call(QDBus::CallMode,const QString&amp;,const QVariant&amp;)"
+                        return-type="QDBusMessage"/>
+      <declare-function signature="call(QDBus::CallMode,const QString&amp;,const QVariant&amp;,const QVariant&amp;)"
+                        return-type="QDBusMessage"/>
+      <declare-function signature="call(QDBus::CallMode,const QString&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;)"
+                        return-type="QDBusMessage"/>
+      <declare-function signature="call(QDBus::CallMode,const QString&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;)"
+                        return-type="QDBusMessage"/>
+      <declare-function signature="call(QDBus::CallMode,const QString&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;)"
+                        return-type="QDBusMessage"/>
+      <declare-function signature="call(QDBus::CallMode,const QString&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;)"
+                        return-type="QDBusMessage"/>
+      <declare-function signature="call(QDBus::CallMode,const QString&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;)"
+                        return-type="QDBusMessage"/>
+      <declare-function signature="call(QDBus::CallMode,const QString&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;,const QVariant&amp;)"
+                        return-type="QDBusMessage"/>
+    </object-type>
+    <value-type name="QDBusArgument">
+      <enum-type name="ElementType"/>
+    </value-type>
+    <value-type name="QDBusConnection">
+      <enum-type name="BusType"/>
+      <enum-type name="ConnectionCapability" flags="ConnectionCapabilities"/>
+      <enum-type name="RegisterOption" flags="RegisterOptions"/>
+      <enum-type name="UnregisterMode"/>
+      <enum-type name="VirtualObjectRegisterOption" flags="VirtualObjectRegisterOptions"/>
+      <modify-function signature="interface()const">
+        <modify-argument index="return">
+          <define-ownership class="target" owner="default"/>
+        </modify-argument>
+      </modify-function>
+      <!-- PYSIDE-2547, hangs -->
+      <modify-function signature="^connect\(.*\)$" allow-thread="yes"/>
+    </value-type>
+    <object-type name="QDBusConnectionInterface">
+      <enum-type name="RegisterServiceReply"/>
+      <enum-type name="ServiceQueueOptions"/>
+      <enum-type name="ServiceReplacementOptions"/>
+      <!-- Original functions are rejected since they return ::QDBusReply<T> -->
+      <declare-function signature="registeredServiceNames()const"
+                        return-type="QtDBusHelper::QDBusReply"/>
+      <declare-function signature="registerService(const QString&amp;,QDBusConnectionInterface::ServiceQueueOptions,QDBusConnectionInterface::ServiceReplacementOptions)"
+                        return-type="QtDBusHelper::QDBusReply"/>
+      <declare-function signature="activatableServiceNames()const"
+                        return-type="QtDBusHelper::QDBusReply"/>
+      <declare-function signature="serviceOwner(const QString&amp;)const"
+                        return-type="QtDBusHelper::QDBusReply"/>
+      <declare-function signature="isServiceRegistered(const QString&amp;)const"
+                        return-type="QtDBusHelper::QDBusReply"/>
+      <declare-function signature="unregisterService(const QString&amp;)"
+                        return-type="QtDBusHelper::QDBusReply"/>
+      <declare-function signature="servicePid(const QString&amp;)const"
+                        return-type="QtDBusHelper::QDBusReply"/>
+      <declare-function signature="serviceUid(const QString&amp;)const"
+                        return-type="QtDBusHelper::QDBusReply"/>
+      <declare-function signature="startService(const QString&amp;)"
+                        return-type="QtDBusHelper::QDBusReply"/>
+    </object-type>
+    <value-type name="QDBusContext"/>
+    <value-type name="QDBusError">
+      <enum-type name="ErrorType"/>
+    </value-type>
+    <object-type name="QDBusInterface" qt-metaobject="no">
+      <inject-documentation format="target" mode="append" emphasis="language-note">
+        DBus signals can be captured with string-based connections
+        (see :ref:`signals-and-slots-strings`).
+      </inject-documentation>
+    </object-type>
+    <value-type name="QDBusMessage">
+      <enum-type name="MessageType"/>
+    </value-type>
+    <value-type name="QDBusObjectPath"/>
+    <object-type name="QDBusPendingCall"/>
+    <object-type name="QDBusPendingCallWatcher"/>
+
+    <namespace-type name="QtDBusHelper" visible="no">
+        <object-type name="QDBusReply"/>
+    </namespace-type>
+
+    <object-type name="QDBusServer"/>
+    <object-type name="QDBusServiceWatcher">
+      <enum-type name="WatchModeFlag" flags="WatchMode"/>
+    </object-type>
+    <object-type name="QDBusSignature"/>
+    <value-type name="QDBusUnixFileDescriptor"/>
+    <value-type name="QDBusVariant"/>
+    <object-type name="QDBusVirtualObject"/>
+    <suppress-warning text='^.*Unable to translate type "QDBusReply&lt;.*$'/>
+    <suppress-warning text='^.*QDBusPendingCallWatcher inherits from a non polymorphic type.*$'/>
+</typesystem>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtConcurrent"
+            namespace-begin="QT_BEGIN_NAMESPACE" namespace-end="QT_END_NAMESPACE">
+  <load-typesystem name="typesystem_core.xml" generate="no"/>
+
+  <!-- Qt5: this is currently the minimum possible QtConcurrent support, by just extracting
+        the name space from QtCore -->
+  <namespace-type name="QtConcurrent" target-type="class">
+    <enum-type name="FutureResult"/>
+    <enum-type name="ReduceOption" flags="ReduceOptions"/>
+    <enum-type name="ThreadFunctionResult"/>
+    <extra-includes>
+      <include file-name="qtconcurrentreducekernel.h" location="global"/>
+      <include file-name="qtconcurrentthreadengine.h" location="global"/>
+    </extra-includes>
+  </namespace-type>
+
+  <typedef-type name="QFutureVoid" source="QFuture&lt;void&gt;" disable-wrapper="yes">
+      <include file-name="QtCore/qfuture.h" location="global"/>
+  </typedef-type>
+  <typedef-type name="QFutureQString" source="QFuture&lt;QString&gt;" disable-wrapper="yes">
+      <include file-name="QtCore/qfuture.h" location="global"/>
+  </typedef-type>
+  <typedef-type name="QFutureWatcherVoid" source="QFutureWatcher&lt;void&gt;">
+      <include file-name="QtCore/qfuturewatcher.h" location="global"/>
+  </typedef-type>
+  <typedef-type name="QFutureWatcherQString" source="QFutureWatcher&lt;QString&gt;">
+      <include file-name="QtCore/qfuturewatcher.h" location="global"/>
+  </typedef-type>
+
+</typesystem>

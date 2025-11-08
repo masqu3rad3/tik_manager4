@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtGui"
+            namespace-begin="QT_BEGIN_NAMESPACE" namespace-end="QT_END_NAMESPACE">
+    <load-typesystem name="typesystem_core.xml" generate="no"/>
+    <?if windows?>
+    <load-typesystem name="typesystem_gui_win.xml" generate="yes"/>
+    <?endif?>
+    <?if darwin?>
+    <load-typesystem name="typesystem_gui_mac.xml" generate="yes"/>
+    <?endif?>
+    <?if unix !darwin?>
+    <load-typesystem name="typesystem_gui_x11.xml" generate="yes"/>
+    <?endif?>
+    <load-typesystem name="typesystem_gui_common.xml" generate="yes"/>
+    <load-typesystem name="typesystem_gui_rhi.xml" generate="yes"/>
+</typesystem>

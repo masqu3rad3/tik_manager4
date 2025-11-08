@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtQml"
+            namespace-begin="QT_BEGIN_NAMESPACE" namespace-end="QT_END_NAMESPACE">
+    <load-typesystem name="typesystem_core.xml" generate="no"/>
+    <load-typesystem name="typesystem_network.xml" generate="no"/>
+
+    <rejection class="QQmlPrivate"/>
+    <rejection class="*" enum-name="QmlIsAnonymous"/>
+    <rejection class="*" enum-name="QmlIsUncreatable"/>
+    <rejection class="*" enum-name="QmlIsSingleton"/>
+    <rejection class="*" enum-name="QmlIsInterface"/>
+    <rejection class="*" enum-name="QmlIsSequence"/>
+
+    <inject-code class="target" position="declaration">
+    // Volatile Bool Ptr type definition for QQmlIncubationController::incubateWhile(std::atomic&lt;bool&gt; *, int)
+    #include &lt;atomic&gt;
+
+    using AtomicBool = std::atomic&lt;bool&gt;;
+
+    struct QtQml_VolatileBoolObject {
+        PyObject_HEAD
+        AtomicBool *flag;
+    };
+    </inject-code>
+
+    <inject-code class="native" position="beginning">
+    #include &lt;pysideqml.h&gt;
+    #include &lt;pysideqmlregistertype.h&gt;
+    #include &lt;pysideqmlattached.h&gt;
+    #include "pysideqmlvolatilebool.h"
+    </inject-code>
+
+    <!-- This is to inform the generator that the VolatileBool python type exists -->
+    <custom-type name="VolatileBool" check-function="VolatileBool_Check"/>
+    <primitive-type name="bool volatile" target-lang-api-name="VolatileBool">
+        <!-- No conversion rules are specified here, because the generator does not handle
+             pointer to primitive types without function adjustment.
+             See commit ff0b861b59b41387e771d9cd565e13de8b2750d1 or search for changePStr
+             in generator tests folder. -->
+    </primitive-type>
+
+    <enum-type name="QQmlModuleImportSpecialVersions" doc-file="qqmlengine"/>
+
+    <!-- expose QQmlIncubationController::incubateWhile() (see
+         QtQml_VolatileBoolTypeF/pysideqmlvolatilebool.h) -->
+    <namespace-type name="std" generate="no">
+        <value-type name="atomic" generate="no"/>
+    </namespace-type>
+
+    <add-function signature="qmlAttachedPropertiesObject(PyTypeObject*@type_obj@,QObject*,bool=true)"
+                  return-type="QObject*">
+        <inject-code class="target" file="../glue/qtqml.cpp" snippet="qmlattachedpropertiesobject"/>
+    </add-function>
+
+    <add-function signature="qmlRegisterType(PyTypeObject@type_obj@,const char*@uri@,int@version_major@,int@version_minor@,const char*@qml_name@)" return-type="int">
+        <inject-code class="target" file="../glue/qtqml.cpp" snippet="qmlregistertype"/>
+        <inject-documentation format="target" mode="append" file="../doc/qtqml.rst"
+                              snippet="qmlregistertype"/>
+        <modify-argument index="2" pyi-type="str"/>
+    </add-function>
+
+    <add-function signature="qmlRegisterSingletonType(PyTypeObject@type_obj@,const char*@uri@,int@version_major@,int@version_minor@,const char*@qml_name@,PyObject*@callback@)" return-type="int">
+      <inject-code class="target" file="../glue/qtqml.cpp" snippet="qmlregistersingletontype_qobject_callback"/>
+      <inject-documentation format="target" mode="append" file="../doc/qtqml.rst"
+                            snippet="qmlregistersingletontype_qobject_callback"/>
+      <modify-argument index="2" pyi-type="str"/>
+    </add-function>
+
+    <add-function signature="qmlRegisterSingletonType(PyTypeObject@type_obj@,const char*@uri@,int@version_major@,int@version_minor@,const char*@qml_name@)" return-type="int">
+      <inject-code class="target" file="../glue/qtqml.cpp" snippet="qmlregistersingletontype_qobject_nocallback"/>
+      <inject-documentation format="target" mode="append" file="../doc/qtqml.rst"
+                            snippet="qmlregistersingletontype_qobject_nocallback"/>
+      <modify-argument index="2" pyi-type="str"/>
+    </add-function>
+
+    <add-function signature="qmlRegisterSingletonType(const char*@uri@,int@version_major@,int@version_minor@,const char*@qml_name@,PyObject*@callback@)" return-type="int">
+      <inject-code class="target" file="../glue/qtqml.cpp" snippet="qmlregistersingletontype_qjsvalue"/>
+      <inject-documentation format="target" mode="append" file="../doc/qtqml.rst"
+                            snippet="qmlregistersingletontype_qjsvalue"/>
+      <modify-argument index="1" pyi-type="str"/>
+    </add-function>
+
+    <add-function signature="qmlRegisterSingletonInstance(PyTypeObject@type_obj@,const char*@uri@,int@version_major@,int@version_minor@,const char*@qml_name@,PyObject*@callback@)" return-type="int">
+      <inject-code class="target" file="../glue/qtqml.cpp" snippet="qmlregistersingletoninstance"/>
+      <inject-documentation format="target" mode="append" file="../doc/qtqml.rst"
+                            snippet="qmlregistersingletoninstance"/>
+      <modify-argument index="2" pyi-type="str"/>
+    </add-function>
+
+    <add-function signature="qmlRegisterUncreatableType(PyTypeObject@type_obj@,const char*@uri@,int@version_major@,int@version_minor@,const char*@qml_name@,const char*@message@)" return-type="int">
+        <inject-code class="target" file="../glue/qtqml.cpp" snippet="qmlregisteruncreatabletype"/>
+        <inject-documentation format="target" mode="append" file="../doc/qtqml.rst"
+                              snippet="qmlregisteruncreatabletype"/>
+        <modify-argument index="2" pyi-type="str"/>
+    </add-function>
+
+    <add-function signature="QmlElement(PyObject*)" return-type="PyObject*">
+        <inject-code class="target" file="../glue/qtqml.cpp" snippet="qmlelement"/>
+    </add-function>
+
+    <add-function signature="QmlAnonymous(PyObject*)" return-type="PyObject*">
+        <inject-code class="target" file="../glue/qtqml.cpp" snippet="qmlanonymous"/>
+    </add-function>
+
+    <add-function signature="QmlSingleton(PyObject*)" return-type="PyObject*">
+        <inject-code class="target" file="../glue/qtqml.cpp" snippet="qmlsingleton"/>
+    </add-function>
+
+    <function signature="qjsEngine(const QObject*)">
+        <modify-function>
+            <modify-argument index="return" pyi-type="Optional[PySide6.QtQml.QJSEngine]"/>
+        </modify-function>
+    </function>
+    <function signature="qmlClearTypeRegistrations()" doc-file="qqmlengine"/>
+    <function signature="qmlContext(const QObject*)">
+        <modify-function>
+            <modify-argument index="return" pyi-type="Optional[PySide6.QtQml.QQmlContext]"/>
+        </modify-function>
+    </function>
+    <function signature="qmlEngine(const QObject*)">
+        <modify-function>
+            <modify-argument index="return" pyi-type="Optional[PySide6.QtQml.QQmlEngine]"/>
+        </modify-function>
+     </function>
+    <function signature="qmlProtectModule(const char*,int)" doc-file="qqmlengine"/>
+    <function signature="qmlRegisterModule(const char*,int,int)" doc-file="qqmlengine"/>
+    <function signature="qmlTypeId(const char*,int,int,const char*)" doc-file="qqmlengine"/>
+    <function signature="qmlRegisterType(const QUrl &amp;,const char *,int,int,const char *)"
+              doc-file="qqmlengine"/>
+    <function signature="qmlRegisterSingletonType(const QUrl &amp;,const char *,int,int,const char *)"
+              doc-file="qqmlengine"/>
+    <function signature="qmlRegisterUncreatableMetaObject(const QMetaObject&amp;,const char*,int,int, const char*,const QString&amp;)"
+              doc-file="qqmlengine"/>
+
+    <enum-type identified-by-value="QML_HAS_ATTACHED_PROPERTIES">
+        <extra-includes>
+            <include file-name="QtQml" location="global"/>
+        </extra-includes>
+    </enum-type>
+
+    <inject-code class="target" position="end" file="../glue/qtqml.cpp" snippet="init"/>
+
+    <object-type name="QJSEngine">
+        <enum-type name="Extension" flags="Extensions"/>
+        <enum-type name="ObjectOwnership"/>
+        <add-function signature="toScriptValue(const QVariant&amp;@value@)" return-type="QJSValue">
+            <inject-code class="target" position="end" file="../glue/qtqml.cpp" snippet="qjsengine-toscriptvalue"/>
+        </add-function>
+    </object-type>
+    <object-type name="QJSManagedValue">
+        <enum-type name="Type"/>
+    </object-type>
+    <value-type name="QJSPrimitiveValue">
+        <enum-type name="Type"/>
+    </value-type>
+    <value-type name="QJSValue">
+        <enum-type name="ErrorType"/>
+        <enum-type name="SpecialValue"/>
+        <enum-type name="ObjectConversionBehavior" since="6.1"/>
+    </value-type>
+    <object-type name="QJSValueIterator"/>
+    <object-type name="QQmlAbstractUrlInterceptor">
+        <enum-type name="DataType"/>
+    </object-type>
+    <object-type name="QQmlApplicationEngine">
+    <!-- PYSIDE-1681: QQmlApplicationEngine constructor, load() and similar need
+         allow-thread in case there is a message handler installed
+         (qInstallMessageHandler) -->
+        <modify-function signature="^QQmlApplicationEngine\(.*\)$" allow-thread="yes"/>
+        <!-- PYSIDE-1736 In the presence of load(QString)/load(QUrl), check for Path/string
+             first to avoid an implicit conversion from string to QUrl. -->
+        <modify-function signature="load(const QString &amp;)" allow-thread="yes" overload-number="1">
+            <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+            <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+        </modify-function>
+        <modify-function signature="load(const QUrl &amp;)" allow-thread="yes" overload-number="2"/>
+        <modify-function signature="loadFromModule(QAnyStringView,QAnyStringView)" allow-thread="yes"/>
+    </object-type>
+    <object-type name="QQmlComponent">
+        <enum-type name="CompilationMode"/>
+        <enum-type name="Status"/>
+        <modify-function signature="QQmlComponent(QObject*)" allow-thread="yes"/>
+        <modify-function signature="QQmlComponent(QQmlEngine*,QObject*)" allow-thread="yes"/>
+        <modify-function signature="QQmlComponent(QQmlEngine*,QString,QObject*)" allow-thread="yes"/>
+        <modify-function signature="QQmlComponent(QQmlEngine*,QString,QQmlComponent::CompilationMode,QObject*)" allow-thread="yes"/>
+        <modify-function signature="QQmlComponent(QQmlEngine*,QUrl,QObject*)" allow-thread="yes"/>
+        <modify-function signature="QQmlComponent(QQmlEngine*,QUrl,QQmlComponent::CompilationMode,QObject*)" allow-thread="yes"/>
+        <modify-function signature="loadFromModule(QAnyStringView,QAnyStringView,QQmlComponent::CompilationMode)" allow-thread="yes"/>
+        <modify-function signature="loadUrl(QUrl)" allow-thread="yes"/>
+        <modify-function signature="loadUrl(QUrl,QQmlComponent::CompilationMode)" allow-thread="yes"/>
+        <modify-function signature="setData(QByteArray,QUrl)" allow-thread="yes"/>
+    </object-type>
+    <object-type name="QQmlContext">
+        <value-type name="PropertyPair"/>
+    </object-type>
+    <value-type name="QQmlError">
+        <add-function signature="__repr__" return-type="str">
+            <inject-code class="target" position="beginning" file="../glue/qtqml.cpp" snippet="qmlerrror-repr"/>
+        </add-function>
+    </value-type>
+    <object-type name="QQmlDebuggingEnabler">
+        <enum-type name="StartMode"/>
+    </object-type>
+
+    <object-type name="QQmlEngine">
+        <modify-function signature="addImageProvider(const QString&amp;,QQmlImageProviderBase*)">
+          <modify-argument index="2">
+            <define-ownership owner="c++"/>
+          </modify-argument>
+        </modify-function>
+        <modify-function signature="addImportPath(const QString &amp;)">
+            <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+            <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+        </modify-function>
+        <modify-function signature="addPluginPath(const QString &amp;)">
+            <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+            <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+        </modify-function>
+        <add-function signature="singletonInstance(int@qmlTypeId@)"
+                      return-type="QObject*">
+            <!-- Suppress return value heuristics -->
+            <modify-argument index="return"
+                             pyi-type="Union[PySide6.QtCore.QObject, PySide6.QtQml.QJSValue, None]">
+                <define-ownership class="target" owner="default"/>
+            </modify-argument>
+            <inject-code class="target" file="../glue/qtqml.cpp"
+                         snippet="qqmlengine-singletoninstance-qmltypeid"/>
+            <inject-documentation format="target" mode="append" file="../doc/qtqml.rst"
+                                  snippet="qqmlengine-singletoninstance-qmltypeid"/>
+        </add-function>
+        <add-function signature="singletonInstance(QString@uri@,QString@typeName@)"
+                      return-type="QObject*">
+            <!-- Suppress return value heuristics -->
+            <modify-argument index="return"
+                             pyi-type="Union[PySide6.QtCore.QObject, PySide6.QtQml.QJSValue, None]">
+                <define-ownership class="target" owner="default"/>
+            </modify-argument>
+            <inject-code class="target" file="../glue/qtqml.cpp"
+                         snippet="qqmlengine-singletoninstance-typename"/>
+            <inject-documentation format="target" mode="append" file="../doc/qtqml.rst"
+                                  snippet="qqmlengine-singletoninstance-typename"/>
+        </add-function>
+    </object-type>
+
+    <object-type name="QQmlExpression">
+        <modify-function signature="evaluate(bool*)" allow-thread="yes">
+            <modify-argument index="1">
+                <remove-argument />
+            </modify-argument>
+            <modify-argument index="return" pyi-type="Tuple[Any, bool]">
+                <replace-type modified-type="PyTuple"/>
+            </modify-argument>
+            <inject-code class="target" position="beginning">
+                <insert-template name="fix_bool*"/>
+            </inject-code>
+        </modify-function>
+    </object-type>
+    <interface-type name="QQmlTypesExtensionInterface"/>
+    <interface-type name="QQmlExtensionInterface"/>
+    <object-type name="QQmlExtensionPlugin"/>
+    <!-- Possible qRegisterMetaType issues ? -->
+    <object-type name="QQmlFile">
+        <enum-type name="Status"/>
+    </object-type>
+    <object-type name="QQmlFileSelector"/>
+    <object-type name="QQmlImageProviderBase">
+        <enum-type name="Flag" flags="Flags"/>
+        <enum-type name="ImageType"/>
+    </object-type>
+    <object-type name="QQmlIncubator">
+        <enum-type name="IncubationMode"/>
+        <enum-type name="Status"/>
+    </object-type>
+    <object-type name="QQmlIncubationController">
+        <extra-includes>
+            <include file-name="pysideqmlvolatilebool.h" location="local"/>
+        </extra-includes>
+        <modify-function signature="incubateWhile(std::atomic&lt;bool&gt;*,int)" allow-thread="yes">
+            <modify-argument index="1">
+                     The replace type is needed to use the VolatileBool_Check macro instead of
+                     a template conversion function with "volatile bool" as argument.
+                <replace-type modified-type="VolatileBool"/>
+                <conversion-rule class="native">
+                    auto volatileBool = reinterpret_cast&lt;QtQml_VolatileBoolObject *&gt;(%PYARG_1);
+                    std::atomic&lt;bool&gt; *%out = volatileBool->flag;
+                </conversion-rule>
+            </modify-argument>
+        </modify-function>
+    </object-type>
+
+    <!-- TODO: QQmlListProperty is a template class, and thus should probably be treated like a
+    container-type tag, which implies custom code for conversion. Not sure there's a use case to
+    allow instantiating or deriving from the class though, given that a separate custom ListProperty
+    type is provided by the module. Plus meta type registration would have to be taken into account
+    for the QML parts.
+    <value-type name="QQmlListProperty"/>-->
+    <value-type name="QQmlListReference"/>
+    <object-type name="QQmlParserStatus"/>
+    <object-type name="QPyQmlParserStatus"/>
+    <value-type name="QQmlProperty">
+        <enum-type name="PropertyTypeCategory"/>
+        <enum-type name="Type"/>
+    </value-type>
+    <object-type name="QQmlPropertyMap"/>
+    <object-type name="QQmlPropertyValueSource"/>
+    <object-type name="QPyQmlPropertyValueSource"/>
+    <value-type name="QQmlScriptString">
+        <modify-function signature="numberLiteral(bool*)const" allow-thread="yes">
+            <modify-argument index="1">
+                <remove-argument />
+            </modify-argument>
+            <modify-argument index="return" pyi-type="Tuple[float, bool]">
+                <replace-type modified-type="PyTuple"/>
+            </modify-argument>
+            <inject-code class="target" position="beginning">
+                <insert-template name="fix_bool*"/>
+            </inject-code>
+        </modify-function>
+        <modify-function signature="booleanLiteral(bool*)const" allow-thread="yes">
+            <modify-argument index="1">
+                <remove-argument />
+            </modify-argument>
+            <modify-argument index="return" pyi-type="Tuple[bool, bool]">
+                <replace-type modified-type="PyTuple"/>
+            </modify-argument>
+            <inject-code class="target" position="beginning">
+                <insert-template name="fix_bool*"/>
+            </inject-code>
+        </modify-function>
+    </value-type>
+    <object-type name="QQmlNetworkAccessManagerFactory">
+      <modify-function signature="create(QObject*)">
+        <modify-argument index="return">
+          <define-ownership class="native" owner="c++"/>
+        </modify-argument>
+      </modify-function>
+    </object-type>
+    <!-- Suppress anonymous enum warning -->
+    <suppress-warning text="Anonymous enum (QmlCurrentSingletonTypeRegistrationVersion) does not have a type entry"/>
+    <suppress-warning text="Enum 'QQmlModuleImportSpecialVersions' does not have a type entry"/>
+    <suppress-warning text="^Unable to decide type of property: .*QQmlListProperty.*Unable to translate type.*QQmlListProperty.*Cannot find type entry for.*QQmlListProperty.*$"/>
+</typesystem>
