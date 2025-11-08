@@ -1,10 +1,17 @@
 # Release Notes
 
+## v4.5.0
+- [TIK-191] Snapshots can now be directly published. This is useful when ingesting elements from vendors and client, such as plates, textures, concepts, etc.
+- [TIK-187] New tasks now can be created from the tasks layout in addition to the right-clicking to the parent sub-project.
+- [TIK-190] Versions last modification date and time is now visible on the main UI. Version pop-up dialos also updated with additional information.
+- [TIK-198] Bug fix: Items now prevented from being edited with double-clicking on the main UI.
+- [TIK-199] Bug fix: Blender USD extraction with animation now works as expected.
+
 ## v4.4.2
 - [TIK-188] handling of non-work scenes improved when trying to accidentally publish them.
 - Security updates for urllib3 and requests dependencies.
 - [TIK-193] When publishing USD, live and pro now references the sublayer instead of creating a copy.
-- [TIK-194] Explicityly declaring to Qt not tus use the native menu bar.
+- [TIK-194] Explicitly declaring to Qt not to use the native menu bar.
 - [TIK-196] Bug fix for blender work publishing.
 
 ## v4.4.1

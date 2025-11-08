@@ -1,6 +1,6 @@
 [project]
 name = "tik_manager4"
-version = "4.3.7"
+version = "4.5.0"
 license = {file = "LICENSE"}
 authors =[{name="Arda Kutlu", email="ardakutlu@gmail.com"},]
 description="Multi Platform and Multi DCC Python based Pipeline Toolkit."
