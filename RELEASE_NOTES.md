@@ -6,6 +6,7 @@
 - [TIK-190] Versions last modification date and time is now visible on the main UI. Version pop-up dialos also updated with additional information.
 - [TIK-198] Bug fix: Items now prevented from being edited with double-clicking on the main UI.
 - [TIK-199] Bug fix: Blender USD extraction with animation now works as expected.
+- [TIK-197] PySide6 adaptation. Now the frozen windows standalone and windows blender versions are using PySide6 instead of Pyside2.
 
 ## v4.4.2
 - [TIK-188] handling of non-work scenes improved when trying to accidentally publish them.
