@@ -1,5 +1,5 @@
 #define appName "Tik Manager4"
-#define appVersion "4.4.3-alpha"
+#define appVersion "4.5.0"
 
 [Setup]
 AppId={{0BAFF3AF-5D10-4CA9-9232-428F16D17175}
