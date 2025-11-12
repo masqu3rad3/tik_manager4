@@ -4,7 +4,6 @@
 
 
 ------------------------------------------------------------------------------------
-
 [**Tik Manager**](https://tik-manager.com/) is a Python-based Pipeline and Project Management platform designed for VFX and Animation Projects.
 
 The primary objective of Tik Manager 4 is to maintain simplicity for small projects while offering the flexibility needed to handle more complex and larger-scale endeavors.
@@ -12,6 +11,19 @@ The primary objective of Tik Manager 4 is to maintain simplicity for small proje
 As with its predecessor, Tik Manager v4 remains cross-platform and cross-DCC (Digital Content Creation).
 
 <img src="https://github.com/user-attachments/assets/84b21f81-0608-4ace-9050-3fbc1f5afe9d" alt="tik_peek" autoplay loop>
+
+------------------------------------------------------------------------------------
+Dual Licensing
+
+Tik Manager is available under dual licensing:
+
+Open (GPL-3.0) - unchanged. Free for any use. If you modify Tik Manager itself and distribute those changes, you must publish them under GPL-3.0.
+
+Commercial license - for studios that cannot use GPL due to internal policy or the need to keep in-house modifications private and integrate with proprietary pipelines. Same software, different legal terms.
+
+👉 Learn more / obtain a commercial license: https://tikworks.gumroad.com/l/tik-manager
+
+Note: Downloads and builds remain on GitHub Releases. The commercial option provides alternative legal terms, not different binaries.
 
 ------------------------------------------------------------------------------------
 Main Features
@@ -64,6 +76,13 @@ By enforcing standards and best practices, Tik Manager helps mitigate risks asso
 **Open Source**
 
 Tik Manager is open-source, meaning it's free to use and can be customized to suit individual requirements. The community can contribute to its development, and it can be adapted to meet the specific needs of different projects.
+
+License
+-------
+
+Repository license: GPL-3.0
+
+Commercial option: For studios needing non-GPL terms (keep modifications private and allow proprietary integration), see: https://tikworks.gumroad.com/l/tik-manager
 
 ### Signed Releases for Windows
 

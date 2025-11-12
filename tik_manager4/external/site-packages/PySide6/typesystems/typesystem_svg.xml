@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtSvg"
+            namespace-begin="QT_BEGIN_NAMESPACE" namespace-end="QT_END_NAMESPACE">
+  <load-typesystem name="typesystem_gui.xml" generate="no"/>
+
+  <object-type name="QSvgRenderer"/>
+  <namespace-type name="QtSvg" since="6.7">
+      <enum-type name="Option" flags="Options"/>
+  </namespace-type>
+
+  <object-type name="QSvgGenerator">
+    <enum-type name="SvgVersion" since="6.5"/>
+    <modify-function signature="setOutputDevice(QIODevice*)">
+      <modify-argument index="1">
+          <reference-count action="set"/>
+      </modify-argument>
+    </modify-function>
+
+    <modify-function signature="outputDevice()const">
+      <modify-argument index="return">
+          <define-ownership class="target" owner="default"/>
+      </modify-argument>
+    </modify-function>
+  </object-type>
+
+</typesystem>

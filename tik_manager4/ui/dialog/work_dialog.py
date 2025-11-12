@@ -510,8 +510,28 @@ class SaveAnyFileDialog(NewWorkDialog):
         self.file_format_widget.hide()
         self.file_format_widget.label.hide()
 
+        self.direct_publish = False
+
+        # create a direct publish checkbox widget and insert it to the start of the button layout
+        self.direct_publish_cb = QtWidgets.QCheckBox("Direct Publish")
+        self.direct_publish_cb.setChecked(self.direct_publish)
+        self.direct_publish_cb.setToolTip("If checked, the file will be published directly.")
+        self.layouts.buttons_layout.insertWidget(0, self.direct_publish_cb)
+
+
+        # SIGNALS
+        self.direct_publish_cb.stateChanged.connect(self.on_direct_publish_changed)
+
         self.resize(500, 300)
         self.layouts.splitter.setSizes([200, 150])
+
+    def on_direct_publish_changed(self, state):
+        """Handle the direct publish checkbox state change."""
+        self.direct_publish = state
+        if state:
+            self.widgets.create_btn.setText("Publish File")
+        else:
+            self.widgets.create_btn.setText("Create Work")
 
     def on_create_work(self):
         """Create the work file."""
@@ -520,8 +540,10 @@ class SaveAnyFileDialog(NewWorkDialog):
         notes = self.widgets.notes_te.toPlainText()
         #
         self.category.create_work_from_path(
-            name, self._file_or_folder_path, override_dcc=override_dcc, ignore_checks=True, notes=notes
+            name, self._file_or_folder_path, override_dcc=override_dcc,
+            ignore_checks=True, notes=notes, direct_publish=self.direct_publish
         )
+
         self.accept()
 
     def __get_matching_dccs(self, suffix):

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtDesigner"
+            namespace-begin="QT_BEGIN_NAMESPACE" namespace-end="QT_END_NAMESPACE">
+  <load-typesystem name="typesystem_widgets.xml" generate="no"/>
+
+  <rejection class="qdesigner_internal"/>
+
+  <object-type name="QAbstractExtensionFactory"/>
+  <object-type name="QAbstractExtensionManager"/>
+  <object-type name="QAbstractFormBuilder"/>
+  <object-type name="QDesignerActionEditorInterface"/>
+  <object-type name="QDesignerContainerExtension"/>
+  <object-type name="QDesignerCustomWidgetCollectionInterface"/>
+  <object-type name="QDesignerCustomWidgetInterface">
+    <modify-function signature="createWidget(QWidget*)">
+        <modify-argument index="return">
+          <define-ownership class="native" owner="c++"/>
+        </modify-argument>
+    </modify-function>
+  </object-type>
+  <!-- QDesignerDnDItemInterface has abstract functions dealing with the
+       unexposed DomUI classes, we cannot generate a wrapper. -->
+  <object-type name="QDesignerDnDItemInterface" disable-wrapper="yes">
+    <enum-type name="DropType"/>
+  </object-type>
+  <object-type name="QDesignerDynamicPropertySheetExtension"/>
+  <object-type name="QDesignerFormEditorInterface"/>
+  <object-type name="QDesignerFormWindowCursorInterface">
+      <enum-type name="MoveMode"/>
+      <enum-type name="MoveOperation"/>
+  </object-type>
+  <!-- QDesignerFormWindowInterface has abstract functions dealing with private
+       class QtResourceSet, so, we cannot generate a wrapper. -->
+  <object-type name="QDesignerFormWindowInterface" disable-wrapper="yes">
+    <enum-type name="FeatureFlag" flags="Feature"/>
+    <enum-type name="ResourceFileSaveMode"/>
+  </object-type>
+  <object-type name="QDesignerFormWindowManagerInterface">
+     <enum-type name="Action"/>
+     <enum-type name="ActionGroup"/>
+  </object-type>
+  <object-type name="QDesignerFormWindowToolInterface"/>
+  <object-type name="QDesignerMemberSheetExtension"/>
+  <object-type name="QDesignerObjectInspectorInterface"/>
+  <object-type name="QDesignerPropertyEditorInterface"/>
+  <object-type name="QDesignerPropertySheetExtension"/>
+  <object-type name="QDesignerTaskMenuExtension"/>
+  <object-type name="QDesignerWidgetBoxInterface">
+    <value-type name="Category">
+      <enum-type name="Type"/>
+    </value-type>
+    <value-type name="Widget">
+      <enum-type name="Type"/>
+    </value-type>
+  </object-type>
+  <object-type name="QExtensionManager"/>
+  <object-type name="QExtensionFactory"/>
+  <object-type name="QFormBuilder"/>
+  <object-type name="QPyDesignerCustomWidgetCollection" disable-wrapper="yes">
+    <extra-includes>
+      <include file-name="qpydesignerextensions.h" location="global"/>
+    </extra-includes>
+    <modify-function signature="addCustomWidget(QDesignerCustomWidgetInterface*)">
+      <modify-argument index="1">
+        <define-ownership owner="c++"/>
+      </modify-argument>
+    </modify-function>
+    <!-- Force VARARGS/keyword arguments by giving a default parameters -->
+    <add-function signature='registerCustomWidget(PyObject*@customWidgetType@,const QString&amp; @xml@ = {}, const QString&amp; @tool_tip@ = {}, const QString&amp; @group@ = {}, const QString&amp; @module@ = {}, bool @container@ = false, const QString&amp; @icon@ = {})'
+                  return-type='void' static='true'>
+       <inject-code class="target" position="beginning" file="../glue/qtdesigner.cpp" snippet="qtdesigner-registercustomwidget"/>
+    </add-function>
+  </object-type>
+  <object-type name="QPyDesignerContainerExtension">
+    <extra-includes>
+      <include file-name="qpydesignerextensions.h" location="global"/>
+    </extra-includes>
+  </object-type>
+  <object-type name="QPyDesignerMemberSheetExtension">
+  <extra-includes>
+    <include file-name="qpydesignerextensions.h" location="global"/>
+  </extra-includes>
+  </object-type>
+  <object-type name="QPyDesignerPropertySheetExtension">
+    <extra-includes>
+      <include file-name="qpydesignerextensions.h" location="global"/>
+    </extra-includes>
+  </object-type>
+  <object-type name="QPyDesignerTaskMenuExtension">
+    <extra-includes>
+      <include file-name="qpydesignerextensions.h" location="global"/>
+    </extra-includes>
+  </object-type>
+
+  <!-- Suppress all QString */int * out parameters -->
+  <suppress-warning text="^There's no user provided way.*handle the primitive type.*$"/>
+  <suppress-warning text="^.*skipping abstract function.*QtResourceSet.*$"/>
+  <suppress-warning text="^.*skipping abstract function.*DomUI.*$"/>
+</typesystem>

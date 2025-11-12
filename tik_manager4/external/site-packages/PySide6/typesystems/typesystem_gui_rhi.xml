@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtGui">
+  <value-type name="QRhiDepthStencilClearValue" since="6.6" private="yes"/>
+  <value-type name="QRhiViewport" since="6.6" private="yes"/>
+  <value-type name="QRhiScissor" since="6.6" private="yes"/>
+  <value-type name="QRhiVertexInputBinding" since="6.6" private="yes">
+      <enum-type name="Classification"/>
+  </value-type>
+  <value-type name="QRhiVertexInputAttribute" since="6.6" private="yes">
+      <enum-type name="Format"/>
+  </value-type>
+  <value-type name="QRhiVertexInputLayout" since="6.6" private="yes">
+      <add-function signature="setBindings(QList&lt;QRhiVertexInputBinding&gt;@bindings@)">
+          <inject-code class="target" position="beginning"
+                       file="../glue/qtgui.cpp" snippet="qrhi-initializer-list"/>
+      </add-function>
+      <add-function signature="setAttributes(QList&lt;QRhiVertexInputAttribute&gt;@attributes@)">
+          <inject-code class="target" position="beginning"
+                       file="../glue/qtgui.cpp" snippet="qrhi-initializer-list"/>
+      </add-function>
+  </value-type>
+  <value-type name="QRhiShaderStage" since="6.6" private="yes">
+      <enum-type name="Type"/>
+  </value-type>
+  <value-type name="QRhiShaderResourceBinding" since="6.6" private="yes">
+      <enum-type name="Type"/>
+      <enum-type name="StageFlag" flags="StageFlags"/>
+      <value-type name="TextureAndSampler" private="yes"/>
+      <value-type name="Data" private="yes">
+          <value-type name="StorageImageData" private="yes"/>
+          <value-type name="StorageBufferData" private="yes"/>
+      </value-type>
+  </value-type>
+  <value-type name="QRhiColorAttachment" since="6.6" private="yes"/>
+  <value-type name="QRhiTextureRenderTargetDescription" since="6.6" private="yes">
+      <add-function signature="setColorAttachments(QList&lt;QRhiColorAttachment&gt;@bcolor_attachments@)">
+          <inject-code class="target" position="beginning"
+                       file="../glue/qtgui.cpp" snippet="qrhi-initializer-list"/>
+      </add-function>
+  </value-type>
+  <value-type name="QRhiTextureSubresourceUploadDescription" since="6.6" private="yes"/>
+  <value-type name="QRhiTextureUploadEntry" since="6.6" private="yes"/>
+  <value-type name="QRhiTextureUploadDescription" since="6.6" private="yes">
+      <add-function signature="setEntries(QList&lt;QRhiTextureUploadEntry&gt;@entries@)">
+          <inject-code class="target" position="beginning"
+                       file="../glue/qtgui.cpp" snippet="qrhi-initializer-list"/>
+      </add-function>
+  </value-type>
+  <value-type name="QRhiTextureCopyDescription" since="6.6" private="yes"/>
+  <value-type name="QRhiReadbackDescription" since="6.6" private="yes"/>
+  <value-type name="QRhiNativeHandles" since="6.6" private="yes"/>
+  <object-type name="QRhiResource" since="6.6" private="yes">
+      <enum-type name="Type"/>
+  </object-type>
+  <object-type name="QRhiBuffer" since="6.6" private="yes">
+      <enum-type name="Type"/>
+      <enum-type name="UsageFlag" flags="UsageFlags"/>
+      <!-- const char * mixup -->
+      <modify-function signature="beginFullDynamicBufferUpdateForCurrentFrame()" remove="all"/>
+  </object-type>
+  <object-type name="QRhiTexture" since="6.6" private="yes">
+      <enum-type name="Format"/>
+      <enum-type name="Flag" flags="Flags"/>
+      <value-type name="ViewFormat" private="yes" since="6.8"/>
+  </object-type>
+  <object-type name="QRhiSampler" since="6.6" private="yes">
+      <enum-type name="Filter"/>
+      <enum-type name="AddressMode"/>
+      <enum-type name="CompareOp"/>
+  </object-type>
+  <object-type name="QRhiRenderBuffer" since="6.6" private="yes">
+      <enum-type name="Type"/>
+      <enum-type name="Flag" flags="Flags"/>
+  </object-type>
+  <object-type name="QRhiRenderPassDescriptor" since="6.6" private="yes"/>
+  <object-type name="QRhiRenderTarget" since="6.6" private="yes"/>
+  <object-type name="QRhiSwapChainRenderTarget" since="6.6" private="yes"/>
+  <object-type name="QRhiTextureRenderTarget" since="6.6" private="yes">
+      <enum-type name="Flag" flags="Flags"/>
+  </object-type>
+  <object-type name="QRhiShaderResourceBindings" since="6.6" private="yes">
+      <enum-type name="UpdateFlag" flags="UpdateFlags"/>
+      <modify-field name="BINDING_PREALLOC" remove="true"/>
+      <add-function signature="setBindings(QList&lt;QRhiShaderResourceBinding&gt;@bindings@)">
+          <inject-code class="target" position="beginning"
+                       file="../glue/qtgui.cpp" snippet="qrhi-initializer-list"/>
+      </add-function>
+  </object-type>
+  <object-type name="QRhiGraphicsPipeline" since="6.6" private="yes">
+      <enum-type name="Flag" flags="Flags"/>
+      <enum-type name="BlendOp"/>
+      <enum-type name="Topology"/>
+      <enum-type name="CullMode"/>
+      <enum-type name="FrontFace"/>
+      <enum-type name="ColorMaskComponent" flags="ColorMask"/>
+      <enum-type name="BlendFactor"/>
+      <enum-type name="CompareOp"/>
+      <enum-type name="StencilOp"/>
+      <enum-type name="PolygonMode"/>
+      <value-type name="StencilOpState" private="yes"/>
+      <value-type name="TargetBlend" private="yes"/>
+      <add-function signature="setShaderStages(QList&lt;QRhiShaderStage&gt;@stages@)">
+          <inject-code class="target" position="beginning"
+                       file="../glue/qtgui.cpp"
+                       snippet="qrhi-initializer-list"/>
+      </add-function>
+      <add-function signature="setTargetBlends(QList&lt;QRhiGraphicsPipeline::TargetBlend&gt;@blends@)">
+          <inject-code class="target" position="beginning"
+                       file="../glue/qtgui.cpp"
+                       snippet="qrhi-initializer-list"/>
+      </add-function>
+  </object-type>
+  <object-type name="QRhiSwapChain" since="6.6" private="yes">
+      <enum-type name="Flag" flags="Flags"/>
+      <enum-type name="Format"/>
+      <enum-type name="StereoTargetBuffer"/>
+  </object-type>
+  <object-type name="QRhiComputePipeline" since="6.6" private="yes">
+      <enum-type name="Flag" flags="Flags"/>
+  </object-type>
+  <object-type name="QRhiCommandBuffer" since="6.6" private="yes">
+      <enum-type name="BeginPassFlag" flags="BeginPassFlags"/>
+      <enum-type name="IndexFormat"/>
+      <modify-function signature="^setVertexInput\(.*\)$" remove="all"/>
+      <add-function signature="setVertexInput(int@startBinding@,QList&lt;std::pair&lt;QRhiBuffer*,quint32&gt;&gt;@bindings@,QRhiBuffer*@indexBuf@=nullptr,quint32@indexOffset@=0,QRhiCommandBuffer::IndexFormat @indexFormat@ = QRhiCommandBuffer::IndexUInt16)">
+          <inject-code class="target" position="beginning"
+                       file="../glue/qtgui.cpp"
+                       snippet="qrhi-commandbuffer-setvertexinput"/>
+      </add-function>
+  </object-type>
+  <value-type name="QRhiReadbackResult" since="6.6" private="yes"/>
+  <object-type name="QRhiResourceUpdateBatch" since="6.6" private="yes"/>
+  <value-type name="QRhiDriverInfo" since="6.6" private="yes">
+      <enum-type name="DeviceType"/>
+  </value-type>
+  <value-type name="QRhiStats" since="6.6" private="yes"/>
+  <value-type name="QRhiInitParams" since="6.6" private="yes"/>
+  <value-type name="QRhiNullInitParams" since="6.6" private="yes"/>
+  <value-type name="QRhiGles2InitParams" since="6.6" private="yes"/>
+  <value-type name="QRhiGles2NativeHandles" since="6.6" private="yes"/>
+  <?if windows?>
+  <value-type name="QRhiD3D11InitParams" since="6.6" private="yes"/>
+  <value-type name="QRhiD3D11NativeHandles" since="6.6" private="yes"/>
+  <value-type name="QRhiD3D12InitParams" since="6.6" private="yes"/>
+  <value-type name="QRhiD3D12NativeHandles" since="6.6" private="yes"/>
+  <?endif?>
+  <?if darwin?>
+  <value-type name="QRhiMetalInitParams" since="6.6" private="yes"/>
+  <?endif?>
+
+  <object-type name="QRhi" since="6.6" private="yes">
+      <enum-type name="Flag" flags="Flags"/>
+      <enum-type name="Implementation"/>
+      <enum-type name="FrameOpResult"/>
+      <enum-type name="Feature"/>
+      <enum-type name="BeginFrameFlag" flags="BeginFrameFlags"/>
+      <enum-type name="EndFrameFlag" flags="EndFrameFlags"/>
+      <enum-type name="ResourceLimit"/>
+  </object-type>
+
+  <value-type name="QShader" since="6.6" private="yes">
+      <enum-type name="Stage"/>
+      <enum-type name="Source"/>
+      <enum-type name="Variant"/>
+      <enum-type name="SerializedFormatVersion"/>
+  </value-type>
+  <value-type name="QShaderCode" since="6.6" private="yes"/>
+  <value-type name="QShaderKey" since="6.6" private="yes"/>
+  <value-type name="QShaderVersion" since="6.6" private="yes">
+    <enum-type name="Flag" flags="Flags"/>
+  </value-type>
+
+</typesystem>

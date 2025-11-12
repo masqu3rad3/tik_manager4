@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2018 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem>
+
+    <template name="replace_child"
+              file="../glue/qtwidgets.cpp" snippet="replace-widget-child"/>
+
+    <!-- Do pointer conversion here since QStyleOptionGraphicsItem is an "object-type". -->
+    <template name="qstyleoptiongraphicsitem_pyobject">
+        Shiboken::AutoDecRef option_object(PyList_New(0));
+        for (int i=0, max=numItems; i &lt; max; i++) {
+            const QStyleOptionGraphicsItem* item = &amp;%in[i];
+            PyList_Append(option_object, %CONVERTTOPYTHON[QStyleOptionGraphicsItem](item));
+        }
+        PyObject* %out = option_object.object();
+    </template>
+
+    <template name="pysequence_qstyleoptiongraphicsitem">
+        const Py_ssize_t numOptions = PySequence_Size(%PYARG_2);
+        Shiboken::ArrayPointer&lt;QStyleOptionGraphicsItem&gt; %out(numOptions);
+        for (Py_ssize_t i=0; i &lt; numOptions; ++i) {
+            Shiboken::AutoDecRef _arg1(PySequence_GetItem(%PYARG_1, i));
+            %out[i] = %CONVERTTOCPP[QStyleOptionGraphicsItem](_arg1);
+        }
+    </template>
+
+</typesystem>

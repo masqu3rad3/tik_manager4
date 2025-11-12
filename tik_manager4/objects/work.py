@@ -207,13 +207,15 @@ class Work(Settings, LocalizeMixin):
             if version.version == version_number:
                 return version
 
-    def new_version_from_path(self, file_path, notes=""):
+    def new_version_from_path(self, file_path, notes="", dry_version=False):
         """Register a given path (file or folder) as a new version of the work.
 
         Args:
             file_path (str): The file path of the source file. This will be copied to the project.
             notes (str): Notes for the version.
             ignore_checks (bool): If True, skip all pre-checks.
+            dry_version (bool): If True, do not actually copy the file. Just create the version entry.
+                This is useful when used with direct publishing.
 
         Returns:
             dict: The version dictionary.
@@ -231,17 +233,26 @@ class Work(Settings, LocalizeMixin):
         thumbnail_path = self.get_abs_database_path("thumbnails", thumbnail_name)
         Path(abs_version_path).parent.mkdir(parents=True, exist_ok=True)
 
-        # save the file
-        output_path = self._standalone_handler.save_as(
-            abs_version_path, source_path=file_path
-        )
+        if not dry_version:
+            # save the file
+            output_path = self._standalone_handler.save_as(
+                abs_version_path, source_path=file_path
+            )
+            extension = Path(output_path).suffix or "Folder"
+        else:
+            # just create an empty file or folder
+            if Path(file_path).is_file():
+                Path(abs_version_path).touch()
+            else:
+                Path(abs_version_path).mkdir(parents=True, exist_ok=True)
+            extension = "Direct Publish"
 
         # generate thumbnail
         # create the thumbnail folder if it doesn't exist
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
 
         # add it to the versions
-        extension = Path(output_path).suffix or "Folder"
+        # extension = Path(output_path).suffix or "Folder"
         thumbnail_resolution = self.guard.preview_settings.get("ThumbnailResolution", (220, 124))
         self._standalone_handler.text_to_image(extension, thumbnail_path, *(thumbnail_resolution))
         version_dict = {

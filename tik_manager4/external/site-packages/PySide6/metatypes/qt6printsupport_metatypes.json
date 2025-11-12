@@ -1,0 +1,519 @@
+[
+    {
+        "classes": [
+            {
+                "className": "QPageSetupDialog",
+                "lineNumber": 18,
+                "object": true,
+                "qualifiedClassName": "QPageSetupDialog",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QDialog"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qpagesetupdialog.h",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "className": "QAbstractPrintDialog",
+                "enums": [
+                    {
+                        "isClass": false,
+                        "isFlag": false,
+                        "name": "PrintDialogOption",
+                        "values": [
+                            "PrintToFile",
+                            "PrintSelection",
+                            "PrintPageRange",
+                            "PrintShowPageSize",
+                            "PrintCollateCopies",
+                            "PrintCurrentPage"
+                        ]
+                    },
+                    {
+                        "alias": "PrintDialogOption",
+                        "isClass": false,
+                        "isFlag": true,
+                        "name": "PrintDialogOptions",
+                        "values": [
+                            "PrintToFile",
+                            "PrintSelection",
+                            "PrintPageRange",
+                            "PrintShowPageSize",
+                            "PrintCollateCopies",
+                            "PrintCurrentPage"
+                        ]
+                    }
+                ],
+                "lineNumber": 18,
+                "object": true,
+                "qualifiedClassName": "QAbstractPrintDialog",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QDialog"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qabstractprintdialog.h",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "className": "QPlatformPrinterSupportPlugin",
+                "lineNumber": 29,
+                "object": true,
+                "qualifiedClassName": "QPlatformPrinterSupportPlugin",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qplatformprintplugin.h",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "className": "QPrintDialog",
+                "lineNumber": 19,
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 0,
+                        "name": "options",
+                        "read": "options",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "PrintDialogOptions",
+                        "user": false,
+                        "write": "setOptions"
+                    }
+                ],
+                "qualifiedClassName": "QPrintDialog",
+                "signals": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "printer",
+                                "type": "QPrinter*"
+                            }
+                        ],
+                        "index": 0,
+                        "name": "accepted",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QAbstractPrintDialog"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qprintdialog.h",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "className": "QPrintPreviewDialog",
+                "lineNumber": 19,
+                "object": true,
+                "qualifiedClassName": "QPrintPreviewDialog",
+                "signals": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "printer",
+                                "type": "QPrinter*"
+                            }
+                        ],
+                        "index": 0,
+                        "name": "paintRequested",
+                        "returnType": "void"
+                    }
+                ],
+                "slots": [
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "name": "action",
+                                "type": "QAction*"
+                            }
+                        ],
+                        "index": 1,
+                        "name": "_q_fit",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "index": 2,
+                        "name": "_q_zoomIn",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "index": 3,
+                        "name": "_q_zoomOut",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "name": "action",
+                                "type": "QAction*"
+                            }
+                        ],
+                        "index": 4,
+                        "name": "_q_navigate",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "name": "action",
+                                "type": "QAction*"
+                            }
+                        ],
+                        "index": 5,
+                        "name": "_q_setMode",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "index": 6,
+                        "name": "_q_pageNumEdited",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "index": 7,
+                        "name": "_q_print",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "index": 8,
+                        "name": "_q_pageSetup",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "index": 9,
+                        "name": "_q_previewChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "index": 10,
+                        "name": "_q_zoomFactorChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QDialog"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qprintpreviewdialog.h",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "className": "QPrintPreviewWidget",
+                "lineNumber": 18,
+                "object": true,
+                "qualifiedClassName": "QPrintPreviewWidget",
+                "signals": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "printer",
+                                "type": "QPrinter*"
+                            }
+                        ],
+                        "index": 0,
+                        "name": "paintRequested",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 1,
+                        "name": "previewChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "slots": [
+                    {
+                        "access": "public",
+                        "index": 2,
+                        "name": "print",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "zoom",
+                                "type": "qreal"
+                            }
+                        ],
+                        "index": 3,
+                        "name": "zoomIn",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 4,
+                        "isCloned": true,
+                        "name": "zoomIn",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "zoom",
+                                "type": "qreal"
+                            }
+                        ],
+                        "index": 5,
+                        "name": "zoomOut",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 6,
+                        "isCloned": true,
+                        "name": "zoomOut",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "zoomFactor",
+                                "type": "qreal"
+                            }
+                        ],
+                        "index": 7,
+                        "name": "setZoomFactor",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "orientation",
+                                "type": "QPageLayout::Orientation"
+                            }
+                        ],
+                        "index": 8,
+                        "name": "setOrientation",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "viewMode",
+                                "type": "ViewMode"
+                            }
+                        ],
+                        "index": 9,
+                        "name": "setViewMode",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "zoomMode",
+                                "type": "ZoomMode"
+                            }
+                        ],
+                        "index": 10,
+                        "name": "setZoomMode",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "pageNumber",
+                                "type": "int"
+                            }
+                        ],
+                        "index": 11,
+                        "name": "setCurrentPage",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 12,
+                        "name": "fitToWidth",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 13,
+                        "name": "fitInView",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 14,
+                        "name": "setLandscapeOrientation",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 15,
+                        "name": "setPortraitOrientation",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 16,
+                        "name": "setSinglePageViewMode",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 17,
+                        "name": "setFacingPagesViewMode",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 18,
+                        "name": "setAllPagesViewMode",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 19,
+                        "name": "updatePreview",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "index": 20,
+                        "name": "_q_fit",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "index": 21,
+                        "name": "_q_updateCurrentPage",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QWidget"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qprintpreviewwidget.h",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "className": "LineEdit",
+                "lineNumber": 83,
+                "object": true,
+                "qualifiedClassName": "LineEdit",
+                "slots": [
+                    {
+                        "access": "private",
+                        "index": 0,
+                        "name": "handleReturnPressed",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QLineEdit"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qprintpreviewdialog.cpp",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "className": "GraphicsView",
+                "lineNumber": 107,
+                "object": true,
+                "qualifiedClassName": "QtPrivate::GraphicsView",
+                "signals": [
+                    {
+                        "access": "public",
+                        "index": 0,
+                        "name": "resized",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QGraphicsView"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qprintpreviewwidget.cpp",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "className": "QWindowsPrinterSupportPlugin",
+                "lineNumber": 56,
+                "object": true,
+                "qualifiedClassName": "QWindowsPrinterSupportPlugin",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QPlatformPrinterSupportPlugin"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qwindowsprintersupport.cpp",
+        "outputRevision": 69
+    }
+]

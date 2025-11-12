@@ -1,0 +1,3711 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtCore">
+    <load-typesystem name="common.xml" generate="no"/>
+    <load-typesystem name="core_common.xml" generate="no"/>
+
+    <custom-type name="list of QAbstractAnimation"/>
+    <custom-type name="PySideSignalInstance"
+                 check-function="PySide::Signal::checkInstanceType"/>
+<!--
+    <function signature="qChecksum(QByteArrayView data, Qt::ChecksumType)"/>
+-->
+    <extra-includes>
+        <include file-name="pysidemetatype.h" location="global"/>
+        <include file-name="pysideutils.h" location="global"/> <!-- QString conversion -->
+        <include file-name="signalmanager.h" location="global"/>
+        <!-- QtCoreHelper::QGenericReturnArgumentHolder -->
+        <include file-name="qtcorehelper.h" location="local"/>
+    </extra-includes>
+
+    <overload-removal type="QString" replaces="QStringView"/>
+    <overload-removal type="double" replaces="float"/>
+    <overload-removal type="unsigned int" replaces="unsigned short"/> <!-- Order is important here -->
+    <overload-removal type="unsigned long" replaces="unsigned short"/>
+    <overload-removal type="unsigned" replaces="unsigned short"/>
+    <overload-removal type="unsigned long long" replaces="unsigned;unsigned int;unsigned long"/>
+    <overload-removal type="int" replaces="short;std::chrono::milliseconds;std::chrono::seconds"/>
+    <overload-removal type="long" replaces="short"/>
+    <overload-removal type="long long" replaces="long;int"/>
+
+    <function signature="qFastCos(qreal)"/>
+    <function signature="qFastSin(qreal)"/>
+    <function signature="qFuzzyCompare(double,double)"/>
+    <function signature="qFuzzyIsNull(double)"/>
+    <function signature="qIsFinite(double)"/>
+    <function signature="qIsInf(double)"/>
+    <function signature="qIsNaN(double)"/>
+    <function signature="qIsNull(double)"/>
+    <!-- Qt5: gone <function signature="qRound(qreal)"/> -->
+    <function signature="qtTrId(const char*,int)"/>
+    <function signature="qVersion()">
+        <modify-function>
+            <modify-argument index="return" pyi-type="str"/>
+        </modify-function>
+    </function>
+    <!-- Move PyBuffer overload to front to avoid conversion PyBuffer->QByteArray -->
+    <function signature="qCompress(const uchar*,qsizetype,int)" overload-number="0">
+        <modify-function>
+            <modify-argument index="1">
+                <replace-type modified-type="PyBuffer"/>
+            </modify-argument>
+            <inject-code file="../glue/qtcore.cpp" snippet="qcompress-buffer"/>
+        </modify-function>
+    </function>
+    <function signature="qCompress(const QByteArray&amp;,int)" overload-number="1"/>
+    <!-- Move PyBuffer overload to front to avoid conversion PyBuffer->QByteArray -->
+    <function signature="qUncompress(const uchar*,qsizetype)" overload-number="0">
+        <modify-function>
+            <modify-argument index="1">
+                <replace-type modified-type="PyBuffer"/>
+            </modify-argument>
+            <inject-code file="../glue/qtcore.cpp" snippet="quncompress-buffer"/>
+        </modify-function>
+    </function>
+    <function signature="qUncompress(const QByteArray&amp;)"  overload-number="1"/>
+    <function signature="qFormatLogMessage(QtMsgType,const QMessageLogContext&amp;,const QString&amp;)"
+              doc-file="qtlogging"/>
+    <function signature="qSetMessagePattern(const QString&amp;)" doc-file="qtlogging"/>
+
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp" snippet="include-pyside"/>
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp"
+                 snippet="qarg_helper"/>
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp"
+                 snippet="darwin_permission_plugin"/>
+
+    <add-function signature="qDebug(const char*@message@)">
+        <inject-code file="../glue/qtcore.cpp" snippet="qdebug-format-string"/>
+        <modify-argument index="1" pyi-type="str"/>
+    </add-function>
+    <add-function signature="qCritical(const char*@message@)">
+        <inject-code file="../glue/qtcore.cpp" snippet="qdebug-format-string"/>
+        <modify-argument index="1" pyi-type="str"/>
+    </add-function>
+    <add-function signature="qFatal(const char*@message@)">
+        <inject-code file="../glue/qtcore.cpp" snippet="qfatal"/>
+        <modify-argument index="1" pyi-type="str"/>
+    </add-function>
+    <add-function signature="qInfo(const char*@message@)">
+        <inject-code file="../glue/qtcore.cpp" snippet="qdebug-format-string"/>
+        <modify-argument index="1" pyi-type="str"/>
+    </add-function>
+    <add-function signature="qWarning(const char*@message@)">
+        <inject-code file="../glue/qtcore.cpp" snippet="qdebug-format-string"/>
+        <modify-argument index="1" pyi-type="str"/>
+    </add-function>
+
+    <add-function signature="Q_ARG(PyObject *@type@, PyObject *@value@)"
+                  return-type="QtCoreHelper::QGenericArgumentHolder">
+        <inject-code file="../glue/qtcore.cpp" snippet="q_arg"/>
+        <inject-documentation format="target" mode="append"
+                              file="../doc/qtcore.rst" snippet="q_arg"/>
+    </add-function>
+    <add-function signature="Q_RETURN_ARG(PyObject *@type@)"
+                  return-type="QtCoreHelper::QGenericReturnArgumentHolder">
+        <inject-code file="../glue/qtcore.cpp" snippet="q_return_arg"/>
+        <inject-documentation format="target" mode="append"
+                              file="../doc/qtcore.rst" snippet="q_return_arg"/>
+    </add-function>
+
+    <!-- TODO: We do not support void* or const void* as arg -->
+    <rejection class="QMetaObject" function-name="activate"/>
+    <rejection class="QMetaObject" function-name="metacall"/>
+    <rejection class="QMetaObject" function-name="static_metacall"/>
+
+    <rejection class="QAlgorithmsPrivate"/>
+    <rejection class="QJsonPrivate"/>
+    <rejection class="QtGlobalStatic"/>
+    <rejection class="QtMetaTypePrivate"/>
+    <rejection class="QtPrivate"/>
+    <rejection class="QtSharedPointer"/>
+    <rejection class="QtStringBuilder"/>
+
+    <rejection class="q20"/>
+    <rejection class="q23"/>
+    <rejection class="q_has_char8_t"/>
+    <rejection class="QContainerInfo"/>
+    <rejection class="QHashPrivate"/>
+    <rejection class="q_no_char8_t"/>
+    <rejection class="Qt::Literals"/>
+    <rejection class="QtLiterals"/>
+    <rejection class="QtMetaContainerPrivate"/>
+    <rejection class="QtTsan"/>
+    <rejection class="QTypeTraits"/>
+    <rejection class="qxp"/>
+
+  <rejection class="QChildEvent" field-name="c"/>
+  <rejection class="QTimerEvent" field-name="id"/>
+  <rejection class="QEvent" field-name="t"/>
+  <rejection class="*" function-name="tr"/>
+  <!-- From Qt4.6 -->
+  <rejection class="*" field-name="d_ptr"/>
+  <rejection class="QMetaMethod" enum-name="Attributes"/>
+  <rejection class="QMetaMethod" field-name="data"/>
+  <!-- Note: Default parameter values of Disambiguated_t as defined by
+       QT6_DECL_NEW_OVERLOAD_TAIL are not seen by the clang parser since it
+       is relying on code snippets for the values. -->
+  <rejection class="Qt" field-name="Disambiguated"/>
+  <rejection class="" enum-name="QCborNegativeInteger"/>
+
+  <rejection class="*" argument-type="^qfloat16&amp;?$"/>
+  <rejection class="*" argument-type="QTSMFI"/>
+  <rejection class="*" argument-type="QTSMFC"/>
+  <rejection class="*" argument-type="QtPrivate::QSlotObjectBase*"/>
+  <rejection class="*" argument-type="^Q\w+Private( const)?\&amp;$"/>
+  <!-- Note: "QHelpModel(QHelpEnginePrivate*)" is needed -->
+  <rejection class="*" argument-type="^Q[^H]\w+Private( const)?\*$"/>
+  <rejection class="*" argument-type="Qt::Initialization"/>
+
+  <rejection class="*" argument-type="FILE*"/>
+  <rejection class="*" argument-type="^std::nullptr_t&amp;?$"/>
+  <rejection class="*" argument-type="^std::initializer_list&lt;.*$"/>
+
+  <!-- From Qt4.6 ^^^ -->
+
+  <enum-type name="QtMsgType" doc-file="qtlogging"/>
+  <enum-type name="QCborSimpleType" doc-file="qtcborcommon"/>
+  <enum-type name="QCborKnownTags" doc-file="qtcborcommon"/>
+  <enum-type name="QCborTag" doc-file="qtcborcommon"/>
+
+  <primitive-type name="qint8"/>
+  <primitive-type name="qint16"/>
+  <primitive-type name="qint32"/>
+  <primitive-type name="quint8"/>
+  <primitive-type name="quint16"/>
+  <primitive-type name="quint32"/>
+  <primitive-type name="quint64"/>
+  <primitive-type name="qreal"/>
+  <primitive-type name="qint64"/>
+  <primitive-type name="qlonglong" target-lang-api-name="PyLong"/>
+  <primitive-type name="qulonglong" target-lang-api-name="PyLong"/>
+  <primitive-type name="qsizetype" target-lang-api-name="PyLong"/>
+  <primitive-type name="size_t" target-lang-api-name="PyLong"/>
+  <primitive-type name="ushort" target-lang-api-name="PyLong"/>
+  <primitive-type name="uchar"/>
+  <primitive-type name="uint"/>
+  <primitive-type name="ulong"/>
+  <primitive-type name="int8_t"/>
+  <primitive-type name="uint8_t"/>
+  <primitive-type name="int16_t"/>
+  <primitive-type name="uint16_t"/>
+  <primitive-type name="int32_t"/>
+  <primitive-type name="uint32_t"/>
+  <primitive-type name="int64_t"/>
+  <primitive-type name="uint64_t"/>
+  <primitive-type name="intptr_t"/>
+  <primitive-type name="uintptr_t"/>
+
+  <?if windows darwin?>
+  <primitive-type name="Qt::HANDLE" target-lang-api-name="PyObject"/>
+  <?endif?>
+  <?if linux?>
+  <primitive-type name="Qt::HANDLE" target-lang-api-name="PyLong"/>
+  <?endif?>
+
+  <primitive-type name="std::chrono::milliseconds" target-lang-api-name="PyLong">
+    <extra-includes>
+        <include file-name="chrono" location="global"/>
+    </extra-includes>
+    <conversion-rule>
+        <native-to-target file="../glue/qtcore.cpp" snippet="chrono-to-pylong"/>
+        <target-to-native>
+            <add-conversion type="PyLong" file="../glue/qtcore.cpp"
+                            snippet="pylong-to-chrono"/>
+        </target-to-native>
+    </conversion-rule>
+  </primitive-type>
+
+  <primitive-type name="std::chrono::seconds" target-lang-api-name="PyLong">
+    <extra-includes>
+        <include file-name="chrono" location="global"/>
+    </extra-includes>
+    <conversion-rule>
+        <native-to-target file="../glue/qtcore.cpp" snippet="chrono-to-pylong"/>
+        <target-to-native>
+            <add-conversion type="PyLong" file="../glue/qtcore.cpp"
+                            snippet="pylong-to-chrono"/>
+        </target-to-native>
+    </conversion-rule>
+  </primitive-type>
+
+  <!-- Qt5: add the new pointer-ish types -->
+  <primitive-type name="qintptr" target-lang-api-name="PyLong">
+    <conversion-rule>
+        <native-to-target file="../glue/qtcore.cpp" snippet="return-pylong"/>
+        <target-to-native>
+            <add-conversion type="PyLong">
+                <insert-template name="shiboken_conversion_pylong_to_cpp"/>
+            </add-conversion>
+        </target-to-native>
+    </conversion-rule>
+  </primitive-type>
+  <primitive-type name="quintptr" target-lang-api-name="PyLong">
+    <conversion-rule>
+        <native-to-target file="../glue/qtcore.cpp" snippet="return-pylong-quintptr"/>
+        <target-to-native>
+            <add-conversion type="PyLong" file="../glue/qtcore.cpp" snippet="conversion-pylong-quintptr"/>
+        </target-to-native>
+    </conversion-rule>
+  </primitive-type>
+  <primitive-type name="qptrdiff" target-lang-api-name="PyLong">
+    <conversion-rule>
+        <native-to-target file="../glue/qtcore.cpp" snippet="return-pylong"/>
+        <target-to-native>
+            <add-conversion type="PyLong">
+                <insert-template name="shiboken_conversion_pylong_to_cpp"/>
+            </add-conversion>
+        </target-to-native>
+    </conversion-rule>
+  </primitive-type>
+  <primitive-type name="QFunctionPointer" target-lang-api-name="PyLong">
+    <conversion-rule>
+        <native-to-target file="../glue/qtcore.cpp" snippet="return-qfunctionpointer-pylong"/>
+        <target-to-native>
+            <add-conversion type="PyLong" file="../glue/qtcore.cpp" snippet="conversion-pylong-qfunctionpointer"/>
+        </target-to-native>
+    </conversion-rule>
+  </primitive-type>
+  <primitive-type name="QString" target-lang-api-name="PyUnicode">
+    <include file-name="QString" location="global"/>
+    <conversion-rule>
+        <native-to-target file="../glue/qtcore.cpp" snippet="return-pyunicode"/>
+        <target-to-native>
+            <add-conversion type="PyUnicode" file="../glue/qtcore.cpp" snippet="conversion-pyunicode"/>
+            <add-conversion type="Py_None" file="../glue/qtcore.cpp" snippet="conversion-pynone"/>
+        </target-to-native>
+    </conversion-rule>
+  </primitive-type>
+
+  <primitive-type name="QStringView" target-lang-api-name="PyUnicode" view-on="QString">
+    <include file-name="QStringView" location="global"/>
+    <conversion-rule>
+        <native-to-target file="../glue/qtcore.cpp" snippet="return-pyunicode"/>
+    </conversion-rule>
+  </primitive-type>
+
+  <primitive-type name="QLatin1String" target-lang-api-name="PyUnicode">
+    <include file-name="QtCore/qlatin1stringview.h" location="global"/>
+    <conversion-rule>
+        <native-to-target file="../glue/qtcore.cpp" snippet="return-pyunicode-from-qlatin1string"/>
+        <target-to-native>
+            <add-conversion type="PyString" check="qLatin1StringCheck(%in)"
+                            file="../glue/qtcore.cpp" snippet="conversion-pystring-qlatin1string"/>
+        </target-to-native>
+    </conversion-rule>
+  </primitive-type>
+
+  <primitive-type name="QAnyStringView" target-lang-api-name="PyUnicode" view-on="QString">
+    <include file-name="QAnyStringView" location="global"/>
+    <conversion-rule>
+        <native-to-target file="../glue/qtcore.cpp" snippet="return-pyunicode-from-qanystringview"/>
+    </conversion-rule>
+  </primitive-type>
+
+  <primitive-type name="QChar">
+    <conversion-rule>
+        <native-to-target file="../glue/qtcore.cpp" snippet="return-pyunicode-qchar"/>
+        <target-to-native>
+            <add-conversion type="PyString" check="Shiboken::String::checkChar(%in)" file="../glue/qtcore.cpp" snippet="conversion-pystring-char"/>
+            <add-conversion type="PyLong" file="../glue/qtcore.cpp" snippet="conversion-pyint"/>
+            <add-conversion type="Py_None" file="../glue/qtcore.cpp" snippet="conversion-pynone"/>
+        </target-to-native>
+    </conversion-rule>
+  </primitive-type>
+
+  <primitive-type name="QVariant" target-lang-api-name="PyObject">
+    <extra-includes>
+        <include file-name="optional" location="global"/>
+    </extra-includes>
+    <conversion-rule>
+        <native-to-target file="../glue/qtcore.cpp" snippet="return-qvariant"/>
+        <target-to-native>
+            <add-conversion type="PyBool" file="../glue/qtcore.cpp" snippet="conversion-pybool"/>
+            <add-conversion type="Py_None" file="../glue/qtcore.cpp" snippet="conversion-pynone"/>
+            <add-conversion type="QString" check="Shiboken::String::check(%in)" file="../glue/qtcore.cpp" snippet="conversion-qstring"/>
+            <add-conversion type="QByteArray" file="../glue/qtcore.cpp" snippet="conversion-qbytearray"/>
+            <add-conversion type="PyFloat" check="PyFloat_CheckExact(%in)" file="../glue/qtcore.cpp" snippet="conversion-pyfloat"/>
+            <add-conversion type="PyLong" check="PyLong_CheckExact(%in)"  file="../glue/qtcore.cpp" snippet="conversion-qlonglong"/>
+            <add-conversion type="SbkObject" file="../glue/qtcore.cpp" snippet="conversion-sbkobject"/>
+            <add-conversion type="PyDict" check="PyDict_CheckExact(%in)" file="../glue/qtcore.cpp" snippet="conversion-pydict"/>
+            <add-conversion type="PyList" check="PyList_Check(%in)" file="../glue/qtcore.cpp" snippet="conversion-pylist"/>
+            <add-conversion type="PyObject" file="../glue/qtcore.cpp" snippet="conversion-pyobject"/>
+        </target-to-native>
+    </conversion-rule>
+  </primitive-type>
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp" snippet="qvariant-conversion"/>
+  <primitive-type name="QStringList">
+    <include file-name="QStringList" location="global"/>
+    <conversion-rule>
+        <native-to-target>
+            <insert-template name="shiboken_conversion_cppsequence_to_pylist">
+                <replace from="%INTYPE_0" to="QString"/>
+            </insert-template>
+        </native-to-target>
+        <target-to-native>
+            <add-conversion type="PySequence">
+                <insert-template name="shiboken_conversion_pyiterable_to_cppsequentialcontainer_reserve">
+                    <replace from="%OUTTYPE_0" to="QString"/>
+                </insert-template>
+            </add-conversion>
+        </target-to-native>
+    </conversion-rule>
+  </primitive-type>
+
+  <value-type name="QCborError">
+      <enum-type name="Code"/>
+      <include file-name="qcborcommon.h" location="global"/>
+  </value-type>
+
+  <value-type name="QCborParserError">
+      <include file-name="qcborvalue.h" location="global"/>
+  </value-type>
+
+  <value-type name="QCborValue">
+      <enum-type name="EncodingOption" flags="EncodingOptions"/>
+      <enum-type name="DiagnosticNotationOption" flags="DiagnosticNotationOptions"/>
+      <enum-type name="Type"/>
+  </value-type>
+  <value-type name="QCborArray"/>
+  <value-type name="QCborMap"/>
+
+  <object-type name="QCborStreamReader">
+    <enum-type name="StringResultCode"/>
+    <enum-type name="Type"/>
+    <include file-name="qcborstream.h" location="global"/>
+    <value-type name="StringResult" generate="no"/>
+    <!-- 64bit (qsizetype = long long) -->
+    <modify-function signature="readStringChunk(char*,qsizetype)" remove="all"/>
+    <!-- 32bit (qsizetype = int) -->
+    <modify-function signature="readStringChunk(char*,int)" remove="all"/>
+  </object-type>
+  <typedef-type name="QCborStringResultString" source="QCborStreamReader::StringResult&lt;QString&gt;"/>
+  <typedef-type name="QCborStringResultByteArray" source="QCborStreamReader::StringResult&lt;QByteArray&gt;"/>
+  <object-type name="QCborStreamWriter">
+    <include file-name="qcborstream.h" location="global"/>
+  </object-type>
+
+  <primitive-type name="QJsonObject">
+    <conversion-rule>
+        <native-to-target file="../glue/qtcore.cpp" snippet="return-qjsonobject"/>
+        <target-to-native>
+            <add-conversion type="PyDict" file="../glue/qtcore.cpp" snippet="conversion-qjsonobject-pydict"/>
+        </target-to-native>
+    </conversion-rule>
+  </primitive-type>
+
+  <value-type name="QKeyCombination">
+      <!-- The following do-nothing function is needed for coercion of constructs like
+            QKeyCombination(Qt.CTRL | Qt.Key_B)
+        -->
+      <add-function signature="QKeyCombination(QKeyCombination)">
+          <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                       snippet="keycombination-from-keycombination"/>
+      </add-function>
+      <!-- This is just a copy of KeyModifier to handle Modifier the same -->
+      <add-function signature="QKeyCombination(Qt::Modifier @modifiers@, Qt::Key @key@)">
+          <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                       snippet="keycombination-from-modifier"/>
+      </add-function>
+  </value-type>
+
+  <value-type name="QMetaType">
+      <extra-includes>
+          <include file-name="pysidemetatype.h" location="global"/>
+      </extra-includes>
+      <enum-type name="Type" python-type="IntEnum"/>
+      <enum-type name="TypeFlag" flags="TypeFlags"/>
+      <add-function signature="QMetaType(PyTypeObject*@py_type@)">
+          <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                       snippet="metatype-from-type"/>
+      </add-function>
+      <!-- PYSIDE-1735: The class QMetaType.Type must be allowed because int is gone -->
+      <add-function signature="QMetaType(QMetaType::Type@type@)">
+          <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                       snippet="metatype-from-metatype-type"/>
+      </add-function>
+      <conversion-rule>
+          <native-to-target file="../glue/qtcore.cpp" snippet="conversion-qmetatype-pytypeobject"/>
+          <target-to-native>
+              <add-conversion type="PyTypeObject" file="../glue/qtcore.cpp" snippet="conversion-pytypeobject-qmetatype"/>
+          </target-to-native>
+      </conversion-rule>
+  </value-type>
+
+  <value-type name="QNativeIpcKey" since="6.6">
+      <enum-type name="Type"/>
+  </value-type>
+
+  <container-type name="QSet" type="set">
+    <include file-name="QSet" location="global"/>
+    <conversion-rule>
+        <native-to-target>
+            <insert-template name="shiboken_conversion_cppsequence_to_pyset"/>
+        </native-to-target>
+        <target-to-native>
+            <add-conversion type="PySequence">
+                <insert-template name="shiboken_conversion_pyiterable_to_cppsetcontainer"/>
+            </add-conversion>
+        </target-to-native>
+    </conversion-rule>
+  </container-type>
+
+  <!-- FIXME: Which one is it going to be? -->
+  <container-type name="QList" type="list"
+                  opaque-containers="int:QIntList;QPoint:QPointList;QPointF:QPointFList">
+    <include file-name="QList" location="global"/>
+    <declare-function signature="append(T)" return-type="void"/>
+    <declare-function signature="insert(qsizetype,T)" return-type="void"/>
+    <declare-function signature="prepend(T)" return-type="void"/>
+    <declare-function signature="push_back(T)" return-type="void"/>
+    <declare-function signature="push_front(T)" return-type="void"/>
+    <declare-function signature="removeAll(T)" return-type="void"/>
+    <declare-function signature="removeOne(T)" return-type="void"/>
+    <!-- operator << needs to be declared in inheriting class -->
+    <conversion-rule>
+        <native-to-target>
+            <insert-template name="shiboken_conversion_cppsequence_to_pylist"/>
+        </native-to-target>
+        <target-to-native>
+            <add-conversion type="PySequence">
+                <insert-template name="shiboken_conversion_pyiterable_to_cppsequentialcontainer_reserve"/>
+            </add-conversion>
+        </target-to-native>
+    </conversion-rule>
+  </container-type>
+
+  <container-type name="QStack" type="stack">
+    <include file-name="QStack" location="global"/>
+    <conversion-rule>
+        <native-to-target>
+            <insert-template name="shiboken_conversion_cppsequence_to_pylist"/>
+        </native-to-target>
+        <target-to-native>
+            <add-conversion type="PySequence">
+                <insert-template name="shiboken_conversion_pyiterable_to_cppsequentialcontainer_reserve"/>
+            </add-conversion>
+        </target-to-native>
+    </conversion-rule>
+  </container-type>
+
+  <container-type name="QQueue" type="queue">
+    <include file-name="QQueue" location="global"/>
+    <conversion-rule>
+        <native-to-target>
+            <insert-template name="shiboken_conversion_cppsequence_to_pylist"/>
+        </native-to-target>
+        <target-to-native>
+            <add-conversion type="PySequence">
+                <insert-template name="shiboken_conversion_pyiterable_to_cppsequentialcontainer_reserve"/>
+            </add-conversion>
+        </target-to-native>
+    </conversion-rule>
+  </container-type>
+
+  <container-type name="QHash" type="hash">
+    <include file-name="QHash" location="global"/>
+    <!-- Include to make enum flags work. -->
+    <conversion-rule>
+        <native-to-target>
+            <insert-template name="shiboken_conversion_qmap_to_pydict"/>
+        </native-to-target>
+        <target-to-native>
+            <add-conversion type="PyDict">
+                <insert-template name="shiboken_conversion_pydict_to_qmap"/>
+            </add-conversion>
+        </target-to-native>
+    </conversion-rule>
+  </container-type>
+
+  <container-type name="QMultiHash" type="multi-hash">
+    <include file-name="QMultiHash" location="global"/>
+    <!-- Include to make enum flags work. -->
+    <conversion-rule>
+        <native-to-target>
+            <insert-template name="shiboken_conversion_qmultihash_to_pydict"/>
+        </native-to-target>
+        <target-to-native>
+            <add-conversion type="PyDict">
+                <insert-template name="shiboken_conversion_pydict_to_qmultihash"/>
+            </add-conversion>
+        </target-to-native>
+    </conversion-rule>
+  </container-type>
+
+  <value-type name="QHashSeed" since="6.2"/>
+
+  <container-type name="QMap" type="map">
+    <include file-name="QMap" location="global"/>
+    <conversion-rule>
+        <native-to-target>
+            <insert-template name="shiboken_conversion_qmap_to_pydict"/>
+        </native-to-target>
+        <target-to-native>
+            <add-conversion type="PyDict">
+                <insert-template name="shiboken_conversion_pydict_to_qmap"/>
+            </add-conversion>
+        </target-to-native>
+    </conversion-rule>
+  </container-type>
+  <container-type name="QMultiMap" type="multi-map">
+    <include file-name="QMultiMap" location="global"/>
+    <conversion-rule>
+        <native-to-target>
+            <insert-template name="shiboken_conversion_qmultimap_to_pydict"/>
+        </native-to-target>
+        <target-to-native>
+            <add-conversion type="PyDict">
+                <insert-template name="shiboken_conversion_pydict_to_qmultihash"/>
+            </add-conversion>
+        </target-to-native>
+    </conversion-rule>
+  </container-type>
+
+  <container-type name="QPair" type="pair">
+    <include file-name="QPair" location="global"/>
+    <conversion-rule>
+        <native-to-target>
+            <insert-template name="shiboken_conversion_cpppair_to_pytuple"/>
+        </native-to-target>
+        <target-to-native>
+            <add-conversion type="PySequence">
+                <insert-template name="shiboken_conversion_pysequence_to_cpppair"/>
+            </add-conversion>
+        </target-to-native>
+    </conversion-rule>
+  </container-type>
+
+  <rejection class="*" function-name="d_func"/>
+  <rejection class="*" function-name="data_ptr"/>
+  <rejection class="^(?!QSharedMemory).*$" function-name="detach"/>
+  <rejection class="*" function-name="isDetached"/>
+  <rejection class="*" field-name="d_ptr"/>
+  <rejection class="*" field-name="d"/>
+  <rejection class="*" field-name="staticMetaObject"/>
+  <!-- not support array in property -->
+  <rejection class="QUuid" field-name="data1"/>
+  <rejection class="QUuid" field-name="data2"/>
+  <rejection class="QUuid" field-name="data3"/>
+  <rejection class="QUuid" field-name="data4"/>
+  <!-- Internal -->
+  <rejection class="QCoreApplication" function-name="compressEvent"/>
+
+  <namespace-type name="Qt">
+    <extra-includes>
+      <include file-name="QtCore/QProperty" location="global"/>
+    </extra-includes>
+    <enum-type name="AlignmentFlag" python-type="IntFlag" flags="Alignment"/>
+    <enum-type name="AnchorPoint"/>
+    <enum-type name="ColorScheme" since="6.5"/>
+    <enum-type name="ApplicationAttribute"/>
+    <enum-type name="ApplicationState" flags="ApplicationStates"/>
+    <enum-type name="ArrowType"/>
+    <enum-type name="AspectRatioMode"/>
+    <enum-type name="Axis"/>
+    <enum-type name="BGMode"/>
+    <enum-type name="BrushStyle"/>
+    <enum-type name="CaseSensitivity"/>
+    <enum-type name="ChecksumType"/>
+    <enum-type name="CheckState"/>
+    <enum-type name="ClipOperation"/>
+    <enum-type name="ConnectionType"/>
+    <enum-type name="ContextMenuPolicy"/>
+    <enum-type name="ContextMenuTrigger" since="6.8"/>
+    <enum-type name="CoordinateSystem"/>
+    <enum-type name="Corner"/>
+    <enum-type name="CursorShape"/>
+    <enum-type name="DateFormat"/>
+    <enum-type name="DayOfWeek"/>
+    <enum-type name="DockWidgetArea" flags="DockWidgetAreas"/>
+    <enum-type name="DockWidgetAreaSizes"/>
+    <enum-type name="DropAction" flags="DropActions"/>
+    <enum-type name="Edge" flags="Edges"/>
+    <enum-type name="EventPriority"/>
+    <enum-type name="FillRule"/>
+    <enum-type name="FindChildOption" flags="FindChildOptions"/>
+    <enum-type name="FocusPolicy" python-type="IntFlag"/>
+    <enum-type name="FocusReason"/>
+    <enum-type name="GestureFlag" flags="GestureFlags"/>
+    <enum-type name="GestureState"/>
+    <enum-type name="GestureType" python-type="IntEnum"/>
+    <enum-type name="GlobalColor"/>
+    <enum-type name="HighDpiScaleFactorRoundingPolicy"/>
+    <enum-type name="HitTestAccuracy"/>
+    <enum-type name="ImageConversionFlag" flags="ImageConversionFlags"/>
+    <enum-type name="InputMethodHint" flags="InputMethodHints"/>
+    <enum-type name="InputMethodQuery" flags="InputMethodQueries"/>
+    <enum-type name="EnterKeyType"/>
+    <enum-type name="ItemDataRole" python-type="IntEnum"/>
+    <enum-type name="ItemFlag" flags="ItemFlags"/>
+    <enum-type name="ItemSelectionMode"/>
+    <enum-type name="ItemSelectionOperation"/>
+    <enum-type name="Key" python-type="IntEnum"/>
+    <enum-type name="KeyboardModifier" flags="KeyboardModifiers"/>
+    <enum-type name="LayoutDirection"/>
+    <enum-type name="MaskMode"/>
+    <enum-type name="MatchFlag" flags="MatchFlags"/>
+    <enum-type name="Modifier" python-type="Flag"/>
+    <enum-type name="MouseButton" flags="MouseButtons"/>
+    <enum-type name="MouseEventFlag" flags="MouseEventFlags"/>
+    <enum-type name="MouseEventSource"/>
+    <enum-type name="NativeGestureType"/>
+    <enum-type name="NavigationMode"/>
+    <enum-type name="Orientation" flags="Orientations"/>
+    <enum-type name="PenCapStyle"/>
+    <enum-type name="PenJoinStyle"/>
+    <enum-type name="PenStyle"/>
+    <enum-type name="PermissionStatus" since="6.5"/>
+    <enum-type name="ReturnByValueConstant"/>
+    <enum-type name="ScreenOrientation" flags="ScreenOrientations"/>
+    <enum-type name="ScrollBarPolicy"/>
+    <enum-type name="ScrollPhase"/>
+    <enum-type name="ShortcutContext"/>
+    <enum-type name="SizeHint"/>
+    <enum-type name="SizeMode"/>
+    <enum-type name="SortOrder"/>
+    <enum-type name="SplitBehaviorFlags" flags="SplitBehavior"/>
+    <enum-type name="TabFocusBehavior"/>
+    <enum-type name="TextElideMode"/>
+    <enum-type name="TextFlag" python-type="IntFlag"/>
+    <enum-type name="TextFormat"/>
+    <enum-type name="TextInteractionFlag" flags="TextInteractionFlags"/>
+    <enum-type name="TileRule"/>
+    <enum-type name="TimerId" since="6.8"/>
+    <enum-type name="TimerType"/>
+    <enum-type name="TimeSpec"/>
+    <enum-type name="ToolBarArea" flags="ToolBarAreas"/>
+    <enum-type name="ToolBarAreaSizes"/>
+    <enum-type name="ToolButtonStyle"/>
+    <enum-type name="TouchPointState" flags="TouchPointStates"/>
+    <enum-type name="TransformationMode"/>
+    <enum-type name="UIEffect"/>
+    <enum-type name="WhiteSpaceMode"/>
+    <enum-type name="WidgetAttribute"/>
+    <enum-type name="WindowFrameSection"/>
+    <enum-type name="WindowModality"/>
+    <enum-type name="WindowState" flags="WindowStates"/>
+    <enum-type name="WindowType" python-type="IntFlag" flags="WindowFlags"/>
+    <enum-type name="CursorMoveStyle" revision="4800"/>
+
+    <inject-code class="target" position="end" file="../glue/qtcore.cpp"
+                 snippet="qt-modifier"/>
+  </namespace-type>
+
+  <add-function signature="QEnum(PyObject*)" return-type="PyObject*">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qt-qenum"/>
+  </add-function>
+  <add-function signature="QFlag(PyObject*)" return-type="PyObject*">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qt-qflag"/>
+  </add-function>
+
+  <add-function signature="__init_feature__()">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qt-init-feature"/>
+  </add-function>
+
+  <add-function signature="qAbs(double)" return-type="double">
+    <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qt-qabs"/>
+  </add-function>
+
+  <add-function signature="qAddPostRoutine(PyObject*@callable@)">
+    <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qt-addpostroutine"/>
+  </add-function>
+  <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="qt-qaddpostroutine"/>
+
+  <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="qt-version"/>
+
+  <!-- WARNING: There is an issue when adding this code to an external file -->
+  <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="qt-module-shutdown"/>
+  <add-function signature="__moduleShutdown()">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="moduleshutdown"/>
+  </add-function>
+
+  <!--signal/slot-->
+  <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="qt-pysideinit"/>
+
+  <inject-code class="native" position="beginning" file="../glue/qtcore.cpp" snippet="qt-messagehandler"/>
+  <inject-code class="native" position="beginning" file="../glue/qtcore.cpp"
+               snippet="qlatin1string-check"/>
+  <add-function signature="qInstallMessageHandler(PyObject@callable@)" return-type="PyObject">
+    <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qt-installmessagehandler"/>
+  </add-function>
+
+  <value-type name="QDeadlineTimer">
+    <enum-type name="ForeverConstant"/>
+  </value-type>
+
+  <value-type name="QElapsedTimer">
+    <enum-type name="ClockType"/>
+  </value-type>
+
+  <object-type name="QAbstractTableModel"
+               polymorphic-id-expression="qobject_cast&lt;QAbstractTableModel*&gt;(%B)">
+    <extra-includes>
+      <include file-name="QStringList" location="global"/>
+      <include file-name="QSize" location="global"/>
+    </extra-includes>
+  </object-type>
+  <value-type name="QLine" hash-function="PySide::hash">
+    <extra-includes>
+      <include file-name="pysideqhash.h" location="global"/>
+    </extra-includes>
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="repr_code">
+               <replace from="%REPR_FORMAT" to="%i, %i, %i, %i"/>
+               <replace from="%REPR_ARGS" to="%CPPSELF.x1(), %CPPSELF.y1(), %CPPSELF.x2(), %CPPSELF.y2()"/>
+             </insert-template>
+        </inject-code>
+    </add-function>
+
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="iiii"/>
+              <replace from="%REDUCE_ARGS" to="%CPPSELF.x1(), %CPPSELF.y1(), %CPPSELF.x2(), %CPPSELF.y2()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp" snippet="qline-hash"/>
+
+    <add-function signature="toTuple" return-type="PyObject*">
+        <inject-code class="target" position="beginning">
+            <insert-template name="to_tuple">
+                <replace from="%TT_FORMAT" to="iiii"/>
+                <replace from="%TT_ARGS" to="%CPPSELF.x1(), %CPPSELF.y1(), %CPPSELF.x2(), %CPPSELF.y2()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+  </value-type>
+  <value-type name="QLineF">
+    <enum-type name="IntersectionType"/>
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="repr_code">
+               <replace from="%REPR_FORMAT" to="%f, %f, %f, %f"/>
+               <replace from="%REPR_ARGS" to="%CPPSELF.x1(), %CPPSELF.y1(), %CPPSELF.x2(), %CPPSELF.y2()"/>
+             </insert-template>
+        </inject-code>
+    </add-function>
+
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="dddd"/>
+              <replace from="%REDUCE_ARGS" to="%CPPSELF.x1(), %CPPSELF.y1(), %CPPSELF.x2(), %CPPSELF.y2()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+
+    <add-function signature="toTuple" return-type="PyObject*">
+        <inject-code class="target" position="beginning">
+            <insert-template name="to_tuple">
+                <replace from="%TT_FORMAT" to="dddd"/>
+                <replace from="%TT_ARGS" to="%CPPSELF.x1(), %CPPSELF.y1(), %CPPSELF.x2(), %CPPSELF.y2()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+    <modify-function signature="intersects(const QLineF &amp;,QPointF*)const">
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="return" pyi-type="Tuple[PySide6.QtCore.QLineF.IntersectionType, PySide6.QtCore.QPointF]">
+            <replace-type modified-type="(intersectType, intersectionPoint)"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qlinef-intersect"/>
+    </modify-function>
+  </value-type>
+  <object-type name="QResource">
+    <enum-type name="Compression"/>
+    <modify-function signature="data()const">
+        <inject-documentation format="target" emphasis="language-note">
+            Returns a read only buffer object pointing to the segment of data that this resource represents. If the resource is compressed the data returns is compressed and qUncompress() must be used to access the data. If the resource is a directory None is returned.
+        </inject-documentation>
+        <modify-argument index="return">
+            <replace-type modified-type="PyObject"/>
+        </modify-argument>
+        <inject-code file="../glue/qtcore.cpp" snippet="qresource-data"/>
+    </modify-function>
+
+    <modify-function signature="unregisterResource(const uchar*,const QString&amp;)" rename="unregisterResourceData">
+      <modify-argument index="1">
+        <replace-type modified-type="PyBuffer"/>
+      </modify-argument>
+      <inject-code file="../glue/qtcore.cpp" snippet="qresource-registerResource"/>
+    </modify-function>
+    <modify-function signature="registerResource(const uchar*,const QString&amp;)" rename="registerResourceData">
+      <modify-argument index="1">
+        <replace-type modified-type="PyBuffer"/>
+      </modify-argument>
+      <inject-code file="../glue/qtcore.cpp" snippet="qresource-registerResource"/>
+    </modify-function>
+  </object-type>
+
+  <object-type name="QBasicTimer"/>
+  <value-type name="QByteArrayMatcher"/>
+  <value-type name="QCalendar">
+      <object-type name="SystemId"/> <!-- not default-constructible -->
+      <value-type name="YearMonthDay"/>
+      <enum-type name="System"/>
+      <enum-type identified-by-value="Unspecified"/>
+  </value-type>
+  <value-type name="QDate">
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp"
+                 snippet="core-snippets-p-h"/>
+    <conversion-rule>
+        <target-to-native>
+            <add-conversion type="Py_None" file="../glue/qtcore.cpp" snippet="conversion-pynone"/>
+            <add-conversion type="PyDate" check="PyDate_ImportAndCheck(%in)"
+                            file="../glue/qtcore.cpp" snippet="conversion-qdate-pydate"/>
+        </target-to-native>
+    </conversion-rule>
+    <extra-includes>
+      <include file-name="datetime.h" location="global"/>
+    </extra-includes>
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="repr_code">
+               <replace from="%REPR_FORMAT" to="%i, %i, %i"/>
+               <replace from="%REPR_ARGS" to="%CPPSELF.year(), %CPPSELF.month(), %CPPSELF.day()"/>
+             </insert-template>
+        </inject-code>
+    </add-function>
+
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="iii"/>
+              <replace from="%REDUCE_ARGS" to="%CPPSELF.year(), %CPPSELF.month(), %CPPSELF.day()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+    <add-function signature="toPython()" return-type="PyObject">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qdate-topython"/>
+    </add-function>
+    <modify-function signature="getDate(int*,int*,int*)const" >
+        <modify-argument index="1">
+            <remove-argument/>
+        </modify-argument>
+        <modify-argument index="2">
+            <remove-argument/>
+        </modify-argument>
+        <modify-argument index="3">
+            <remove-argument/>
+        </modify-argument>
+        <modify-argument index="return" pyi-type="Tuple[int, int, int]">
+            <replace-type modified-type="(year, month, day)"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qdate-getdate"/>
+    </modify-function>
+    <modify-function signature="weekNumber(int*)const" >
+        <modify-argument index="1">
+            <remove-argument/>
+        </modify-argument>
+        <modify-argument index="return" pyi-type="Tuple[int, int]">
+            <replace-type modified-type="(week, yearNumber)"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qdate-weeknumber"/>
+    </modify-function>
+  </value-type>
+  <value-type name="QDateTime">
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp"
+                 snippet="core-snippets-p-h"/>
+    <enum-type name="YearRange"/>
+    <enum-type name="TransitionResolution" since="6.7"/>
+    <conversion-rule>
+        <target-to-native>
+            <add-conversion type="Py_None" file="../glue/qtcore.cpp" snippet="conversion-pynone"/>
+            <add-conversion type="PyDateTime" check="PyDateTime_ImportAndCheck(%in)"
+                            file="../glue/qtcore.cpp" snippet="conversion-qdatetime-pydatetime"/>
+        </target-to-native>
+    </conversion-rule>
+    <extra-includes>
+      <include file-name="datetime.h" location="global"/>
+    </extra-includes>
+    <!-- Somewhat internal constructor used to pickle QDateTime -->
+    <add-function signature="QDateTime(int@year@,int@month@,int@day@,int@h@,int@m@,int@s@,int@ms@,int@spec@=Qt::LocalTime)">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qdatetime-1"/>
+    </add-function>
+    <add-function signature="QDateTime(int@year@,int@month@,int@day@,int@h@,int@m@,int@s@)">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qdatetime-2"/>
+    </add-function>
+    <!-- PYSIDE-1735: Qt::TimeSpec is no more compatible with int -->
+    <add-function signature="QDateTime(int@year@,int@month@,int@day@,int@h@,int@m@,int@s@,int@ms@,Qt::TimeSpec@spec@=Qt::LocalTime)">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qdatetime-3"/>
+    </add-function>
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="repr_code">
+               <replace from="%REPR_FORMAT" to="%i, %i, %i, %i, %i, %i, %i, %i"/>
+               <replace from="%REPR_ARGS" to="%CPPSELF.date().year(), %CPPSELF.date().month(), %CPPSELF.date().day(), %CPPSELF.time().hour(), %CPPSELF.time().minute(), %CPPSELF.time().second(), %CPPSELF.time().msec(), (int)%CPPSELF.timeSpec()"/>
+             </insert-template>
+        </inject-code>
+    </add-function>
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="iiiiiiii"/>
+              <replace from="%REDUCE_ARGS" to="%CPPSELF.date().year(), %CPPSELF.date().month(), %CPPSELF.date().day(), %CPPSELF.time().hour(), %CPPSELF.time().minute(), %CPPSELF.time().second(), %CPPSELF.time().msec(), (int)%CPPSELF.timeSpec()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+    <add-function signature="toPython()" return-type="PyObject">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qdatetime-topython"/>
+    </add-function>
+  </value-type>
+
+  <value-type name="QDir">
+    <enum-type name="Filter" flags="Filters"/>
+    <enum-type name="SortFlag" flags="SortFlags"/>
+
+    <!-- PYSIDE-1499: Replace QString by pathlib.Path (qdir.h) -->
+    <modify-function signature="QDir(const QString &amp;)">
+      <modify-argument index="1" pyi-type="Optional[PyPathLike]">
+        <replace-type modified-type="PyPathLike"/>
+        <rename to="path"/>
+      </modify-argument>
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+    </modify-function>
+    <modify-function signature="QDir(const QString &amp;,const QString &amp;,QFlags&lt;QDir::SortFlag&gt;,QFlags&lt;QDir::Filter&gt;)">
+        <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+    </modify-function>
+    <modify-function signature="setPath(const QString &amp;)">
+        <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+    </modify-function>
+    <modify-function signature="addSearchPath(const QString &amp;,const QString &amp;)">
+        <modify-argument index="2"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-2"/>
+    </modify-function>
+    <!-- PYSIDE-1499: End of insertion -->
+
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="s"/>
+              <replace from="%REDUCE_ARGS" to="qPrintable(%CPPSELF.path())"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+  </value-type>
+
+  <object-type name="QDirListing" since="6.8">
+    <extra-includes>
+      <include file-name="qtcorehelper.h" location="local"/>
+    </extra-includes>
+    <enum-type name="IteratorFlag" flags="IteratorFlags"/>
+    <value-type name="DirEntry">
+      <add-function signature="__repr__" return-type="PyObject*">
+          <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                       snippet="qdirlisting-direntry-repr"/>
+      </add-function>
+    </value-type>
+    <add-function signature="__iter__()" return-type="PyObject*">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                     snippet="qdirlisting-iter"/>
+    </add-function>
+  </object-type>
+
+  <value-type name="QPermission" since="6.5">
+      <configuration condition="QT_CONFIG(permissions)"/>
+  </value-type>
+  <value-type name="QBluetoothPermission" since="6.5">
+      <configuration condition="QT_CONFIG(permissions)"/>
+      <enum-type name="CommunicationMode" flags="CommunicationModes" since="6.6"/>
+  </value-type>
+  <value-type name="QCalendarPermission" since="6.5">
+      <configuration condition="QT_CONFIG(permissions)"/>
+      <enum-type name="AccessMode"/>
+  </value-type>
+  <value-type name="QCameraPermission" since="6.5">
+      <configuration condition="QT_CONFIG(permissions)"/>
+  </value-type>
+  <value-type name="QContactsPermission" since="6.5">
+      <configuration condition="QT_CONFIG(permissions)"/>
+      <enum-type name="AccessMode"/>
+  </value-type>
+  <value-type name="QLocationPermission" since="6.5">
+      <configuration condition="QT_CONFIG(permissions)"/>
+      <enum-type name="Accuracy"/>
+      <enum-type name="Availability"/>
+  </value-type>
+  <value-type name="QMicrophonePermission" since="6.5">
+      <configuration condition="QT_CONFIG(permissions)"/>
+  </value-type>
+
+  <value-type name="QPoint">
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="repr_code">
+               <replace from="%REPR_FORMAT" to="%i, %i"/>
+               <replace from="%REPR_ARGS" to="%CPPSELF.x(), %CPPSELF.y()"/>
+             </insert-template>
+        </inject-code>
+    </add-function>
+
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="ii"/>
+              <replace from="%REDUCE_ARGS" to="%CPPSELF.x(), %CPPSELF.y()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+
+    <add-function signature="toTuple" return-type="PyObject*">
+        <inject-code class="target" position="beginning">
+            <insert-template name="to_tuple">
+                <replace from="%TT_FORMAT" to="ii"/>
+                <replace from="%TT_ARGS" to="%CPPSELF.x(), %CPPSELF.y()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+
+    <!--### Functions removed because they return references to Python imutable objects -->
+    <modify-function signature="rx()" remove="all"/>
+    <modify-function signature="ry()" remove="all"/>
+    <!--### -->
+  </value-type>
+  <value-type name="QPointF">
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="repr_code">
+               <replace from="%REPR_FORMAT" to="%f, %f"/>
+               <replace from="%REPR_ARGS" to="%CPPSELF.x(), %CPPSELF.y()"/>
+             </insert-template>
+        </inject-code>
+    </add-function>
+
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="dd"/>
+              <replace from="%REDUCE_ARGS" to="%CPPSELF.x(), %CPPSELF.y()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+
+    <add-function signature="toTuple" return-type="PyObject*">
+        <inject-code class="target" position="beginning">
+            <insert-template name="to_tuple">
+                <replace from="%TT_FORMAT" to="dd"/>
+                <replace from="%TT_ARGS" to="%CPPSELF.x(), %CPPSELF.y()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+
+    <!--### Functions removed because they return references to Python imutable objects -->
+    <modify-function signature="rx()" remove="all"/>
+    <modify-function signature="ry()" remove="all"/>
+    <!--### -->
+  </value-type>
+  <value-type name="QRect">
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="repr_code">
+               <replace from="%REPR_FORMAT" to="%i, %i, %i, %i"/>
+               <replace from="%REPR_ARGS" to="%CPPSELF.x(), %CPPSELF.y(), %CPPSELF.width(), %CPPSELF.height()"/>
+             </insert-template>
+        </inject-code>
+    </add-function>
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="iiii"/>
+              <replace from="%REDUCE_ARGS" to="%CPPSELF.x(), %CPPSELF.y(), %CPPSELF.width(), %CPPSELF.height()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+
+    <modify-function signature="getCoords(int*,int*,int*,int*)const">
+        <modify-argument index="return">
+            <replace-type modified-type="PyObject"/>
+        </modify-argument>
+        <modify-argument index="1">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="3">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="4">
+            <remove-argument />
+        </modify-argument>
+        <inject-code class="target">
+            <insert-template name="fix_number*,number*,number*,number*">
+                <replace from="$TYPE" to="int"/>
+            </insert-template>
+        </inject-code>
+    </modify-function>
+    <modify-function signature="getRect(int*,int*,int*,int*)const">
+        <modify-argument index="return">
+            <replace-type modified-type="PyObject"/>
+        </modify-argument>
+        <modify-argument index="1">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="3">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="4">
+            <remove-argument />
+        </modify-argument>
+        <inject-code class="target">
+            <insert-template name="fix_number*,number*,number*,number*">
+                <replace from="$TYPE" to="int"/>
+            </insert-template>
+        </inject-code>
+    </modify-function>
+  </value-type>
+  <value-type name="QRectF">
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="repr_code">
+               <replace from="%REPR_FORMAT" to="%f, %f, %f, %f"/>
+               <replace from="%REPR_ARGS" to="%CPPSELF.x(), %CPPSELF.y(), %CPPSELF.width(), %CPPSELF.height()"/>
+             </insert-template>
+        </inject-code>
+    </add-function>
+
+   <!--
+         FIXME These functions return qreal. Will convert to double (format
+         string) mess things up in other architectures?
+    -->
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="dddd"/>
+              <replace from="%REDUCE_ARGS" to="%CPPSELF.x(), %CPPSELF.y(), %CPPSELF.width(), %CPPSELF.height()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+    <modify-function signature="getCoords(qreal*,qreal*,qreal*,qreal*)const">
+        <modify-argument index="return">
+            <replace-type modified-type="PyObject"/>
+        </modify-argument>
+        <modify-argument index="1">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="3">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="4">
+            <remove-argument />
+        </modify-argument>
+        <inject-code class="target">
+            <insert-template name="fix_number*,number*,number*,number*">
+                <replace from="$TYPE" to="qreal"/>
+            </insert-template>
+        </inject-code>
+    </modify-function>
+    <modify-function signature="getRect(qreal*,qreal*,qreal*,qreal*)const">
+        <modify-argument index="return">
+            <replace-type modified-type="PyObject"/>
+        </modify-argument>
+        <modify-argument index="1">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="3">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="4">
+            <remove-argument />
+        </modify-argument>
+        <inject-code class="target">
+            <insert-template name="fix_number*,number*,number*,number*">
+                <replace from="$TYPE" to="qreal"/>
+            </insert-template>
+        </inject-code>
+    </modify-function>
+  </value-type>
+  <value-type name="QSize">
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="repr_code">
+               <replace from="%REPR_FORMAT" to="%i, %i"/>
+               <replace from="%REPR_ARGS" to="%CPPSELF.width(), %CPPSELF.height()"/>
+             </insert-template>
+        </inject-code>
+    </add-function>
+
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="ii"/>
+              <replace from="%REDUCE_ARGS" to="%CPPSELF.width(), %CPPSELF.height()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+
+    <add-function signature="toTuple" return-type="PyObject*">
+        <inject-code class="target" position="beginning">
+            <insert-template name="to_tuple">
+                <replace from="%TT_FORMAT" to="ii"/>
+                <replace from="%TT_ARGS" to="%CPPSELF.width(), %CPPSELF.height()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+
+    <!--### Functions removed because they return references to Python imutable objects -->
+    <modify-function signature="rheight()" remove="all"/>
+    <modify-function signature="rwidth()" remove="all"/>
+    <!--### -->
+  </value-type>
+  <value-type name="QSizeF">
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="repr_code">
+               <replace from="%REPR_FORMAT" to="%f, %f"/>
+               <replace from="%REPR_ARGS" to="%CPPSELF.width(), %CPPSELF.height()"/>
+             </insert-template>
+        </inject-code>
+    </add-function>
+
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="dd"/>
+              <replace from="%REDUCE_ARGS" to="%CPPSELF.width(), %CPPSELF.height()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+
+    <add-function signature="toTuple" return-type="PyObject*">
+        <inject-code class="target" position="beginning">
+            <insert-template name="to_tuple">
+                <replace from="%TT_FORMAT" to="dd"/>
+                <replace from="%TT_ARGS" to="%CPPSELF.width(), %CPPSELF.height()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+
+    <!--### Functions removed because they return references to Python imutable objects -->
+    <modify-function signature="rheight()" remove="all"/>
+    <modify-function signature="rwidth()" remove="all"/>
+    <!--### -->
+  </value-type>
+
+  <value-type name="QTime">
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp"
+                 snippet="core-snippets-p-h"/>
+    <conversion-rule>
+        <target-to-native>
+            <add-conversion type="Py_None" file="../glue/qtcore.cpp" snippet="conversion-pynone"/>
+            <add-conversion type="PyTime" check="PyTime_ImportAndCheck(%in)"
+                            file="../glue/qtcore.cpp" snippet="conversion-qtime-pytime"/>
+        </target-to-native>
+    </conversion-rule>
+
+    <extra-includes>
+      <include file-name="datetime.h" location="global"/>
+    </extra-includes>
+
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="repr_code">
+               <replace from="%REPR_FORMAT" to="%i, %i, %i, %i"/>
+               <replace from="%REPR_ARGS" to="%CPPSELF.hour(), %CPPSELF.minute(), %CPPSELF.second(), %CPPSELF.msec()"/>
+             </insert-template>
+        </inject-code>
+    </add-function>
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="iiii"/>
+              <replace from="%REDUCE_ARGS" to="%CPPSELF.hour(), %CPPSELF.minute(), %CPPSELF.second(), %CPPSELF.msec()"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+    <add-function signature="toPython()" return-type="PyObject">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qtime-topython"/>
+    </add-function>
+  </value-type>
+  <value-type name="QPersistentModelIndex">
+    <extra-includes>
+      <include file-name="QtCore/QList" location="global"/>
+    </extra-includes>
+   <!-- For signal QAbstractItemModel::layoutAboutToBeChanged(QList<QPersistentModelIndex>) -->
+   <inject-code class="target" position="end">
+     qRegisterMetaType&lt;QList&lt;QPersistentModelIndex&gt; &gt;("QList_QPersistentModelIndex");
+   </inject-code>
+    <modify-function signature="internalPointer()const">
+        <modify-argument index="return" pyi-type="Any"/>
+        <inject-code class="target" position="beginning">
+            <insert-template name="return_internal_pointer" />
+        </inject-code>
+    </modify-function>
+    <!-- Remove  const variation in favor of using internalPointer -->
+    <modify-function signature="constInternalPointer()const" remove="all"/>
+    <modify-function signature="operator QModelIndex()const">
+        <modify-argument index="return">
+            <parent index="this" action="add"/>
+        </modify-argument>
+    </modify-function>
+  </value-type>
+
+  <value-type name="QTimeZone">
+    <configuration condition="QT_CONFIG(timezone)"/>
+    <enum-type name="Initialization" since="6.5"/>
+    <enum-type name="TimeType"/>
+    <enum-type name="NameType"/>
+    <value-type name="OffsetData">
+        <configuration condition="QT_CONFIG(timezone)"/>
+    </value-type>
+  </value-type>
+
+  <value-type name="QUuid">
+    <enum-type name="StringFormat"/>
+    <enum-type name="Variant"/>
+    <enum-type name="Version"/>
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="repr_code">
+               <replace from="%REPR_FORMAT" to="'%s'"/>
+               <replace from="%REPR_ARGS" to="qPrintable(%CPPSELF.toString())"/>
+             </insert-template>
+        </inject-code>
+    </add-function>
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="s"/>
+              <replace from="%REDUCE_ARGS" to="qPrintable(%CPPSELF.toString())"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+  </value-type>
+
+  <value-type name="QMimeType"/>
+  <object-type name="QMimeDatabase">
+    <enum-type name="MatchMode"/>
+  </object-type>
+
+  <value-type name="QLocale">
+    <enum-type name="TagSeparator" since="6.7"/>
+    <enum-type name="Country"/>
+    <enum-type name="DataSizeFormat" flags="DataSizeFormats"/>
+    <enum-type name="FloatingPointPrecisionOption" python-type="IntEnum"/>
+    <enum-type name="FormatType"/>
+    <enum-type name="Language"/>
+    <enum-type name="LanguageCodeType" python-type="IntFlag" flags="LanguageCodeTypes" since="6.3"/>
+    <enum-type name="MeasurementSystem"/>
+    <enum-type name="NumberOption" flags="NumberOptions"/>
+    <enum-type name="Script" revision="4800"/>
+    <enum-type name="CurrencySymbolFormat" revision="4800"/>
+    <enum-type name="QuotationStyle" revision="4800"/>
+    <!--### All those C++ number types have the same representation in Python -->
+    <modify-function signature="toString(qulonglong)const" remove="all"/>
+    <modify-function signature="toString(ushort)const" remove="all"/>
+    <modify-function signature="toString(unsigned int)const" remove="all"/>
+    <modify-function signature="system()" remove="all"/>
+    <!--### -->
+    <extra-includes>
+      <include file-name="QDate" location="global"/>
+    </extra-includes>
+    <add-function signature="system()" return-type="QLocale" static="yes">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+         snippet="qlocale_system"/>
+        <inject-documentation mode="append" format="target"
+                              file="../doc/qtcore.rst" snippet="qlocale-system"/>
+    </add-function>
+    <modify-function signature="toTime(QString,QLocale::FormatType)const">
+        <modify-argument index="2">
+            <rename to="format"/>
+        </modify-argument>
+    </modify-function>
+    <modify-function signature="toDate(QString,QLocale::FormatType,int)const">
+        <modify-argument index="2">
+            <rename to="format"/>
+        </modify-argument>
+    </modify-function>
+    <modify-function signature="^toDate(Time)?\(QString,[^,]+,int\)const$">
+        <modify-argument index="3">
+            <replace-default-expression with="1900"/> <!-- private FirstTwoDigitYear -->
+        </modify-argument>
+    </modify-function>
+    <modify-function signature="^toDate(Time)?\(QString,[^,]+,QCalendar,int\)const$">
+        <modify-argument index="4">
+            <replace-default-expression with="1900"/> <!-- private FirstTwoDigitYear -->
+        </modify-argument>
+    </modify-function>
+    <modify-function signature="toUInt(QString,bool*)const">
+        <modify-argument index="2">
+            <remove-argument />
+            <remove-default-expression />
+        </modify-argument>
+        <modify-argument index="return" pyi-type="Tuple[int, bool]">
+            <replace-type modified-type="(int, bool ok)"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning">
+            <insert-template name="fix_args,bool*"/>
+        </inject-code>
+    </modify-function>
+    <modify-function signature="toULongLong(QString,bool*)const">
+        <modify-argument index="2">
+            <remove-argument />
+            <remove-default-expression />
+        </modify-argument>
+        <modify-argument index="return" pyi-type="Tuple[int, bool]">
+            <replace-type modified-type="(int, bool ok)"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning">
+            <insert-template name="fix_args,bool*"/>
+        </inject-code>
+    </modify-function>
+    <modify-function signature="toDouble(QString,bool*)const">
+        <modify-argument index="2">
+            <remove-argument />
+            <remove-default-expression />
+        </modify-argument>
+        <modify-argument index="return" pyi-type="Tuple[float, bool]">
+            <replace-type modified-type="(float, bool ok)"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning">
+            <insert-template name="fix_args,bool*"/>
+        </inject-code>
+    </modify-function>
+    <modify-function signature="toFloat(QString,bool*)const">
+        <modify-argument index="2">
+            <remove-argument />
+            <remove-default-expression />
+        </modify-argument>
+        <modify-argument index="return" pyi-type="Tuple[float, bool]">
+            <replace-type modified-type="(float, bool ok)"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning">
+            <insert-template name="fix_args,bool*"/>
+        </inject-code>
+    </modify-function>
+    <modify-function signature="toInt(QString,bool*)const">
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="return" pyi-type="Tuple[int, bool]">
+            <replace-type modified-type="(int, bool ok)"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning">
+            <insert-template name="fix_args,bool*"/>
+        </inject-code>
+    </modify-function>
+    <modify-function signature="toLongLong(QString,bool*)const">
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="return" pyi-type="Tuple[int, bool]">
+            <replace-type modified-type="(int, bool ok)"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning">
+            <insert-template name="fix_args,bool*"/>
+        </inject-code>
+    </modify-function>
+    <modify-function signature="toLong(QString,bool*)const">
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="return" pyi-type="Tuple[int, bool]">
+            <replace-type modified-type="(int, bool ok)"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning">
+            <insert-template name="fix_args,bool*"/>
+        </inject-code>
+    </modify-function>
+    <modify-function signature="toShort(QString,bool*)const">
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="return" pyi-type="Tuple[int, bool]">
+            <replace-type modified-type="(int, bool ok)"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning">
+            <insert-template name="fix_args,bool*"/>
+        </inject-code>
+    </modify-function>
+    <modify-function signature="toUShort(QString,bool*)const">
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="return" pyi-type="Tuple[int, bool]">
+            <replace-type modified-type="(int, bool ok)"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning">
+            <insert-template name="fix_args,bool*"/>
+        </inject-code>
+    </modify-function>
+    <!-- PYSIDE-2133, 2168 remove unsigned overloads of to(Currency)?String() to
+         ensure float overloads are used -->
+    <modify-function signature="^to(Currency)?String\(q?u.*$" remove="all"/>
+    <modify-function signature="^to(Currency)?String\(.*short.*$" remove="all"/>
+    <modify-function signature="^to.*\(.*QStringView.*$" remove="all"/>
+  </value-type>
+  <value-type name="QBitArray">
+    <add-function signature="__len__" return-type="int">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qbitarray-len"/>
+    </add-function>
+    <add-function signature="__getitem__">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qbitarray-getitem"/>
+    </add-function>
+    <add-function signature="__setitem__">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qbitarray-setitem"/>
+    </add-function>
+  </value-type>
+  <object-type name="QLockFile">
+      <enum-type name="LockError"/>
+      <modify-function signature="isLocked()const" allow-thread="yes"/>
+      <modify-function signature="lock()" allow-thread="yes"/>
+      <modify-function signature="removeStaleLockFile()" allow-thread="yes"/>
+      <modify-function signature="tryLock(int)" allow-thread="yes"/>
+      <modify-function signature="unlock()" allow-thread="yes"/>
+      <modify-function signature="getLockInfo(qint64*,QString*,QString*)const">
+          <modify-argument index="return" pyi-type="Tuple[int, str, str]">
+              <replace-type modified-type="(int, str, str)"/>
+          </modify-argument>
+          <modify-argument index="1"><remove-argument/></modify-argument>
+          <modify-argument index="2"><remove-argument/></modify-argument>
+          <modify-argument index="3"><remove-argument/></modify-argument>
+          <inject-code class="target" position="beginning"
+                       file="../glue/qtcore.cpp" snippet="qlockfile-getlockinfo"/>
+      </modify-function>
+  </object-type>
+  <object-type name="QMessageAuthenticationCode"/>
+  <object-type name="QSignalBlocker">
+      <add-function signature="__enter__()" return-type="QSignalBlocker">
+          <inject-code file="../glue/qtcore.cpp" snippet="default-enter"/>
+      </add-function>
+      <add-function signature="__exit__(PyObject*,PyObject*,PyObject*)">
+          <inject-code file="../glue/qtcore.cpp" snippet="qsignalblocker-unblock"/>
+      </add-function>
+  </object-type>
+  <value-type name="QStorageInfo"/>
+  <!-- QReadWriteLock does not have a copy ctor! -->
+  <object-type name="QReadWriteLock">
+    <enum-type name="RecursionMode"/>
+    <modify-function signature="lockForRead()" allow-thread="yes"/>
+    <modify-function signature="tryLockForRead(int)" allow-thread="yes"/>
+    <modify-function signature="lockForWrite()" allow-thread="yes"/>
+    <modify-function signature="tryLockForWrite(int)" allow-thread="yes"/>
+  </object-type>
+  <object-type name="QReadLocker">
+    <configuration condition="QT_CONFIG(thread)"/>
+    <modify-function signature="QReadLocker(QReadWriteLock*)">
+        <modify-argument index="1">
+            <reference-count action="set"/>
+        </modify-argument>
+    </modify-function>
+    <modify-function signature="relock()" allow-thread="yes"/>
+    <add-function signature="__enter__()" return-type="QReadLocker">
+        <inject-code file="../glue/qtcore.cpp" snippet="default-enter"/>
+    </add-function>
+    <add-function signature="__exit__(PyObject*,PyObject*,PyObject*)">
+        <inject-code file="../glue/qtcore.cpp" snippet="unlock"/>
+    </add-function>
+  </object-type>
+  <object-type name="QWriteLocker">
+    <configuration condition="QT_CONFIG(thread)"/>
+    <modify-function signature="QWriteLocker(QReadWriteLock*)">
+        <modify-argument index="1">
+            <reference-count action="set"/>
+        </modify-argument>
+    </modify-function>
+    <modify-function signature="relock()" allow-thread="yes"/>
+    <add-function signature="__enter__()" return-type="QWriteLocker">
+        <inject-code file="../glue/qtcore.cpp" snippet="default-enter"/>
+    </add-function>
+    <add-function signature="__exit__(PyObject*,PyObject*,PyObject*)">
+        <inject-code file="../glue/qtcore.cpp" snippet="unlock"/>
+    </add-function>
+  </object-type>
+  <object-type name="QDirIterator">
+    <enum-type name="IteratorFlag" flags="IteratorFlags"/>
+  </object-type>
+  <object-type name="QThread">
+    <configuration condition="QT_CONFIG(thread)"/>
+    <inject-code file="../glue/qtcore.cpp" class="native" position="beginning" snippet="qthread_pthread_cleanup"/>
+    <enum-type name="Priority"/>
+    <enum-type name="QualityOfService" since="6.9"/>
+    <modify-function signature="currentThreadId()" remove="all"/>
+    <modify-function signature="run()" allow-thread="yes">
+        <inject-code file="../glue/qtcore.cpp" class="native" position="beginning"
+                     snippet="qthread_pthread_cleanup_install"/>
+        <inject-code file="../glue/qtcore.cpp" class="native" position="end"
+                     snippet="qthread_pthread_cleanup_uninstall"/>
+    </modify-function>
+    <modify-function signature="exec()" allow-thread="yes"/>
+    <add-function signature="exec_()" return-type="int">
+        <inject-code file="../glue/qtcore.cpp" snippet="qthread_exec_"/>
+    </add-function>
+    <modify-function signature="msleep(unsigned long)" allow-thread="yes"/>
+    <modify-function signature="sleep(unsigned long)" allow-thread="yes"/>
+    <modify-function signature="usleep(unsigned long)" allow-thread="yes"/>
+    <modify-function signature="wait(QDeadlineTimer)" allow-thread="yes"/>
+    <modify-function signature="wait(unsigned long)" allow-thread="yes"/>
+    <modify-function signature="yieldCurrentThread()" allow-thread="yes"/>
+    <modify-function signature="start(QThread::Priority)" allow-thread="yes">
+      <modify-argument index="1">
+        <rename to="priority"/>
+      </modify-argument>
+      <!-- PYSIDE-535: PyPy 7.3.8 needs this call, which is actually a no-op in Python 3.10 -->
+      <inject-code file="../glue/qtcore.cpp" class="target" position="beginning"
+                   snippet="qthread_init_pypy"/>
+    </modify-function>
+    <modify-function signature="exit(int)" allow-thread="yes"/>
+  </object-type>
+
+  <value-type name="QModelRoleData">
+      <add-function signature="setData(const QVariant &amp;@data@)">
+          <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                       snippet="qmodelroledata-setdata"/>
+      </add-function>
+  </value-type>
+
+  <value-type name="QModelRoleDataSpan">
+      <modify-function signature="dataForRole(int)const" remove="all"/>
+      <add-function signature="__len__" return-type="int">
+          <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                       snippet="qmodelroledataspan-len"/>
+      </add-function>
+      <add-function signature="__getitem__">
+          <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                       snippet="qmodelroledataspan-getitem"/>
+      </add-function>
+  </value-type>
+
+  <!-- Register meta type for QML properties -->
+  <object-type name="QAbstractItemModel" qt-register-metatype="yes">
+    <enum-type name="CheckIndexOption" flags="CheckIndexOptions"/>
+    <enum-type name="LayoutChangeHint"/>
+     <!-- This function was replaced by a added function -->
+    <modify-function signature="createIndex(int,int,const void*)const" remove="all"/>
+    <!-- This function is the same as createIndex(int, int, int)const -->
+    <modify-function signature="createIndex(int,int,quintptr)const">
+        <modify-argument index="3">
+            <replace-default-expression with="0"/>
+        </modify-argument>
+    </modify-function>
+    <add-function signature="createIndex(int@row@,int@column@,PyObject*@ptr@)const" return-type="QModelIndex">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qabstractitemmodel-createindex"/>
+        <inject-documentation mode="append" format="target"
+                              file="../doc/qtcore.rst" snippet="qabstractitemmodel-createindex"/>
+    </add-function>
+    <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="qabstractitemmodel"/>
+    <modify-function signature="mimeData(QList&lt;QModelIndex&gt;)const">
+      <modify-argument index="return">
+        <define-ownership class="native" owner="c++"/>
+        <define-ownership class="target" owner="default"/>
+      </modify-argument>
+    </modify-function>
+    <modify-function signature="data(const QModelIndex&amp;,int)const">
+      <modify-argument index="return">
+        <define-ownership class="native" owner="c++"/>
+      </modify-argument>
+    </modify-function>
+    <modify-function signature="dataChanged(const QModelIndex&amp;,const QModelIndex&amp;,const QVector&lt;int&gt;&amp;)" allow-thread="yes"/>
+    <modify-function signature="layoutAboutToBeChanged(const QList&lt;QPersistentModelIndex&gt;&amp;,QAbstractItemModel::LayoutChangeHint)" allow-thread="yes"/>
+    <modify-function signature="layoutChanged(const QList&lt;QPersistentModelIndex&gt;&amp;,QAbstractItemModel::LayoutChangeHint)" allow-thread="yes"/>
+    <modify-function signature="beginResetModel()" allow-thread="yes"/>
+    <modify-function signature="endResetModel()" allow-thread="yes"/>
+  </object-type>
+
+  <value-type name="QItemSelection">
+    <include file-name="QList" location="global"/>
+    <!-- Expose operator==, != inherited from QList, which the parser does
+         not see due to the TMP expression of the return type. -->
+    <add-function signature="operator==(const QItemSelection&amp;)" return-type="bool"/>
+    <add-function signature="operator!=(const QItemSelection&amp;)" return-type="bool"/>
+    <!-- For some reason, the empty selection is not seen. Maybe related to the new [default]
+         tag in Qt6?
+         PYSIDE-2756: The return-type attribute is unnecessary -->
+    <declare-function signature="QItemSelection()"/>
+    <!-- The __add__ function creates a result list, instead of using the inherited type.
+         Fixed by adding with the correct type. -->
+    <add-function signature="operator+(QItemSelection)" return-type="QItemSelection">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qitemselection-add"/>
+    </add-function>
+  </value-type>
+
+  <object-type name="QItemSelectionModel">
+    <extra-includes>
+        <include file-name="QItemSelection" location="global"/>
+    </extra-includes>
+    <enum-type name="SelectionFlag" flags="SelectionFlags"/>
+  </object-type>
+
+  <value-type name="QItemSelectionRange">
+  </value-type>
+  <object-type name="QAbstractProxyModel"
+               polymorphic-id-expression="qobject_cast&lt;QAbstractProxyModel*&gt;(%B)">
+    <extra-includes>
+      <include file-name="QItemSelection" location="global"/>
+      <include file-name="QStringList" location="global"/>
+      <include file-name="QSize" location="global"/>
+    </extra-includes>
+  </object-type>
+  <object-type name="QConcatenateTablesProxyModel"/>
+  <object-type name="QSortFilterProxyModel">
+    <extra-includes>
+      <include file-name="QItemSelection" location="global"/>
+      <include file-name="QStringList" location="global"/>
+      <include file-name="QSize" location="global"/>
+    </extra-includes>
+    <modify-function signature="setSourceModel(QAbstractItemModel*)">
+      <modify-argument index="1">
+        <reference-count action="set"/>
+      </modify-argument>
+    </modify-function>
+  </object-type>
+  <object-type name="QIdentityProxyModel"/>
+  <object-type name="QTransposeProxyModel"/>
+  <!-- QObject is created manually -->
+  <object-type name="QObject" parent-management="true">
+    <extra-includes>
+      <include file-name="QThread" location="global"/>
+      <include file-name="QCoreApplication" location="global"/>
+      <include file-name="signalmanager.h" location="local"/>
+    </extra-includes>
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp"
+                 snippet="core-snippets-p-h"/>
+    <modify-function signature="metaObject()const">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-metaobject"/>
+      <modify-argument index="return">
+        <reference-count action="set"/>
+      </modify-argument>
+    </modify-function>
+    <modify-function signature="deleteLater()">
+      <modify-argument index="this">
+        <define-ownership owner="c++"/>
+      </modify-argument>
+    </modify-function>
+    <!-- Invalidate-after-use stuff -->
+    <modify-function signature="childEvent(QChildEvent*)">
+        <modify-argument index="1" invalidate-after-use="yes"/>
+    </modify-function>
+    <modify-function signature="customEvent(QEvent*)">
+        <modify-argument index="1" invalidate-after-use="yes"/>
+    </modify-function>
+    <modify-function signature="event(QEvent*)">
+        <modify-argument index="1" invalidate-after-use="yes"/>
+    </modify-function>
+    <modify-function signature="eventFilter(QObject*,QEvent*)">
+        <modify-argument index="2" invalidate-after-use="yes"/>
+    </modify-function>
+    <modify-function signature="timerEvent(QTimerEvent*)">
+        <modify-argument index="1" invalidate-after-use="yes"/>
+    </modify-function>
+    <!-- End of Invalidate-after-use fix -->
+    <modify-function signature="parent()const">
+      <modify-argument index="return">
+        <define-ownership class="target" owner="default"/>
+      </modify-argument>
+    </modify-function>
+    <modify-function signature="setParent(QObject*)">
+      <modify-argument index="this">
+        <parent index="1" action="add"/>
+      </modify-argument>
+      <modify-argument index="1" pyi-type="Optional[PySide6.QtCore.QObject]"/>
+    </modify-function>
+    <!-- Manual overload order fixes PYSIDE-2627
+
+         The addition of the qobject-connect-4-context overload resulted in an
+         automatic overload ordering that prevented the right overload from
+         ever being called if the callable was a QObject. Set a manual order to
+         fix this. -->
+    <modify-function signature="connect(const QObject*,const char*,const char*,Qt::ConnectionType)const"
+                     overload-number="0">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-connect-1"/>
+    </modify-function>
+    <!-- static version -->
+    <modify-function signature="connect(const QObject*,QMetaMethod,const QObject*,QMetaMethod,Qt::ConnectionType)"
+                     overload-number="1">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-connect-2"/>
+    </modify-function>
+    <modify-function signature="connect(const QObject*,const char*,const QObject*,const char*,Qt::ConnectionType)"
+                     overload-number="2">
+        <modify-argument index="5">
+            <rename to="type"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-connect-3"/>
+    </modify-function>
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-connect"/>
+    <add-function signature="connect(const QObject*@sender@,const char*@signal@,PyCallable*@functor@,Qt::ConnectionType@type@=Qt::AutoConnection)"
+                  return-type="QMetaObject::Connection" static="yes" overload-number="3">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-connect-4"/>
+    </add-function>
+    <add-function signature="connect(const QObject*@sender@,const char*@signal@,const QObject*@context@,PyCallable*@functor@,Qt::ConnectionType@type@=Qt::AutoConnection)"
+                  return-type="QMetaObject::Connection" static="yes" overload-number="4">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-connect-4-context"/>
+    </add-function>
+    <!-- static version -->
+    <add-function signature="connect(const char*@signal@,PyCallable*@functor@,Qt::ConnectionType@type@=Qt::AutoConnection)"
+                  return-type="QMetaObject::Connection" overload-number="5">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-connect-5"/>
+    </add-function>
+    <add-function signature="connect(const char*@signal@,const QObject*@receiver@,const char*@method@,Qt::ConnectionType@type@=Qt::AutoConnection)"
+                  return-type="QMetaObject::Connection" overload-number="6">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-connect-6"/>
+    </add-function>
+
+    <add-function signature="emit(const char*@signal@,...)" return-type="bool">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-emit"/>
+    </add-function>
+    <add-function signature="disconnect(const char*@signal@,PyCallable*@functor@)" return-type="bool">
+         <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-disconnect-1"/>
+    </add-function>
+    <add-function signature="disconnect(const QObject*@sender@,const char*@signal@,PyCallable*@functor@)" return-type="bool" static="yes">
+         <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-disconnect-2"/>
+    </add-function>
+    <modify-function signature="disconnect(QMetaObject::Connection)">
+        <modify-argument index="1">
+            <rename to="connection"/>
+        </modify-argument>
+    </modify-function>
+
+
+    <add-function signature="findChild(PyTypeObject*@type@,const QString&amp;@name@={},Qt::FindChildOptions@options@=Qt::FindChildrenRecursively)"
+                  return-type="PyObject*">
+        <inject-documentation format="target" mode="append"
+                              file="../doc/qtcore.rst" snippet="qobject-findChild"/>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-findchild-2"/>
+        <modify-argument index="return" pyi-type="Optional[PlaceholderType]">
+            <parent index="this" action="add"/>
+        </modify-argument>
+        <modify-argument index="1" pyi-type="typing.Type[PlaceholderType]">
+        </modify-argument>
+    </add-function>
+    <add-function signature="findChildren(PyTypeObject*@type@,const QString&amp;@name@={},Qt::FindChildOptions@options@=Qt::FindChildrenRecursively)"
+                  return-type="PySequence*" >
+        <inject-documentation format="target" mode="append">
+        Like the method *findChild*, the first parameter should be the child's type.
+        </inject-documentation>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-findchildren"/>
+        <modify-argument index="return" pyi-type="List[PlaceholderType]">
+            <parent index="this" action="add"/>
+        </modify-argument>
+        <modify-argument index="1" pyi-type="typing.Type[PlaceholderType]">
+        </modify-argument>
+    </add-function>
+    <add-function signature="findChildren(PyTypeObject*@type@,const QRegularExpression&amp;@pattern@,Qt::FindChildOptions@options@=Qt::FindChildrenRecursively)"
+                  return-type="PySequence*" >
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-findchildren"/>
+        <modify-argument index="return" pyi-type="List[PlaceholderType]">
+            <parent index="this" action="add"/>
+        </modify-argument>
+        <modify-argument index="1" pyi-type="typing.Type[PlaceholderType]">
+        </modify-argument>
+    </add-function>
+
+    <add-function signature="tr(const char *@sourceText@, const char *@disambiguation@=nullptr, int @n@=-1)" return-type="QString" classmethod="yes">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-tr"/>
+        <modify-argument index="1" pyi-type="str"/>
+        <modify-argument index="2" pyi-type="Optional[str]">
+        </modify-argument>
+    </add-function>
+
+   <modify-function signature="destroyed(QObject*)" allow-thread="yes">
+     <modify-argument index="1">
+       <rename to="object"/>
+     </modify-argument>
+   </modify-function>
+
+   <modify-function signature="sender()const" allow-thread="yes">
+      <modify-argument index="return">
+         <define-ownership owner="default"/>
+      </modify-argument>
+       <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qobject-sender"/>
+  </modify-function>
+
+   <!-- This is not supported due the lack of information durring the call with no arguments,  this can cause a memory leak -->
+   <modify-function signature="disconnect(const char*,const QObject*,const char*)const">
+       <modify-argument index="1">
+           <remove-default-expression />
+       </modify-argument>
+       <modify-argument index="2">
+           <remove-default-expression />
+       </modify-argument>
+       <modify-argument index="3">
+           <remove-default-expression />
+       </modify-argument>
+   </modify-function>
+  </object-type>
+  <object-type name="QAbstractListModel"
+               polymorphic-id-expression="qobject_cast&lt;QAbstractListModel*&gt;(%B)">
+    <extra-includes>
+      <include file-name="QStringList" location="global"/>
+      <include file-name="QSize" location="global"/>
+    </extra-includes>
+  </object-type>
+  <value-type name="QUrlQuery"/>
+
+  <value-type name="QUrl">
+    <!-- Qt5: lots of changes -->
+    <enum-type name="ComponentFormattingOption" python-type="IntFlag" flags="ComponentFormattingOptions,FormattingOptions"/>
+    <!-- note: above duplication of attribute is not by default XML compliant! -->
+    <enum-type name="UrlFormattingOption" python-type="IntFlag"/>
+    <enum-type name="UserInputResolutionOption" flags="UserInputResolutionOptions"/>
+    <enum-type name="ParsingMode"/>
+    <enum-type name="AceProcessingOption" flags="AceProcessingOptions" since="6.3"/>
+    <extra-includes>
+      <include file-name="QStringList" location="global"/>
+    </extra-includes>
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="repr_code">
+               <replace from="%REPR_FORMAT" to="'%s'"/>
+               <replace from="%REPR_ARGS" to="qPrintable(%CPPSELF.toString())"/>
+             </insert-template>
+        </inject-code>
+    </add-function>
+
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="s"/>
+              <replace from="%REDUCE_ARGS" to="qPrintable(%CPPSELF.toString())"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+    <modify-function signature="fromLocalFile(const QString &amp;)">
+        <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+    </modify-function>
+  </value-type>
+
+  <value-type name="QRegularExpression">
+    <enum-type name="WildcardConversionOption" flags="WildcardConversionOptions"/>
+    <enum-type name="MatchOption" flags="MatchOptions"/>
+    <enum-type name="MatchType"/>
+    <enum-type name="PatternOption" flags="PatternOptions"/>
+  </value-type>
+  <value-type name="QRegularExpressionMatch"/>
+  <value-type name="QRegularExpressionMatchIterator"/>
+
+  <value-type name="QFileInfo">
+    <extra-includes>
+      <include file-name="QDateTime" location="global"/>
+      <include file-name="QDir" location="global"/>
+    </extra-includes>
+
+    <!-- PYSIDE-1499: Replace QString by pathlib.Path (qfileinfo.h) -->
+    <modify-function signature="QFileInfo(const QString &amp;)">
+        <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+    </modify-function>
+    <modify-function signature="QFileInfo(const QDir &amp;,const QString &amp;)">
+        <modify-argument index="2"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-2"/>
+    </modify-function>
+    <modify-function signature="setFile(const QString &amp;)">
+        <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+    </modify-function>
+    <!-- PYSIDE-1499: End of insertion -->
+
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+              <replace from="%REDUCE_FORMAT" to="s"/>
+              <replace from="%REDUCE_ARGS" to="qPrintable(%CPPSELF.filePath())"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+  </value-type>
+
+  <!-- PYSIDE-1913: Disable isNull() for bool cast; __len__ should be used
+       instead so that b"" yields False. -->
+  <value-type name="QByteArray" isNull="false">
+    <enum-type name="Base64Option" flags="Base64Options"/>
+    <enum-type name="Base64DecodingStatus"/>
+    <value-type name="FromBase64Result"/>
+    <conversion-rule>
+        <target-to-native>
+            <add-conversion type="Py_None" file="../glue/qtcore.cpp" snippet="conversion-pynone"/>
+            <add-conversion type="PyBytes" file="../glue/qtcore.cpp" snippet="conversion-qbytearray-pybytes"/>
+            <add-conversion type="PyByteArray" file="../glue/qtcore.cpp" snippet="conversion-qbytearray-pybytearray"/>
+            <add-conversion type="PyString" check="Shiboken::String::check(%in) &amp;&amp; !PyUnicode_Check(%in)" file="../glue/qtcore.cpp" snippet="conversion-qbytearray-pystring"/>
+        </target-to-native>
+    </conversion-rule>
+
+    <extra-includes>
+      <!-- qt5: this is a pre-defined macro <include file-name="QNoImplicitBoolCast" location="global"/> -->
+    </extra-includes>
+
+    <!-- ### These overloads must be removed accept strings with \x00 in their contents -->
+    <modify-function signature="append(const char*)" remove="all"/>
+    <modify-function signature="prepend(const char*)" remove="all"/>
+    <modify-function signature="operator==(const char*,QByteArray)" remove="all"/>
+    <modify-function signature="operator==(QByteArray,const char*)" remove="all"/>
+    <modify-function signature="operator>(const char*,QByteArray)" remove="all"/>
+    <modify-function signature="operator>(QByteArray,const char*)" remove="all"/>
+    <modify-function signature="operator>=(const char*,QByteArray)" remove="all"/>
+    <modify-function signature="operator>=(QByteArray,const char*)" remove="all"/>
+    <modify-function signature="operator&lt;(const char*,QByteArray)" remove="all"/>
+    <modify-function signature="operator&lt;=(const char*,QByteArray)" remove="all"/>
+    <modify-function signature="operator&lt;=(QByteArray,const char*)" remove="all"/>
+    <modify-function signature="operator!=(const char*,QByteArray)" remove="all"/>
+    <modify-function signature="operator!=(QByteArray,const char*)" remove="all"/>
+    <modify-function signature="operator+=(const char*)" remove="all"/>
+    <modify-function signature="operator+(QByteArray,const char*)" remove="all"/>
+    <modify-function signature="operator+(const char*,QByteArray)" remove="all"/>
+    <modify-function signature="operator+(QByteArray,const char*)" remove="all"/>
+    <add-function signature="operator+(PyBytes,QByteArray)" return-type="QByteArray">
+        <inject-code file="../glue/qtcore.cpp" snippet="qbytearray-operatorplus-1"/>
+    </add-function>
+    <add-function signature="operator+(PyByteArray, QByteArray)" return-type="QByteArray">
+        <inject-code file="../glue/qtcore.cpp" snippet="qbytearray-operatorplus-2"/>
+    </add-function>
+    <add-function signature="operator+(PyByteArray)" return-type="QByteArray">
+        <inject-code file="../glue/qtcore.cpp" snippet="qbytearray-operatorplus-3"/>
+    </add-function>
+    <add-function signature="operator+=(PyByteArray)" return-type="QByteArray">
+        <inject-code file="../glue/qtcore.cpp" snippet="qbytearray-operatorplusequal"/>
+    </add-function>
+    <add-function signature="operator==(PyUnicode)" return-type="bool">
+        <inject-code file="../glue/qtcore.cpp" snippet="qbytearray-operatorequalequal"/>
+    </add-function>
+    <add-function signature="operator!=(PyUnicode)" return-type="bool">
+        <inject-code file="../glue/qtcore.cpp" snippet="qbytearray-operatornotequal"/>
+    </add-function>
+    <add-function signature="operator&gt;(PyUnicode)" return-type="bool">
+        <inject-code file="../glue/qtcore.cpp" snippet="qbytearray-operatorgreater"/>
+    </add-function>
+    <add-function signature="operator&gt;=(PyUnicode)" return-type="bool">
+        <inject-code file="../glue/qtcore.cpp" snippet="qbytearray-operatorgreaterequal"/>
+    </add-function>
+    <add-function signature="operator&lt;(PyUnicode)" return-type="bool">
+        <inject-code file="../glue/qtcore.cpp" snippet="qbytearray-operatorlower"/>
+    </add-function>
+    <add-function signature="operator&lt;=(PyUnicode)" return-type="bool">
+        <inject-code file="../glue/qtcore.cpp" snippet="qbytearray-operatorlowerequal"/>
+    </add-function>
+    <!-- ### -->
+
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qbytearray-repr"/>
+    </add-function>
+
+    <add-function signature="__reduce__" return-type="str">
+        <inject-code class="target" position="beginning">
+            <insert-template name="reduce_code">
+                <replace from="%REDUCE_FORMAT" to="N"/>
+                <replace from="%REDUCE_ARGS" to="PyBytes_FromStringAndSize(%CPPSELF.constData(), %CPPSELF.size())"/>
+            </insert-template>
+        </inject-code>
+    </add-function>
+    <add-function signature="QByteArray(PyByteArray@data@)">
+         <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qbytearray-2"/>
+    </add-function>
+    <add-function signature="QByteArray(PyBytes@data@)">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qbytearray-3"/>
+    </add-function>
+    <!-- buffer protocol -->
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp" snippet="qbytearray-bufferprotocol"/>
+    <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="qbytearray-py3"/>
+
+   <modify-function signature="data()">
+       <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qbytearray-data"/>
+   </modify-function>
+
+    <!-- removed functions -->
+    <!--### Functions removed because they return STL-like iterators -->
+    <modify-function signature="begin()" remove="all"/>
+    <modify-function signature="begin()const" remove="all"/>
+    <modify-function signature="constBegin()const" remove="all"/>
+    <modify-function signature="constData()const" remove="all"/>
+    <modify-function signature="constEnd()const" remove="all"/>
+    <modify-function signature="end()" remove="all"/>
+    <modify-function signature="end()const" remove="all"/>
+    <!--### -->
+
+    <!--### Functions removed because they provide useless overloads from Python point of view -->
+    <modify-function signature="number(uint,int)" remove="all"/>
+    <modify-function signature="number(qulonglong,int)" remove="all"/>
+    <modify-function signature="operator+=(const char*)" remove="all"/>
+    <modify-function signature="operator+(char,QByteArray)" remove="all"/>
+    <modify-function signature="operator==(const char*,QByteArray)" remove="all"/>
+    <modify-function signature="operator!=(const char*,QByteArray)" remove="all"/>
+    <modify-function signature="operator&lt;(const char*,QByteArray)" remove="all"/>
+    <modify-function signature="operator&lt;=(const char*,QByteArray)" remove="all"/>
+    <modify-function signature="operator>(const char*,QByteArray)" remove="all"/>
+    <modify-function signature="operator>=(const char*,QByteArray)" remove="all"/>
+    <!-- Those types have the same representation in Python, an overload
+         would be useless and cause overflow errors. -->
+    <modify-function signature="setNum(uint,int)" remove="all"/>
+    <modify-function signature="setNum(ushort,int)" remove="all"/>
+    <modify-function signature="setNum(float,char,int)" remove="all"/>
+    <modify-function signature="setNum(short,int)" remove="all"/>
+    <modify-function signature="setNum(long,int)" remove="all"/>
+    <modify-function signature="setNum(ulong,int)" remove="all"/>
+    <modify-function signature="setNum(qulonglong,int)" remove="all"/>
+    <modify-function signature="number(uint,int)" remove="all"/>
+    <modify-function signature="number(long,int)" remove="all"/>
+    <modify-function signature="number(ulong,int)" remove="all"/>
+    <modify-function signature="number(qulonglong,int)" remove="all"/>
+
+    <!--### -->
+
+    <modify-function signature="operator const char*()const" remove="all"/>
+    <modify-function signature="operator const void*()const" remove="all"/>
+
+    <!--### STL compatibility functions not supported by PySide -->
+    <modify-function signature="push_back(char)" remove="all"/>
+    <modify-function signature="push_back(const QByteArray&amp;)" remove="all"/>
+    <modify-function signature="push_back(const char*)" remove="all"/>
+    <modify-function signature="push_front(char)" remove="all"/>
+    <modify-function signature="push_front(const QByteArray&amp;)" remove="all"/>
+    <modify-function signature="push_front(const char*)" remove="all"/>
+    <!--### -->
+
+    <modify-function signature="toLong(bool*,int)const">
+      <modify-argument index="1">
+        <remove-argument/>
+      </modify-argument>
+      <inject-code class="target" position="beginning">
+        <insert-template name="fix_bool*,arg"/>
+      </inject-code>
+    </modify-function>
+    <modify-function signature="toLongLong(bool*,int)const">
+      <modify-argument index="1">
+        <remove-argument/>
+      </modify-argument>
+      <inject-code class="target" position="beginning">
+        <insert-template name="fix_bool*,arg"/>
+      </inject-code>
+    </modify-function>
+    <modify-function signature="toShort(bool*,int)const">
+      <modify-argument index="1">
+        <remove-argument/>
+      </modify-argument>
+      <inject-code class="target" position="beginning">
+        <insert-template name="fix_bool*,arg"/>
+      </inject-code>
+    </modify-function>
+    <modify-function signature="toUInt(bool*,int)const">
+      <modify-argument index="1">
+        <remove-argument/>
+      </modify-argument>
+      <inject-code class="target" position="beginning">
+        <insert-template name="fix_bool*,arg"/>
+      </inject-code>
+    </modify-function>
+    <modify-function signature="toULong(bool*,int)const">
+      <modify-argument index="1">
+        <remove-argument/>
+      </modify-argument>
+      <inject-code class="target" position="beginning">
+        <insert-template name="fix_bool*,arg"/>
+      </inject-code>
+    </modify-function>
+    <modify-function signature="toULongLong(bool*,int)const">
+      <modify-argument index="1">
+        <remove-argument/>
+      </modify-argument>
+      <inject-code class="target" position="beginning">
+        <insert-template name="fix_bool*,arg"/>
+      </inject-code>
+    </modify-function>
+    <modify-function signature="toInt(bool*,int)const">
+      <modify-argument index="1">
+        <remove-argument/>
+      </modify-argument>
+      <inject-code class="target" position="beginning">
+        <insert-template name="fix_bool*,arg"/>
+      </inject-code>
+    </modify-function>
+    <modify-function signature="toUShort(bool*,int)const">
+      <modify-argument index="1">
+        <remove-argument/>
+      </modify-argument>
+      <inject-code class="target" position="beginning">
+        <insert-template name="fix_bool*,arg"/>
+      </inject-code>
+    </modify-function>
+    <!-- QByteArray(const char *) do the job of this constructor -->
+    <modify-function signature="toDouble(bool*)const">
+      <modify-argument index="1">
+        <remove-argument/>
+      </modify-argument>
+      <inject-code class="target" position="beginning">
+        <insert-template name="fix_bool*"/>
+      </inject-code>
+    </modify-function>
+    <modify-function signature="toFloat(bool*)const">
+      <modify-argument index="1">
+        <remove-argument/>
+      </modify-argument>
+      <inject-code class="target" position="beginning">
+        <insert-template name="fix_bool*"/>
+      </inject-code>
+    </modify-function>
+    <add-function signature="__str__" return-type="str">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qbytearray-str"/>
+    </add-function>
+    <add-function signature="__len__" return-type="int">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qbytearray-len"/>
+    </add-function>
+    <add-function signature="__getitem__">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qbytearray-getitem"/>
+    </add-function>
+    <add-function signature="__mgetitem__">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qbytearray-mgetitem"/>
+    </add-function>
+    <add-function signature="__setitem__">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qbytearray-setitem"/>
+    </add-function>
+    <add-function signature="__msetitem__">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qbytearray-msetitem"/>
+    </add-function>
+    <modify-function signature="fromRawData(const char*, qsizetype)">
+      <modify-argument index="1" pyi-type="str"/>
+    </modify-function>
+  </value-type>
+  <primitive-type name="QByteArrayView" view-on="QByteArray">
+    <conversion-rule>
+        <native-to-target file="../glue/qtcore.cpp" snippet="return-pybytes"/>
+    </conversion-rule>
+  </primitive-type>
+
+  <value-type name="QTextBoundaryFinder">
+    <enum-type name="BoundaryReason" flags="BoundaryReasons"/>
+    <enum-type name="BoundaryType"/>
+    <!-- There's no QChar in PySide -->
+    <modify-function signature="QTextBoundaryFinder(QTextBoundaryFinder::BoundaryType,const QChar*,qsizetype,unsigned char*,qsizetype)" remove="all"/>
+  </value-type>
+  <object-type name="QXmlStreamEntityResolver"/>
+
+  <object-type name="QAbstractEventDispatcher">
+    <modify-function signature="processEvents(QFlags&lt;QEventLoop::ProcessEventsFlag>)" allow-thread="yes"/>
+    <!-- Qt5: had to add this recursive object def. This was crucial to get rid of "pure virtual" -->
+    <value-type name="TimerInfo"/>
+  </object-type>
+
+  <object-type name="QAbstractNativeEventFilter">
+    <!-- see QWidget::nativeEvent(), QWindow::nativeEvent() -->
+    <modify-function signature="nativeEventFilter(const QByteArray&amp;,void*,qintptr*)">
+      <modify-argument index="3">
+        <remove-argument/>
+        <conversion-rule class="native">
+            <insert-template name="return_native_eventfilter_conversion_variables"/>
+        </conversion-rule>
+      </modify-argument>
+      <modify-argument index="return">
+        <replace-type modified-type="PyObject"/>
+        <conversion-rule class="native">
+            <insert-template name="return_native_eventfilter_conversion"/>
+        </conversion-rule>
+      </modify-argument>
+      <inject-code position="end"
+                   file="../glue/qtcore.cpp" snippet="return-native-eventfilter"/>
+    </modify-function>
+  </object-type>
+
+  <object-type name="QEventLoop">
+      <enum-type name="ProcessEventsFlag" flags="ProcessEventsFlags"/>
+      <modify-function signature="exec(QFlags&lt;QEventLoop::ProcessEventsFlag>)" allow-thread="yes"/>
+      <add-function signature="exec_(QFlags&lt;QEventLoop::ProcessEventsFlag> @flags@ = QEventLoop::AllEvents)" return-type="int">
+          <inject-code file="../glue/qtcore.cpp" snippet="exec_arg1"/>
+      </add-function>
+      <modify-function signature="processEvents(QFlags&lt;QEventLoop::ProcessEventsFlag>)" allow-thread="yes"/>
+      <modify-function signature="processEvents(QFlags&lt;QEventLoop::ProcessEventsFlag>,int)" allow-thread="yes"/>
+  </object-type>
+  <object-type name="QFileDevice">
+    <enum-type name="FileError"/>
+    <enum-type name="FileTime"/>
+    <enum-type name="MemoryMapFlag" flags="MemoryMapFlags"/>
+    <enum-type name="Permission" flags="Permissions"/>
+    <enum-type name="FileHandleFlag" flags="FileHandleFlags"/>
+    <extra-includes>
+      <!-- Qt5: private <include file-name="QAbstractFileEngine" location="global"/> -->
+    </extra-includes>
+    <modify-function signature="unmap(uchar*)">
+        <modify-argument index="1">
+            <replace-type modified-type="PyBuffer"/>
+        </modify-argument>
+        <inject-code file="../glue/qtcore.cpp" snippet="qfiledevice-unmap"/>
+    </modify-function>
+    <modify-function signature="map(qint64,qint64,QFlags&lt;QFileDevice::MemoryMapFlag&gt;)">
+        <modify-argument index="return">
+            <replace-type modified-type="PyObject"/>
+        </modify-argument>
+        <inject-code file="../glue/qtcore.cpp" snippet="qfiledevice-map"/>
+    </modify-function>
+    <modify-function signature="flush()" allow-thread="yes"/>
+  </object-type>
+
+  <object-type name="QFile">
+    <!-- PYSIDE-1499: Replace QString by pathlib.Path (qfile.h) -->
+    <modify-function signature="QFile(const QString &amp;)">
+        <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+    </modify-function>
+    <modify-function signature="QFile(const QString &amp;,QObject *)">
+        <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+    </modify-function>
+    <modify-function signature="setFileName(const QString &amp;)">
+        <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+    </modify-function>
+    <modify-function signature="rename(const QString &amp;)">
+        <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+    </modify-function>
+    <modify-function signature="link(const QString &amp;)">
+        <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+    </modify-function>
+    <modify-function signature="copy(const QString &amp;)">
+        <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+    </modify-function>
+    <modify-function signature="permissions(const QString &amp;)">
+        <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+    </modify-function>
+    <modify-function signature="setPermissions(const QString &amp;,QFlags&lt;QFileDevice::Permission&gt;)">
+        <modify-argument index="1"><replace-type modified-type="PyPathLike"/></modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qfile-path-1"/>
+    </modify-function>
+    <!-- PYSIDE-1499: End of insertion -->
+
+    <modify-function signature="open(QFlags&lt;QIODeviceBase::OpenModeFlag&gt;)" allow-thread="yes"/>
+    <modify-function signature="open(int,QFlags&lt;QIODeviceBase::OpenModeFlag&gt;,QFlags&lt;QFileDevice::FileHandleFlag&gt;)" allow-thread="yes"/>
+    <modify-function signature="copy(const QString&amp;)" allow-thread="yes"/>
+    <modify-function signature="copy(const QString&amp;,const QString&amp;)" allow-thread="yes"/>
+    <modify-function signature="link(const QString&amp;)" allow-thread="yes"/>
+    <modify-function signature="link(const QString&amp;,const QString&amp;)" allow-thread="yes"/>
+    <modify-function signature="remove()" allow-thread="yes"/>
+    <modify-function signature="remove(const QString&amp;)" allow-thread="yes"/>
+    <modify-function signature="rename(const QString&amp;)" allow-thread="yes"/>
+    <modify-function signature="rename(const QString&amp;,const QString&amp;)" allow-thread="yes"/>
+  </object-type>
+  <object-type name="QSaveFile"/>
+  <object-type name="QFileSelector"/>
+
+  <object-type name="QIODevice">
+    <modify-function signature="open(QFlags&lt;QIODeviceBase::OpenModeFlag>)" allow-thread="yes"/>
+    <modify-function signature="close()" allow-thread="yes"/>
+    <modify-function signature="seek(qint64)" allow-thread="yes"/>
+    <modify-function signature="readAll()" allow-thread="yes"/>
+    <modify-function signature="peek(qint64)" allow-thread="yes"/>
+    <modify-function signature="write(const QByteArray&amp;)" allow-thread="yes"/>
+    <modify-function signature="waitForReadyRead(int)" allow-thread="yes"/>
+    <modify-function signature="waitForBytesWritten(int)" allow-thread="yes"/>
+    <modify-function signature="peek(char*,qint64)" remove="all"/>
+    <add-function signature="peek(PyBuffer@buffer@,qint64@maxlen@)" return-type="qint64">
+        <modify-argument index="1" pyi-type="bytearray"/>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qiodevice-bufferedread"/>
+    </add-function>
+    <modify-function signature="read(char*,qint64)" remove="all"/>
+    <add-function signature="read(PyBuffer@buffer@,qint64@maxlen@)" return-type="qint64">
+        <modify-argument index="1" pyi-type="bytearray"/>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qiodevice-bufferedread"/>
+    </add-function>
+    <modify-function signature="readLine(char*,qint64)" remove="all"/>
+    <add-function signature="readLine(PyBuffer@buffer@,qint64@maxlen@)" return-type="qint64">
+        <modify-argument index="1" pyi-type="bytearray"/>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qiodevice-bufferedread"/>
+    </add-function>
+    <!-- ### write(str) do the job -->
+    <modify-function signature="write(const char*,qint64)" remove="all"/>
+    <modify-function signature="write(const char*)" remove="all"/>
+    <modify-function signature="getChar(char*)">
+        <modify-argument index="1">
+            <remove-argument />
+            <remove-default-expression />
+        </modify-argument>
+        <inject-code class="target" position="beginning">
+            <insert-template name="fix_char*"/>
+        </inject-code>
+    </modify-function>
+    <modify-function signature="readData(char*,qint64)">
+        <inject-code class="target" file="../glue/qtcore.cpp" snippet="qiodevice-readData"/>
+        <modify-argument index="1">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="return">
+            <replace-type modified-type="PyObject"/>
+        </modify-argument>
+        <inject-code class="native" position="end" file="../glue/qtcore.cpp" snippet="return-readData"/>
+    </modify-function>
+    <modify-function signature="readLineData(char*,qint64)">
+        <inject-code class="target" file="../glue/qtcore.cpp" snippet="qiodevice-readData"/>
+        <modify-argument index="1">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="return">
+            <replace-type modified-type="PyObject"/>
+        </modify-argument>
+        <inject-code class="native" position="end" file="../glue/qtcore.cpp" snippet="return-readData"/>
+    </modify-function>
+  </object-type>
+  <object-type name="QIODeviceBase">
+      <enum-type name="OpenModeFlag" flags="OpenMode"/>
+  </object-type>
+  <object-type name="QCryptographicHash">
+    <enum-type name="Algorithm"/>
+    <modify-function signature="addData(const char*,qsizetype)">
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <inject-code file="../glue/qtcore.cpp" snippet="qcryptographichash-adddata"/>
+    </modify-function>
+  </object-type>
+  <value-type name="QOperatingSystemVersionBase" since="6.3"
+              default-constructor="QOperatingSystemVersionBase(QOperatingSystemVersionBase::Unknown, 1)"/>
+  <value-type name="QOperatingSystemVersionUnexported" since="6.3" generate="false"/>
+  <value-type name="QOperatingSystemVersion">
+      <enum-type name="OSType"/>
+      <modify-function signature="QOperatingSystemVersion(const QOperatingSystemVersionBase&amp;)" remove="all"/>
+  </value-type>
+  <object-type name="QLibrary">
+    <enum-type name="LoadHint" flags="LoadHints"/>
+  </object-type>
+  <object-type name="QLibraryInfo">
+    <enum-type name="LibraryPath"/>
+    <inject-code class="native" position="beginning"
+                 file="../glue/qtcore.cpp" snippet="qlibraryinfo_python_build"/>
+    <modify-function signature="build()">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="qlibraryinfo_build"/>
+    </modify-function>
+  </object-type>
+  <namespace-type name="QtCoreHelper" visible="no">
+    <object-type name="QMutexLocker" copyable="no">
+      <configuration condition="QT_CONFIG(thread)"/>
+      <!-- PYSIDE-1271: Creating locking capable objects inside sections that
+      contain allow-thread, require the classes to also allow having threads.
+      The lack of the option here, was generating a deadlock when running a
+      QMutexLocker inside a QThread::run.
+      The reason of having this change is due to the new way of handling the GIL
+      in the Qt calls on the whole PySide6 module, that started on 5.14.2-->
+      <modify-function signature="QMutexLocker(QMutex*)" allow-thread="yes">
+        <modify-argument index="1">
+          <reference-count action="set" variable-name="mutex()const0"/>
+        </modify-argument>
+      </modify-function>
+      <modify-function signature="QMutexLocker(QRecursiveMutex*)" allow-thread="yes">
+        <modify-argument index="1">
+          <reference-count action="set" variable-name="recursiveMutex()const0"/>
+        </modify-argument>
+      </modify-function>
+      <modify-function signature="relock()" allow-thread="yes"/>
+      <modify-function signature="mutex()const">
+        <modify-argument index="return">
+          <reference-count action="set"/>
+        </modify-argument>
+      </modify-function>
+      <modify-function signature="recursiveMutex()const">
+        <modify-argument index="return">
+          <reference-count action="set"/>
+        </modify-argument>
+      </modify-function>
+      <add-function signature="__enter__()" return-type="QtCoreHelper::QMutexLocker">
+          <inject-code file="../glue/qtcore.cpp" snippet="default-enter"/>
+      </add-function>
+      <add-function signature="__exit__(PyObject*,PyObject*,PyObject*)">
+          <inject-code file="../glue/qtcore.cpp" snippet="unlock"/>
+      </add-function>
+    </object-type>
+    <object-type name="QIOPipe"/>
+    <value-type name="QGenericArgumentHolder"/>
+    <value-type name="QGenericReturnArgumentHolder"/>
+    <value-type name="QDirListingIterator">
+        <add-function signature="__iter__()" return-type="PyObject*">
+          <inject-code class="target" position="beginning">
+            <insert-template name="__iter__"/>
+          </inject-code>
+        </add-function>
+        <add-function signature="__next__()" return-type="PyObject*">
+          <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                       snippet="qdirlistingiterator-next"/>
+        </add-function>
+    </value-type>
+  </namespace-type>
+
+  <!-- Qt5 addition -->
+  <object-type name="QBasicMutex">
+    <configuration condition="QT_CONFIG(thread)"/>
+    <modify-function signature="lock()" allow-thread="yes"/>
+    <modify-function signature="tryLock()" allow-thread="yes"/>
+    <modify-field name="FutexAlwaysAvailable" remove="yes"/>
+  </object-type>
+
+  <object-type name="QMutex">
+    <configuration condition="QT_CONFIG(thread)"/>
+    <modify-function signature="tryLock(int)" allow-thread="yes"/>
+  </object-type>
+  <object-type name="QRecursiveMutex">
+    <configuration condition="QT_CONFIG(thread)"/>
+    <modify-function signature="lock()" allow-thread="yes"/>
+    <modify-function signature="tryLock(int)" allow-thread="yes"/>
+  </object-type>
+  <object-type name="QRandomGenerator">
+      <modify-function signature="global()" rename="global_"/>
+      <modify-function signature="operator()()" remove="all"/>
+      <modify-function signature="generate(quint32*,quint32*)" remove="all"/>
+  </object-type>
+  <object-type name="QRandomGenerator64">
+      <modify-function signature="global()" rename="global_"/>
+      <modify-function signature="operator()()" remove="all"/>
+  </object-type>
+  <object-type name="QSemaphore">
+    <configuration condition="QT_CONFIG(thread)"/>
+    <modify-function signature="acquire(int)" allow-thread="yes"/>
+    <modify-function signature="tryAcquire(int,int)" allow-thread="yes"/>
+    <!-- PYSIDE-2845, clashes with snake-case -->
+    <modify-function signature="try_acquire()" remove="yes"/>
+  </object-type>
+  <object-type name="QSemaphoreReleaser">
+    <configuration condition="QT_CONFIG(thread)"/>
+  </object-type>
+
+  <value-type name="QSocketDescriptor">
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp" snippet="qsocketdescriptor"/>
+  </value-type>
+  <object-type name="QSocketNotifier">
+    <enum-type name="Type"/>
+    <add-function signature="QSocketNotifier(PyObject*, QSocketNotifier::Type, QObject*@parent@=nullptr)">
+      <inject-code file="../glue/qtcore.cpp" snippet="qsocketnotifier"/>
+    </add-function>
+  </object-type>
+
+  <object-type name="QTemporaryFile">
+    <extra-includes>
+      <!-- Qt5: private <include file-name="QAbstractFileEngine" location="global"/> -->
+    </extra-includes>
+    <modify-function signature="createNativeFile(QFile&amp;)" allow-thread="yes"/>
+    <modify-function signature="createNativeFile(const QString&amp;)" allow-thread="yes"/>
+    <modify-function signature="open()" allow-thread="yes"/>
+  </object-type>
+  <object-type name="QTemporaryDir"/>
+  <object-type name="QMimeData">
+    <extra-includes>
+      <include file-name="QStringList" location="global"/>
+      <include file-name="QUrl" location="global"/>
+    </extra-includes>
+  </object-type>
+  <object-type name="QTimeLine">
+    <enum-type name="Direction"/>
+    <enum-type name="State"/>
+  </object-type>
+  <object-type name="QTranslator">
+    <modify-function signature="load(const uchar*,int,QString)" allow-thread="yes">
+        <modify-argument index="1">
+            <replace-type modified-type="PyBuffer"/>
+        </modify-argument>
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <inject-code file="../glue/qtcore.cpp" snippet="qtranslator-load"/>
+    </modify-function>
+    <modify-function signature="translate(const char*,const char*, const char*,int)const">
+        <modify-argument index="1" pyi-type="str"/>
+        <modify-argument index="2" pyi-type="str"/>
+        <modify-argument index="3" pyi-type="Optional[str]"/>
+    </modify-function>
+  </object-type>
+  <object-type name="QWaitCondition">
+    <configuration condition="QT_CONFIG(thread)"/>
+    <modify-function signature="wait(QMutex*,QDeadlineTimer)" allow-thread="yes"/>
+    <modify-function signature="wait(QMutex*,unsigned long)" allow-thread="yes"/>
+    <modify-function signature="wait(QReadWriteLock*,QDeadlineTimer)" allow-thread="yes"/>
+    <modify-function signature="wait(QReadWriteLock*,unsigned long)" allow-thread="yes"/>
+  </object-type>
+  <object-type name="QFileSystemWatcher">
+    <extra-includes>
+      <include file-name="QStringList" location="global"/>
+    </extra-includes>
+  </object-type>
+  <object-type name="QBuffer">
+    <!-- ### setData(QByteArray) do the job -->
+    <modify-function signature="setData(const char*,qsizetype)" remove="all"/>
+    <!-- Disambiguate from Qt3DRender/qbuffer.h -->
+    <include file-name="QtCore/qbuffer.h" location="global"/>
+  </object-type>
+  <object-type name="QTimer">
+    <extra-includes>
+      <include file-name="pysidestaticstrings.h" location="global"/>
+      <include file-name="qobjectconnect.h" location="global"/>
+    </extra-includes>
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp"
+                 snippet="qtimer-singleshot-functorclass"/>
+    <modify-function signature="singleShot(int,const QObject*,const char*)">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qtimer-singleshot-direct-mapping"/>
+    </modify-function>
+    <add-function signature="singleShot(int@msec@,PyCallable*@functor@)" static="yes">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qtimer-singleshot-functor"/>
+    </add-function>
+    <add-function signature="singleShot(int@msec@,const QObject*@context@,PyCallable*@functor@)" static="yes">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qtimer-singleshot-functor-context"/>
+    </add-function>
+  </object-type>
+  <object-type name="QProcess">
+    <configuration condition="QT_CONFIG(process)"/>
+    <enum-type name="ExitStatus"/>
+    <enum-type name="InputChannelMode"/>
+    <enum-type name="ProcessChannel"/>
+    <enum-type name="ProcessChannelMode"/>
+    <enum-type name="ProcessError"/>
+    <enum-type name="ProcessState"/>
+
+    <?if !windows?>
+    <enum-type name="UnixProcessFlag" flags="UnixProcessFlags" since="6.6"/>
+    <value-type name="UnixProcessParameters" since="6.6"/>
+    <?endif?>
+
+    <modify-function signature="waitForStarted(int)" allow-thread="yes"/>
+    <modify-function signature="waitForBytesWritten(int)" allow-thread="yes"/>
+    <modify-function signature="waitForFinished(int)" allow-thread="yes"/>
+    <modify-function signature="readAllStandardOutput()" allow-thread="yes"/>
+    <modify-function signature="readAllStandardError()" allow-thread="yes"/>
+    <modify-function signature="execute(QString,QStringList)" allow-thread="yes"/>
+    <modify-function signature="startDetached(QString,QStringList,QString,qint64*)">
+        <modify-argument index="4">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="return" pyi-type="Tuple[bool, int]">
+            <replace-type modified-type="(retval, pid)"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qprocess-startdetached"/>
+    </modify-function>
+  </object-type>
+  <object-type name="QSignalMapper"/>
+
+  <object-type name="QCollatorSortKey"/>
+  <object-type name="QCollator"/>
+
+  <object-type name="QCommandLineOption">
+    <enum-type name="Flag" flags="Flags"/>
+  </object-type>
+  <object-type name="QCommandLineParser">
+    <enum-type name="OptionsAfterPositionalArgumentsMode"/>
+    <enum-type name="SingleDashWordOptionMode"/>
+    <enum-type name="MessageType" since="6.9"/>
+  </object-type>
+
+  <object-type name="QCoreApplication">
+    <!--Qt5: gone <enum-type name="Encoding"/> -->
+    <enum-type identified-by-value="ApplicationFlags" revision="4800"/>
+    <extra-includes>
+      <include file-name="QStringList" location="global"/>
+      <include file-name="QTranslator" location="global"/>
+      <include file-name="pysidecleanup.h" location="global"/>
+      <include file-name="pysideqapp.h" location="global"/>
+    </extra-includes>
+    <add-function signature="QCoreApplication(QStringList@args@)">
+        <inject-code file="../glue/qtcore.cpp" snippet="qcoreapplication-1"/>
+        <inject-documentation format="target" mode="append"
+                              file="../doc/qtcore.rst" snippet="qcoreapplication-init"/>
+    </add-function>
+    <add-function signature="QCoreApplication()">
+        <inject-code file="../glue/qtcore.cpp" snippet="qcoreapplication-2"/>
+    </add-function>
+    <!-- Addition for qApp.
+         To be fixed: This function deletes a little too much ATM that is missing later
+         when creating a new qApp. -->
+    <add-function signature="shutdown()">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="moduleshutdown"/>
+    </add-function>
+
+    <!-- blocking functions -->
+    <modify-function signature="processEvents(QFlags&lt;QEventLoop::ProcessEventsFlag&gt;,int)" allow-thread="yes"/>
+    <modify-function signature="processEvents(QFlags&lt;QEventLoop::ProcessEventsFlag&gt;)" allow-thread="yes"/>
+    <modify-function signature="sendEvent(QObject*,QEvent*)" allow-thread="yes"/>
+    <modify-function signature="sendPostedEvents(QObject*,int)" allow-thread="yes"/>
+    <modify-function signature="instance()">
+      <modify-argument index="return" pyi-type="Optional[PySide6.QtCore.QCoreApplication]"/>
+      <inject-code class="target" file="../glue/qtcore.cpp" snippet="qcoreapplication-instance"/>
+    </modify-function>
+
+    <modify-function signature="exec()" allow-thread="yes"/>
+    <add-function signature="exec_()" return-type="int">
+        <inject-code file="../glue/qtcore.cpp" snippet="exec_"/>
+    </add-function>
+    <modify-function signature="notify(QObject*,QEvent*)" allow-thread="yes">
+      <modify-argument index="2" invalidate-after-use="yes"/>
+    </modify-function>
+    <modify-function signature="QCoreApplication(int &amp;,char **,int)" access="private"/>
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp" snippet="qcoreapplication-init"/>
+    <modify-function signature="postEvent(QObject*,QEvent*,int)">
+      <modify-argument index="2">
+        <define-ownership owner="c++"/>
+      </modify-argument>
+    </modify-function>
+    <modify-function signature="translate(const char*,const char*,const char *,int)">
+      <modify-argument index="1" pyi-type="str"/>
+      <modify-argument index="2" pyi-type="str"/>
+      <modify-argument index="3" pyi-type="Optional[str]"/>
+    </modify-function>
+    <?if !no_QPermission?>
+    <declare-function signature="checkPermission(const QBluetoothPermission &amp; @permission@)" return-type="Qt::PermissionStatus" since="6.5" />
+    <declare-function signature="checkPermission(const QCalendarPermission &amp; @permission@)" return-type="Qt::PermissionStatus" since="6.5" />
+    <declare-function signature="checkPermission(const QCameraPermission &amp; @permission@)" return-type="Qt::PermissionStatus" since="6.5" />
+    <declare-function signature="checkPermission(const QContactsPermission &amp; @permission@)" return-type="Qt::PermissionStatus" since="6.5" />
+    <declare-function signature="checkPermission(const QLocationPermission &amp; @permission@)" return-type="Qt::PermissionStatus" since="6.5" />
+    <declare-function signature="checkPermission(const QMicrophonePermission &amp; @permission@)" return-type="Qt::PermissionStatus" since="6.5" />
+    <add-function signature="requestPermission(const QBluetoothPermission &amp; @permission@, const QObject* @context@, PyCallable* @functor@)" since="6.5">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+              snippet="qcoreapplication-requestpermission"/>
+    </add-function>
+    <add-function signature="requestPermission(const QCalendarPermission &amp; @permission@, const QObject* @context@, PyCallable* @functor@)" since="6.5">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+              snippet="qcoreapplication-requestpermission"/>
+    </add-function>
+    <add-function signature="requestPermission(const QCameraPermission &amp; @permission@, const QObject* @context@, PyCallable* @functor@)" since="6.5">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+              snippet="qcoreapplication-requestpermission"/>
+    </add-function>
+    <add-function signature="requestPermission(const QContactsPermission &amp; @permission@, const QObject* @context@, PyCallable* @functor@)" since="6.5">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+              snippet="qcoreapplication-requestpermission"/>
+    </add-function>
+    <add-function signature="requestPermission(const QLocationPermission &amp; @permission@, const QObject* @context@, PyCallable* @functor@)" since="6.5">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+              snippet="qcoreapplication-requestpermission"/>
+    </add-function>
+    <add-function signature="requestPermission(const QMicrophonePermission &amp; @permission@, const QObject* @context@, PyCallable* @functor@)" since="6.5">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+              snippet="qcoreapplication-requestpermission"/>
+    </add-function>
+    <?endif?>
+  </object-type>
+  <object-type name="QSettings">
+    <enum-type name="Format"/>
+    <enum-type name="Scope"/>
+    <enum-type name="Status"/>
+    <extra-includes>
+      <include file-name="QStringList" location="global"/>
+    </extra-includes>
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp"
+                 snippet="settings-value-helpers"/>
+    <!-- PYSIDE-1010:
+    We remove the original implementation of value() to include the optional parameter -->
+    <modify-function signature="value(QAnyStringView,const QVariant&amp;)const" remove="all"/>
+    <add-function signature="value(const QString&amp;, const QVariant&amp; @defaultValue@ = {}, PyObject* @type@ = nullptr)" return-type="PyObject*">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qsettings-value"/>
+      <inject-documentation mode="append" format="target"
+                            file="../doc/qtcore.rst" snippet="qsettings-value"/>
+    </add-function>
+  </object-type>
+  <object-type name="QEvent"  polymorphic-id-expression="%1-&gt;type() == QEvent::None"
+               qt-register-metatype="base">
+    <enum-type name="Type" python-type="IntEnum"/>
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning"
+                     file="../glue/qtcore.cpp" snippet="repr-qevent"/>
+    </add-function>
+  </object-type>
+  <object-type name="QChildEvent"
+               polymorphic-id-expression="%B-&gt;type() == QEvent::ChildAdded || %B-&gt;type() == QEvent::ChildPolished || %B-&gt;type() == QEvent::ChildRemoved">
+    <modify-function signature="child()const">
+      <modify-argument index="return">
+         <define-ownership class="target" owner="default"/>
+      </modify-argument>
+    </modify-function>
+  </object-type>
+  <object-type name="QTimerEvent"
+               polymorphic-id-expression="%B-&gt;type() == QEvent::Timer"/>
+  <object-type name="QDynamicPropertyChangeEvent"
+               polymorphic-id-expression="%B-&gt;type() == QEvent::DynamicPropertyChange"/>
+
+
+  <object-type name="QDataStream" stream="yes">
+    <enum-type name="FloatingPointPrecision"/>
+    <enum-type name="Status"/>
+    <enum-type name="Version" python-type="IntEnum"/>
+    <enum-type name="ByteOrder"/>
+    <extra-includes>
+      <include file-name="QtCore/QtCore" location="global"/>
+    </extra-includes>
+
+    <!-- ### Replaced by write<TYPE> methods -->
+    <modify-function signature="operator&gt;&gt;(qint8&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(quint8&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(qint16&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(quint16&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(qint32&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(quint32&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(qint64&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(quint64&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(float&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(double&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(char*&amp;)" remove="all"/>
+    <!-- ### -->
+
+    <!-- ### Replaced by read<TYPE> methods -->
+    <modify-function signature="operator&lt;&lt;(qint8)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(quint8)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(qint16)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(quint16)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(qint32)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(quint32)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(qint64)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(quint64)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(float)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(double)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(const char*)" remove="all"/>
+    <!-- ### -->
+    <add-function signature="operator&lt;&lt;(const QString&amp;)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="writeQString(const QString&amp;)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="readQString()" return-type="QString">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <add-function signature="writeQChar(const QChar&amp;)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="readQChar()" return-type="QChar">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <add-function signature="writeQStringList(const QStringList&amp;)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="readQStringList()" return-type="QStringList">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <add-function signature="writeQVariant(const QVariant&amp;)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="readQVariant()" return-type="QVariant">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <modify-function signature="readRawData(char*,qint64)">
+        <modify-argument index="return" pyi-type="bytes"/>
+        <modify-argument index="1">
+            <remove-argument />
+        </modify-argument>
+        <inject-code class="target" file="../glue/qtcore.cpp" snippet="qdatastream-readrawdata"/>
+    </modify-function>
+    <add-function signature="writeRawData(PyBuffer)">
+        <inject-code class="target" position="beginning"
+                     file="../glue/qtcore.cpp" snippet="qdatastream-writerawdata-pybuffer"/>
+    </add-function>
+    <modify-function signature="writeRawData(const char*,qint64)">
+        <modify-argument index="1" pyi-type="str"/>
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <inject-code class="target" file="../glue/qtcore.cpp" snippet="qdatastream-writerawdata"/>
+    </modify-function>
+
+    <!-- Extra functions for primitive type handling -->
+    <add-function signature="readBool()" return-type="bool">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <add-function signature="readInt8()" return-type="qint8">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <add-function signature="readUInt8()" return-type="quint8">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <add-function signature="readUInt16()" return-type="quint16">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <add-function signature="readInt16()" return-type="qint16">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <add-function signature="readInt32()" return-type="qint32">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <add-function signature="readUInt32()" return-type="quint32">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <add-function signature="readInt64()" return-type="qint64">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <add-function signature="readUInt64()" return-type="quint64">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <add-function signature="readFloat()" return-type="float">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <add-function signature="readDouble()" return-type="qreal">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+    <add-function signature="readString()" return-type="QString">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-read-method"/>
+    </add-function>
+
+    <add-function signature="writeBool(bool)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="writeInt8(qint8)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="writeUInt8(quint8)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="writeUInt16(quint16)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="writeInt16(qint16)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="writeInt32(qint32)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="writeUInt32(quint32)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="writeInt64(qint64)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="writeUInt64(quint64)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="writeFloat(float)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="writeDouble(qreal)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <add-function signature="writeString(QString)">
+        <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="stream-write-method"/>
+    </add-function>
+    <modify-function signature="readBytes(char*&amp;,qint64&amp;)">
+        <modify-argument index="return">
+            <replace-type modified-type="PyTuple"/>
+        </modify-argument>
+        <modify-argument index="1">
+            <remove-argument />
+        </modify-argument>
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qdatastream-read-bytes"/>
+    </modify-function>
+    <modify-function signature="readBytes(char*&amp;,uint&amp;)" remove="all"/>
+
+    <modify-function signature="writeBytes(const char*,qint64)">
+        <modify-argument index="1">
+            <replace-type modified-type="PyBuffer"/>
+            <conversion-rule class="native">
+                <insert-template name="pybuffer_const_char"/>
+            </conversion-rule>
+        </modify-argument>
+        <modify-argument index="2">
+            <remove-argument/>
+            <conversion-rule class="native">
+                <insert-template name="uint_remove"/>
+            </conversion-rule>
+        </modify-argument>
+    </modify-function>
+  </object-type>
+
+  <value-type name="QTextStreamManipulator" default-constructor="QTextStreamManipulator(0, 0)">
+    <!-- Since exec() here doesn't need an allow-threads, we don't modify the original -->
+    <add-function signature="exec_(QTextStream &amp;)">
+        <inject-code file="../glue/qtcore.cpp" snippet="qtextstreammanipulator-exec"/>
+    </add-function>
+  </value-type>
+  <object-type name="QTextStream" stream="yes">
+    <enum-type name="FieldAlignment"/>
+    <enum-type name="NumberFlag" flags="NumberFlags"/>
+    <enum-type name="RealNumberNotation"/>
+    <enum-type name="Status"/>
+    <!-- Removed because it expect QString to be mutable -->
+    <modify-function signature="QTextStream(QString*,QFlags&lt;QIODeviceBase::OpenModeFlag&gt;)" remove="all"/>
+    <!-- Qt5.5: Removed because it expect QString to be mutable -->
+    <modify-function signature="readLineInto(QString*,qint64)"/>
+    <!-- Removed because we use the non-const version -->
+    <modify-function signature="QTextStream(const QByteArray&amp;,QFlags&lt;QIODeviceBase::OpenModeFlag&gt;)" remove="all"/>
+
+    <!-- Removed because it expect QString to be mutable -->
+    <modify-function signature="setString(QString*,QFlags&lt;QIODeviceBase::OpenModeFlag&gt;)" remove="all"/>
+
+    <modify-function signature="operator&lt;&lt;(const void*)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(float)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(qlonglong)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(qulonglong)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(short)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(int)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(unsigned int)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(unsigned short)" remove="all"/>
+    <modify-function signature="operator&lt;&lt;(const char*)" remove="all"/>
+
+    <modify-function signature="operator&gt;&gt;(char*)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(char&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(float&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(double&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(qlonglong&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(qulonglong&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(long&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(int&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(short&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(unsigned long&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(unsigned int&amp;)" remove="all"/>
+    <modify-function signature="operator&gt;&gt;(unsigned short&amp;)" remove="all"/>
+    <!-- Removed because it expect QChar to be mutable -->
+    <modify-function signature="operator&gt;&gt;(QChar&amp;)" remove="all"/>
+    <!-- Removed because it expect QString to be mutable -->
+    <modify-function signature="operator&gt;&gt;(QString&amp;)" remove="all"/>
+
+    <modify-function signature="string()const">
+      <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="return-qstring-ref"/>
+    </modify-function>
+
+    <modify-function signature="flush()" allow-thread="yes"/>
+    <modify-function signature="read(qint64)" allow-thread="yes"/>
+    <modify-function signature="readLine(qint64)" allow-thread="yes"/>
+    <modify-function signature="readAll()" allow-thread="yes"/>
+  </object-type>
+  <object-type name="QStandardPaths">
+    <enum-type name="StandardLocation"/>
+    <enum-type name="LocateOption" flags="LocateOptions"/>
+  </object-type>
+  <object-type name="QSystemSemaphore">
+    <configuration condition="#if QT_CONFIG(systemsemaphore)" />
+    <enum-type name="AccessMode"/>
+    <enum-type name="SystemSemaphoreError"/>
+  </object-type>
+
+  <object-type name="QThreadPool">
+    <configuration condition="QT_CONFIG(thread)"/>
+    <modify-function signature="clear()" allow-thread="yes"/>
+    <modify-function signature="activeThreadCount()const" allow-thread="yes"/>
+    <modify-function signature="releaseThread()" allow-thread="yes"/>
+    <modify-function signature="reserveThread()" allow-thread="yes"/>
+    <modify-function signature="setMaxThreadCount(int)" allow-thread="yes"/>
+    <modify-function signature="waitForDone(int)" allow-thread="yes"/>
+    <modify-function signature="waitForDone(QDeadlineTimer)" allow-thread="yes"/>
+    <modify-function signature="start(QRunnable*,int)" allow-thread="yes">
+      <modify-argument index="1">
+        <parent index="this" action="add"/>
+      </modify-argument>
+    </modify-function>
+    <add-function signature="start(PyCallable,int @priority@=0)">
+        <inject-code class="target" position="beginning"
+                     file="../glue/qtcore.cpp"
+                     snippet="std-function-void-lambda"/>
+        <inject-code class="target" position="beginning"
+                     file="../glue/qtcore.cpp"
+                     snippet="qthreadpool-start"/>
+    </add-function>
+    <modify-function signature="tryStart(QRunnable*)" allow-thread="yes">
+      <modify-argument index="1">
+        <parent index="this" action="add"/>
+      </modify-argument>
+    </modify-function>
+    <add-function signature="tryStart(PyCallable@callable@)" return-type="bool">
+       <inject-code class="target" position="beginning"
+                    file="../glue/qtcore.cpp"
+                    snippet="std-function-void-lambda"/>
+        <inject-code class="target" position="beginning"
+                     file="../glue/qtcore.cpp"
+                     snippet="qthreadpool-trystart"/>
+    </add-function>
+    <modify-function signature="tryTake(QRunnable*)" allow-thread="yes"/>
+
+    <modify-function signature="globalInstance()" >
+      <inject-code class="target" position="end" file="../glue/qtcore.cpp" snippet="releaseownership"/>
+    </modify-function>
+  </object-type>
+  <value-type name="QXmlStreamAttribute"/>
+  <value-type name="QXmlStreamAttributes">
+    <modify-function signature="push_back(QXmlStreamAttribute)" remove="all"/>
+    <modify-function signature="pop_back()" remove="all"/>
+    <modify-function signature="push_front(QXmlStreamAttribute)" remove="all"/>
+    <modify-function signature="pop_front()" remove="all"/>
+    <modify-function signature="toList()const" remove="all"/>
+    <!-- Remove methods from QList -->
+    <modify-function signature="fromList(const QList&lt;QXmlStreamAttribute&gt; &amp;)" remove="all"/>
+    <modify-function signature="operator+=(QVector&lt;QXmlStreamAttribute&gt;)" remove="all"/>
+    <!-- Expose operator==, != inherited from QList, which the parser does
+         not see due to the TMP expression of the return type. -->
+    <add-function signature="operator==(const QXmlStreamAttributes&amp;)" return-type="bool"/>
+    <add-function signature="operator!=(const QXmlStreamAttributes&amp;)" return-type="bool"/>
+  </value-type>
+  <value-type name="QXmlStreamNamespaceDeclaration"/>
+  <value-type name="QXmlStreamNotationDeclaration"/>
+  <value-type name="QXmlStreamEntityDeclaration"/>
+  <object-type name="QXmlStreamReader">
+    <enum-type name="Error"/>
+    <enum-type name="TokenType"/>
+    <enum-type name="ReadElementTextBehaviour"/>
+  </object-type>
+  <object-type name="QXmlStreamWriter">
+    <!-- Removed because it expect QString to be mutable -->
+    <modify-function signature="QXmlStreamWriter(QString*)" remove="all"/>
+  </object-type>
+  <value-type name="QModelIndex">
+    <modify-function signature="internalPointer()const">
+        <modify-argument index="return" pyi-type="Any"/>
+        <inject-code class="target" position="beginning">
+            <insert-template name="return_internal_pointer" />
+        </inject-code>
+    </modify-function>
+    <modify-function signature="model()const">
+      <modify-argument index="return">
+        <define-ownership class="target" owner="default"/>
+      </modify-argument>
+    </modify-function>
+  </value-type>
+
+  <object-type name="QFutureInterfaceBase">
+      <configuration condition="QT_CONFIG(future)"/>
+      <enum-type name="State"/>
+      <enum-type name="CancelMode" since="6.3"/>
+  </object-type>
+  <value-type name="QFuture" generate="no">
+      <include file-name="QtCore/qfuture.h" location="global"/>
+      <configuration condition="QT_CONFIG(future)"/>
+      <modify-function signature="waitForFinished()" allow-thread="yes"/>
+  </value-type>
+  <object-type name="QFutureWatcherBase" generate="no">
+      <configuration condition="QT_CONFIG(future)"/>
+      <modify-function signature="futureInterface()" remove="all"/>
+      <modify-function signature="futureInterface() const" remove="all"/>
+  </object-type>
+  <object-type name="QFutureWatcher" generate="no">
+      <include file-name="QtCore/qfuturewatcher.h" location="global"/>
+      <configuration condition="QT_CONFIG(future)"/>
+  </object-type>
+
+  <!--// FIXME PYSIDE 7: Remove in favor of QtCoreHelper::QGenericArgumentHolder for
+      QMetaObject.invokeMethod? It was left as is in case someone has some hack
+      with a void pointer for this, but it does not really make sense (PYSIDE-1898). -->
+  <value-type name="QGenericArgument">
+    <include file-name="qobjectdefs.h" location="global"/>
+  </value-type>
+
+  <value-type name="QGenericReturnArgument">
+    <include file-name="qobjectdefs.h" location="global"/>
+  </value-type>
+
+  <object-type name="QMessageLogContext"/>
+
+  <value-type name="QMetaMethod">
+    <extra-includes>
+        <include file-name="pysidesignal.h" location="global"/>
+        <include file-name="glue/core_snippets_p.h" location="local"/>
+    </extra-includes>
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp"
+                 snippet="qmetamethod-invoke-helpers"/>
+    <enum-type name="Access"/>
+    <enum-type name="MethodType"/>
+    <add-function signature="fromSignal(PySideSignalInstance@signal@)"
+                  return-type="QMetaMethod" static="true">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                     snippet="qmetamethod-from-signal"/>
+        <inject-documentation format="target" mode="append">
+        Returns the meta-method that corresponds to the given signal, or an invalid QMetaMethod
+        if signal is not a signal of the class.
+        </inject-documentation>
+    </add-function>
+    <add-function signature="invoke(QObject*@object@,Qt::ConnectionType@type@,
+                                    QtCoreHelper::QGenericReturnArgumentHolder@ret@,
+                                    QtCoreHelper::QGenericArgumentHolder@val0@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val1@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val2@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val3@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val4@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val5@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val6@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val7@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val8@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val9@={})"
+                  return-type="PyObject*">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                     snippet="qmetamethod-invoke-conn-type-return-arg"/>
+    </add-function>
+    <add-function signature="invoke(QObject*@object@,
+                                    QtCoreHelper::QGenericReturnArgumentHolder@ret@,
+                                    QtCoreHelper::QGenericArgumentHolder@val0@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val1@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val2@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val3@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val4@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val5@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val6@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val7@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val8@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val9@={})"
+                  return-type="PyObject*">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                     snippet="qmetamethod-invoke-return-arg"/>
+    </add-function>
+    <add-function signature="invoke(QObject*@object@,Qt::ConnectionType@type@,
+                                    QtCoreHelper::QGenericArgumentHolder@val0@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val1@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val2@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val3@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val4@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val5@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val6@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val7@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val8@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val9@={})"
+                  return-type="PyObject*">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                     snippet="qmetamethod-invoke-conn-type"/>
+    </add-function>
+    <add-function signature="invoke(QObject*@object@,
+                                    QtCoreHelper::QGenericArgumentHolder@val0@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val1@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val2@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val3@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val4@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val5@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val6@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val7@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val8@={},
+                                    QtCoreHelper::QGenericArgumentHolder@val9@={})"
+                  return-type="PyObject*">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                     snippet="qmetamethod-invoke"/>
+    </add-function>
+    <!-- This isn't part of Qt public API -->
+    <modify-function signature="attributes()const" remove="all"/>
+    <modify-function signature="getParameterTypes(int*)const" remove="all"/>
+    <modify-field name="mobj" remove="yes"/>
+  </value-type>
+  <object-type name="QMetaObject">
+    <enum-type name="Call"/>
+    <include file-name="qobjectdefs.h" location="global"/>
+    <extra-includes>
+      <include file-name="dynamicqmetaobject.h" location="global"/>
+      <include file-name="pysidemetatype.h" location="global"/>
+      <include file-name="glue/core_snippets_p.h" location="local"/>
+      <include file-name="pysideutils.h" location="global"/> <!-- QString conversion -->
+    </extra-includes>
+    <inject-code class="native" position="beginning" file="../glue/qtcore.cpp"
+                 snippet="qmetaobject-invokemethod-helpers"/>
+    <!-- This isn't part of Qt public API -->
+    <modify-function signature="connect(const QObject*,int,const QObject*,int,int,int*)" remove="all"/>
+      <value-type name="Connection" operator-bool="true">
+        <include file-name="qobjectdefs.h" location="global"/>
+        <!-- Declare operator bool, as the class uses some RestrictedBool trick -->
+        <declare-function signature="operator bool() const" return-type="bool"/>
+      </value-type>
+    <modify-function signature="^invokeMethod\(" allow-thread="yes"/>
+    <add-function signature="invokeMethod(QObject*@object@,const char *@member@,Qt::ConnectionType@type@,
+                                          QtCoreHelper::QGenericArgumentHolder@val0@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val1@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val2@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val3@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val4@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val5@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val6@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val7@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val8@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val9@={})"
+                  static="yes" return-type="bool">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                     snippet="qmetaobject-invokemethod-conn-type-arg"/>
+    </add-function>
+    <add-function signature="invokeMethod(QObject*@object@,const char *@member@,
+                                          QtCoreHelper::QGenericArgumentHolder@val0@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val1@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val2@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val3@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val4@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val5@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val6@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val7@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val8@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val9@={})"
+                  static="yes" return-type="bool">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                     snippet="qmetaobject-invokemethod-arg"/>
+    </add-function>
+    <add-function signature="invokeMethod(QObject*@object@,const char *@member@,Qt::ConnectionType@type@,
+                                          QtCoreHelper::QGenericReturnArgumentHolder@ret@,
+                                          QtCoreHelper::QGenericArgumentHolder@val0@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val1@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val2@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val3@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val4@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val5@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val6@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val7@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val8@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val9@={})"
+                  static="yes" return-type="PyObject*">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                     snippet="qmetaobject-invokemethod-conn-type-return-arg"/>
+    </add-function>
+    <add-function signature="invokeMethod(QObject*@object@,const char *@member@,
+                                          QtCoreHelper::QGenericReturnArgumentHolder@ret@,
+                                          QtCoreHelper::QGenericArgumentHolder@val0@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val1@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val2@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val3@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val4@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val5@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val6@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val7@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val8@={},
+                                          QtCoreHelper::QGenericArgumentHolder@val9@={})"
+                  static="yes" return-type="PyObject*">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp"
+                     snippet="qmetaobject-invokemethod-return-arg"/>
+    </add-function>
+    <add-function signature="__repr__" return-type="str">
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qmetaobject-repr"/>
+    </add-function>
+    <modify-function signature="indexOfClassInfo(const char *)const">
+        <modify-argument index="1" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="indexOfConstructor(const char *)const">
+        <modify-argument index="1" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="indexOfEnumerator(const char *)const">
+        <modify-argument index="1" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="indexOfMethod(const char *)const">
+        <modify-argument index="1" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="indexOfProperty(const char *)const">
+        <modify-argument index="1" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="indexOfSignal(const char *)const">
+        <modify-argument index="1" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="indexOfSlot(const char *)const">
+        <modify-argument index="1" pyi-type="str"/>
+    </modify-function>
+  </object-type>
+  <value-type name="QMetaProperty" >
+    <!-- This isn't part of Qt public API -->
+    <modify-function signature="enclosingMetaObject()const" remove="all"/>
+    <modify-function signature="write(QObject*,const QVariant &amp;)const">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qmetaproperty_write_enum"/>
+    </modify-function>
+  </value-type>
+  <value-type name="QMetaClassInfo">
+    <!-- This isn't part of Qt public API -->
+    <modify-function signature="enclosingMetaObject()const" remove="all"/>
+  </value-type>
+
+  <value-type name="QMetaEnum">
+    <modify-function signature="keyToValue(const char*,bool*)const">
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="return">
+            <replace-type modified-type="PyTuple"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning">
+            <insert-template name="fix_args,bool*"/>
+        </inject-code>
+    </modify-function>
+    <modify-function signature="keysToValue(const char*,bool*)const">
+        <modify-argument index="2">
+            <remove-argument />
+        </modify-argument>
+        <modify-argument index="return">
+            <replace-type modified-type="PyTuple"/>
+        </modify-argument>
+        <inject-code class="target" position="beginning">
+            <insert-template name="fix_args,bool*"/>
+        </inject-code>
+    </modify-function>
+    <!-- This isn't part of Qt public API -->
+    <modify-function signature="enclosingMetaObject()const" remove="all"/>
+  </value-type>
+
+  <!-- From Qt4.6 -->
+  <object-type name="QAbstractAnimation">
+    <enum-type name="DeletionPolicy"/>
+    <enum-type name="Direction"/>
+    <enum-type name="State"/>
+  </object-type>
+
+  <object-type name="QAnimationGroup">
+    <modify-function signature="addAnimation(QAbstractAnimation*)">
+      <modify-argument index="1">
+        <parent index="this" action="add"/>
+      </modify-argument>
+    </modify-function>
+
+    <modify-function signature="insertAnimation(int,QAbstractAnimation*)">
+      <modify-argument index="2">
+        <parent index="this" action="add"/>
+      </modify-argument>
+    </modify-function>
+
+    <modify-function signature="removeAnimation(QAbstractAnimation*)">
+      <modify-argument index="1">
+        <parent index="this" action="remove"/>
+      </modify-argument>
+    </modify-function>
+
+    <modify-function signature="takeAnimation(int)">
+      <modify-argument index="return">
+        <parent index="this" action="remove"/>
+      </modify-argument>
+    </modify-function>
+
+    <modify-function signature="clear()" >
+        <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qanimationgroup-clear"/>
+    </modify-function>
+  </object-type>
+
+  <!-- We will use inject code to implement the function below -->
+  <rejection class="QEasingCurve" function-name="setCustomType"/>
+  <rejection class="QEasingCurve" function-name="customType"/>
+  <value-type name="QEasingCurve">
+    <extra-includes>
+      <include file-name="pysideweakref.h" location="global"/>
+      <include file-name="glue/qeasingcurve_glue.h" location="local"/>
+    </extra-includes>
+    <inject-code file="../glue/qtcore.cpp" snippet="qeasingcurve"/>
+    <enum-type name="Type"/>
+    <add-function signature="setCustomType(PyObject*@callable@)">
+      <inject-code file="../glue/qtcore.cpp" snippet="qeasingcurve-setcustomtype"/>
+    </add-function>
+    <add-function signature="customType()" return-type="PyObject">
+      <inject-code file="../glue/qtcore.cpp" snippet="qeasingcurve-customtype"/>
+    </add-function>
+  </value-type>
+
+  <value-type name="QJsonArray">
+    <extra-includes>
+      <include file-name="QStringList" location="global"/>
+    </extra-includes>
+  </value-type>
+
+  <value-type name="QJsonDocument">
+    <enum-type name="JsonFormat"/>
+  </value-type>
+
+  <rejection class="QJsonDocument" field-name="BinaryFormatTag"/>
+
+  <value-type name="QJsonParseError">
+    <enum-type name="ParseError"/>
+  </value-type>
+
+  <value-type name="QJsonValue">
+    <enum-type name="Type"/>
+    <extra-includes>
+      <include file-name="QVariant" location="global"/>
+      <include file-name="QJsonArray" location="global"/>
+      <include file-name="QJsonObject" location="global"/>
+    </extra-includes>
+  </value-type>
+
+  <value-type name="QMargins"/>
+  <value-type name="QMarginsF"/>
+
+  <object-type name="QParallelAnimationGroup"/>
+
+  <object-type name="QPauseAnimation"/>
+
+  <value-type name="QProcessEnvironment">
+      <configuration condition="QT_CONFIG(processenvironment)"/>
+      <enum-type name="Initialization" since="6.3"/>
+  </value-type>
+
+  <object-type name="QPropertyAnimation"/>
+
+  <object-type name="QSequentialAnimationGroup"/>
+
+  <object-type name="QVariantAnimation"/>
+
+  <value-type name="QVersionNumber">
+    <modify-function signature="fromString(QAnyStringView,qsizetype*)">
+      <modify-argument index="2">
+        <remove-argument/>
+      </modify-argument>
+    </modify-function>
+  </value-type>
+
+  <!-- From Qt4.6 ^^^ -->
+
+  <add-function signature="SIGNAL(const char*@signature@)" return-type="str">
+    <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qt-signal"/>
+    <modify-argument index="1" pyi-type="str"/>
+  </add-function>
+
+  <add-function signature="SLOT(const char*@signature@)" return-type="str">
+    <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qt-slot"/>
+    <modify-argument index="1" pyi-type="str"/>
+  </add-function>
+
+  <add-function signature="QT_TR_NOOP(PyObject@message@)" return-type="PyObject*">
+    <inject-code class="target" position="beginning">
+      <insert-template name="return_argument"><replace from="#" to="1"/></insert-template>
+    </inject-code>
+  </add-function>
+  <add-function signature="QT_TR_NOOP_UTF8(PyObject@message@)" return-type="PyObject*">
+    <inject-code class="target" position="beginning">
+      <insert-template name="return_argument"><replace from="#" to="1"/></insert-template>
+    </inject-code>
+  </add-function>
+  <add-function signature="QT_TRANSLATE_NOOP(PyObject@context@,PyObject@message@)" return-type="PyObject*">
+    <inject-code class="target" position="beginning">
+      <insert-template name="return_argument"><replace from="#" to="2"/></insert-template>
+    </inject-code>
+  </add-function>
+  <add-function signature="QT_TRANSLATE_NOOP3(PyObject@context@,PyObject@message@,PyObject@disambiguation@)" return-type="PyObject*">
+    <inject-code class="target" position="beginning">
+      <insert-template name="return_argument"><replace from="#" to="2"/></insert-template>
+    </inject-code>
+  </add-function>
+  <add-function signature="QT_TRANSLATE_NOOP_UTF8(PyObject@message@)" return-type="PyObject*">
+    <inject-code class="target" position="beginning">
+      <insert-template name="return_argument"><replace from="#" to="1"/></insert-template>
+    </inject-code>
+  </add-function>
+
+  <inject-code class="native" position="beginning" file="../glue/qtcore.cpp" snippet="qt-registerresourcedata"/>
+  <add-function signature="qRegisterResourceData(int,PyBytes,PyBytes,PyBytes)" return-type="bool">
+    <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qt-qregisterresourcedata"/>
+  </add-function>
+  <add-function signature="qUnregisterResourceData(int,PyBytes,PyBytes,PyBytes)" return-type="bool">
+    <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qt-qunregisterresourcedata"/>
+  </add-function>
+
+  <object-type name="QFactoryInterface"/>
+  <object-type name="QRunnable">
+    <configuration condition="QT_CONFIG(thread)"/>
+    <add-function signature="create(PyObject* @functionToRun@)" static="yes" return-type="QRunnable*">
+      <inject-code class="target" position="beginning" file="../glue/qtcore.cpp" snippet="qrunnable_create"/>
+    </add-function>
+  </object-type>
+
+  <object-type name="QPluginLoader"/>
+  <object-type name="QStringListModel"/>
+
+   <object-type name="QSharedMemory">
+       <configuration condition="#if QT_CONFIG(sharedmemory)" />
+       <enum-type name="AccessMode"/>
+       <enum-type name="SharedMemoryError"/>
+       <modify-function signature="data()">
+         <inject-code class="target" position="end"
+                      file="../glue/qtcore.cpp" snippet="qsharedmemory_data_readwrite"/>
+       </modify-function>
+       <modify-function signature="constData()const">
+         <inject-code class="target" position="end"
+                      file="../glue/qtcore.cpp" snippet="qsharedmemory_data_readonly"/>
+       </modify-function>
+       <modify-function signature="data()const" remove="all"/>
+   </object-type>
+
+  <object-type name="QStringConverterBase">
+    <enum-type name="Flag" flags="Flags"/>
+    <object-type name="State"/>
+  </object-type>
+  <object-type name="QStringConverter">
+     <enum-type name="Encoding"/>
+  </object-type>
+  <object-type name="QStringEncoder">
+    <modify-function signature="appendToBuffer(char*,QStringView)" remove="all"/>
+  </object-type>
+  <object-type name="QStringDecoder"/>
+
+  <object-type name="QSysInfo">
+    <enum-type name="Endian"/>
+    <enum-type name="Sizes"/>
+  </object-type>
+
+  <object-type name="QLoggingCategory"/>
+
+  <add-function signature="qCDebug(QLoggingCategory *@logging_category@, const char *@message@)">
+    <extra-includes>
+    <include file-name="qloggingcategory.h" location="global" />
+    </extra-includes>
+    <inject-code class="target" position="beginning">
+      qCDebug(*%1, "%s", %2);
+    </inject-code>
+  </add-function>
+
+  <add-function signature="qCCritical(QLoggingCategory *@logging_category@, const char *@message@)">
+    <inject-code class="target" position="beginning">
+      qCCritical(*%1, "%s", %2);
+    </inject-code>
+  </add-function>
+
+  <add-function signature="qCInfo(QLoggingCategory *@logging_category@, const char *@message@)">
+    <inject-code class="target" position="beginning">
+      qCInfo(*%1, "%s", %2);
+    </inject-code>
+  </add-function>
+
+  <add-function signature="qCWarning(QLoggingCategory *@logging_category@, const char *@message@)">
+    <inject-code class="target" position="beginning">
+      qCWarning(*%1, "%s", %2);
+    </inject-code>
+  </add-function>
+
+  <object-type name="QMessageLogger">
+    <inject-documentation format="target" mode="append"
+                          file="../doc/qtcore.rst" snippet="qmessagelogger"/>
+    <modify-function signature="debug(const char*)const">
+        <inject-code file="../glue/qtcore.cpp" snippet="qmessagelogger-format-string"/>
+        <modify-argument index="1" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="debug(const QLoggingCategory&amp;,const char*)const">
+        <inject-code file="../glue/qtcore.cpp" snippet="qmessagelogger-logcategory-format-string"/>
+        <modify-argument index="2" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="info(const char*)const">
+        <inject-code file="../glue/qtcore.cpp" snippet="qmessagelogger-format-string"/>
+        <modify-argument index="1" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="info(const QLoggingCategory&amp;,const char*)const">
+        <inject-code file="../glue/qtcore.cpp" snippet="qmessagelogger-logcategory-format-string"/>
+        <modify-argument index="2" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="warning(const char*)const">
+        <inject-code file="../glue/qtcore.cpp" snippet="qmessagelogger-format-string"/>
+        <modify-argument index="1" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="warning(const QLoggingCategory&amp;,const char*)const">
+        <inject-code file="../glue/qtcore.cpp" snippet="qmessagelogger-logcategory-format-string"/>
+        <modify-argument index="2" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="fatal(const char*)const">
+        <inject-code file="../glue/qtcore.cpp" snippet="qmessagelogger-format-string"/>
+        <modify-argument index="1" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="fatal(const QLoggingCategory&amp;,const char*)const">
+        <inject-code file="../glue/qtcore.cpp" snippet="qmessagelogger-logcategory-format-string"/>
+        <modify-argument index="2" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="critical(const char*)const">
+        <inject-code file="../glue/qtcore.cpp" snippet="qmessagelogger-format-string"/>
+        <modify-argument index="1" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="critical(const QLoggingCategory&amp;,const char*)const">
+        <inject-code file="../glue/qtcore.cpp" snippet="qmessagelogger-logcategory-format-string"/>
+        <modify-argument index="2" pyi-type="str"/>
+    </modify-function>
+    <modify-function signature="noDebug(const char*)const">
+        <inject-code file="../glue/qtcore.cpp" snippet="qmessagelogger-format-string"/>
+        <modify-argument index="1" pyi-type="str"/>
+    </modify-function>
+  </object-type>
+
+  <suppress-warning text="^.*enum 'Qt::Initialization' does not have a type entry.*$"/>
+  <suppress-warning text="^.*Enum 'QRandomGenerator::System'.*does not have a type entry.*$"/>
+
+  <suppress-warning text="^Anonymous enum.*does not have a type entry.*$"/>
+  <suppress-warning text="Visibility of function '*' modified in class '*'"/>
+  <suppress-warning text="Shadowing: *"/>
+  <suppress-warning text="^namespace '.*' does not have a type entry.*$"/>
+  <!-- QCborStreamReader: Suppress warnings about 32/64bit signatures not found depending on qsizetype -->
+  <suppress-warning text="^signature 'readStringChunk\(char.*in 'QCborStreamReader' not found.*$"/>
+
+  <!-- TODO: this need be removed -->
+  <suppress-warning text="^skipping.*function '.*', unmatched return type '.*$"/>
+  <suppress-warning text="^skipping.*function '.*', unmatched type '.*$"/>
+  <suppress-warning text="skipping protected field 'QStringConverter::iface' with unmatched type 'QStringConverter::Interface'"/>
+  <suppress-warning text="^skipping public field 'Qt::.*' with unmatched type 'Qt::.*ordering'$"/>
+  <suppress-warning text="skipping public field 'Qt::Uninitialized' with unmatched type 'Qt::Initialization'"/>
+  <suppress-warning text="skipping public field 'State::clearFn' with unmatched type 'void'"/>
+  <suppress-warning text="template baseclass 'QListSpecialMethods&lt;T&gt;' of 'QList' is not known"/>
+  <suppress-warning text="^.*inherits from a non polymorphic type.*QIODeviceBase.*type discovery based on RTTI is impossible.*$"/>
+  <suppress-warning text="Base class 'QOperatingSystemVersionUnexported' of class 'QOperatingSystemVersion' not found in the type system for setting up inheritance."/>
+
+</typesystem>

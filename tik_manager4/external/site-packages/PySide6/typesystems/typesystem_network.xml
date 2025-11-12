@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtNetwork"
+            namespace-begin="QT_BEGIN_NAMESPACE" namespace-end="QT_END_NAMESPACE">
+  <load-typesystem name="typesystem_core.xml" generate="no"/>
+
+    <rejection class="QTlsPrivate"/>
+
+    <enum-type name="QDtlsError">
+        <configuration condition="QT_CONFIG(ssl)"/>
+    </enum-type>
+    <enum-type name="QOcspCertificateStatus">
+        <configuration condition="QT_CONFIG(ssl)"/>
+    </enum-type>
+    <enum-type name="QOcspRevocationReason">
+        <configuration condition="QT_CONFIG(ssl)"/>
+    </enum-type>
+
+    <namespace-type name="QPasswordDigestor">
+        <extra-includes>
+            <include file-name="qpassworddigestor.h" location="global"/>
+        </extra-includes>
+    </namespace-type>
+
+    <namespace-type name="QSsl">
+        <enum-type name="AlertLevel"/>
+        <enum-type name="AlertType"/>
+        <enum-type name="AlternativeNameEntryType"/>
+        <enum-type name="EncodingFormat"/>
+        <enum-type name="ImplementedClass" since="6.1"/>
+        <enum-type name="KeyAlgorithm"/>
+        <enum-type name="KeyType"/>
+        <enum-type name="SslOption" flags="SslOptions"/>
+        <enum-type name="SslProtocol"/>
+        <enum-type name="SupportedFeature" since="6.1"/>
+        <extra-includes>
+            <include file-name="qssl.h" location="global"/>
+        </extra-includes>
+    </namespace-type>
+
+    <rejection class="QIPv6Address" field-name="c"/>
+
+    <object-type name="QAbstractSocket">
+        <enum-type name="BindFlag" flags="BindMode"/>
+        <enum-type name="NetworkLayerProtocol"/>
+        <enum-type name="PauseMode" flags="PauseModes"/>
+        <enum-type name="SocketError"/>
+        <enum-type name="SocketOption"/>
+        <enum-type name="SocketState"/>
+        <enum-type name="SocketType"/>
+        <modify-function signature="connectToHost(const QString&amp;,quint16,QFlags&lt;QIODeviceBase::OpenModeFlag>,QAbstractSocket::NetworkLayerProtocol)" allow-thread="yes"/>
+        <modify-function signature="connectToHost(const QHostAddress&amp;,quint16,QFlags&lt;QIODeviceBase::OpenModeFlag>)" allow-thread="yes"/>
+        <modify-function signature="disconnectFromHost()" allow-thread="yes"/>
+        <modify-function signature="waitForConnected(int)" allow-thread="yes"/>
+        <modify-function signature="waitForDisconnected(int)" allow-thread="yes"/>
+        <modify-function signature="waitForBytesWritten(int)" allow-thread="yes"/>
+        <modify-function signature="waitForReadyRead(int)" allow-thread="yes"/>
+    </object-type>
+
+    <value-type name="QDnsDomainNameRecord"/>
+    <value-type name="QDnsHostAddressRecord"/>
+    <object-type name="QDnsLookup">
+        <enum-type name="Error"/>
+        <enum-type name="Protocol" since="6.8"/>
+        <enum-type name="Type"/>
+    </object-type>
+    <value-type name="QDnsMailExchangeRecord"/>
+    <value-type name="QDnsServiceRecord"/>
+    <value-type name="QDnsTextRecord"/>
+    <value-type name="QDnsTlsAssociationRecord" since="6.8">
+        <enum-type name="CertificateUsage"/>
+        <enum-type name="Selector"/>
+        <enum-type name="MatchingType"/>
+    </value-type>
+    <object-type name="QDtls">
+        <enum-type name="HandshakeState"/>
+        <configuration condition="QT_CONFIG(dtls)"/>
+    </object-type>
+    <object-type name="QDtlsClientVerifier">
+        <configuration condition="QT_CONFIG(dtls)"/>
+        <value-type name="GeneratorParameters">
+            <configuration condition="QT_CONFIG(dtls)"/>
+        </value-type>
+    </object-type>
+
+    <object-type name="QFormDataPartBuilder" since="6.8"/>
+    <object-type name="QFormDataBuilder" since="6.8">
+        <enum-type name="Option" flags="Options"/>
+    </object-type>
+
+    <value-type name="QHstsPolicy">
+        <enum-type name="PolicyFlag" flags="PolicyFlags"/>
+    </value-type>
+    <value-type name="QHttp1Configuration"/>
+    <value-type name="QHttpHeaders" since="6.7">
+        <enum-type name="WellKnownHeader"/>
+    </value-type>
+    <object-type name="QHttpMultiPart">
+        <enum-type name="ContentType"/>
+    </object-type>
+    <value-type name="QHttpPart"/>
+    <value-type name="QHttp2Configuration"/>
+
+    <object-type name="QTcpServer">
+        <modify-function signature="waitForNewConnection(int,bool*)" allow-thread="yes">
+            <!-- FIXME removing default expression means user will always have to pass a value, but he wouldn't have to -->
+            <modify-argument index="1">
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="2">
+                <remove-default-expression/>
+                <remove-argument/>
+            </modify-argument>
+            <modify-argument index="return" pyi-type="Tuple[bool, bool]">
+                <replace-type modified-type="(retval, timedOut)"/>
+            </modify-argument>
+            <inject-code class="target" position="beginning">
+                <insert-template name="fix_args,bool*"/>
+            </inject-code>
+        </modify-function>
+    </object-type>
+    <value-type name="QOcspResponse">
+        <configuration condition="QT_CONFIG(ssl)"/>
+    </value-type>
+    <object-type name="QTcpSocket"/>
+    <object-type name="QUdpSocket">
+        <modify-function signature="readDatagram(char*,qint64,QHostAddress*,quint16*)" allow-thread="yes">
+            <modify-argument index="1">
+                <remove-argument/>
+            </modify-argument>
+            <modify-argument index="3">
+                <remove-default-expression/>
+                <remove-argument/>
+            </modify-argument>
+            <modify-argument index="4">
+                <remove-default-expression/>
+                <remove-argument/>
+            </modify-argument>
+            <modify-argument index="return" pyi-type="Tuple[PySide6.QtCore.QByteArray, PySide6.QtNetwork.QHostAddress, int]">
+                <replace-type modified-type="(data, address, port)"/>
+            </modify-argument>
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp" snippet="qudpsocket-readdatagram"/>
+        </modify-function>
+        <modify-function signature="writeDatagram(const QByteArray&amp;,const QHostAddress&amp;,quint16)" allow-thread="yes"/>
+        <!-- ### writeDatagram(QByteArray, ...) does the trick -->
+        <modify-function signature="writeDatagram(const char*,qint64,const QHostAddress&amp;,quint16)" remove="all"/>
+        <!-- ### -->
+    </object-type>
+
+    <object-type name="QLocalServer">
+        <enum-type name="SocketOption" flags="SocketOptions"/>
+        <modify-function signature="waitForNewConnection(int,bool*)" allow-thread="yes">
+            <!-- FIXME -->
+            <modify-argument index="1">
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="2">
+                <remove-default-expression/>
+                <remove-argument/>
+            </modify-argument>
+            <inject-code class="target" position="beginning">
+                <insert-template name="fix_args,bool*"/>
+            </inject-code>
+            <modify-argument index="return" pyi-type="Tuple[bool, bool]">
+                <replace-type modified-type="(retval, timedOut)"/>
+            </modify-argument>
+
+        </modify-function>
+    </object-type>
+    <object-type name="QLocalSocket">
+        <enum-type name="LocalSocketError"/>
+        <enum-type name="SocketOption" flags="SocketOptions"/>
+        <enum-type name="LocalSocketState"/>
+    </object-type>
+    <object-type name="QNetworkAccessManager">
+        <enum-type name="Operation"/>
+        <modify-function signature="createRequest(QNetworkAccessManager::Operation,const QNetworkRequest&amp;,QIODevice*)">
+          <modify-argument index="3" invalidate-after-use="yes"/>
+          <modify-argument index="return">
+            <define-ownership class="target" owner="default"/>
+          </modify-argument>
+        </modify-function>
+        <modify-function signature="head(QNetworkRequest)" allow-thread="yes">
+          <modify-argument index="0"> <!-- Suppress return value heuristics -->
+            <define-ownership class="target" owner="default"/>
+          </modify-argument>
+        </modify-function>
+        <modify-function signature="get(QNetworkRequest)" allow-thread="yes">
+          <modify-argument index="0"> <!-- Suppress return value heuristics -->
+             <define-ownership class="target" owner="default"/>
+          </modify-argument>
+        </modify-function>
+        <modify-function signature="get(QNetworkRequest,QIODevice*)" allow-thread="yes">
+          <modify-argument index="0"> <!-- Suppress return value heuristics -->
+             <define-ownership class="target" owner="default"/>
+          </modify-argument>
+        </modify-function>
+        <modify-function signature="get(QNetworkRequest,QByteArray)" allow-thread="yes">
+          <modify-argument index="0"> <!-- Suppress return value heuristics -->
+             <define-ownership class="target" owner="default"/>
+          </modify-argument>
+        </modify-function>
+        <modify-function signature="post(QNetworkRequest,QIODevice*)" allow-thread="yes">
+          <modify-argument index="0"> <!-- Suppress return value heuristics -->
+            <define-ownership class="target" owner="default"/>
+          </modify-argument>
+        </modify-function>
+        <modify-function signature="post(QNetworkRequest,QByteArray)" allow-thread="yes">
+          <modify-argument index="0"> <!-- Suppress return value heuristics -->
+            <define-ownership class="target" owner="default"/>
+          </modify-argument>
+        </modify-function>
+        <modify-function signature="put(QNetworkRequest,QIODevice*)" allow-thread="yes">
+          <modify-argument index="0"> <!-- Suppress return value heuristics -->
+            <define-ownership class="target" owner="default"/>
+          </modify-argument>
+        </modify-function>
+        <modify-function signature="put(QNetworkRequest,QByteArray)" allow-thread="yes">
+          <modify-argument index="0"> <!-- Suppress return value heuristics -->
+            <define-ownership class="target" owner="default"/>
+          </modify-argument>
+        </modify-function>
+        <modify-function signature="sendCustomRequest(QNetworkRequest,QByteArray,QIODevice*)" allow-thread="yes">
+          <modify-argument index="0"> <!-- Suppress return value heuristics -->
+            <define-ownership class="target" owner="default"/>
+          </modify-argument>
+        </modify-function>
+        <modify-function signature="sendCustomRequest(QNetworkRequest,QByteArray,QByteArray)" allow-thread="yes">
+          <modify-argument index="0"> <!-- Suppress return value heuristics -->
+            <define-ownership class="target" owner="default"/>
+          </modify-argument>
+        </modify-function>
+        <modify-function signature="setCache(QAbstractNetworkCache*)">
+            <modify-argument index="1">
+                <define-ownership class="target" owner="c++"/>
+            </modify-argument>
+        </modify-function>
+        <modify-function signature="setCookieJar(QNetworkCookieJar*)">
+            <modify-argument index="1">
+                <define-ownership class="target" owner="c++"/>
+            </modify-argument>
+        </modify-function>
+    </object-type>
+    <object-type name="QNetworkInformation">
+        <enum-type name="Reachability"/>
+        <enum-type name="Feature" flags="Features"/>
+        <enum-type name="TransportMedium" since="6.3"/>
+    </object-type>
+    <object-type name="QNetworkCookieJar"/>
+    <value-type name="QNetworkDatagram"/>
+    <object-type name="QNetworkReply">
+        <enum-type name="NetworkError"/>
+    </object-type>
+
+    <value-type name="QHostAddress">
+        <enum-type name="ConversionModeFlag" flags="ConversionMode"/>
+        <enum-type name="SpecialAddress"/>
+        <!-- ### QHostAddress(QIPv6Address) does this -->
+        <modify-function signature="QHostAddress(const quint8*)" remove="all"/>
+       <!-- ### -->
+        <modify-function signature="setAddress(const quint8*)" remove="all"/>
+    </value-type>
+
+    <value-type name="QHostInfo">
+        <inject-code class="native" position="beginning" file="../glue/qtnetwork.cpp"
+                     snippet="qhostinfo-lookuphost-functor"/>
+        <enum-type name="HostInfoError"/>
+        <add-function signature="lookupHost(const QString &amp;@name@,PyCallable@callable@)">
+            <inject-code class="target" position="beginning"
+                         file="../glue/qtnetwork.cpp"
+                         snippet="qhostinfo-lookuphost-callable"/>
+        </add-function>
+    </value-type>
+
+    <value-type name="QNetworkAddressEntry">
+        <enum-type name="DnsEligibilityStatus"/>
+        <configuration condition="#if QT_CONFIG(networkinterface)"/>
+    </value-type>
+
+    <value-type name="QNetworkInterface">
+        <enum-type name="InterfaceFlag" flags="InterfaceFlags"/>
+        <enum-type name="InterfaceType"/>
+        <configuration condition="#if QT_CONFIG(networkinterface)"/>
+    </value-type>
+
+    <value-type name="QNetworkProxy">
+        <enum-type name="Capability" flags="Capabilities"/>
+        <enum-type name="ProxyType"/>
+    </value-type>
+
+    <object-type name="QNetworkProxyFactory"/>
+    <value-type name="QNetworkProxyQuery">
+        <enum-type name="QueryType"/>
+    </value-type>
+
+    <value-type name="QIPv6Address">
+        <add-function signature="__len__" return-type="int">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp" snippet="qipv6address-len"/>
+        </add-function>
+        <add-function signature="__getitem__">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp" snippet="qipv6address-getitem"/>
+        </add-function>
+        <add-function signature="__setitem__">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp" snippet="qipv6address-setitem"/>
+        </add-function>
+    </value-type>
+
+    <value-type name="QAuthenticator"/>
+    <value-type name="QNetworkCookie">
+        <enum-type name="RawForm"/>
+        <enum-type name="SameSite" since="6.1"/>
+        <extra-includes>
+            <include file-name="QDateTime" location="global"/>
+        </extra-includes>
+    </value-type>
+    <value-type name="QNetworkRequest">
+        <enum-type name="Attribute"/>
+        <enum-type name="LoadControl"/>
+        <enum-type name="Priority"/>
+        <enum-type name="CacheLoadControl"/>
+        <enum-type name="KnownHeaders"/>
+        <enum-type name="RedirectPolicy"/>
+        <enum-type name="TransferTimeoutConstant"/>
+    </value-type>
+    <value-type name="QNetworkRequestFactory" since="6.7"/>
+    <object-type name="QAbstractNetworkCache"/>
+    <object-type name="QNetworkDiskCache"/>
+    <value-type name="QNetworkCacheMetaData"/>
+
+    <object-type name="QRestAccessManager" since="6.7">
+        <inject-code class="native" position="beginning" file="../glue/qtnetwork.cpp"
+                     snippet="qrestaccessmanager-functor"/>
+
+        <add-function signature="deleteResource(QNetworkRequest@request@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-callback"/>
+        </add-function>
+
+        <add-function signature="get(QNetworkRequest@request@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-callback"/>
+        </add-function>
+        <add-function signature="get(QNetworkRequest@request@,QByteArray@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+        <add-function signature="get(QNetworkRequest@request@,QIODevice*@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+        <add-function signature="get(QNetworkRequest@request@,QJsonDocument@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+
+        <add-function signature="head(QNetworkRequest@request@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-callback"/>
+        </add-function>
+
+        <add-function signature="patch(QNetworkRequest@request@,QByteArray@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+        <add-function signature="patch(QNetworkRequest@request@,QIODevice*@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+        <add-function signature="patch(QNetworkRequest@request@,QJsonDocument@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+        <add-function signature="patch(QNetworkRequest@request@,QVariantMap@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+
+        <add-function signature="post(QNetworkRequest@request@,QByteArray@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+        <add-function signature="post(QNetworkRequest@request@,QHttpMultiPart*@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+        <add-function signature="post(QNetworkRequest@request@,QIODevice*@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+        <add-function signature="post(QNetworkRequest@request@,QJsonDocument@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+        <add-function signature="post(QNetworkRequest@request@,QVariantMap@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+
+        <add-function signature="put(QNetworkRequest@request@,QByteArray@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+        <add-function signature="put(QNetworkRequest@request@,QHttpMultiPart*@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+        <add-function signature="put(QNetworkRequest@request@,QIODevice*@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+        <add-function signature="put(QNetworkRequest@request@,QJsonDocument@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+        <add-function signature="put(QNetworkRequest@request@,QVariantMap@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-data-callback"/>
+        </add-function>
+
+        <add-function signature="sendCustomRequest(QNetworkRequest@request@,QByteArray@method@,QByteArray@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-method-data-callback"/>
+        </add-function>
+        <add-function signature="sendCustomRequest(QNetworkRequest@request@,QByteArray@method@,QHttpMultiPart*@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-method-data-callback"/>
+        </add-function>
+        <add-function signature="sendCustomRequest(QNetworkRequest@request@,QByteArray@method@,QIODevice*@data@,QObject*@context@,PyCallable*@slot@)"
+                      return-type="QNetworkReply*">
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestaccessmanager-method-data-callback"/>
+        </add-function>
+    </object-type>
+
+    <object-type name="QRestReply" since="6.7">
+        <add-function signature="readJson()" return-type="PyObject">
+            <modify-argument index="return"
+                             pyi-type="Tuple[Optional[PySide6.QtCore.QJsonDocument],PySide6.QtCore.QJsonParseError]"/>
+            <inject-code class="target" position="beginning" file="../glue/qtnetwork.cpp"
+                         snippet="qrestreply-readjson"/>
+        </add-function>
+    </object-type>
+
+    <object-type name="QSctpServer">
+        <configuration condition="QT_CONFIG(sctp)"/>
+    </object-type>
+    <object-type name="QSctpSocket">
+        <configuration condition="QT_CONFIG(sctp)"/>
+    </object-type>
+
+    <!-- The following entries may be present in the system or not. Keep this section organized. -->
+    <value-type name="QSslCertificate">
+        <enum-type name="PatternSyntax"/>
+        <enum-type name="SubjectInfo"/>
+        <configuration condition="QT_CONFIG(ssl)"/>
+    </value-type>
+
+    <value-type name="QSslCertificateExtension">
+        <configuration condition="QT_CONFIG(ssl)"/>
+    </value-type>
+
+    <value-type name="QSslCipher">
+        <configuration condition="QT_CONFIG(ssl)"/>
+    </value-type>
+
+    <value-type name="QSslConfiguration">
+        <enum-type name="NextProtocolNegotiationStatus"/>
+        <configuration condition="QT_CONFIG(ssl)"/>
+    </value-type>
+
+    <value-type name="QSslDiffieHellmanParameters">
+        <enum-type name="Error"/>
+        <configuration condition="QT_CONFIG(ssl)"/>
+    </value-type>
+
+    <value-type name="QSslEllipticCurve">
+        <configuration condition="QT_CONFIG(ssl)"/>
+    </value-type>
+
+    <value-type name="QSslError">
+        <enum-type name="SslError"/>
+        <configuration condition="QT_CONFIG(ssl)"/>
+    </value-type>
+
+    <value-type name="QSslKey"/>
+    <object-type name="QSslSocket">
+        <enum-type name="SslMode"/>
+        <enum-type name="PeerVerifyMode"/>
+        <modify-function signature="connectToHostEncrypted(const QString&amp;,quint16,QFlags&lt;QIODeviceBase::OpenModeFlag>,QAbstractSocket::NetworkLayerProtocol)" allow-thread="yes"/>
+        <modify-function signature="waitForEncrypted(int)" allow-thread="yes"/>
+        <configuration condition="QT_CONFIG(ssl)"/>
+    </object-type>
+
+    <value-type name="QSslPreSharedKeyAuthenticator">
+        <configuration condition="QT_CONFIG(ssl)"/>
+    </value-type>
+
+    <object-type name="QSslServer" since="6.4">
+        <configuration condition="QT_CONFIG(ssl)"/>
+    </object-type>
+
+    <!-- The above entries may be present in the system or not. Keep this section organized. -->
+</typesystem>

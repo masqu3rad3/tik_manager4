@@ -109,7 +109,7 @@ class Category(Entity):
         work.add_property("state", "active")
         work.init_properties()
 
-    def create_work_from_path(self, name, file_path, override_dcc="standalone", notes="", ignore_checks=True):
+    def create_work_from_path(self, name, file_path, override_dcc="standalone", notes="", ignore_checks=True, direct_publish=False):
         """Register a given path (file or folder) as a work.
 
         Args:
@@ -118,6 +118,8 @@ class Category(Entity):
             notes (str): Notes for the work.
             ignore_checks (bool): If True, the checks for the work creation.
                     will be ignored.
+            direct_publish (bool): If True, the work will be directly published
+                    and the work version will be a mock version.
 
         Returns:
             tik_manager4.objects.work: Work object.
@@ -129,14 +131,24 @@ class Category(Entity):
         if Path(abs_path).exists():
             # in that case instantiate the work and iterate the version.
             work = Work(absolute_path=abs_path, parent_task=self.parent_task)
-            work.new_version_from_path(file_path=file_path, notes=notes)
-            return work
+            version_obj = work.new_version_from_path(file_path=file_path, notes=notes, dry_version=direct_publish)
+        else:
+            relative_path = self.get_relative_work_path(override_dcc=override_dcc)
+            work = Work(abs_path, name=constructed_name, path=relative_path, parent_task=self.parent_task)
 
-        relative_path = self.get_relative_work_path(override_dcc=override_dcc)
-        work = Work(abs_path, name=constructed_name, path=relative_path, parent_task=self.parent_task)
+            self.__add_work_properties(work, constructed_name, override_dcc, "NA", relative_path)
+            version_obj = work.new_version_from_path(file_path=file_path, notes=notes, dry_version=direct_publish)
 
-        self.__add_work_properties(work, constructed_name, override_dcc, "NA", relative_path)
-        work.new_version_from_path(file_path=file_path, notes=notes)
+        if direct_publish and version_obj != -1:
+            project = self.parent_task.parent_sub.get_project()
+            project.snapshot_publisher.work_object = work
+            project.snapshot_publisher.work_version = version_obj.version
+            project.snapshot_publisher.source_path = file_path
+            project.snapshot_publisher.resolve()
+            project.snapshot_publisher.reserve()
+            project.snapshot_publisher.extract()
+            project.snapshot_publisher.publish(notes=notes)
+
         return work
 
     def create_work_from_template(self, name, template_file, dcc, notes="", ignore_checks=True):
@@ -178,6 +190,8 @@ class Category(Entity):
             notes (str): Notes for the work.
             ignore_checks (bool): If True, the checks for the work creation.
                     will be ignored.
+            from_selection (bool): If True, the work will be created from the
+                current selection in the DCC.
 
         Returns:
             tik_manager4.objects.work: Work object.

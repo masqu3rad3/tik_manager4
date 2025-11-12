@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtGui">
+    <primitive-type name="HBITMAP" target-lang-api-name="PyLong">
+        <conversion-rule>
+            <native-to-target file="../glue/qtgui.cpp" snippet="return-pylong-voidptr"/>
+            <target-to-native>
+                <add-conversion type="PyLong" file="../glue/qtgui.cpp"
+                                snippet="conversion-pylong"/>
+            </target-to-native>
+        </conversion-rule>
+    </primitive-type>
+    <primitive-type name="HICON" target-lang-api-name="PyLong">
+        <conversion-rule>
+            <native-to-target file="../glue/qtgui.cpp" snippet="return-pylong-voidptr"/>
+            <target-to-native>
+                <add-conversion type="PyLong" file="../glue/qtgui.cpp"
+                                snippet="conversion-pylong"/>
+            </target-to-native>
+        </conversion-rule>
+    </primitive-type>
+    <primitive-type name="HMONITOR" target-lang-api-name="PyLong">
+        <conversion-rule>
+            <native-to-target file="../glue/qtgui.cpp" snippet="return-pylong-voidptr"/>
+            <target-to-native>
+                <add-conversion type="PyLong" file="../glue/qtgui.cpp"
+                                snippet="conversion-pylong"/>
+            </target-to-native>
+        </conversion-rule>
+    </primitive-type>
+    <primitive-type name="HRGN" target-lang-api-name="PyLong">
+        <conversion-rule>
+            <native-to-target file="../glue/qtgui.cpp" snippet="return-pylong-voidptr"/>
+            <target-to-native>
+                <add-conversion type="PyLong" file="../glue/qtgui.cpp"
+                                snippet="conversion-pylong"/>
+            </target-to-native>
+        </conversion-rule>
+    </primitive-type>
+</typesystem>

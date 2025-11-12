@@ -1,5 +1,6 @@
 """Work and Publish objects."""
 
+from datetime import datetime
 from pathlib import Path
 
 from tik_manager4.core import utils
@@ -19,6 +20,7 @@ class PublishVersion(Settings, LocalizeMixin):
     When read from the file, these properties are initialized from the file.
     """
     object_type = ObjectType.PUBLISH_VERSION
+    promote_class = False
 
     def __init__(self, absolute_path, name=None, path=None, live_object=None, promoted_object=None):
         """Initialize the publish version object.
@@ -541,11 +543,30 @@ class PublishVersion(Settings, LocalizeMixin):
             "localized": self._localized,
             "localized_path": self._localized_path,
             "deleted": self._deleted,
+            "live": self.is_live(),
+            "promoted": self.promote_class or self.is_promoted(),
         }
+
+    def get_creation_date(self):
+        """Return the creation time of the publish version file."""
+        path_obj = Path(self.settings_file)
+        if path_obj.is_file():
+            timestamp = path_obj.stat().st_ctime
+            return datetime.fromtimestamp(timestamp).strftime("%Y/%m/%d %H:%M:%S")
+        return "N/A"
+
+    def get_modified_date(self):
+        """Return the modified time of the publish version file."""
+        path_obj = Path(self.settings_file)
+        if path_obj.is_file():
+            timestamp = path_obj.stat().st_mtime
+            return datetime.fromtimestamp(timestamp).strftime("%Y/%m/%d %H:%M:%S")
+        return "N/A"
 
 class LiveVersion(PublishVersion):
     """Customized PublishVersion object class."""
     object_type = ObjectType.PUBLISH_VERSION
+    promote_class = False
 
     def is_promoted(self):
         """Override the is_promoted method to always return False.
@@ -584,13 +605,14 @@ class LiveVersion(PublishVersion):
 class PromotedVersion(PublishVersion):
     """Customized PublishVersion object class."""
     object_type = ObjectType.PUBLISH_VERSION
+    promote_class = True
 
     def is_promoted(self):
         """Override the is_promoted method to always return False.
 
         This is to prevent doubling the promoted publish version.
         """
-        return False
+        return False # this may look like an error, but it's intentional.
 
     def is_live(self):
         """Override the is_live method to always return False."""
@@ -786,12 +808,25 @@ class WorkVersion(LocalizeMixin):
         """
         return ColorCodes.NORMAL.value
 
-        # if self.deleted:
-        #     return ColorCodes.DELETED.value
-        # if self.is_promoted():
-        #     return ColorCodes.PROMOTED.value
-        # if self.is_live():
-        #     return ColorCodes.LIVE.value
+    def get_creation_date(self):
+        """Return the creation time of the work version."""
+        abs_path = self.get_resolved_path()
+        path_obj = Path(abs_path)
+        if not path_obj.exists():
+            return "N/A"
+        creation_time = path_obj.lstat().st_ctime
+        return datetime.fromtimestamp(creation_time).strftime(
+            "%Y/%m/%d %H:%M:%S")
+
+    def get_modified_date(self):
+        """Return the modified time of the work version."""
+        abs_path = self.get_resolved_path()
+        path_obj = Path(abs_path)
+        if not path_obj.exists():
+            return "N/A"
+        modified_time = path_obj.lstat().st_mtime
+        return datetime.fromtimestamp(modified_time).strftime(
+            "%Y/%m/%d %H:%M:%S")
 
     def __str__(self):
         """Return the type of the class and the current data."""

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2018 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem>
+
+    <template name="qimage_buffer_constructor"
+              file="../glue/qtgui.cpp" snippet="qimage-buffer-constructor"/>
+
+    <template name="validator_conversionrule"
+              file="../glue/qtgui.cpp" snippet="validator-conversionrule"/>
+
+    <template name="qpainter_drawlist">
+        %CPPSELF.%FUNCTION_NAME(%1.constData(), %1.size());
+    </template>
+
+    <template name="inplace_add">
+        *%CPPSELF += %1;
+        return %CONVERTTOPYTHON[%RETURN_TYPE](*%CPPSELF);
+    </template>
+
+    <template name="return_QString_native">
+        if (%ISCONVERTIBLE[QString](%PYARG_0))
+            %1 = %CONVERTTOCPP[QString](%PYARG_0);
+        else
+            qWarning("%TYPE::%FUNCTION_NAME: Argument is not convertible to unicode.");
+    </template>
+
+    <template name="repr_code_matrix"
+              file="../glue/qtgui.cpp" snippet="qmatrix-repr-code"/>
+
+    <template name="reduce_code_matrix"
+              file="../glue/qtgui.cpp" snippet="qmatrix-reduce-code"/>
+
+    <template name="matrix_data_function"
+              file="../glue/qtgui.cpp" snippet="qmatrix-data-function"/>
+
+    <template name="matrix_constructor"
+              file="../glue/qtgui.cpp" snippet="qmatrix-constructor"/>
+
+    <template name="fix_args,QRectF*">
+        QRectF rect_;
+        %CPPSELF.%FUNCTION_NAME(%ARGUMENT_NAMES, &amp;rect_);
+        %PYARG_0 = %CONVERTTOPYTHON[QRectF](rect_);
+    </template>
+
+    <template name="fix_args,QRect*">
+        QRect rect_;
+        %CPPSELF.%FUNCTION_NAME(%ARGUMENT_NAMES, &amp;rect_);
+        %PYARG_0 = %CONVERTTOPYTHON[QRect](rect_);
+    </template>
+
+    <template name="__next__">
+        if (!%CPPSELF.atEnd()) {
+            %PYARG_0 = %CONVERTTOPYTHON[%CPPSELF_TYPE](*%CPPSELF);
+            ++(*%CPPSELF);
+        }
+    </template>
+
+    <template name="__iter_parent__">
+        %CPPSELF_TYPE _tmp = %CPPSELF.begin();
+        %PYARG_0 = %CONVERTTOPYTHON[%CPPSELF_TYPE](_tmp);
+    </template>
+
+    <template name="const_char_pybuffer">
+        PyObject *%out = Shiboken::Buffer::newObject(%in, size);
+    </template>
+
+    <template name="pybuffer_const_char">
+        Py_ssize_t bufferLen;
+        char *%out = reinterpret_cast&lt;char*&gt;(Shiboken::Buffer::getPointer(%PYARG_1, &amp;bufferLen));
+    </template>
+
+    <template name="uint_remove">
+        uint %out = bufferLen;
+    </template>
+
+    <template name="pybytes_const_uchar">
+        const uchar *%out = reinterpret_cast&lt;const uchar*>(PyBytes_AsString(%PYARG_1));
+    </template>
+
+    <template name="pybytes_uint">
+          uint %out = static_cast&lt;uint>(PyBytes_Size(%PYARG_1));
+    </template>
+
+    <template name="fix_native_return_number*,number*,number*,number*"
+              file="../glue/qtgui.cpp" snippet="fix_margins_return"/>
+
+</typesystem>

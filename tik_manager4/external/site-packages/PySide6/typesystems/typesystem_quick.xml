@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtQuick"
+            namespace-begin="QT_BEGIN_NAMESPACE" namespace-end="QT_END_NAMESPACE">
+    <load-typesystem name="typesystem_core.xml" generate="no"/>
+    <load-typesystem name="typesystem_network.xml" generate="no"/>
+    <load-typesystem name="typesystem_gui.xml" generate="no"/>
+    <!-- QQuickFramebufferObject::Renderer needs QOpenGLFramebufferObject -->
+    <?if !no_QtOpenGL?>
+    <load-typesystem name="typesystem_opengl.xml" generate="no"/>
+    <?endif?>
+    <load-typesystem name="typesystem_qml.xml" generate="no"/>
+
+    <smart-pointer-type name="QSharedPointer" type="shared" getter="data"
+                        reset-method="reset"/>
+
+    <extra-includes>
+        <include file-name="pysidequickregistertype.h" location="local"/>
+    </extra-includes>
+
+    <inject-code class="target" position="end" file="../glue/qtquick.cpp" snippet="qtquick"/>
+
+    <object-type name="QQuickAsyncImageProvider">
+        <modify-function signature="requestImageResponse(const QString&amp;,const QSize&amp;)">
+            <modify-argument index="return">
+                <define-ownership class="native" owner="c++"/>
+            </modify-argument>
+        </modify-function>
+    </object-type>
+
+    <object-type name="QQuickFramebufferObject">
+        <object-type name="Renderer"/>
+        <modify-function signature="createRenderer()const">
+            <modify-argument index="return">
+                <define-ownership class="native" owner="c++"/>
+            </modify-argument>
+        </modify-function>
+    </object-type>
+    <namespace-type name="QQuickOpenGLUtils"/>
+
+    <value-type name="QQuickGraphicsConfiguration"/>
+    <value-type name="QQuickGraphicsDevice">
+        <!-- PYSIDE-1726, after qtbase/696d94b132b2f352b5e6b889ad91c2437417fae8,
+             the functions are defined with dummy types when Vulkan is not present. -->
+        <modify-function signature="^fromPhysicalDevice\(.*$" remove="all"/>
+        <modify-function signature="^fromDeviceObjects\(.*$" remove="all"/>
+    </value-type>
+
+    <object-type name="QQuickTextureFactory"/>
+    <object-type name="QQuickImageProvider"/>
+    <object-type name="QQuickImageResponse"/>
+
+    <object-type name="QQuickTransform"/>
+    <object-type name="QQuickItem" delete-in-main-thread="true" polymorphic-base="true">
+        <value-type name="UpdatePaintNodeData"/>
+        <enum-type name="Flag" flags="Flags"/>
+        <enum-type name="ItemChange"/>
+        <enum-type name="TransformOrigin"/>
+        <modify-function signature="itemTransform(QQuickItem*,bool*)const" allow-thread="yes">
+            <modify-argument index="2">
+                <remove-argument />
+            </modify-argument>
+            <modify-argument index="return" pyi-type="Tuple[bool, PySide6.QtGui.QTransform]">
+                <replace-type modified-type="PyTuple"/>
+            </modify-argument>
+            <inject-code class="target" position="beginning">
+                <insert-template name="fix_args,bool*"/>
+            </inject-code>
+        </modify-function>
+        <modify-function signature="updatePaintNode(QSGNode*,QQuickItem::UpdatePaintNodeData*)">
+          <modify-argument index="return">
+            <define-ownership class="native" owner="c++"/>
+            <define-ownership class="target" owner="default"/>
+          </modify-argument>
+        </modify-function>
+
+        <!-- TODO: Find a way to wrap `union ItemChangeData {}` -->
+    </object-type>
+
+    <object-type name="QQuickRhiItemRenderer" since="6.7"/>
+    <object-type name="QQuickRhiItem" since="6.7">
+        <enum-type name="TextureFormat"/>
+    </object-type>
+
+    <object-type name="QQuickItemGrabResult"/>
+
+    <object-type name="QQuickPaintedItem">
+        <enum-type name="RenderTarget"/>
+        <enum-type name="PerformanceHint" flags="PerformanceHints"/>
+    </object-type>
+
+    <object-type name="QQuickRenderControl"/>
+    <value-type name="QQuickRenderTarget">
+        <!-- PYSIDE-1726, after qtbase/696d94b132b2f352b5e6b889ad91c2437417fae8,
+             the function is defined with dummy types when Vulkan is not present. -->
+        <modify-function signature="^fromVulkanImage\(.*$" remove="all"/>
+        <enum-type name="Flag" flags="Flags" since="6.8"/>
+    </value-type>
+
+    <object-type name="QQuickTextDocument">
+        <enum-type name="Status" since="6.7"/>
+    </object-type>
+
+    <object-type name="QQuickView">
+        <enum-type name="ResizeMode"/>
+        <enum-type name="Status"/>
+    </object-type>
+
+    <object-type name="QQuickWindow">
+        <enum-type name="CreateTextureOption" flags="CreateTextureOptions"/>
+        <enum-type name="RenderStage"/>
+        <enum-type name="SceneGraphError"/>
+        <enum-type name="TextRenderType"/>
+        <value-type name="GraphicsStateInfo"/>
+    </object-type>
+
+    <object-type name="QSGBasicGeometryNode">
+        <modify-function signature="setGeometry(QSGGeometry*)">
+            <modify-argument index="1">
+              <define-ownership class="target" owner="c++"/>
+            </modify-argument>
+        </modify-function>
+    </object-type>
+
+    <object-type name="QSGClipNode"/>
+    <object-type name="QSGDynamicTexture"/>
+    <object-type name="QSGFlatColorMaterial"/>
+    <object-type name="QSGGeometry">
+        <extra-includes>
+            <include file-name="algorithm" location="global"/>
+        </extra-includes>
+        <enum-type name="DataPattern"/>
+        <enum-type name="AttributeType"/>
+        <enum-type name="DrawingMode" python-type="IntEnum"/>
+        <enum-type name="Type"/>
+        <value-type name="Attribute"/>
+        <value-type name="AttributeSet"/>
+        <value-type name="ColoredPoint2D"/>
+        <value-type name="Point2D"/>
+        <value-type name="TexturedPoint2D"/>
+        <modify-function signature="vertexDataAsPoint2D()">
+            <modify-argument index="return">
+                <replace-type modified-type="PyObject*"/>
+            </modify-argument>
+            <inject-code class="target" file="../glue/qtquick.cpp" snippet="qsgeometry-vertexdataaspoint2d"/>
+        </modify-function>
+        <add-function signature="setVertexDataAsPoint2D(const QList&lt;QSGGeometry::Point2D&gt;&amp;@points@)">
+            <inject-code class="target" file="../glue/qtquick.cpp" snippet="qsgeometry-setvertexdataaspoint2d"/>
+            <inject-documentation format="target" mode="append">
+            Sets the vertex data from a list of QSGGeometry.Point2D.
+            The list size must match the allocated number of vertexes
+            as returned by QSGGeometry.vertexCount().
+            </inject-documentation>
+        </add-function>
+
+    </object-type>
+    <object-type name="QSGGeometryNode">
+        <modify-function signature="setMaterial(QSGMaterial*)">
+            <modify-argument index="1">
+              <define-ownership class="target" owner="c++"/>
+            </modify-argument>
+        </modify-function>
+        <modify-function signature="setOpaqueMaterial(QSGMaterial*)">
+            <modify-argument index="1">
+              <define-ownership class="target" owner="c++"/>
+            </modify-argument>
+        </modify-function>
+    </object-type>
+
+    <object-type name="QSGImageNode">
+        <enum-type name="TextureCoordinatesTransformFlag" flags="TextureCoordinatesTransformMode"/>
+    </object-type>
+
+    <object-type name="QSGMaterial">
+        <enum-type name="Flag" flags="Flags"/>
+    </object-type>
+    <object-type name="QSGMaterialShader">
+        <enum-type name="Stage"/>
+        <enum-type name="Flag" flags="Flags"/>
+        <value-type name="RenderState">
+            <enum-type name="DirtyState" flags="DirtyStates"/>
+        </value-type>
+        <value-type name="GraphicsPipelineState">
+            <enum-type name="BlendFactor"/>
+            <enum-type name="BlendOp" since="6.8"/>
+            <enum-type name="ColorMaskComponent" flags="ColorMask"/>
+            <enum-type name="CullMode"/>
+            <enum-type name="PolygonMode"/>
+        </value-type>
+        <modify-function signature="updateSampledImage(QSGMaterialShader::RenderState&amp;,int,QSGTexture**,QSGMaterial*,QSGMaterial*)" remove="all"/>
+        <!-- Private QRhi class -->
+        <modify-function signature="setShader(QSGMaterialShader::Stage,QShader)" remove="all"/>
+    </object-type>
+    <object-type name="QSGMaterialType"/>
+    <object-type name="QSGNinePatchNode"/>
+    <object-type name="QSGNode">
+        <enum-type name="DirtyStateBit" flags="DirtyState"/>
+        <enum-type name="Flag" flags="Flags"/>
+        <enum-type name="NodeType"/>
+    </object-type>
+    <object-type name="QSGNodeVisitor"/>
+
+    <object-type name="QSGOpacityNode"/>
+    <object-type name="QSGOpaqueTextureMaterial"/>
+    <object-type name="QSGSimpleRectNode"/>
+    <object-type name="QSGSimpleTextureNode">
+        <enum-type name="TextureCoordinatesTransformFlag" flags="TextureCoordinatesTransformMode"/>
+    </object-type>
+    <object-type name="QSGTextNode" since="6.7">
+        <enum-type name="TextStyle"/>
+        <enum-type name="RenderType"/>
+    </object-type>
+    <object-type name="QSGRectangleNode"/>
+    <object-type name="QSGRendererInterface">
+        <enum-type name="GraphicsApi"/>
+        <enum-type name="Resource"/>
+        <enum-type name="ShaderType"/>
+        <enum-type name="ShaderCompilationType" flags="ShaderCompilationTypes"/>
+        <enum-type name="ShaderSourceType" flags="ShaderSourceTypes"/>
+        <enum-type name="RenderMode"/>
+    </object-type>
+    <object-type name="QSGRenderNode">
+        <enum-type name="StateFlag" flags="StateFlags"/>
+        <enum-type name="RenderingFlag" flags="RenderingFlags"/>
+        <object-type name="RenderState"/>
+    </object-type>
+    <object-type name="QSGRootNode"/>
+    <object-type name="QSGTexture">
+        <enum-type name="AnisotropyLevel"/>
+        <enum-type name="Filtering"/>
+        <enum-type name="WrapMode"/>
+    </object-type>
+    <object-type name="QSGTextureMaterial"/>
+    <object-type name="QSGTextureProvider"/>
+    <object-type name="QSGTransformNode"/>
+    <object-type name="QSGVertexColorMaterial"/>
+
+    <!-- These currently don't work because they are template classes, and the generator chokes on
+         them. Making these work properly would require fixing the parsing of template classes,
+         allowing creation of State structures and passing them to the template classes, as well as
+         implementing some mechanism of registration of the custom template classes, kind of how
+         it's done for qt quick items.
+    <object-type name="QSGSimpleMaterial"/>
+    <object-type name="QSGSimpleMaterialShader"/>
+    -->
+
+    <suppress-warning text="^signature.*fromVulkanImage.*not found.*$"/>
+    <suppress-warning text="^signature.*fromPhysicalDevice.*not found.*$"/>
+    <suppress-warning text="^signature.*fromDeviceObjects.*not found.*$"/>
+    <suppress-warning text="^Unable to decide type of property:.*QQuickGradient.*Unable to translate type.*QQuickGradient.*Cannot find type entry for.*QQuickGradient.*$"/>
+
+</typesystem>

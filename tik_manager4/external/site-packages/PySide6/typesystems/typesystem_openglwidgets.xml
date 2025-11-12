@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtOpenGLWidgets" doc-package="PySide6.QtOpenGL"
+            namespace-begin="QT_BEGIN_NAMESPACE" namespace-end="QT_END_NAMESPACE">
+  <load-typesystem name="typesystem_core.xml" generate="no" />
+  <load-typesystem name="typesystem_gui.xml" generate="no" />
+  <load-typesystem name="typesystem_widgets.xml" generate="no" />
+
+  <object-type name="QOpenGLWidget">
+      <enum-type name="UpdateBehavior"/>
+      <enum-type name="TargetBuffer" since="6.5"/>
+  </object-type>
+</typesystem>

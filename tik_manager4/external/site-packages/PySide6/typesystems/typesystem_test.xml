@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtTest" doc-package="PySide6.QtTestlib"
+            namespace-begin="QT_BEGIN_NAMESPACE" namespace-end="QT_END_NAMESPACE">
+  <load-typesystem name="typesystem_core.xml" generate="no"/>
+  <load-typesystem name="typesystem_gui.xml" generate="no"/>
+  <load-typesystem name="typesystem_widgets.xml" generate="no"/>
+
+  <rejection class="QTest::Internal"/>
+  <rejection class="QTestPrivate"/>
+
+  <rejection class="QTest" function-name="qCompare"/>
+  <rejection class="QTest" function-name="qVerify"/>
+  <rejection class="QTest" function-name="toHexRepresentation"/>
+  <rejection class="QTest" function-name="qFail"/>
+  <rejection class="QTest" function-name="qInit"/>
+  <rejection class="QTest" function-name="qExec"/>
+  <rejection class="QTest" function-name="qData"/>
+  <rejection class="QTest" function-name="qWarn"/>
+  <rejection class="QTest" function-name="toString"/>
+  <rejection class="QTest" function-name="useVerifyThrowsException"/>
+
+  <rejection class="QTest" function-name="compare_helper"/>
+  <rejection class="QTest" function-name="toPrettyUnicode"/>
+
+  <rejection class="QTest" field-name="lastMouseTimestamp"/>
+
+  <!-- Qt5: this new stuff below belongs to QtGui. I keep it here for now, after a long odyssey.
+
+      The problem that costed my days of bug hunting is the fact that shiboken gives
+      misleading error messages. The messages that I could not get rid of were
+
+    signature 'generateTouchEvent(QWidget*,QInputDevice*,bool)' for function modification in 'QTest' not found. Possible candidates:
+    signature 'generateTouchEvent(QWindow*,QInputDevice*,bool)' for function modification in 'QTest' not found. Possible candidates:
+
+      I always thought that for some reason the functions were not recognized, or the arguments somehow
+      do not match their declaration. Only late in the project, I learnt that also
+      a simply missing type name in the argument list leads to this message.
+
+  <object-type name="QInputDevice">
+    <enum-type name="CapabilityFlag" flags="Capabilities"/>
+    <enum-type name="DeviceType"/>
+  </object-type>
+  ^^^ this is now moved into QtGui -->
+
+  <object-type name="QAbstractItemModelTester">
+      <enum-type name="FailureReportingMode"/>
+  </object-type>
+
+  <object-type name="QSignalSpy"> <!-- Inherits QList<QVariantList> -->
+      <extra-includes>
+          <include file-name="pysidesignal.h" location="global"/>
+      </extra-includes>
+      <declare-function signature="count()const" return-type="qsizetype"/>
+      <declare-function signature="size()const" return-type="qsizetype"/>
+      <declare-function signature="at(qsizetype)const" return-type="QVariantList"/>
+      <add-function signature="QSignalSpy(PySideSignalInstance@signal@)">
+          <inject-code class="target" position="beginning" file="../glue/qttest.cpp" snippet="qsignalspy-signal"/>
+          <inject-documentation format="target" mode="append">
+          Constructs a new QSignalSpy that listens for emissions of the signal.
+          </inject-documentation>
+      </add-function>
+  </object-type>
+
+  <namespace-type name="QTest">
+    <!-- Qt5: private <enum-type name="AttributeIndex"/> -->
+    <enum-type name="KeyAction"/>
+    <!-- Qt5: private <enum-type name="LogElementType"/> -->
+    <enum-type name="MouseAction"/>
+    <enum-type name="QBenchmarkMetric"/>
+    <enum-type name="TestFailMode"/>
+    <enum-type name="ComparisonOperation" since="6.4"/>
+    <extra-includes>
+        <include file-name="QtTest" location="global"/>
+    </extra-includes>
+
+    <object-type name="PySideQTouchEventSequence" target-lang-name="QTouchEventSequence">
+        <modify-function signature="press(int,const QPoint&amp;,QWidget*)">
+            <modify-argument index="return">
+                <define-ownership class="target" owner="default"/>
+            </modify-argument>
+        </modify-function>
+        <modify-function signature="press(int,const QPoint&amp;,QWindow*)">
+            <modify-argument index="return">
+                <define-ownership class="target" owner="default"/>
+            </modify-argument>
+        </modify-function>
+        <modify-function signature="move(int,const QPoint&amp;,QWidget*)">
+            <modify-argument index="return">
+                <define-ownership class="target" owner="default"/>
+            </modify-argument>
+        </modify-function>
+        <modify-function signature="move(int,const QPoint&amp;,QWindow*)">
+            <modify-argument index="return">
+                <define-ownership class="target" owner="default"/>
+            </modify-argument>
+        </modify-function>
+        <modify-function signature="release(int,const QPoint&amp;,QWidget*)">
+            <modify-argument index="return">
+                <define-ownership class="target" owner="default"/>
+            </modify-argument>
+        </modify-function>
+        <modify-function signature="release(int,const QPoint&amp;,QWindow*)">
+            <modify-argument index="return">
+                <define-ownership class="target" owner="default"/>
+            </modify-argument>
+        </modify-function>
+        <modify-function signature="stationary(int)">
+            <modify-argument index="return">
+                <define-ownership class="target" owner="default"/>
+            </modify-argument>
+        </modify-function>
+    </object-type>
+    <modify-function signature="generateTouchEvent(QWidget*,QPointingDevice*,bool)" rename="touchEvent">
+        <modify-argument index="return">
+            <define-ownership class="target" owner="target"/>
+        </modify-argument>
+    </modify-function>
+    <modify-function signature="generateTouchEvent(QWindow*,QPointingDevice*,bool)" rename="touchEvent">
+        <modify-argument index="return">
+            <define-ownership class="target" owner="target"/>
+        </modify-argument>
+    </modify-function>
+  </namespace-type>
+
+  <rejection class="QTestEventList"/>
+</typesystem>

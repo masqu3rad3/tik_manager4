@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtXml"
+            namespace-begin="QT_BEGIN_NAMESPACE" namespace-end="QT_END_NAMESPACE">
+    <load-typesystem name="typesystem_core.xml" generate="no" />
+    <load-typesystem name="core_common.xml" generate="no" />
+
+    <rejection class="QDomNode" field-name="impl"/>
+
+    <value-type name="QDomAttr"/>
+    <value-type name="QDomCDATASection"/>
+    <value-type name="QDomCharacterData"/>
+    <value-type name="QDomComment"/>
+
+
+    <value-type name="QDomDocument">
+        <enum-type name="ParseOption" flags="ParseOptions" since="6.5"/>
+        <!-- will be replaced in inject code -->
+
+        <value-type name="ParseResult"/>
+
+        <modify-function signature="setContent(const QByteArray&amp;,bool,QString*,int*,int*)">
+            <modify-argument index="3">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="4">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="5">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="return" pyi-type="Tuple[bool, str, int, int]">
+                <replace-type modified-type="(retval, errorMsg, errorLine, errorColumn)"/>
+            </modify-argument>
+            <inject-code class="target" position="beginning" file="../glue/qtxml.cpp" snippet="qdomdocument-setcontent" />
+        </modify-function>
+        <modify-function signature="setContent(const QString&amp;,bool,QString*,int*,int*)">
+            <modify-argument index="3">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="4">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="5">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="return" pyi-type="Tuple[bool, str, int, int]">
+                <replace-type modified-type="(retval, errorMsg, errorLine, errorColumn)"/>
+            </modify-argument>
+            <inject-code class="target" position="beginning" file="../glue/qtxml.cpp" snippet="qdomdocument-setcontent" />
+        </modify-function>
+        <modify-function signature="setContent(QIODevice*,bool,QString*,int*,int*)">
+            <modify-argument index="3">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="4">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="5">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="return" pyi-type="Tuple[bool, str, int, int]">
+                <replace-type modified-type="(retval, errorMsg, errorLine, errorColumn)"/>
+            </modify-argument>
+            <inject-code class="target" position="beginning" file="../glue/qtxml.cpp" snippet="qdomdocument-setcontent" />
+        </modify-function>
+        <modify-function signature="setContent(const QByteArray&amp;,QString*,int*,int*)">
+            <modify-argument index="2">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="3">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="4">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="return" pyi-type="Tuple[bool, str, int, int]">
+                <replace-type modified-type="(retval, errorMsg, errorLine, errorColumn)"/>
+            </modify-argument>
+            <inject-code class="target" position="beginning" file="../glue/qtxml.cpp" snippet="qdomdocument-setcontent" />
+        </modify-function>
+        <modify-function signature="setContent(QIODevice*,QString*,int*,int*)">
+            <modify-argument index="2">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="3">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="4">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="return" pyi-type="Tuple[bool, str, int, int]">
+                <replace-type modified-type="(retval, errorMsg, errorLine, errorColumn)"/>
+            </modify-argument>
+            <inject-code class="target" position="beginning" file="../glue/qtxml.cpp" snippet="qdomdocument-setcontent" />
+        </modify-function>
+        <modify-function signature="setContent(const QString&amp;,QString*,int*,int*)">
+            <modify-argument index="2">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="3">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="4">
+                <remove-argument/>
+                <remove-default-expression/>
+            </modify-argument>
+            <modify-argument index="return" pyi-type="Tuple[bool, str, int, int]">
+                <replace-type modified-type="(retval, errorMsg, errorLine, errorColumn)"/>
+            </modify-argument>
+            <inject-code class="target" position="beginning" file="../glue/qtxml.cpp" snippet="qdomdocument-setcontent" />
+        </modify-function>
+    </value-type>
+
+    <value-type name="QDomDocumentFragment"/>
+    <value-type name="QDomDocumentType"/>
+    <value-type name="QDomEntity"/>
+    <value-type name="QDomEntityReference"/>
+    <value-type name="QDomImplementation">
+        <enum-type name="InvalidDataPolicy"/>
+    </value-type>
+
+    <value-type name="QDomNamedNodeMap"/>
+
+    <value-type name="QDomNode">
+        <enum-type name="EncodingPolicy"/>
+        <enum-type name="NodeType"/>
+        <modify-function signature="save(QTextStream&amp;,int,QDomNode::EncodingPolicy)const" allow-thread="yes"/>
+    </value-type>
+
+    <value-type name="QDomNodeList"/>
+    <value-type name="QDomNotation"/>
+    <value-type name="QDomProcessingInstruction"/>
+
+    <value-type name="QDomText"/>
+
+    <value-type name="QDomElement">
+        <!-- PYSIDE-1372
+            We will leave only one for int, and one for float since Python
+            doesn't have other variations on the primitive types.
+            Only 'qlonglong' and 'double' will be available from the Qt API.
+            TODO: This will require a better review of the shiboken primitive
+                  types converters, since this situation might happen on
+                  different signatures.
+        -->
+        <modify-function signature="setAttribute(const QString&amp;, uint)" remove="all"/>
+        <modify-function signature="setAttribute(const QString&amp;, float)" remove="all"/>
+        <modify-function signature="setAttribute(const QString&amp;, int)" remove="all"/>
+        <modify-function signature="setAttribute(const QString&amp;, qulonglong)" remove="all"/>
+    </value-type>
+
+</typesystem>

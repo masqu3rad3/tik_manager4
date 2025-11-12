@@ -1,0 +1,8 @@
+module QtQuick.VectorImage
+linktarget Qt6::qquickvectorimageplugin
+optional plugin qquickvectorimageplugin
+classname QtQuickVectorImagePlugin
+typeinfo plugins.qmltypes
+prefer :/qt-project.org/imports/QtQuick/VectorImage/
+depends QtQuick
+

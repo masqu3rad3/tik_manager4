@@ -1,0 +1,1 @@
+<inject-code class="native" position="beginning" file="../glue/qtopengl.cpp" snippet="glgeti-vreturnsize_declaration"/>

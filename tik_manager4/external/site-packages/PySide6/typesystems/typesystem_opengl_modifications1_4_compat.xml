@@ -1,0 +1,13 @@
+<!--
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<modify-function signature="^glFogCoord[df]v\(.*$">
+    <modify-argument index="1"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glSecondaryColor3u?[bdfis]v\(.*$">
+    <modify-argument index="1"><array/></modify-argument>
+</modify-function>
+<modify-function signature="^glWindowPos[23][dfis]v\(.*$">
+    <modify-argument index="1"><array/></modify-argument>
+</modify-function>

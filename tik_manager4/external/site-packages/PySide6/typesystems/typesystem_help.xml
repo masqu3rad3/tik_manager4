@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+
+<typesystem package="PySide6.QtHelp"
+            namespace-begin="QT_BEGIN_NAMESPACE" namespace-end="QT_END_NAMESPACE">
+    <load-typesystem name="typesystem_widgets.xml" generate="no"/>
+
+    <value-type name="QCompressedHelpInfo"/>
+    <object-type name="QHelpContentItem"> <!-- Non-copyable, non-movable in 6.8 -->
+      <modify-function signature="parent()const">
+        <modify-argument index="return">
+          <define-ownership owner="default"/>
+        </modify-argument>
+      </modify-function>
+    </object-type>
+    <object-type name="QHelpContentModel" polymorphic-id-expression="qobject_cast&lt;QHelpContentModel*&gt;(%B)"/>
+    <object-type name="QHelpContentWidget"/>
+    <value-type name="QHelpGlobal"/>
+    <object-type name="QHelpEngine"/>
+    <object-type name="QHelpEngineCore">
+       <!-- Uses QFuture -->
+       <modify-function signature="requestIndexForCurrentFilter()const" remove="all"/>
+       <modify-function signature="requestIndex(QString)const" remove="all"/>
+    </object-type>
+    <value-type name="QHelpFilterData"/>
+    <object-type name="QHelpFilterEngine"/>
+    <object-type name="QHelpFilterSettingsWidget"/>
+    <object-type name="QHelpIndexModel"/>
+    <object-type name="QHelpIndexWidget"/>
+    <value-type name="QHelpLink"/>
+    <object-type name="QHelpSearchEngineCore"/>
+    <object-type name="QHelpSearchEngine"/>
+    <value-type name="QHelpSearchQuery">
+        <enum-type name="FieldName"/>
+    </value-type>
+    <object-type name="QHelpSearchQueryWidget"/>
+    <object-type name="QHelpSearchResult"/>
+    <object-type name="QHelpSearchResultWidget"/>
+</typesystem>

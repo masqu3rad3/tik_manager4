@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+-->
+<typesystem package="PySide6.QtPrintSupport">
+  <load-typesystem name="typesystem_widgets.xml" generate="no"/>
+
+  <object-type name="QPageSetupDialog">
+    <modify-function signature="exec()" allow-thread="yes"/>
+    <add-function signature="exec_()" return-type="int">
+      <inject-code file="../glue/qtprintsupport.cpp" snippet="exec" />
+    </add-function>
+  </object-type>
+
+  <object-type name="QAbstractPrintDialog">
+    <enum-type name="PrintDialogOption" flags="PrintDialogOptions"/>
+    <enum-type name="PrintRange"/>
+  </object-type>
+
+  <object-type name="QPrintDialog">
+    <modify-function signature="exec()" allow-thread="yes"/>
+    <add-function signature="exec_()" return-type="int">
+      <inject-code file="../glue/qtprintsupport.cpp" snippet="exec" />
+    </add-function>
+  </object-type>
+  <object-type name="QPrintEngine">
+    <enum-type name="PrintEnginePropertyKey"/>
+  </object-type>
+  <value-type name="QPrinterInfo"/>
+
+  <object-type name="QPrinter" >
+    <enum-type name="ColorMode"/>
+    <enum-type name="DuplexMode"/>
+    <enum-type name="OutputFormat"/>
+    <enum-type name="PageOrder"/>
+    <enum-type name="PaperSource"/>
+    <enum-type name="PrintRange"/>
+    <enum-type name="PrinterMode"/>
+    <enum-type name="PrinterState"/>
+    <enum-type name="Unit"/>
+    <modify-function signature="setEngines(QPrintEngine*,QPaintEngine*)">
+      <modify-argument index="1">
+        <parent index="this" action="add"/>
+      </modify-argument>
+      <modify-argument index="2">
+        <parent index="this" action="add"/>
+      </modify-argument>
+    </modify-function>
+    <extra-includes>
+      <include file-name="QPrinterInfo" location="global"/>
+    </extra-includes>
+    <!-- fixme: Check if this is still required in Qt 6:
+        bool QPagedPaintDevice::setPageSize(QPageSize)
+        void QPagedPaintDevice::setPageSize(QPagedPaintDevice::PageSize) -->
+    <add-function signature="setPageSize(const QPageSize&amp;@size@)" return-type="bool">
+        <inject-code file="../glue/qtprintsupport.cpp" snippet="setpagesize" />
+    </add-function>
+  </object-type>
+
+  <object-type name="QPrintPreviewDialog"/>
+  <object-type name="QPrintPreviewWidget">
+    <enum-type name="ViewMode"/>
+    <enum-type name="ZoomMode"/>
+    <modify-function signature="print()" rename="print_"/>
+  </object-type>
+
+</typesystem>
