@@ -1352,6 +1352,11 @@ QColumnView::item:selected:active {
   border-radius: 0px;
 }
 
+QTreeView::item:selected:active,
+QTreeView::item:selected:!active {
+  background-color: #242424;
+}
+
 QTreeView::item:!selected:hover,
 QListView::item:!selected:hover,
 QTableView::item:!selected:hover,
