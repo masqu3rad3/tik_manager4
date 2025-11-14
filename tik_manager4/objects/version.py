@@ -254,7 +254,7 @@ class PublishVersion(Settings, LocalizeMixin):
                         f.write(f"""#usda 1.0
 (
     subLayers = [
-            @{str(publish_path).replace(str(Path(self.get_abs_project_path()).parent), "../")}@
+            @{str(publish_path).replace(str(Path(self.get_abs_project_path()).parent), "../").replace("\\", "/")}@
     ]
 )
                                     """)
