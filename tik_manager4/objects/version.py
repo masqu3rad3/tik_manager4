@@ -242,7 +242,7 @@ class PublishVersion(Settings, LocalizeMixin):
 
         for element_data in self.elements:
             element_type = element_data["type"]
-            publish_path = Path(self.get_element_path(element_type, relative=False))
+            publish_path = Path(self.get_element_path(element_type, relative=False)).as_posix()
             # construct the name of the LIVE element from the data
             # if it's a usd
             if publish_path.suffix.startswith(".usd"):
@@ -254,7 +254,7 @@ class PublishVersion(Settings, LocalizeMixin):
                         f.write(f"""#usda 1.0
 (
     subLayers = [
-            @{str(publish_path).replace(str(Path(self.get_abs_project_path()).parent), "../").replace("\\", "/")}@
+            @{str(publish_path).replace(str(Path(self.get_abs_project_path()).parent), "../")}@
     ]
 )
                                     """)
