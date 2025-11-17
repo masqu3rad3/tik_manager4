@@ -257,7 +257,7 @@ class PublishVersion(Settings, LocalizeMixin):
             @{str(publish_path).replace(str(Path(self.get_abs_project_path()).parent), "../")}@
     ]
 )
-                                    """).replace("\\", "/")
+                                    """)
                     utils.write_protect(live_path)
             # if it's any other file type (not usd)
             else:
