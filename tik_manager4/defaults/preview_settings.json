@@ -1,8 +1,9 @@
 {
 "ThumbnailResolution": [
-  640,
-  360
+  320,
+  180
 ],
+"ThumbnailDisplayRatio": "16:9",
 "DisplayFieldChart": false,
 "DisplayGateMask": false,
 "DisplayFilmGate": false,

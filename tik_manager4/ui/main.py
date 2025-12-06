@@ -1108,6 +1108,11 @@ class MainUI(QtWidgets.QMainWindow):
         """Refresh the versions' ui."""
         self.versions_mcv.refresh()
 
+    def refresh(self):
+        """Refresh the entire UI."""
+        self.versions_mcv.update_preview_settings()
+        self.refresh_project()
+
     def on_set_project(self, message=""):
         """Show a status message."""
         self.management_lock()

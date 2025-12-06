@@ -253,7 +253,7 @@ class Work(Settings, LocalizeMixin):
 
         # add it to the versions
         # extension = Path(output_path).suffix or "Folder"
-        thumbnail_resolution = self.guard.preview_settings.get("ThumbnailResolution", (640, 360))
+        thumbnail_resolution = self.guard.preview_settings.get("ThumbnailResolution", (320, 180))
         self._standalone_handler.text_to_image(extension, thumbnail_path, *(thumbnail_resolution))
         version_dict = {
             "version_number": version_number,
@@ -336,7 +336,7 @@ class Work(Settings, LocalizeMixin):
         # generate thumbnail
         # create the thumbnail folder if it doesn't exist
         Path(thumbnail_path).parent.mkdir(parents=True, exist_ok=True)
-        thumbnail_resolution = self.guard.preview_settings.get("ThumbnailResolution", (640, 360))
+        thumbnail_resolution = self.guard.preview_settings.get("ThumbnailResolution", (320, 180))
         self._dcc_handler.generate_thumbnail(thumbnail_path, *(thumbnail_resolution))
 
         # add it to the versions
@@ -613,7 +613,7 @@ class Work(Settings, LocalizeMixin):
 
         if not new_thumbnail_path:
             thumbnail_resolution = self.guard.preview_settings.get(
-                "ThumbnailResolution", (640, 360))
+                "ThumbnailResolution", (320, 180))
             self._dcc_handler.generate_thumbnail(target_absolute_path,
                                                  *thumbnail_resolution)
             version_obj.thumbnail = target_relative_path

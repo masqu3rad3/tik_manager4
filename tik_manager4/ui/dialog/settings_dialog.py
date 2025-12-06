@@ -391,9 +391,38 @@ class SettingsDialog(QtWidgets.QDialog):
         # create sub-branches
         preview_settings_item = SwitchTreeItem(["Preview Settings"], permission_level=3)
         project_widget_item.addChild(preview_settings_item)
+
+        # Generate default definition
+        preview_ui_def = convert_to_ui_definition(self.main_object.project.preview_settings.properties)
+
+        # Remove deprecated PreviewRatio if it exists
+        if "PreviewRatio" in preview_ui_def:
+            del preview_ui_def["PreviewRatio"]
+            # Also remove from settings object to clean up the file eventually
+            if self.main_object.project.preview_settings.get_property("PreviewRatio"):
+                 self.main_object.project.preview_settings.delete_property("PreviewRatio")
+
+        # Customize ThumbnailDisplayRatio
+        preview_ui_def["ThumbnailDisplayRatio"] = {
+            "display_name": "Thumbnail Display Ratio",
+            "type": DataTypes.COMBO.value,
+            "items": ["16:9", "1:1"],
+            "value": self.main_object.project.preview_settings.get_property("ThumbnailDisplayRatio", "16:9"),
+            "tooltip": "Aspect ratio for the preview area."
+        }
+
+        # Customize ThumbnailResolution
+        preview_ui_def["ThumbnailResolution"] = {
+            "display_name": "Thumbnail Resolution",
+            "type": DataTypes.VECTOR2INT.value,
+            "value": self.main_object.project.preview_settings.get_property("ThumbnailResolution", [320, 180]),
+            "tooltip": "Resolution for generated thumbnails."
+        }
+
         preview_settings_item.content, _ = self.__create_generic_settings_layout(
             settings_data=self.main_object.project.preview_settings,
             title="Preview Settings",
+            ui_definition=preview_ui_def
         )
         category_definitions = SwitchTreeItem(
             ["Category Definitions"], permission_level=3
@@ -502,9 +531,26 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def apply_settings(self, close_dialog=False):
         """Apply the settings."""
+        refresh_required = False
         for settings_object in self.settings_list:
+            if settings_object == self.main_object.project.preview_settings:
+                 if settings_object.is_settings_changed():
+                     # Check if ThumbnailDisplayRatio is changed
+                     # We access private member _original_value to compare
+                     if settings_object._original_value.get("ThumbnailDisplayRatio") != settings_object._current_value.get("ThumbnailDisplayRatio"):
+                         refresh_required = True
+
             settings_object.apply_settings()
             self.check_changes()
+        
+        if refresh_required:
+            # Trigger refresh of the main UI
+            app = QtWidgets.QApplication.instance()
+            for widget in app.topLevelWidgets():
+                if widget.objectName().startswith("Tik Manager"):
+                     if hasattr(widget, "refresh"):
+                         widget.refresh()
+
         if close_dialog:
             self.close()
 

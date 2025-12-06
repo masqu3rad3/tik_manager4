@@ -314,8 +314,16 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.info.thumbnail.setToolTip("Right Click for replace options")
         self.info.thumbnail.setMinimumSize(QtCore.QSize(55, 30))
         self.info.thumbnail.setFrameShape(QtWidgets.QFrame.Box)
-        self.info.thumbnail.setScaledContents(True)
+        # self.info.thumbnail.setScaledContents(True)
         self.info.thumbnail.setAlignment(QtCore.Qt.AlignCenter)
+
+        # Set aspect ratio from settings
+        preview_ratio = self.project.preview_settings.get("ThumbnailDisplayRatio", "16:9")
+        if preview_ratio == "1:1":
+            self.info.thumbnail.aspect_ratio = 1.0
+        else:
+            self.info.thumbnail.aspect_ratio = 1.777
+
         self.addWidget(self.info.thumbnail)
 
         btn_layout = QtWidgets.QHBoxLayout()
@@ -923,15 +931,25 @@ class TikVersionLayout(QtWidgets.QVBoxLayout):
         self.populate_versions(self.base)
 
     def refresh(self):
-        """Refresh the version dropdown."""
+        """Refresh the version layout."""
+        self.update_preview_settings()
         if self.base:
             self.base.reload()
-            # self.populate_versions(self.base.versions)
             self.populate_versions(self.base)
         else:
             self.version.combo.clear()
             self.info.notes_editor.clear()
             self.info.thumbnail.clear()
+
+    def update_preview_settings(self):
+        """Update the preview settings."""
+        preview_ratio = self.project.preview_settings.get("ThumbnailDisplayRatio", "16:9")
+        if preview_ratio == "1:1":
+            self.info.thumbnail.aspect_ratio = 1.0
+        else:
+            self.info.thumbnail.aspect_ratio = 1.777
+        # Trigger resize to apply new aspect ratio
+        self.info.thumbnail.resizeEvent(None)
 
     def on_replace_thumbnail(self, mode="view"):
         """Replace the thumbnail with the current view or external file."""
