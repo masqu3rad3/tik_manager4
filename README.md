@@ -2,7 +2,6 @@
 [![Discord](https://discord.com/api/guilds/1304219367478788126/widget.png?style=shield)](https://discord.gg/knc7Mg7KBT)
 [![Documentation Status](https://readthedocs.org/projects/tik-manager4/badge/?version=latest)](https://tik-manager4.readthedocs.io/en/latest/?badge=latest) [![Build status](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-linux.yml/badge.svg)](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-linux.yml) [![Build status](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-macos.yml/badge.svg)](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-macos.yml) [![Build status](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-windows.yml/badge.svg)](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-windows.yml) [![Build status](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-maya.yml/badge.svg)](https://github.com/masqu3rad3/tik_manager4/actions/workflows/ci-test-maya.yml)
 
-
 ------------------------------------------------------------------------------------
 [**Tik Manager**](https://tik-manager.com/) is a Python-based Pipeline and Project Management platform designed for VFX and Animation Projects.
 
@@ -90,3 +89,6 @@ Windows binaries are using free code signing provided by
 [SignPath.io](https://signpath.io),
 and a free code signing certificate by the
 [SignPath Foundation](https://signpath.org/terms).
+
+### Powered by:
+[![JetBrains logo.](https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.svg)](https://jb.gg/OpenSource)
