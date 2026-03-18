@@ -1,5 +1,8 @@
 # Release Notes
 
+### v4.5.2
+- [HOTFIX] Bug fix: fixed the issue which was preventing to set the projects root.
+
 ### v4.5.1
 - [TIK-200] Bug fix: Incorrect background color on qss fixed by @herizoran
 - [TIK-204] Preview area improvements by @adevra. Now users can define the thumbnail size and ratio from the settings. A lightbox feature added to preview area to see the thumbnail in full resolution which is activated by pressing spacebar.
