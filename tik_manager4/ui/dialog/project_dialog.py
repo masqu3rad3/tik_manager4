@@ -116,7 +116,7 @@ class SetProjectDialog(QtWidgets.QDialog):
         selection_model.selectionChanged.connect(self.activate_folders)
         self.bookmarks_droplist.list.currentRowChanged.connect(self.activate_bookmarks)
         recent_pb.clicked.connect(self.recents_pop_menu)
-        browser_wgt.com.valueChanged.connect(lambda: self.set_tree_root())
+        browser_wgt.com.valueChanged.connect(self.set_tree_root)
 
     def set_tree_root(self, root_path):
         """Set the root of the tree to the given path."""
