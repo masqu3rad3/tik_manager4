@@ -188,6 +188,7 @@ def get_usd_export_kwargs(
         materials=True,
         mesh_colors=True,
         textures=True,
+        export_textures_mode='NEW',
         convert_orientation=True,
         global_up_selection='Y'
 ):
@@ -205,6 +206,7 @@ def get_usd_export_kwargs(
             materials (bool): Export material data
             mesh_colors (bool): Export color attributes
             textures (bool): Reference external texture files in generated USD
+            export_textures_mode (str):  Export Textures, Texture export method (KEEP', 'PRESERVE', 'NEW')
             convert_orientation (bool): Transform scene from Blender coordinate system to USD
             global_up_selection (str): Which axis in Blender will map to +Y in USD (+Y, +Z, -Y, -Z)
 
@@ -228,5 +230,11 @@ def get_usd_export_kwargs(
             'convert_orientation': convert_orientation,
             'export_global_up_selection': global_up_selection
         })
+
+    # 'export_textures' was removed in Blender 5.0, replaced by 'export_textures_mode'.
+    # Do NOT add 'export_textures_mode' to the base kwargs — it does not exist in Blender versions prior to 4.3
+    if bpy.app.version >= (5, 0, 0):
+        del kwargs['export_textures']
+        kwargs['export_textures_mode'] = export_textures_mode
 
     return kwargs
