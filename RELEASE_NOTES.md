@@ -1,5 +1,9 @@
 # Release Notes
 
+### v4.5.3
+- [TIK-206] Bug fix: fixed stylesheet issue by @herizoran.
+- [TIK-207] Blender 5.0 export USD compatibility fix by @herizoran.
+
 ### v4.5.2
 - [HOTFIX] Bug fix: fixed the issue which was preventing to set the projects root.
 
