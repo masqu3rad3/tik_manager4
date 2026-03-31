@@ -482,7 +482,7 @@ class CategoryDefinitions(QtWidgets.QWidget):
         self.build_static_widgets()
         self.build_value_widgets()
         #
-        # self.layouts.splitter.setSizes([500, 500])
+        self.layouts.splitter.setSizes([500, 500])
 
     def closeEvent(self, event):
         """Clean up signal connections on close."""
@@ -658,8 +658,8 @@ class CategoryDefinitions(QtWidgets.QWidget):
         # link the content widget to the item for visibility switching
         content_widget.setVisible(False)
         self.layouts.right_layout.addWidget(content_widget)
-        # widget_item.content = content_widget
-
+        widget_item.content = content_widget
+    #
     def _remove_item(self, validations_model, validations_list, list_data):
         """Removes the selected item from the list view."""
         # validations_model.removeRow(validations_list.currentIndex().row())
