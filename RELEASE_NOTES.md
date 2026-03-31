@@ -1,5 +1,8 @@
 # Release Notes
 
+### v4.5.31
+- [HOTFIX] Fixing the UI bug for disappeared category content in settings.
+
 ### v4.5.3
 - [TIK-206] Bug fix: fixed stylesheet issue by @herizoran.
 - [TIK-207] Blender 5.0 export USD compatibility fix by @herizoran.
