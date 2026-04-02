@@ -973,7 +973,7 @@ class TikCategoryWidget(QtWidgets.QWidget):
         if not self.task:
             return
         # get the current tab name
-        self._last_category = self.category_tab_widget.tabText(index)
+        self._last_category = self.category_tab_widget.tabText(index).replace('&', '')
         if not self._last_category:
             return
         if self._purgatory_mode:
