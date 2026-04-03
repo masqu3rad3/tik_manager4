@@ -91,11 +91,14 @@ def export_merged_visible_layers(file_path: str) -> bool:
 
 
 def open_image_file(file_path: str) -> None:
-    """Open an image file in Krita."""
+    """Open a document file in Krita."""
     application = Krita.instance()
-    existing_docs = application.documents()
-    for doc in existing_docs:
-        if file_path == doc.fileName():
-            doc.close()
+    window = application.activeWindow()
+
+    for view in window.views():
+        if view.document().fileName() == file_path:
+            window.activate(view)
+            return
+
     doc = application.openDocument(file_path)
-    application.activeWindow().addView(doc)
+    window.addView(doc)
