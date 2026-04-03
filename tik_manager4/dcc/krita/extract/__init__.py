@@ -1,16 +1,13 @@
 from pathlib import Path
 import importlib
 import inspect
-# from tik_manager4.objects import guard
 from tik_manager4.dcc.extract_core import ExtractCore
 
-# guard_obj = guard.Guard()
 classes = {}
 modules = list(Path(__file__).parent.glob("*.py"))
 
 exceptions = ["__init__.py"]
 
-# for mod in modules + common_modules:
 for mod in modules:
     file_name = mod.name
     if file_name not in exceptions and not file_name.startswith("_"):
