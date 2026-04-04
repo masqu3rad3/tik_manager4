@@ -1,5 +1,6 @@
 import io
 import sys
+from pathlib import Path
 
 from krita import Extension, Krita
 
@@ -9,9 +10,14 @@ if sys.stdout is None:
     sys.stdout = io.StringIO()
 
 tik_path = 'PATH\\TO\\PARENT\\FOLDER\\OF\\TIKMANAGER4\\'
+script_dir = Path(__file__).parent
 
-if tik_path not in sys.path:
+if str(script_dir) not in sys.path:
+    sys.path.insert(0, str(script_dir))
+if str(tik_path) not in sys.path:
     sys.path.append(tik_path)
+
+import qt_compat
 
 from tik_manager4.ui.Qt import QtWidgets
 from tik_manager4.ui import main
@@ -26,16 +32,12 @@ class TikManagerExtension(Extension):
 
     def createActions(self, window):
         menubar = window.qwindow().menuBar()
-
         tik_menu = QtWidgets.QMenu("Tik Manager", menubar)
         menubar.addMenu(tik_menu)
-
         action_main = tik_menu.addAction("Main UI")
         action_main.triggered.connect(self.launch_main_ui)
-
         action_new_version = tik_menu.addAction("New Version")
         action_new_version.triggered.connect(self.launch_new_version)
-
         action_publish = tik_menu.addAction("Publish")
         action_publish.triggered.connect(self.launch_publish)
 
