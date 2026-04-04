@@ -77,8 +77,11 @@ def export_merged_visible_layers(file_path: str) -> bool:
         raise ValueError("No visible vector layers found.")
 
     # Wrap collected content in a single SVG envelope sized to the document canvas
-    width = doc.width()
-    height = doc.height()
+    # toSvg() encodes coordinates in pt (points), not px.
+    dpi = doc.resolution()
+    width = doc.width() * 72.0 / dpi
+    height = doc.height() * 72.0 / dpi
+
     merged_svg = (
             f'<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n'
             f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}"'
