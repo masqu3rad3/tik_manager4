@@ -111,18 +111,13 @@ class Dcc(MainCore):
             except (AttributeError, TypeError):
                 continue
 
-        if dont_show:
-            tik4_main_ui = tik4MainUI(
-                tik_main_object,
-                window_name=window_name,
-                parent=parent
-            )
-        else:
-            tik4_main_ui = tik4MainUI(
-                tik_main_object,
-                window_name=window_name,
-                parent=parent
-            )
+        tik4_main_ui = tik4MainUI(
+            tik_main_object,
+            window_name=window_name,
+            parent=parent
+        )
+
+        if not dont_show:
             tik4_main_ui.show()
 
         return tik4_main_ui
