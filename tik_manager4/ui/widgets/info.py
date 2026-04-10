@@ -121,6 +121,10 @@ class ImageWidget(QtWidgets.QLabel):
             self.is_movie = False
         self.update()
 
+    def clear(self):
+        """Clear the thumbnail image."""
+        self.set_media("")
+
     def paintEvent(self, event):
         """Paint the image or movie frame with aspect fill."""
         painter = QtGui.QPainter(self)
