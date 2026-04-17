@@ -190,6 +190,10 @@ class Dcc(MainCore):
 
         file_path = str(Path(folder) / f"{name}.{extension}")
 
+        # Since version 5.0.0, a media type was added to image settings.
+        if bpy.app.version >= (5, 0, 0):
+            bpy.context.scene.render.image_settings.media_type = "VIDEO"
+
         bpy.context.scene.render.resolution_x = resolution[0]
         bpy.context.scene.render.resolution_y = resolution[1]
         bpy.context.scene.render.resolution_percentage = 100
