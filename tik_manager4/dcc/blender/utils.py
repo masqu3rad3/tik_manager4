@@ -66,6 +66,10 @@ def keep_scene_settings(func):
         stamp_note_text = bpy.context.scene.render.stamp_note_text
         use_stamp = bpy.context.scene.render.use_stamp # burn it inot the image
 
+        if bpy.app.version >= (5, 0, 0):
+            file_format = "FFMPEG"  # Force file format; otherwise it defaults to PNG
+            color_mode = "RGB"  # Force color mode; otherwise it defaults to RGBA
+
         try:
             return func(*args, **kwargs)
         except Exception as e:
