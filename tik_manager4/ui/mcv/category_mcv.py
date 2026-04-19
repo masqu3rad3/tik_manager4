@@ -947,6 +947,7 @@ class TikCategoryWidget(QtWidgets.QWidget):
             category.scan_works()
             self.pre_tab = QtWidgets.QWidget()
             self.pre_tab.setObjectName(key)
+            self.pre_tab.setProperty("category_key", key)
             self.category_tab_widget.addTab(self.pre_tab, key)
         self.category_tab_widget.blockSignals(False)
 
@@ -973,7 +974,7 @@ class TikCategoryWidget(QtWidgets.QWidget):
         if not self.task:
             return
         # get the current tab name
-        self._last_category = self.category_tab_widget.tabText(index)
+        self._last_category = self.category_tab_widget.widget(index).property("category_key")
         if not self._last_category:
             return
         if self._purgatory_mode:

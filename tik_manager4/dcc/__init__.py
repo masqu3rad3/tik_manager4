@@ -6,6 +6,7 @@ EXTENSION_DICT = {
     "gaffer": [".gfr"],
     "houdini": [".hip", ".hipnc", ".hiplc"],
     "katana": [".katana"],
+    "krita": [".kra"],
     "mari": [".mri"],
     "maya": [".ma", ".mb"],
     "nuke": [".nk"],
@@ -27,6 +28,8 @@ elif NAME == "houdini":
     from tik_manager4.dcc.houdini.main import Dcc
 elif NAME == "katana":
     from tik_manager4.dcc.katana.main import Dcc
+elif NAME == "krita":
+    from tik_manager4.dcc.krita.main import Dcc
 elif NAME == "mari":
     from tik_manager4.dcc.mari.main import Dcc
 elif NAME == "maya":
