@@ -1,0 +1,29 @@
+Krita Integration
+===================
+
+Prerequisites: Tik Manager4 must already installed somewhere on your system.
+
+1- Open the Krita plugin folder
+
+Navigate to:
+C:\Users<username>\AppData\Roaming\krita\pykrita
+Tip: You can paste this path directly into Windows Explorer's address bar. Replace <username> with your actual Windows username.
+
+2- Copy the plugin files
+
+Inside your Tik Manager 4 installation, go to tik_manager4/dcc/krita/setup/. Copy the following two items into the pykrita folder you opened in step 1:
+  - The file tikManager4.desktop
+  - The folder tikManager4
+
+3- Set the installation path
+
+Open the file you just copied:
+C:\Users<username>\AppData\Roaming\krita\pykrita\tikManager4\tikManager4.py in any text editor. Find the placeholder PATH\TO\PARENT\FOLDER\OF\TIKMANAGER4\ and replace it with the path to the parent folder of your tik_manager4 directory.
+
+Example: If your Tik Manager4 files are at C:\tik_manager4-4.5.3\tik_manager4, then the parent folder is C:\tik_manager4-4.5.3. That's what you paste in.
+
+
+4- Enable the plugin in Krita
+
+Open Krita, go to Settings > Configure Krita > Python Plugin Manager, and check Tik Manager4.
+You should now see a Tik Manager menu in the top menu bar.

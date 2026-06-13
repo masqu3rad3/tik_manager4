@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=Krita/PythonPlugin
+X-KDE-Library=tikManager4
+X-Python-2-Compatible=false
+X-Krita-Manual=manual.html
+Name=Tik Manager4
+Comment=Tik Manager4 integration for Krita

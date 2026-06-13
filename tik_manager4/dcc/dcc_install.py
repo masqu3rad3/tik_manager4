@@ -59,6 +59,7 @@ class Installer:
             "Nuke": self.nuke_setup,
             "Photoshop": self.photoshop_setup,
             "Katana": self.katana_setup,
+            "Krita": self.krita_setup,
             "Mari": self.mari_setup,
             "Gaffer": self.gaffer_setup,
             "Substance": self.substance_setup,
@@ -73,6 +74,7 @@ class Installer:
         self.nuke_setup(prompt=False)
         self.photoshop_setup(prompt=False)
         self.katana_setup(prompt=False)
+        self.krita_setup(prompt=False)
         self.mari_setup(prompt=False)
         self.gaffer_setup(prompt=False)
         self.substance_setup(prompt=False)
@@ -601,6 +603,60 @@ icon: #("TikManager4",3)
         injector.replace_single_line(f"ICON: {publish_icon.as_posix()}", line="ICON:")
 
         print_msg("Katana setup completed.")
+        if prompt:
+            _r = input("Press Enter to continue...")
+            assert isinstance(_r, str)
+
+    def krita_setup(self, prompt=True):
+        """Installs the Krita plugin."""
+        print_msg("\n")
+        print_msg("**********************")
+        print_msg("Starting Krita Setup...")
+        print_msg("**********************")
+
+        if self.check_running_instances("Krita") == -1:
+            print_msg("Installation aborted by user.")
+            return
+
+        user_krita_folder = self.user_home / "AppData" / "Roaming" / "krita"
+
+        if not user_krita_folder.exists():
+            if prompt:
+                print_msg("No Krita version can be found in the user's home directory")
+                print_msg(
+                    "Make sure Krita is installed and try again. Alternatively you can try manual install. "
+                    "Check the documentation for more information."
+                )
+                if prompt:
+                    _r = input("Press Enter to continue...")
+                    assert isinstance(_r, str)
+            return
+
+
+        extensions_source_folder = self.tik_dcc_folder / "krita" / "setup" / "tikManager4"
+        extensions_target_folder = user_krita_folder / "pykrita" / "tikManager4"
+
+        # copy the source folder and overwrite the target folder
+        shutil.copytree(
+            extensions_source_folder,
+            extensions_target_folder,
+            dirs_exist_ok=True,
+            symlinks=True,
+        )
+
+        source_plugin_file = self.tik_dcc_folder / "krita" / "setup" / "tikManager4.desktop"
+        target_plugin_file = Path(extensions_target_folder).parent / "tikManager4.desktop"
+        shutil.copy(source_plugin_file, target_plugin_file)
+
+        tik_menu_file = extensions_target_folder / "tikManager4.py"
+        injector = Injector(tik_menu_file)
+        injector.match_mode = "contains"
+        injector.replace_single_line(
+            f"tik_path = '{self.tik_root.parent.as_posix()}'",
+            line="tik_path = "
+        )
+
+        print_msg("Krita setup completed.")
         if prompt:
             _r = input("Press Enter to continue...")
             assert isinstance(_r, str)
