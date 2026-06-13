@@ -974,7 +974,10 @@ class TikCategoryWidget(QtWidgets.QWidget):
         if not self.task:
             return
         # get the current tab name
-        self._last_category = self.category_tab_widget.widget(index).property("category_key")
+        # Guard against widget() returning None. PyQt raises an exception when
+        # accessing a property on a None type widget, while PySide is more permissive.
+        tab = self.category_tab_widget.widget(index)
+        self._last_category = tab.property("category_key") if tab else None
         if not self._last_category:
             return
         if self._purgatory_mode:
