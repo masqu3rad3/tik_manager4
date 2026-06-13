@@ -191,6 +191,7 @@ class TikSubView(QtWidgets.QTreeView):
         self._feedback = Feedback(parent=self)
         self.setUniformRowHeights(True)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setObjectName("subview")
 
         self.model = None
         self.proxy_model = None
