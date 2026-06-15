@@ -662,6 +662,16 @@ class TikSubView(QtWidgets.QTreeView):
             message, title = self.model.project.log.get_last_message()
             self._feedback.pop_info(title.capitalize(), message)
             return
+
+        # check for sub-projects selection
+        if not sub_projects:
+            self._feedback.pop_info(
+                "No sub-project selected",
+                "Please selected a Sub-project before creating a task.",
+                critical=True
+            )
+            return
+
         _dialog = tik_manager4.ui.dialog.task_dialog.NewTask(
             self.model.project, parent_sub=sub_projects, parent=self
         )
