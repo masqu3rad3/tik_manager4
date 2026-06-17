@@ -668,7 +668,7 @@ class TikSubView(QtWidgets.QTreeView):
         if not sub_projects:
             self._feedback.pop_info(
                 "No sub-project selected",
-                "Please selected a Sub-project before creating a task.",
+                "Please select a Sub-project before creating a task.",
                 critical=True
             )
             return
