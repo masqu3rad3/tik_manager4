@@ -67,7 +67,7 @@ def keep_scene_settings(func):
         use_stamp = bpy.context.scene.render.use_stamp # burn it inot the image
 
         if bpy.app.version >= (5, 0, 0):
-            file_format = "FFMPEG"  # Force file format; otherwise it defaults to PNG
+            file_format = "FFMPEG" if func.__name__ == "generate_preview" else "PNG"
             color_mode = "RGB"  # Force color mode; otherwise it defaults to RGBA
 
         try:
