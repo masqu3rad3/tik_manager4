@@ -262,7 +262,9 @@ class Dcc(MainCore):
     @staticmethod
     def get_dcc_version():
         """Return the DCC version."""
-        return bpy.app.version_string
+        major, minor, patch = bpy.app.version
+        version = f"{major}.{minor}.{patch}"
+        return version
 
     @staticmethod
     def get_scene_fps():
