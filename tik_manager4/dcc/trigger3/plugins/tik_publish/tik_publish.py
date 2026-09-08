@@ -116,6 +116,21 @@ class TikPublish(PublishAction):
         # action without the window has attached nothing yet.
         if vcs.host.session is None:
             vcs.host.attach(session=ctx.session)
+        # ...and Publisher.resolve then finds the work through *the host*, not
+        # through ctx. A script that attached one session and ran a build of
+        # another would file this set's artifacts into the wrong work without
+        # saying so, so the two have to be the same session.
+        host_path = vcs.host.session_path
+        session_path = getattr(ctx.session, "file_path", None)
+        if (
+            not host_path
+            or session_path is None
+            or Path(host_path).resolve() != Path(session_path).resolve()
+        ):
+            raise ActionExecutionError(
+                "tik_publish: the version control host holds a different "
+                f"session ({host_path})"
+            )
         tik = _tik()
         publisher = Publisher(tik.project)
         if not publisher.resolve():

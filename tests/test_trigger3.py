@@ -350,6 +350,26 @@ def test_tik_publish_registers_a_publish_version_with_three_elements(tik3, tmp_p
     assert (bundle / f"{work.name}_v001.tr").exists()
 
 
+def test_tik_publish_refuses_a_session_the_host_does_not_hold(tik3, tmp_path):
+    """Publisher.resolve reads the host, so publishing another session lies."""
+    import tik.trigger as trigger
+    from tik.trigger.core import ActionContext, registry
+    from tik.trigger.core.exceptions import ActionExecutionError
+
+    trigger.add_plugin_path(_plugins_root())
+    trigger.load_plugins()
+    cls = registry.get_action("tik_publish")
+
+    _task, _work, session = _rig_work(tik3, tmp_path)  # this one is attached
+    other = Session()
+    other.save(tmp_path / "other.tr")
+    ctx = ActionContext(session=other, base_dir=str(tmp_path))
+    publish_set = PublishSet.collect(other.file_path, other.document)
+    with pytest.raises(ActionExecutionError, match="holds a different session"):
+        cls().deliver(publish_set, ctx)
+    assert Path(vcs.host.session_path).resolve() == session.file_path.resolve()
+
+
 def test_tik_publish_discards_the_reservation_when_an_extract_fails(tik3, tmp_path):
     """A failed extract must leave no .tpub: it would scan as an empty version."""
     import tik.trigger as trigger
