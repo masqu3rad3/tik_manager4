@@ -12,6 +12,12 @@ from tik_manager4.ui.mcv.version_mcv import TikVersionWidget
 class TikPickerDialog(QtWidgets.QDialog):
     """Pick a work or publish version; ``pick()`` returns its file path."""
 
+    #: the version widget's buttons that act on the scene rather than pick a
+    #: path. ``on_load`` opens the version through the DCC handler, which for
+    #: trigger3 is ``host.open`` -- browsing for a field path must never
+    #: replace Trigger's active session. The Use button is the only exit.
+    ACTION_BUTTONS = ("import_btn", "bundle_ingest_btn", "load_btn", "reference_btn")
+
     def __init__(self, tik, kind, extensions, parent=None):
         super().__init__(parent)
         self.tik = tik
@@ -58,7 +64,22 @@ class TikPickerDialog(QtWidgets.QDialog):
         cancel.clicked.connect(self.reject)
         buttons.addWidget(self.use_button)
         buttons.addWidget(cancel)
+        for name in self.ACTION_BUTTONS:
+            getattr(self.versions.buttons, name).clicked.disconnect()
+        self._disarm_action_buttons()
         self.subprojects.refresh()
+
+    def _disarm_action_buttons(self):
+        """Hide and disable the version widget's scene-acting buttons.
+
+        ``TikVersionWidget.button_states`` flips ``import_btn`` and
+        ``bundle_ingest_btn`` back on with every ``set_base``, so this runs
+        again after every refresh.
+        """
+        for name in self.ACTION_BUTTONS:
+            button = getattr(self.versions.buttons, name)
+            button.setVisible(False)
+            button.setEnabled(False)
 
     # ------------------------------------------------------------ seams
     def select_work(self, base):
@@ -104,6 +125,7 @@ class TikPickerDialog(QtWidgets.QDialog):
         return not self.extensions or Path(path).suffix in self.extensions
 
     def _refresh(self):
+        self._disarm_action_buttons()
         path = self.chosen_path()
         self.path_label.setText(path)
         self.use_button.setEnabled(self._acceptable(path))

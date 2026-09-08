@@ -7,6 +7,26 @@ from tik.trigger.vcs.provider import Context, VersionControl
 
 DCC_NAME = "trigger3"
 
+#: The last window ``_launch_window`` opened. Without a parent -- which is what
+#: ``get_main_window`` returns outside Maya -- the window would be garbage
+#: collected the moment the verb returns.
+_WINDOW = None
+
+
+def _launch_window():
+    """Open tik_manager's main window for trigger3, through its own launcher.
+
+    ``ui.main.launch`` initialises tik_manager4 for the DCC, closes any window
+    already carrying the same object name, sets ``AA_DontUseNativeMenuBar`` and
+    honours a DCC's ``custom_launcher``; doing it by hand stacks a second
+    window on every call.
+    """
+    global _WINDOW  # pylint: disable=global-statement
+    from tik_manager4.ui import main
+
+    _WINDOW = main.launch(DCC_NAME)
+    return _WINDOW
+
 
 def _tik():
     """A tik_manager4 main object bound to the trigger3 DCC.
@@ -80,24 +100,7 @@ class TikManagerProvider(VersionControl):
         return picked
 
     def publish_file(self, kind: str, path, host) -> None:
-        from tik_manager4.ui import main
-
-        tik = _tik()
-        window = main.MainUI(
-            tik,
-            parent=tik.dcc.get_main_window(),
-            window_name="Tik Manager - trigger3",
-        )
-        window.show()
-        window.on_save_any_file(file_path=str(Path(path)))
+        _launch_window().on_save_any_file(file_path=str(Path(path)))
 
     def launch(self, host) -> None:
-        from tik_manager4.ui import main
-
-        tik = _tik()
-        window = main.MainUI(
-            tik,
-            parent=tik.dcc.get_main_window(),
-            window_name="Tik Manager - trigger3",
-        )
-        window.show()
+        _launch_window()

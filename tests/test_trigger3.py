@@ -278,3 +278,22 @@ def test_picker_resolves_a_work_version(tik3, tmp_path, qapp):
     dialog.select_work(work)
     assert dialog.chosen_path().endswith("hero_v001.tr")
     assert dialog.use_button.isEnabled()
+
+
+def test_picker_cannot_load_a_version_into_the_session(tik3, tmp_path, qapp):
+    """The picker picks; Load/Import/Reference would open or import a scene."""
+    from tik_manager4.dcc.trigger3.picker import TikPickerDialog
+
+    _task, work, session = _rig_work(tik3, tmp_path)
+    dialog = TikPickerDialog(tik3, "session", [".tr"])
+    buttons = dialog.versions.buttons
+    # isVisibleTo, not isHidden: a never-shown dialog's children all read as
+    # hidden, so only "would you show with the dialog?" is a real assertion.
+    for name in TikPickerDialog.ACTION_BUTTONS:
+        assert not getattr(buttons, name).isVisibleTo(dialog), name
+    assert dialog.use_button.isVisibleTo(dialog)
+    # button_states re-shows some of them with every base; they stay hidden.
+    dialog.select_work(work)
+    for name in TikPickerDialog.ACTION_BUTTONS:
+        button = getattr(buttons, name)
+        assert not button.isVisibleTo(dialog) and not button.isEnabled(), name
