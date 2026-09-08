@@ -77,7 +77,7 @@ def _rig_work(tik3, tmp_path, name="hero"):
     task = tik3.project.create_task("hero", categories=["Rig"], parent_path=sub.path)
     definitions = tik3.project.category_definitions
     rig = dict(definitions.get_property("Rig"))
-    rig["extracts"] = ["source", "rig", "guides"]
+    rig["extracts"] = ["source", "guides", "rig"]
     definitions.edit_property("Rig", rig)
     definitions.apply_settings(force=True)
     session = Session()

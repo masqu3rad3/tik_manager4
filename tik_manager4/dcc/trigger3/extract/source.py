@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from tik_manager4.dcc.extract_core import ExtractCore
-from tik_manager4.dcc.trigger3._host import host
+from tik_manager4.dcc.trigger3._host import export_guides, host
 
 BUNDLE_MATCH_ID = 31
 STORE_DIR = "_store"
@@ -45,7 +45,7 @@ class Source(ExtractCore):
             Path(self.extract_folder)
             / f"{self.extract_name}_{self.version_string}.trg"
         )
-        session.guides.export(guides)
+        export_guides(session, guides)
         return PublishSet.collect(session.file_path, session.document, guides=guides)
 
     def _extract_default(self):

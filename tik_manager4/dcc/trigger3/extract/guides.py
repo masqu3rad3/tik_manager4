@@ -4,7 +4,7 @@ import shutil
 from pathlib import Path
 
 from tik_manager4.dcc.extract_core import ExtractCore
-from tik_manager4.dcc.trigger3._host import host
+from tik_manager4.dcc.trigger3._host import export_guides, host
 
 
 class Guides(ExtractCore):
@@ -40,4 +40,4 @@ class Guides(ExtractCore):
         session = host().session
         if session is None:
             raise RuntimeError("No Trigger session to export guides from.")
-        session.guides.export(target)
+        export_guides(session, target)

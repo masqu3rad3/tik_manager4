@@ -7,6 +7,10 @@ Tik Manager 4 - trigger3 (tik.trigger workflow v3)
    opening Trigger. Trigger then shows a "Tik Manager" submenu under File, a
    Tik Manager button on every file field, and a tik_publish action.
 3. In the project's category definitions, the Rig category must list
-   ["source", "rig", "guides"] under "extracts" for tik_publish to work.
+   ["source", "guides", "rig"] under "extracts" for tik_publish to work.
+   The order matters when the extractors have to produce the artifacts
+   themselves -- publishing from Tik Manager rather than through the
+   tik_publish action -- because the rig extractor builds, and a build
+   deletes the guide joints.
 4. Works of this DCC are .tr files; a publish is a SOURCE_ bundle folder, a
    rig .mb and a guides .trg, with shared dependencies under _store/.
