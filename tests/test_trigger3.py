@@ -206,6 +206,16 @@ def test_source_ingest_opens_the_bundled_session(tik3, tmp_path):
     assert vcs.host.session_path.endswith("hero.tr")
 
 
+def test_dcc_open_resolves_a_bundle_folder(tik3, tmp_path):
+    """Publish.load_version hands the DCC handler the SOURCE_ folder itself."""
+    bundle = tmp_path / "SOURCE_hero_v001"
+    bundle.mkdir()
+    Session().save(bundle / "x.tr")
+    vcs.host.attach(session=Session())
+    tik3.dcc.open(str(bundle))
+    assert vcs.host.session_path.endswith("x.tr")
+
+
 def test_guides_ingest_imports_into_the_active_session(tik3, tmp_path, monkeypatch):
     from tik_manager4.dcc.trigger3.ingest.guides import Guides
 

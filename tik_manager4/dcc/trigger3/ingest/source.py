@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from tik_manager4.dcc.ingest_core import IngestCore
-from tik_manager4.dcc.trigger3._host import host
+from tik_manager4.dcc.trigger3._host import host, session_file_in
 
 BUNDLE_MATCH_ID = 31
 
@@ -33,10 +33,4 @@ class Source(IngestCore):
         self._file_path = str(path)
 
     def _bring_in_default(self):
-        path = Path(self.ingest_path)
-        if path.is_dir():
-            found = sorted(path.glob("*.tr"))
-            if not found:
-                raise ValueError(f"No .tr inside {path}")
-            path = found[0]
-        host().open(str(path))
+        host().open(session_file_in(self.ingest_path))

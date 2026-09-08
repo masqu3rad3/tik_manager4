@@ -31,3 +31,19 @@ def export_guides(session, path):
     session.guides.export(path)
     if not was_drawn:
         session.guides.clear_rendering()
+
+
+def session_file_in(path):
+    """The session file for ``path``: the first ``.tr`` inside a bundle folder.
+
+    A published source element is a folder, not a file, so everything that
+    hands a published path to ``host.open`` has to look inside it first.
+    Anything that is not a directory comes back unchanged.
+    """
+    found = Path(path)
+    if found.is_dir():
+        inside = sorted(found.glob("*.tr"))
+        if not inside:
+            raise ValueError(f"No .tr inside {found}")
+        found = inside[0]
+    return str(found)

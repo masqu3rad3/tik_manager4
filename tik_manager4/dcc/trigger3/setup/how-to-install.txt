@@ -14,3 +14,7 @@ Tik Manager 4 - trigger3 (tik.trigger workflow v3)
    deletes the guide joints.
 4. Works of this DCC are .tr files; a publish is a SOURCE_ bundle folder, a
    rig .mb and a guides .trg, with shared dependencies under _store/.
+5. Open published sessions read-only: loading one as a new work version is
+   a tik_manager4 limitation, because Publish.load_version iterates the work
+   with new_version(file_format="") -- the bundle folder has no extension --
+   and the new version gets no usable session file.

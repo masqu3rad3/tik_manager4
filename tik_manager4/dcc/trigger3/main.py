@@ -4,7 +4,7 @@ import logging
 
 from tik_manager4.dcc.main_core import MainCore
 from tik_manager4.dcc.trigger3 import extension, extract, ingest, validate
-from tik_manager4.dcc.trigger3._host import host
+from tik_manager4.dcc.trigger3._host import host, session_file_in
 
 LOG = logging.getLogger(__name__)
 
@@ -56,8 +56,13 @@ class Dcc(MainCore):
         return True
 
     def open(self, file_path, force=True, **extra_arguments):
-        """Open the given ``.tr`` session."""
-        host().open(file_path)
+        """Open the given session: a ``.tr``, or the bundle folder holding one.
+
+        Publish.load_version hands the resolved ``source`` element straight to
+        the DCC handler, and for trigger3 that element is the ``SOURCE_``
+        bundle folder rather than a file.
+        """
+        host().open(session_file_in(file_path))
 
     def is_modified(self):
         """Return True if the session has unsaved changes."""
