@@ -307,6 +307,12 @@ def test_picker_cannot_load_a_version_into_the_session(tik3, tmp_path, qapp):
     for name in TikPickerDialog.ACTION_BUTTONS:
         button = getattr(buttons, name)
         assert not button.isVisibleTo(dialog) and not button.isEnabled(), name
+    # nor through the version combo's right-click menu: Delete Version and
+    # Publish Snapshot are on it.
+    from tik_manager4.ui.Qt import QtCore
+
+    combo = dialog.versions.version.combo
+    assert combo.contextMenuPolicy() == QtCore.Qt.NoContextMenu
 
 
 def test_tik_publish_registers_a_publish_version_with_three_elements(tik3, tmp_path):

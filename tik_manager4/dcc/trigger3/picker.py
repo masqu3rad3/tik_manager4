@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from tik_manager4.ui.Qt import QtWidgets
+from tik_manager4.ui.Qt import QtCore, QtWidgets
 from tik_manager4.ui.mcv.category_mcv import TikCategoryWidget
 from tik_manager4.ui.mcv.subproject_mcv import TikSubProjectWidget
 from tik_manager4.ui.mcv.task_mcv import TikTaskWidget
@@ -66,6 +66,10 @@ class TikPickerDialog(QtWidgets.QDialog):
         buttons.addWidget(cancel)
         for name in self.ACTION_BUTTONS:
             getattr(self.versions.buttons, name).clicked.disconnect()
+        # the combo carries TikVersionWidget.version_right_click_menu, whose
+        # entries -- Delete Version, Publish Snapshot -- act on the project.
+        # Picking a path is not the place to reach any of them.
+        self.versions.version.combo.setContextMenuPolicy(QtCore.Qt.NoContextMenu)
         self._disarm_action_buttons()
         self.subprojects.refresh()
 
