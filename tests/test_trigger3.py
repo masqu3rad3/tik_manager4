@@ -338,3 +338,31 @@ def test_tik_publish_registers_a_publish_version_with_three_elements(tik3, tmp_p
     # the bundle carries the session under its own name, which for a work
     # version is "<task>_<category>_<name>_v###.tr".
     assert (bundle / f"{work.name}_v001.tr").exists()
+
+
+def test_tik_publish_discards_the_reservation_when_an_extract_fails(tik3, tmp_path):
+    """A failed extract must leave no .tpub: it would scan as an empty version."""
+    import tik.trigger as trigger
+    from tik.trigger.core import ActionContext, registry
+    from tik.trigger.core.exceptions import ActionExecutionError
+
+    trigger.add_plugin_path(_plugins_root())
+    trigger.load_plugins()
+    cls = registry.get_action("tik_publish")
+
+    _task, work, session = _rig_work(tik3, tmp_path)
+    trg = tmp_path / "hero.trg"
+    trg.write_text("{}", encoding="utf-8")
+    # no rig artifact, so the rig extractor fails after source has written its
+    # bundle -- the folder Publisher.discard cannot unlink on its own.
+    publish_set = PublishSet.collect(session.file_path, session.document, guides=trg)
+    ctx = ActionContext(session=session, base_dir=session.directory)
+    with pytest.raises(ActionExecutionError, match="extract failed"):
+        cls().deliver(publish_set, ctx)
+
+    work.publish.scan_publish_versions()
+    assert work.publish.get_last_version() == 0
+    data_folder = Path(work.publish.get_publish_data_folder())
+    assert list(data_folder.glob("*.tpub")) == []
+    scene_folder = Path(work.publish.get_publish_project_folder())
+    assert list(scene_folder.rglob("SOURCE_*")) == []
