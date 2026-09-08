@@ -1,0 +1,12 @@
+Tik Manager 4 - trigger3 (tik.trigger workflow v3)
+
+1. Put tikworks on PYTHONPATH:  D:/dev/tikworks/src/python
+2. Put this folder's plugins on TRIGGER_PLUGIN_PATH:
+       <tik_manager4>/tik_manager4/dcc/trigger3/plugins
+   or call tik.trigger.add_plugin_path(<that folder>) from userSetup.py before
+   opening Trigger. Trigger then shows a "Tik Manager" submenu under File, a
+   Tik Manager button on every file field, and a tik_publish action.
+3. In the project's category definitions, the Rig category must list
+   ["source", "rig", "guides"] under "extracts" for tik_publish to work.
+4. Works of this DCC are .tr files; a publish is a SOURCE_ bundle folder, a
+   rig .mb and a guides .trg, with shared dependencies under _store/.
