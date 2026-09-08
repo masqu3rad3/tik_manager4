@@ -42,6 +42,28 @@ def tik3(tmp_path):
         shutil.copytree(str(backup), str(user_path))
 
 
+class _Feedback:
+    """The one dialog ``save_prompt`` opens, answered by the test."""
+
+    def __init__(self, answer):
+        self.answer = answer
+        self.calls = []
+
+    def browse_save(self, caption="Save", start="", extensions=()):
+        self.calls.append((caption, start, tuple(extensions)))
+        return self.answer
+
+
+class _Guides:
+    """A stand-in for ``Session.guides``: Maya is never started here."""
+
+    def __init__(self):
+        self.imported = []
+
+    def import_(self, path):
+        self.imported.append(str(path))
+
+
 def _rig_work(tik3, tmp_path, name="hero"):
     sub = tik3.project.create_sub_project("assets", mode="asset", parent_path="")
     task = tik3.project.create_task("hero", categories=["Rig"], parent_path=sub.path)
@@ -72,6 +94,30 @@ def test_dcc_forwards_to_the_host(tik3, tmp_path):
     dcc.open(str(tmp_path / "other.tr"))
     assert dcc.get_scene_file().endswith("other.tr")
     assert dcc.get_dcc_version()
+
+
+def test_save_prompt_asks_where_a_never_saved_session_goes(tik3, tmp_path):
+    session = Session()
+    target = tmp_path / "asked.tr"
+    feedback = _Feedback(str(target))
+    vcs.host.attach(session=session, feedback=lambda: feedback)
+    dcc = tik3.dcc
+    assert dcc.get_scene_file() == ""  # the only state save_prompt is called in
+    assert dcc.save_prompt() is True
+    assert target.exists() and session.file_path == target
+    assert feedback.calls[0][2] == (".tr",)
+    # once it has a file, it saves in place without asking again.
+    assert dcc.save_prompt() is True
+    assert len(feedback.calls) == 1
+
+
+def test_save_prompt_refuses_when_the_user_cancels(tik3, tmp_path):
+    session = Session()
+    feedback = _Feedback("")
+    vcs.host.attach(session=session, feedback=lambda: feedback)
+    assert tik3.dcc.save_prompt() is False
+    assert session.file_path is None
+    assert list(tmp_path.glob("*.tr")) == []
 
 
 def test_create_work_saves_the_session_as_a_tik_version(tik3, tmp_path):
@@ -150,3 +196,30 @@ def test_source_ingest_opens_the_bundled_session(tik3, tmp_path):
     ingest.bring_in()
     assert ingest.state == "success"
     assert vcs.host.session_path.endswith("hero.tr")
+
+
+def test_guides_ingest_imports_into_the_active_session(tik3, tmp_path, monkeypatch):
+    from tik_manager4.dcc.trigger3.ingest.guides import Guides
+
+    guides = _Guides()
+    monkeypatch.setattr(Session, "guides", property(lambda self: guides))
+    trg = tmp_path / "library.trg"
+    trg.write_text("{}", encoding="utf-8")
+    vcs.host.attach(session=Session())
+    ingest = Guides()
+    ingest.ingest_path = str(trg)
+    ingest.bring_in()
+    assert ingest.state == "success"
+    assert guides.imported == [str(trg)]
+
+
+def test_guides_ingest_fails_without_a_session(tik3, tmp_path):
+    from tik_manager4.dcc.trigger3.ingest.guides import Guides
+
+    trg = tmp_path / "library.trg"
+    trg.write_text("{}", encoding="utf-8")
+    vcs.host.detach()
+    ingest = Guides()
+    ingest.ingest_path = str(trg)
+    ingest.bring_in()
+    assert ingest.state == "failed"

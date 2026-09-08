@@ -39,9 +39,21 @@ class Dcc(MainCore):
         return str(host().save_as(file_path)).replace("\\", "/")
 
     def save_prompt(self):
-        """Pop up the save prompt."""
-        self.save_scene()
-        return True  # anything falsy loops the caller
+        """Save the session, asking where when it has never been saved.
+
+        This is only ever called for a session with no file yet -- saving in
+        place cannot work, so ask for a path. Returning False on a cancel
+        stops the caller, which reads anything falsy as "not saved".
+        """
+        current = host().session_path
+        if not current:
+            path = host().feedback.browse_save("Save session", "", (".tr",))
+            if not path:
+                return False
+            host().save_as(path)
+            return True
+        host().save_as(current)
+        return True
 
     def open(self, file_path, force=True, **extra_arguments):
         """Open the given ``.tr`` session."""

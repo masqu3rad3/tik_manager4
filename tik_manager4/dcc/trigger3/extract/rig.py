@@ -26,8 +26,11 @@ class Rig(ExtractCore):
         target = Path(self.resolve_output())
         if self.publish_set is not None:
             rig = next(
-                item for item in self.publish_set.artifacts if item.kind == "rig"
+                (item for item in self.publish_set.artifacts if item.kind == "rig"),
+                None,
             )
+            if rig is None:
+                raise RuntimeError("The publish set carries no rig.")
             shutil.copy2(rig.path, target)
             return
         from maya import cmds
