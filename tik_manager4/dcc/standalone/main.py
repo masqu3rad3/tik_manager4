@@ -132,7 +132,12 @@ class Dcc(MainCore):
         # Create a QFontMetrics object to measure text dimensions
         font = QtGui.QFont('Arial', 12)  # You can adjust the font settings as needed
         metrics = QtGui.QFontMetrics(font)
-        text_width = metrics.width(text)
+        # QFontMetrics.width was removed in Qt6 in favour of horizontalAdvance.
+        text_width = (
+            metrics.horizontalAdvance(text)
+            if hasattr(metrics, "horizontalAdvance")
+            else metrics.width(text)
+        )
         text_height = metrics.height()
 
         # Calculate the scale factor for resizing

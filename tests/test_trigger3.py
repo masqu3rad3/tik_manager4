@@ -17,6 +17,14 @@ from tik.trigger.core.publish_set import PublishSet  # noqa: E402
 from tik.trigger.session import Session  # noqa: E402
 
 
+@pytest.fixture(scope="session")
+def qapp():
+    """A QApplication for the widget tests; offscreen under mayapy."""
+    from tik_manager4.ui.Qt import QtWidgets
+
+    return QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+
+
 @pytest.fixture
 def tik3(tmp_path):
     """tik_manager4 initialised for trigger3 with a throwaway project and user."""
@@ -223,3 +231,50 @@ def test_guides_ingest_fails_without_a_session(tik3, tmp_path):
     ingest.ingest_path = str(trg)
     ingest.bring_in()
     assert ingest.state == "failed"
+
+
+def _plugins_root():
+    """The external plugin root shipped with the trigger3 DCC."""
+    root = Path(__file__).resolve().parents[1]
+    return root / "tik_manager4" / "dcc" / "trigger3" / "plugins"
+
+
+def test_provider_registers_and_reads_context(tik3, tmp_path):
+    import tik.trigger as trigger
+
+    trigger.add_plugin_path(_plugins_root())
+    trigger.load_plugins()
+    provider = vcs.get_provider("tik_manager")()
+    assert provider.available() is True
+    assert provider.display_label() == "Tik Manager"
+    assert provider.icon_path() is not None
+    assert provider.context(str(tmp_path / "loose.tr")) is None
+    _task, work, session = _rig_work(tik3, tmp_path)
+    context = provider.context(str(session.file_path))
+    assert context.label.endswith("hero") and context.version == 1 and context.is_latest
+
+
+def test_provider_new_version_iterates_the_work(tik3, tmp_path):
+    # never import the plugin by its dotted tik_manager4 path: the plugin
+    # loader imports it as ``tik_manager.tik_manager`` and a second module
+    # object would register the provider twice
+    import tik.trigger as trigger
+
+    trigger.add_plugin_path(_plugins_root())
+    trigger.load_plugins()
+    provider = vcs.get_provider("tik_manager")()
+    _task, work, session = _rig_work(tik3, tmp_path)
+    path = provider.new_version(vcs.host)
+    assert path.endswith("_v002.tr")
+    work.reload()
+    assert work.version_count == 2
+
+
+def test_picker_resolves_a_work_version(tik3, tmp_path, qapp):
+    from tik_manager4.dcc.trigger3.picker import TikPickerDialog
+
+    _task, work, session = _rig_work(tik3, tmp_path)
+    dialog = TikPickerDialog(tik3, "session", [".tr"])
+    dialog.select_work(work)
+    assert dialog.chosen_path().endswith("hero_v001.tr")
+    assert dialog.use_button.isEnabled()
