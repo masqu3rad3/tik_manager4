@@ -11,7 +11,8 @@ from tik.trigger.core.exceptions import ActionExecutionError
 LOG = logging.getLogger(__name__)
 
 DCC_NAME = "trigger3"
-ELEMENTS = ("source", "rig", "guides")
+# guides before rig: the rig extractor's fallback rebuilds and clears the scene.
+ELEMENTS = ("source", "guides", "rig")
 
 
 def _tik():
@@ -135,12 +136,25 @@ class TikPublish(PublishAction):
         publisher = Publisher(tik.project)
         if not publisher.resolve():
             raise ActionExecutionError("the session is not saved in a Tik Manager work")
-        missing = [name for name in ELEMENTS if name not in publisher.extractors]
-        if missing:
-            raise ActionExecutionError(
-                "the work's category definition must list these extracts: "
-                + ", ".join(missing)
-            )
+        # A Trigger publish *is* source, guides and rig: supply whichever of
+        # them the category definition left out, ahead of anything else the
+        # category did list, and put the three in the fixed, safe order.
+        existing = publisher.extractors
+        ordered = {}
+        for name in ELEMENTS:
+            if name in existing:
+                ordered[name] = existing[name]
+            else:
+                extractor = tik.dcc.extracts[name]()
+                extractor.category = publisher.work_object.category
+                extractor.metadata = publisher.metadata
+                ordered[name] = extractor
+        for name, extractor in existing.items():
+            if name not in ordered:
+                ordered[name] = extractor
+        # Publisher exposes `extractors` as a read-only property over this
+        # private dict; there is no public setter, so this one write stands.
+        publisher._resolved_extractors = ordered
         # A slot that is already taken belongs to another publish in flight:
         # reserve refuses it, and discarding it would delete their work.
         taken = (Path(publisher.absolute_data_path) / publisher.publish_name).exists()

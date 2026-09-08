@@ -72,12 +72,12 @@ class _Guides:
         self.imported.append(str(path))
 
 
-def _rig_work(tik3, tmp_path, name="hero"):
+def _rig_work(tik3, tmp_path, name="hero", extracts=("source", "guides", "rig")):
     sub = tik3.project.create_sub_project("assets", mode="asset", parent_path="")
     task = tik3.project.create_task("hero", categories=["Rig"], parent_path=sub.path)
     definitions = tik3.project.category_definitions
     rig = dict(definitions.get_property("Rig"))
-    rig["extracts"] = ["source", "guides", "rig"]
+    rig["extracts"] = list(extracts)
     definitions.edit_property("Rig", rig)
     definitions.apply_settings(force=True)
     session = Session()
@@ -354,6 +354,36 @@ def test_tik_publish_registers_a_publish_version_with_three_elements(tik3, tmp_p
     # the bundle carries the session under its own name, which for a work
     # version is "<task>_<category>_<name>_v###.tr".
     assert (bundle / f"{work.name}_v001.tr").exists()
+
+
+def test_tik_publish_supplies_its_own_extractors_when_the_category_lists_only_source(
+    tik3, tmp_path
+):
+    import tik.trigger as trigger
+    from tik.trigger.core import ActionContext, registry
+
+    trigger.add_plugin_path(_plugins_root())
+    trigger.load_plugins()
+    cls = registry.get_action("tik_publish")
+
+    _task, work, session = _rig_work(tik3, tmp_path, extracts=("source",))
+    rig = tmp_path / "hero_rig.mb"
+    rig.write_bytes(b"rig")
+    trg = tmp_path / "hero.trg"
+    trg.write_text("{}", encoding="utf-8")
+    publish_set = PublishSet.collect(
+        session.file_path, session.document, rig=rig, guides=trg
+    )
+    ctx = ActionContext(session=session, base_dir=session.directory)
+    action = cls({"notes": "first"})
+    assert action.validate(ctx) == []
+    action.deliver(publish_set, ctx)
+
+    work.publish.scan_publish_versions()
+    published = work.publish.get_last_version()
+    assert published == 1
+    version = work.publish.get_version(1)
+    assert sorted(version.element_types) == ["guides", "rig", "source"]
 
 
 def test_tik_publish_refuses_a_session_the_host_does_not_hold(tik3, tmp_path):
