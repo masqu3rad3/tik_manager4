@@ -297,3 +297,44 @@ def test_picker_cannot_load_a_version_into_the_session(tik3, tmp_path, qapp):
     for name in TikPickerDialog.ACTION_BUTTONS:
         button = getattr(buttons, name)
         assert not button.isVisibleTo(dialog) and not button.isEnabled(), name
+
+
+def test_tik_publish_registers_a_publish_version_with_three_elements(tik3, tmp_path):
+    import tik.trigger as trigger
+    from tik.trigger.core import ActionContext, registry
+
+    trigger.add_plugin_path(_plugins_root())
+    trigger.load_plugins()
+    cls = registry.get_action("tik_publish")
+    assert cls.scope == "publish"
+
+    loose = Session()
+    loose.save(tmp_path / "loose.tr")
+    ctx = ActionContext(session=loose, base_dir=str(tmp_path))
+    assert cls().validate(ctx) == [
+        "tik_publish: the session is not saved in a Tik Manager work"
+    ]
+
+    _task, work, session = _rig_work(tik3, tmp_path)
+    rig = tmp_path / "hero_rig.mb"
+    rig.write_bytes(b"rig")
+    trg = tmp_path / "hero.trg"
+    trg.write_text("{}", encoding="utf-8")
+    publish_set = PublishSet.collect(
+        session.file_path, session.document, rig=rig, guides=trg
+    )
+    ctx = ActionContext(session=session, base_dir=session.directory)
+    action = cls({"notes": "first"})
+    assert action.validate(ctx) == []
+    action.deliver(publish_set, ctx)
+
+    work.publish.scan_publish_versions()
+    published = work.publish.get_last_version()
+    assert published == 1
+    version = work.publish.get_version(1)
+    assert sorted(version.element_types) == ["guides", "rig", "source"]
+    assert version.notes == "first"
+    bundle = Path(version.get_resolved_path(version.get_element_path("source")))
+    # the bundle carries the session under its own name, which for a work
+    # version is "<task>_<category>_<name>_v###.tr".
+    assert (bundle / f"{work.name}_v001.tr").exists()
